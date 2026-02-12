@@ -8,7 +8,6 @@ import { Mail, Globe, Twitter, Github, Linkedin, User, UserRound, AtSign, Link a
 import { UserProfile, UserStats } from '@/types';
 import { fetchCurrentUserProfile, updateUserProfile, uploadAvatar, fetchCurrentUserStats } from '@/lib/api/profile';
 import { validateSocialLink } from '@/lib/validation';
-import { getCurrentUserApi } from '@/lib/api/auth';
 import { useLoading } from '@/context/loading-context';
 import { useThemedClasses } from '@/hooks/useThemedClasses';
 import TabNavigation from './components/TabNavigation';
@@ -30,12 +29,8 @@ export default function ProfilePage() {
   const [saveStatus, setSaveStatus] = useState<{success: boolean; message: string} | null>(null);
 
   useEffect(() => {
-    // 延迟加载数据，确保认证状态有时间同步
-    const timer = setTimeout(() => {
-      loadProfileData();
-    }, 300); // 减少延迟时间，因为ProtectedRoute现在更快响应
-
-    return () => clearTimeout(timer);
+    // ProtectedRoute 已经确保用户已认证，直接加载数据
+    loadProfileData();
   }, []);
 
   const loadProfileData = async () => {
@@ -43,28 +38,22 @@ export default function ProfilePage() {
       showLoading();
       setIsPageLoading(true);
 
-      // 检查登录状态
-      const currentUser = await getCurrentUserApi();
-      if (!currentUser) {
-        // 未登录，自动重定向到登录页
-        router.push('/login');
-        return;
-      }
+      // 加载资料和统计数据
+      const [profileData, statsData] = await Promise.all([
+        fetchCurrentUserProfile(),
+        fetchCurrentUserStats()
+      ]);
 
-      // 已登录，加载资料和统计数据
-      const profileData = await fetchCurrentUserProfile();
-      const statsData = await fetchCurrentUserStats();
       setProfile(profileData);
       setStats(statsData);
       setFormData(profileData);
     } catch (error) {
       console.error('Error loading profile data:', error);
-      // 如果是认证错误或其他错误，重定向到登录页
-      if (error instanceof Error && (error.message.includes('401') || error.message.includes('Unauthorized'))) {
-        router.push('/login?message=请先登录以查看您的个人资料');
-      } else {
-        router.push('/login');
-      }
+      // 数据加载失败，显示错误提示
+      setSaveStatus({ 
+        success: false, 
+        message: '加载个人资料失败，请刷新页面重试' 
+      });
     } finally {
       hideLoading();
       setIsPageLoading(false);
@@ -216,7 +205,7 @@ export default function ProfilePage() {
                 onAvatarChange={handleAvatarUpload}
               />
             )}
-            
+
             {activeTab === 'settings' && <SettingsView />}
             
             {activeTab === 'activity' && <ActivityView />}
