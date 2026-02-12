@@ -786,7 +786,7 @@ useEffect(() => {
                           key={c.value}
                           onClick={() => setSelectedColor(c.value)}
                           className={cn(
-                            "w-6 h-6 rounded-sm border transition-transform hover:scale-110",
+                            "w-6 h-6 rounded-sm border transition-transform",
                             selectedColor === c.value ? "border-white scale-110" : "border-transparent opacity-70"
                           )}
                           style={{ backgroundColor: c.value }}
@@ -812,7 +812,7 @@ useEffect(() => {
                   <button
                     onClick={handleSubmit}
                     disabled={isSubmitting || !newMessage.trim()}
-                    className="flex items-center gap-2 px-6 py-2.5 bg-tech-cyan text-black font-bold uppercase tracking-wider hover:bg-tech-lightcyan transition-all hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(0,217,255,0.4)] active:scale-[0.98]"
+                    className="flex items-center gap-2 px-6 py-2.5 bg-tech-cyan text-black font-bold uppercase tracking-wider hover:bg-tech-lightcyan transition-all hover:shadow-[0_0_20px_rgba(0,217,255,0.4)]"
                   >
                     {isSubmitting ? (
                       <>

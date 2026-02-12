@@ -215,7 +215,7 @@ function MessageInput({
                 key={emoji}
                 type="button"
                 onClick={() => insertEmoji(emoji)}
-                className="text-xl hover:scale-125 transition-transform"
+                className="text-xl transition-transform"
               >
                 {emoji}
               </button>
@@ -243,7 +243,7 @@ function MessageInput({
                 title={color.name}
                 className={cn(
                   "w-6 h-6 rounded-full transition-all duration-200",
-                  "hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-tech-cyan",
+                  "focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-tech-cyan",
                   selectedColor === color.value && "ring-2 ring-offset-1 ring-tech-cyan scale-110"
                 )}
                 style={{ backgroundColor: color.value }}

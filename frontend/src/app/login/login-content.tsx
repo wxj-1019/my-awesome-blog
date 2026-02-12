@@ -46,21 +46,24 @@ export default function LoginPageContent() {
     try {
       const result = await loginApi(username, password);
 
-      console.log('Login successful, attempting to navigate to profile');
+      console.log('[Login] 登录成功，准备跳转到个人资料页面');
       const redirectParam = searchParams.get('redirect');
       const redirectPath = redirectParam ? decodeURIComponent(redirectParam) : '/profile';
-      console.log('Redirect path:', redirectPath);
+      console.log('[Login] 跳转目标路径:', redirectPath);
 
       if (redirectPath.startsWith('/') && !redirectPath.startsWith('//')) {
-        console.log('Navigating to:', redirectPath);
+        console.log('[Login] 延迟 500ms 后跳转到:', redirectPath);
+        // 增加延迟，确保 token 完全保存到 localStorage
         setTimeout(() => {
-          router.push(redirectPath as any);
-        }, 300);
+          console.log('[Login] 开始执行跳转');
+          router.push(redirectPath);
+        }, 500);
       } else {
-        console.log('Navigating to default profile page');
+        console.log('[Login] 路径无效，跳转到默认的个人资料页面');
         setTimeout(() => {
-          router.push('/profile' as any);
-        }, 300);
+          console.log('[Login] 开始执行跳转到 /profile');
+          router.push('/profile');
+        }, 500);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : '登录失败，请重试');
@@ -187,7 +190,7 @@ export default function LoginPageContent() {
               还没有账号？
               <button
                 type="button"
-                onClick={() => router.push('/contact' as any)}
+                onClick={() => router.push('/contact')}
                 className="ml-2 text-tech-cyan hover:text-white transition-colors font-medium cursor-pointer hover:underline disabled:opacity-50"
                 disabled={isLoading}
               >

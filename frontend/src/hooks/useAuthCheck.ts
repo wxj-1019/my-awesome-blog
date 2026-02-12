@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { getCurrentUserApi } from '@/lib/api/auth';
 
 /**
@@ -8,7 +8,7 @@ import { getCurrentUserApi } from '@/lib/api/auth';
  */
 export const useAuthCheck = (extraCondition?: () => boolean) => {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const pathname = usePathname();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -17,14 +17,13 @@ export const useAuthCheck = (extraCondition?: () => boolean) => {
 
       if (!user || !conditionResult) {
         // 构造登录页面的完整URL
-        const currentPath = window.location.pathname;
-        const loginUrl = `/login?message=${encodeURIComponent('请先登录以查看您的个人资料')}&redirect=${encodeURIComponent(currentPath)}`;
+        const loginUrl = `/login?message=${encodeURIComponent('请先登录以查看您的个人资料')}&redirect=${encodeURIComponent(pathname)}`;
         
-        // 使用window.location进行导航以绕过Next.js的类型检查
-        window.location.href = loginUrl;
+        // 使用 router.push 进行导航，保持 Next.js 客户端导航
+        router.push(loginUrl);
       }
     };
 
     checkAuth();
-  }, [extraCondition]); // 移除router和searchParams依赖，因为它们不是稳定的引用
+  }, [extraCondition, pathname, router]);
 };

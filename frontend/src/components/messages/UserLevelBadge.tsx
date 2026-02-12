@@ -76,7 +76,7 @@ const UserLevelBadge = ({
           "bg-gradient-to-r",
           getLevelColor(level),
           "shadow-lg",
-          "transition-all duration-300 hover:scale-110"
+          "transition-all duration-300"
         )}
         initial={{ scale: 0, rotate: -180 }}
         animate={{ scale: 1, rotate: 0 }}
