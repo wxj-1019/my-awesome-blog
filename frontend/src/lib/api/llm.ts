@@ -42,14 +42,17 @@ export interface LLMModelsResponse {
   default_provider: string;
 }
 
-export const chat = async (request: LLMChatRequest): Promise<LLMChatResponse> => {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+export const chat = async (
+  request: LLMChatRequest
+): Promise<LLMChatResponse> => {
+  const token =
+    typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
   const response = await fetch(`${API_BASE_URL}/llm/chat`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      ...(token && { 'Authorization': `Bearer ${token}` }),
+      ...(token && { Authorization: `Bearer ${token}` }),
     },
     body: JSON.stringify(request),
   });
@@ -63,12 +66,13 @@ export const chat = async (request: LLMChatRequest): Promise<LLMChatResponse> =>
 };
 
 export const getModels = async (): Promise<LLMModelsResponse> => {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+  const token =
+    typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
   const response = await fetch(`${API_BASE_URL}/llm/models`, {
     headers: {
       'Content-Type': 'application/json',
-      ...(token && { 'Authorization': `Bearer ${token}` }),
+      ...(token && { Authorization: `Bearer ${token}` }),
     },
   });
 
@@ -86,21 +90,24 @@ export const streamChat = async (
   onComplete: () => void,
   onError: (error: Error) => void
 ): Promise<void> => {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+  const token =
+    typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
   try {
     const response = await fetch(`${API_BASE_URL}/llm/chat/stream`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` }),
+        ...(token && { Authorization: `Bearer ${token}` }),
       },
       body: JSON.stringify(request),
     });
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.detail || `请求失败: ${response.status} (Unauthorized)`);
+      throw new Error(
+        errorData.detail || `请求失败: ${response.status} (Unauthorized)`
+      );
     }
 
     const reader = response.body?.getReader();

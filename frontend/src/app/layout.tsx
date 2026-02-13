@@ -7,6 +7,7 @@ import ThemeWrapper from '@/components/theme-wrapper';
 import { LoadingProvider } from '@/context/loading-context';
 import LoadingHandler from '@/components/loading/LoadingHandler';
 import { Toaster } from '@/components/ui/toaster';
+import Live2DWidget from '@/components/live2d/Live2DWidget';
 import { env } from '@/lib/env';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
@@ -32,6 +33,7 @@ const ClientLayout = ({ children }: { children: React.ReactNode }) => {
   <Footer />
   <Toaster />
 </div>
+<Live2DWidget />
       </ThemeWrapper>
     </LoadingProvider>
   );

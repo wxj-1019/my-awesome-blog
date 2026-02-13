@@ -10,7 +10,8 @@
     "lint": "next lint",
     "format": "prettier --write .",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "postinstall": "node scripts/copy-live2d-core.cjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
@@ -42,9 +43,12 @@
     "framer-motion": "^12.29.2",
     "gray-matter": "^4.0.3",
     "gsap": "^3.14.2",
+    "live2dcubismcore": "^1.0.2",
     "lucide-react": "^0.563.0",
     "next": "^16.1.6",
     "next-auth": "^4.24.13",
+    "pixi-live2d-display": "^0.4.0",
+    "pixi.js": "^6.5.10",
     "postcss": "^8.4.0",
     "prettier": "^3.0.0",
     "react": "^18.2.0",
