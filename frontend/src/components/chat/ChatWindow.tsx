@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { flushSync } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { streamChat, LLMMessage, getModels } from '@/lib/api/llm';
 import { MessageBubble } from './MessageBubble';
@@ -22,12 +23,32 @@ interface ChatWindowProps {
 }
 
 const DEFAULT_MODELS: Model[] = [
-  { id: 'deepseek_deepseek-chat', name: 'DeepSeek V3', provider: 'deepseek', description: 'Smart & Fast' },
-  { id: 'zhipu_glm-4', name: 'GLM-4', provider: 'zhipu', description: 'Balanced' },
-  { id: 'dashscope_qwen-turbo', name: 'Qwen Turbo', provider: 'dashscope', description: 'Efficient' },
+  {
+    id: 'deepseek_deepseek-chat',
+    name: 'DeepSeek V3',
+    provider: 'deepseek',
+    description: 'Smart & Fast',
+  },
+  {
+    id: 'zhipu_glm-4',
+    name: 'GLM-4',
+    provider: 'zhipu',
+    description: 'Balanced',
+  },
+  {
+    id: 'dashscope_qwen-turbo',
+    name: 'Qwen Turbo',
+    provider: 'dashscope',
+    description: 'Efficient',
+  },
 ];
 
-export function ChatWindow({ onToggleSidebar, sessionMessages, onMessagesChange, onNewSession }: ChatWindowProps) {
+export function ChatWindow({
+  onToggleSidebar,
+  sessionMessages,
+  onMessagesChange,
+  onNewSession,
+}: ChatWindowProps) {
   const router = useRouter();
   const [messages, setMessages] = useState<ChatMessage[]>(sessionMessages);
   const [isLoading, setIsLoading] = useState(false);
@@ -36,10 +57,12 @@ export function ChatWindow({ onToggleSidebar, sessionMessages, onMessagesChange,
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Sync with parent session messages
+  // Sync with parent session messages（流式输出中不覆盖本地正在更新的 messages）
   useEffect(() => {
-    setMessages(sessionMessages);
-  }, [sessionMessages]);
+    if (!isLoading) {
+      setMessages(sessionMessages);
+    }
+  }, [sessionMessages, isLoading]);
 
   // Fetch models
   useEffect(() => {
@@ -47,15 +70,15 @@ export function ChatWindow({ onToggleSidebar, sessionMessages, onMessagesChange,
       try {
         const response = await getModels();
         if (response.models && response.models.length > 0) {
-          const mappedModels = response.models.map(m => ({
+          const mappedModels = response.models.map((m: { provider: string; name: string; display_name?: string; is_available?: boolean }) => ({
             id: `${m.provider}_${m.name}`, // Unique composite key
             name: m.display_name || m.name,
             provider: m.provider,
-            description: m.is_available ? 'Available' : 'Unavailable'
+            description: m.is_available ? 'Available' : 'Unavailable',
           }));
           setModels(mappedModels);
           if (response.default_provider) {
-             // Logic to set default model based on provider could go here
+            // Logic to set default model based on provider could go here
           }
         }
       } catch (error) {
@@ -77,7 +100,7 @@ export function ChatWindow({ onToggleSidebar, sessionMessages, onMessagesChange,
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
       role: 'user',
-      content
+      content,
     };
 
     const newMessages = [...messages, userMessage];
@@ -89,9 +112,9 @@ export function ChatWindow({ onToggleSidebar, sessionMessages, onMessagesChange,
     const assistantMessage: ChatMessage = {
       id: assistantMessageId,
       role: 'assistant',
-      content: ''
+      content: '',
     };
-    
+
     // Optimistic update
     setMessages(prev => [...prev, assistantMessage]);
 
@@ -101,36 +124,40 @@ export function ChatWindow({ onToggleSidebar, sessionMessages, onMessagesChange,
       // Prepare messages for API
       const apiMessages: LLMMessage[] = newMessages.map(m => ({
         role: m.role,
-        content: m.content
+        content: m.content,
       }));
 
       // Find provider for current model
       const selectedModel = models.find(m => m.id === currentModel);
-      
+
       let fullContent = '';
 
       await streamChat(
         {
           messages: apiMessages,
           model: currentModel,
-          provider: selectedModel?.provider
+          provider: selectedModel?.provider,
         },
-        (chunk) => {
+        (chunk: string) => {
           fullContent += chunk;
-          setMessages(prev => 
-            prev.map(m => 
-              m.id === assistantMessageId 
-                ? { ...m, content: fullContent } 
-                : m
-            )
-          );
+          // 使用 flushSync 让每个 chunk 立即提交，避免 React 18 批量更新导致只显示最后一段
+          flushSync(() => {
+            setMessages(prev =>
+              prev.map(m =>
+                m.id === assistantMessageId ? { ...m, content: fullContent } : m
+              )
+            );
+          });
         },
         () => {
           setIsLoading(false);
           // Final sync with parent
-          onMessagesChange([...newMessages, { ...assistantMessage, content: fullContent }]);
+          onMessagesChange([
+            ...newMessages,
+            { ...assistantMessage, content: fullContent },
+          ]);
         },
-        (error) => {
+        (error: any) => {
           console.error('Stream error:', error);
           setIsLoading(false);
           if (error instanceof Error && error.message.includes('401')) {
@@ -138,7 +165,7 @@ export function ChatWindow({ onToggleSidebar, sessionMessages, onMessagesChange,
           }
         }
       );
-    } catch (error) {
+    } catch (error: any) {
       console.error('Chat error:', error);
       setIsLoading(false);
       if (error instanceof Error && error.message.includes('401')) {
@@ -164,21 +191,21 @@ export function ChatWindow({ onToggleSidebar, sessionMessages, onMessagesChange,
       {/* Header */}
       <div className="absolute top-0 left-0 right-0 z-10 flex h-16 items-center justify-between px-4 bg-gradient-to-b from-black/80 to-transparent backdrop-blur-[2px]">
         <div className="flex items-center gap-2">
-          <button 
+          <button
             onClick={onToggleSidebar}
             className="rounded-lg p-2 text-zinc-400 hover:bg-white/10 hover:text-white md:hidden"
           >
             <Menu size={20} />
           </button>
-          <ModelSelector 
-            models={models} 
-            currentModel={currentModel} 
+          <ModelSelector
+            models={models}
+            currentModel={currentModel}
             onSelect={setCurrentModel}
             disabled={isLoading}
           />
         </div>
-        
-        <button 
+
+        <button
           onClick={handleClear}
           className="rounded-lg p-2 text-zinc-400 hover:bg-white/10 hover:text-red-400 transition-colors"
           title="Clear Chat"
@@ -191,7 +218,7 @@ export function ChatWindow({ onToggleSidebar, sessionMessages, onMessagesChange,
       <div className="flex-1 overflow-y-auto pt-20 pb-4 scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent">
         <div className="mx-auto w-full max-w-3xl px-4">
           {messages.length === 0 ? (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5 }}
@@ -204,17 +231,22 @@ export function ChatWindow({ onToggleSidebar, sessionMessages, onMessagesChange,
                 How can I help you today?
               </h1>
               <p className="max-w-md text-zinc-400">
-                Start a conversation with advanced AI models. Ask questions, generate code, or explore creative ideas.
+                Start a conversation with advanced AI models. Ask questions,
+                generate code, or explore creative ideas.
               </p>
             </motion.div>
           ) : (
             <div className="space-y-6">
-              {messages.map((message) => (
-                <MessageBubble 
-                  key={message.id} 
-                  role={message.role} 
+              {messages.map(message => (
+                <MessageBubble
+                  key={message.id}
+                  role={message.role}
                   content={message.content}
-                  isTyping={isLoading && message.role === 'assistant' && message.id === messages[messages.length - 1].id}
+                  isTyping={
+                    isLoading &&
+                    message.role === 'assistant' &&
+                    message.id === messages[messages.length - 1].id
+                  }
                 />
               ))}
               <div ref={messagesEndRef} />
@@ -225,8 +257,8 @@ export function ChatWindow({ onToggleSidebar, sessionMessages, onMessagesChange,
 
       {/* Input Area */}
       <div className="z-20">
-        <ChatInput 
-          onSend={handleSend} 
+        <ChatInput
+          onSend={handleSend}
           onStop={handleStop}
           isLoading={isLoading}
         />
