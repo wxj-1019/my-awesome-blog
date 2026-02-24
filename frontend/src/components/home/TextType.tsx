@@ -78,7 +78,7 @@ const TextType = ({
   // Determine which texts to use (dynamic or static)
   const textArray = useMemo(() => {
     if (fetchFromApi && !text) {
-      return dynamicTexts.length > 0 ? dynamicTexts.map(item => item.content) : [];      
+      return dynamicTexts.length > 0 ? dynamicTexts.map(item => item.text) : [];      
     }
     return text ? (Array.isArray(text) ? text : [text]) : [];
   }, [text, fetchFromApi, dynamicTexts]);
