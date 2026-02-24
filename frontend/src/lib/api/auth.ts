@@ -67,7 +67,7 @@ export const loginApi = async (username: string, password: string): Promise<Auth
     console.log('[loginApi] 原始响应文本:', responseText);
 
     if (!response.ok) {
-      let errorData = {};
+      let errorData: { detail?: string; message?: string } = {};
 
       try {
         if (responseText) {
