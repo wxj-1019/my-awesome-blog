@@ -4,6 +4,23 @@
 """
 
 import sys
+import os
+import importlib.util
+
+# 找到 alembic 的正确安装位置
+alembic_spec = importlib.util.find_spec("alembic")
+if alembic_spec:
+    # 确保 alembic 的路径在 sys.path 中优先于当前目录
+    alembic_dir = os.path.dirname(alembic_spec.origin)
+    sys.path.insert(0, os.path.dirname(alembic_dir))
+
+# 移除当前目录，避免与项目的 alembic 迁移目录冲突
+current_dir = os.getcwd()
+if current_dir in sys.path:
+    sys.path.remove(current_dir)
+if '' in sys.path:
+    sys.path.remove('')
+
 from alembic.config import Config
 from alembic import command
 
