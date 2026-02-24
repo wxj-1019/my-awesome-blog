@@ -12,13 +12,15 @@ from app.utils.logger import app_logger
 def run_migrations():
     """运行数据库迁移"""
     try:
-        from alembic.config import Config
-        from alembic import command
+        from app.utils.alembic_runner import AlembicRunner
 
         app_logger.info("Checking for database migrations...")
 
-        alembic_cfg = Config("alembic.ini")
-        command.upgrade(alembic_cfg, "head")
+        runner = AlembicRunner()
+        success, stdout, stderr = runner.upgrade("head")
+
+        if not success:
+            raise Exception(f"Migration failed: {stderr}")
 
         app_logger.info("Database migrations completed successfully")
         return True

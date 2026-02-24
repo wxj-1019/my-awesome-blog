@@ -50,18 +50,23 @@ def check_migration():
     print("=" * 60)
 
     try:
-        from alembic.config import Config
-        from alembic import command
+        from app.utils.alembic_runner import AlembicRunner
 
         print("\n[TEST] Checking Alembic configuration...")
-        cfg = Config("alembic.ini")
+        runner = AlembicRunner()
         print("[OK] Alembic config loaded")
 
         print("\n[INFO] Current database version:")
-        command.current(cfg)
+        success, stdout, stderr = runner.current()
+        print(stdout if stdout else "[No current version]")
+        if stderr:
+            print("[INFO]", stderr.strip())
 
         print("\n[INFO] Latest available version:")
-        command.history(cfg)
+        success, stdout, stderr = runner.history()
+        print(stdout if stdout else "[No migration history]")
+        if stderr:
+            print("[INFO]", stderr.strip())
 
         return True
 
