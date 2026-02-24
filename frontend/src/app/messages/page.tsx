@@ -65,7 +65,7 @@ interface Reaction {
 export default function MessagesPage() {
   const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([]);
-  const [danmakuList, setDanmakuList] = useState<DanmakuMessage[]>([]);
+  const [danmakuList, setDanmakuList] = useState<DanmakuMessageType[]>([]);
   const [trendingMessages, setTrendingMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
@@ -351,7 +351,7 @@ useEffect(() => {
 
       setMessages([msg, ...messages]);
       if (isDanmaku) {
-        const newDanmaku: DanmakuMessage = {
+        const newDanmaku: DanmakuMessageType = {
           id: msg.id,
           content: msg.content,
           color: msg.color || selectedColor,
