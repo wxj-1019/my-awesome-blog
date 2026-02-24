@@ -40,6 +40,7 @@ import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import MarkdownRenderer from '@/components/ui/MarkdownRenderer';
+import type { DanmakuMessage as DanmakuMessageType } from '@/types';
 
 const debounce = <T extends (...args: any[]) => any>(
   func: T,
@@ -59,16 +60,6 @@ interface Reaction {
   emoji: string;
   count: number;
   users: string[];
-}
-
-interface DanmakuMessage {
-  id: string;
-  content: string;
-  color: string;
-  speed: number;
-  y: number;
-  layer: number;
-  message?: Message; // 完整的留言信息，用于悬停和交互
 }
 
 export default function MessagesPage() {

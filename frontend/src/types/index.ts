@@ -163,7 +163,7 @@ export interface DanmakuMessage {
     avatar?: string;
   };
   created_at: string;
-  color?: string;
+  color: string;
   speed: number; // 弹幕速度
   y: number; // 弹幕垂直位置
   layer: number; // 弹幕层级
