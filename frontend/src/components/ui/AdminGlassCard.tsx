@@ -31,7 +31,6 @@ const GlassCardAdmin = React.forwardRef<HTMLDivElement, GlassCardAdminProps>(
     ...props 
   }, ref) => {
     
-    const [isHovered, setIsHovered] = React.useState(false);
     const [mousePosition, setMousePosition] = React.useState({ x: 0, y: 0 });
 
     const handleMouseMove = React.useCallback((e: React.MouseEvent<HTMLDivElement>) => {
@@ -127,8 +126,6 @@ const GlassCardAdmin = React.forwardRef<HTMLDivElement, GlassCardAdminProps>(
         }}
         onAnimationComplete={onAnimationComplete}
         onMouseMove={hoverEffect ? handleMouseMove : undefined}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
         onClick={onClick}
         {...props}
       >
@@ -138,15 +135,6 @@ const GlassCardAdmin = React.forwardRef<HTMLDivElement, GlassCardAdminProps>(
             background: `radial-gradient(circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(255,255,255,0.1) 0%, transparent 50%)`,
           }}
         />
-
-        {isHovered && glowEffect && (
-          <motion.div
-            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -skew-x-12 pointer-events-none"
-            initial={{ x: '-100%' }}
-            animate={{ x: '100%' }}
-            transition={{ duration: 1, ease: 'easeInOut' }}
-          />
-        )}
 
         {loading && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/30 dark:bg-slate-900/30 backdrop-blur-sm z-10">

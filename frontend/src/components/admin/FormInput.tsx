@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { motion, useAnimation } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Eye, EyeOff, X, Check, AlertCircle } from 'lucide-react';
 
@@ -45,7 +45,6 @@ const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
     const [isFocused, setIsFocused] = React.useState(false);
     const [showPassword, setShowPassword] = React.useState(false);
     const [hasValue, setHasValue] = React.useState(false);
-    const controls = useAnimation();
     const inputRef = React.useRef<HTMLInputElement>(null);
 
     React.useImperativeHandle(ref, () => inputRef.current!);
@@ -56,13 +55,11 @@ const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
 
     const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
       setIsFocused(true);
-      controls.start('focused');
       onFocus?.(e);
     };
 
     const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
       setIsFocused(false);
-      controls.start('blur');
       onBlur?.(e);
     };
 
@@ -172,13 +169,9 @@ const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
             success && 'shadow-lg shadow-green-500/10',
             loading && 'opacity-60 pointer-events-none'
           )}
-          initial={{ opacity: 0, y: 10 }}
+          initial={{ opacity: 0, y: 10, scale: 1 }}
+          animate={{ opacity: 1, y: 0, scale: isFocused ? 1.01 : 1 }}
           transition={{ delay: animationDelay / 1000 + 0.1, duration: 0.3 }}
-          variants={{
-            focused: { scale: 1.01 },
-            blur: { scale: 1 },
-          }}
-          animate={controls}
         >
           {LeftIcon && (
             <motion.div
@@ -191,7 +184,11 @@ const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: animationDelay / 1000 + 0.2, duration: 0.2 }}
             >
-              {typeof LeftIcon === 'function' ? <LeftIcon className={currentSize.icon} /> : LeftIcon}
+              {React.isValidElement(LeftIcon) 
+                ? LeftIcon 
+                : typeof LeftIcon === 'function' 
+                  ? <LeftIcon className={currentSize.icon} /> 
+                  : null}
             </motion.div>
           )}
 
@@ -267,7 +264,11 @@ const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: animationDelay / 1000 + 0.2, duration: 0.2 }}
               >
-                {typeof RightIcon === 'function' ? <RightIcon className={currentSize.icon} /> : RightIcon}
+                {React.isValidElement(RightIcon) 
+                  ? RightIcon 
+                  : typeof RightIcon === 'function' 
+                    ? <RightIcon className={currentSize.icon} /> 
+                    : null}
               </motion.button>
             )}
 

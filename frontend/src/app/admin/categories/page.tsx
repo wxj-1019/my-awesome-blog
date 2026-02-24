@@ -77,9 +77,25 @@ export default function CategoriesPage() {
       setEditingCategory(null)
       setFormData({ name: '', slug: '', description: '', color: '#06b6d4', icon: 'folder' })
       fetchCategories()
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Failed to save category:', err)
-      error('保存分类失败，请重试')
+      let errorMessage = '保存分类失败，请重试'
+      
+      if (typeof err === 'object' && err !== null) {
+        if ('message' in err) {
+          errorMessage = String((err as { message: unknown }).message)
+        }
+        if ('status' in err) {
+          const status = (err as { status: unknown }).status
+          if (status === 401) {
+            errorMessage = '未登录或登录已过期，请重新登录'
+          } else if (status === 403) {
+            errorMessage = '没有权限执行此操作'
+          }
+        }
+      }
+      
+      error(errorMessage)
     }
   }
 
@@ -343,7 +359,7 @@ export default function CategoriesPage() {
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     rows={3}
                     placeholder="输入分类描述（可选）"
-                    className="w-full px-4 py-3 border border-glass-border/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-tech-cyan/50 transition-all duration-200 bg-glass/10"
+                    className="w-full px-4 py-3 border border-glass-border/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-tech-cyan/50 transition-all duration-200 bg-glass/10 text-foreground placeholder:text-foreground/40"
                   />
                 </div>
                 

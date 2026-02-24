@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft,
@@ -56,6 +56,17 @@ interface Tag {
   color?: string;
 }
 
+interface ArticleResponse {
+  title: string;
+  slug: string;
+  content: string;
+  excerpt?: string;
+  cover_image?: string;
+  is_published?: boolean;
+  category_id?: string;
+  tags?: { id: string }[];
+}
+
 type EditorMode = 'edit' | 'preview' | 'split';
 
 const AUTOSAVE_INTERVAL = 30000;
@@ -94,8 +105,10 @@ const MarkdownToolbar = ({ onInsert }: { onInsert: (text: string) => void }) => 
   );
 };
 
-export default function NewArticlePage() {
+export default function EditArticlePage() {
   const router = useRouter();
+  const params = useParams();
+  const articleId = params.id as string;
   const { success, error, info, toasts, removeToast } = useToast();
   const autosaveTimerRef = useRef<NodeJS.Timeout | null>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
@@ -103,6 +116,7 @@ export default function NewArticlePage() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isFetchingArticle, setIsFetchingArticle] = useState(true);
   const [categories, setCategories] = useState<Category[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
   const [editorMode, setEditorMode] = useState<EditorMode>('edit');
@@ -112,7 +126,6 @@ export default function NewArticlePage() {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showTagDropdown, setShowTagDropdown] = useState(false);
   const [touchedFields, setTouchedFields] = useState<Set<string>>(new Set());
-  const [activeTab, setActiveTab] = useState<'content' | 'settings'>('content');
 
   const [formData, setFormData] = useState({
     title: '',
@@ -124,6 +137,8 @@ export default function NewArticlePage() {
     category_id: '',
     tags: [] as string[]
   });
+
+  const [originalData, setOriginalData] = useState(formData);
 
   const stats = {
     charCount: formData.content.length,
@@ -149,6 +164,33 @@ export default function NewArticlePage() {
     content: touchedFields.has('content') && formData.content.length < MIN_CONTENT_LENGTH
   };
 
+  const loadArticle = useCallback(async () => {
+    try {
+      setIsFetchingArticle(true);
+      const article = await adminApi.articles.get(articleId) as ArticleResponse;
+      
+      const articleData = {
+        title: article.title || '',
+        slug: article.slug || '',
+        content: article.content || '',
+        excerpt: article.excerpt || '',
+        cover_image: article.cover_image || '',
+        is_published: article.is_published || false,
+        category_id: article.category_id || '',
+        tags: article.tags?.map((t) => t.id) || []
+      };
+      
+      setFormData(articleData);
+      setOriginalData(articleData);
+    } catch (err) {
+      console.error('Failed to load article:', err);
+      error('加载文章失败');
+      router.push('/admin/articles');
+    } finally {
+      setIsFetchingArticle(false);
+    }
+  }, [articleId, error, router]);
+
   const loadCategoriesAndTags = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -167,14 +209,15 @@ export default function NewArticlePage() {
   }, [error]);
 
   useEffect(() => {
+    loadArticle();
     loadCategoriesAndTags();
-  }, [loadCategoriesAndTags]);
+  }, [loadArticle, loadCategoriesAndTags]);
 
   useEffect(() => {
-    if (!isLoading && formData.content) {
+    if (!isLoading && !isFetchingArticle && formData !== originalData) {
       setHasUnsavedChanges(true);
     }
-  }, [formData, isLoading]);
+  }, [formData, originalData, isLoading, isFetchingArticle]);
 
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -222,7 +265,7 @@ export default function NewArticlePage() {
     setFormData(prev => ({
       ...prev,
       title,
-      slug: generateSlug(title)
+      slug: prev.slug || generateSlug(title)
     }));
   };
 
@@ -273,7 +316,6 @@ export default function NewArticlePage() {
     
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
-    const selectedText = formData.content.substring(start, end);
     const newContent = formData.content.substring(0, start) + text + formData.content.substring(end);
     
     setFormData(prev => ({ ...prev, content: newContent }));
@@ -302,21 +344,22 @@ export default function NewArticlePage() {
         content: formData.content,
         excerpt: formData.excerpt || undefined,
         cover_image: formData.cover_image || undefined,
-        is_published: false,
+        is_published: formData.is_published,
         category_id: formData.category_id || undefined,
         tags: formData.tags.length > 0 ? formData.tags : undefined
       };
 
-      await adminApi.articles.create(submitData);
+      await adminApi.articles.update(articleId, submitData);
       setLastSaved(new Date());
       setHasUnsavedChanges(false);
-      success('草稿已保存');
+      setOriginalData(formData);
+      success('文章已保存');
     } catch (err: unknown) {
-      console.error('Failed to save draft:', err);
-      const errorMessage = err instanceof Error ? err.message : '保存草稿失败';
+      console.error('Failed to save article:', err);
+      const errorMessage = err instanceof Error ? err.message : '保存文章失败';
       error(errorMessage);
     }
-  }, [formData, success, error, info]);
+  }, [formData, articleId, success, error]);
 
   const handlePublish = async () => {
     if (!formData.title.trim()) {
@@ -349,9 +392,9 @@ export default function NewArticlePage() {
         tags: formData.tags.length > 0 ? formData.tags : undefined
       };
 
-      await adminApi.articles.create(submitData);
+      await adminApi.articles.update(articleId, submitData);
 
-      success('文章发布成功');
+      success('文章已更新并发布');
       setHasUnsavedChanges(false);
       router.push('/admin/articles');
     } catch (err: unknown) {
@@ -377,7 +420,7 @@ export default function NewArticlePage() {
     );
   };
 
-  if (isLoading) {
+  if (isLoading || isFetchingArticle) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <motion.div
@@ -389,7 +432,7 @@ export default function NewArticlePage() {
             <Loader2 className="w-10 h-10 animate-spin text-tech-cyan" />
             <div className="absolute inset-0 w-10 h-10 rounded-full border-2 border-tech-cyan/20" />
           </div>
-          <span className="text-foreground/60 font-medium">加载编辑器...</span>
+          <span className="text-foreground/60 font-medium">加载文章...</span>
         </motion.div>
       </div>
     );
@@ -415,9 +458,9 @@ export default function NewArticlePage() {
               <div className="p-2 rounded-xl bg-tech-cyan/10">
                 <FileText className="w-5 h-5 text-tech-cyan" />
               </div>
-              新建文章
+              编辑文章
             </h1>
-            <p className="text-sm text-foreground/50 mt-1 ml-11">创建一篇新的博客文章</p>
+            <p className="text-sm text-foreground/50 mt-1 ml-11">修改文章内容</p>
           </div>
         </div>
 
@@ -765,7 +808,7 @@ export default function NewArticlePage() {
                   <kbd className="px-1.5 py-0.5 bg-background/50 rounded text-[10px] font-mono">Ctrl</kbd>
                   <span>+</span>
                   <kbd className="px-1.5 py-0.5 bg-background/50 rounded text-[10px] font-mono">S</kbd>
-                  <span className="ml-1">保存草稿</span>
+                  <span className="ml-1">保存文章</span>
                 </p>
                 <p className="flex items-center gap-1.5">
                   <kbd className="px-1.5 py-0.5 bg-background/50 rounded text-[10px] font-mono">Ctrl</kbd>
@@ -901,7 +944,7 @@ export default function NewArticlePage() {
               <div className="p-1.5 rounded-lg bg-green-500/10">
                 <Send className="w-4 h-4 text-green-400" />
               </div>
-              发布操作
+              保存操作
             </h2>
 
             <div className="space-y-3">
@@ -918,7 +961,7 @@ export default function NewArticlePage() {
                 ) : (
                   <Send className="w-4 h-4 mr-2" />
                 )}
-                发布文章
+                {formData.is_published ? '更新并发布' : '发布文章'}
               </Button>
 
               <Button
@@ -933,19 +976,21 @@ export default function NewArticlePage() {
                 ) : (
                   <Save className="w-4 h-4 mr-2" />
                 )}
-                保存草稿
+                保存更改
               </Button>
 
               <div className="pt-3 border-t border-border/20">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="w-full justify-center"
-                  disabled={isSubmitting}
-                >
-                  <Eye className="w-4 h-4 mr-2" />
-                  预览文章
-                </Button>
+                <Link href={`/posts/${formData.slug}`} target="_blank">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="w-full justify-center"
+                    disabled={isSubmitting || !formData.slug}
+                  >
+                    <Eye className="w-4 h-4 mr-2" />
+                    预览文章
+                  </Button>
+                </Link>
               </div>
             </div>
 

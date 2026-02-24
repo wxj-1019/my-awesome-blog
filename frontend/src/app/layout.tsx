@@ -34,7 +34,7 @@ const ClientLayout = ({ children }: { children: React.ReactNode }) => {
   <Footer />
   <Toaster />
 </div>
-<Live2DWidget />
+{/* <Live2DWidget /> */}
       </ThemeWrapper>
     </LoadingProvider>
   );

@@ -1,5 +1,5 @@
-from pydantic import BaseModel, field_serializer
-from typing import Optional, List
+from pydantic import BaseModel
+from typing import Optional
 from datetime import datetime
 from uuid import UUID
 
@@ -33,10 +33,6 @@ class CategoryInDBBase(CategoryBase):
     id: UUID
     created_at: datetime
     updated_at: Optional[datetime] = None
-
-    @field_serializer('id')
-    def serialize_id(self, value: UUID) -> str:
-        return str(value)
 
     model_config = {'from_attributes': True}
 

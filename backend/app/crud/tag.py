@@ -47,7 +47,6 @@ def get_tags_with_article_count(
     )
     
     result = query.offset(skip).limit(limit).all()
-    # 将结果转换为带有 article_count 属性的 Tag 对象
     tags = []
     for tag, article_count in result:
         tag.article_count = article_count
@@ -73,7 +72,6 @@ def get_popular_tags(
     )
     
     result = query.all()
-    # 将结果转换为带有 article_count 属性的 Tag 对象
     tags = []
     for tag, article_count in result:
         tag.article_count = article_count
