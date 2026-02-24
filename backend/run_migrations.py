@@ -4,25 +4,13 @@
 """
 
 import sys
-import os
-import importlib.util
+from app.utils.alembic_runner import AlembicRunner
 
-# 找到 alembic 的正确安装位置
-alembic_spec = importlib.util.find_spec("alembic")
-if alembic_spec:
-    # 确保 alembic 的路径在 sys.path 中优先于当前目录
-    alembic_dir = os.path.dirname(alembic_spec.origin)
-    sys.path.insert(0, os.path.dirname(alembic_dir))
-
-# 移除当前目录，避免与项目的 alembic 迁移目录冲突
-current_dir = os.getcwd()
-if current_dir in sys.path:
-    sys.path.remove(current_dir)
-if '' in sys.path:
-    sys.path.remove('')
-
-from alembic.config import Config
-from alembic import command
+# Fix Windows console encoding
+if sys.platform == 'win32':
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 
 def main():
@@ -32,19 +20,30 @@ def main():
     print("=" * 60)
 
     try:
-        # 配置 Alembic
-        alembic_cfg = Config("alembic.ini")
+        runner = AlembicRunner()
 
         # 显示当前版本
         print("\n[Step 1] Checking current database version...")
-        command.current(alembic_cfg)
+        success, stdout, stderr = runner.current()
+        print(stdout if stdout else "[No current version]")
+        if stderr:
+            print("[INFO]", stderr.strip())
 
         # 升级到最新版本
         print("\n[Step 2] Upgrading database to latest version...")
-        command.upgrade(alembic_cfg, "head")
+        success, stdout, stderr = runner.upgrade("head")
+        print(stdout if stdout else "[Upgrade completed]")
+        if stderr:
+            print("[INFO]", stderr.strip())
+
+        if not success:
+            raise Exception(f"Migration failed")
 
         print("\n[Step 3] Verifying migration...")
-        command.current(alembic_cfg)
+        success, stdout, stderr = runner.current()
+        print(stdout if stdout else "[No current version]")
+        if stderr:
+            print("[INFO]", stderr.strip())
 
         print("\n" + "=" * 60)
         print("✅ Database migration completed successfully!")

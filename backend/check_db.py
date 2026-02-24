@@ -23,9 +23,9 @@ except Exception as e:
 
 # 检查alembic
 try:
-    from alembic.config import Config
+    from app.utils.alembic_runner import AlembicRunner
     print("\nAlembic import: SUCCESS")
-    cfg = Config("alembic.ini")
+    runner = AlembicRunner()
     print("Alembic config: SUCCESS")
 except Exception as e:
     print(f"Alembic error: {e}")

@@ -1,20 +1,29 @@
 import os
 import sys
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from app.utils.alembic_runner import AlembicRunner
 
-from alembic.config import Config
-from alembic import command
+# Fix Windows console encoding
+if sys.platform == 'win32':
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 def run_migration():
     try:
         print("开始执行数据库迁移...")
 
         # 配置 Alembic
-        alembic_cfg = Config("alembic.ini")
+        runner = AlembicRunner()
 
         # 执行迁移到最新版本
         print("升级到最新版本...")
-        command.upgrade(alembic_cfg, "head")
+        success, stdout, stderr = runner.upgrade("head")
+        print(stdout if stdout else "[Upgrade completed]")
+        if stderr:
+            print("[INFO]", stderr.strip())
+
+        if not success:
+            raise Exception(f"Migration failed")
 
         print("\n✅ 数据库迁移成功完成！")
         return True

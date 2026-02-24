@@ -10,18 +10,29 @@ print(f"Current directory: {os.getcwd()}")
 print(f"Alembic.ini exists: {os.path.exists('alembic.ini')}")
 
 try:
-    from alembic.config import Config
-    from alembic import command
+    from app.utils.alembic_runner import AlembicRunner
 
     print("\n=== Step 1: Check current version ===")
-    alembic_cfg = Config("alembic.ini")
-    command.current(alembic_cfg)
+    runner = AlembicRunner()
+    success, stdout, stderr = runner.current()
+    print(stdout if stdout else "[No current version]")
+    if stderr:
+        print("[INFO]", stderr.strip())
 
     print("\n=== Step 2: Upgrade to latest ===")
-    command.upgrade(alembic_cfg, "head")
+    success, stdout, stderr = runner.upgrade("head")
+    print(stdout if stdout else "[Upgrade completed]")
+    if stderr:
+        print("[INFO]", stderr.strip())
+
+    if not success:
+        raise Exception(f"Migration failed")
 
     print("\n=== Step 3: Verify version ===")
-    command.current(alembic_cfg)
+    success, stdout, stderr = runner.current()
+    print(stdout if stdout else "[No current version]")
+    if stderr:
+        print("[INFO]", stderr.strip())
 
     print("\n[OK] Migration completed successfully!")
 
