@@ -36,13 +36,7 @@ const nextConfig = {
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
   async redirects() {
-    return [
-      {
-        source: '/admin',
-        destination: '/',
-        permanent: true,
-      },
-    ];
+    return [];
   },
   async rewrites() {
     return [

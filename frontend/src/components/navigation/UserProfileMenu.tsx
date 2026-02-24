@@ -1,5 +1,7 @@
-import Link from 'next/link';
-import { User, UserCircle, LayoutDashboard, FileText, Settings, LogOut } from 'lucide-react';
+import { 
+  User, UserCircle, LayoutDashboard, FileText, Settings, LogOut,
+  FolderOpen
+} from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import {
   DropdownMenu,
@@ -114,20 +116,26 @@ const UserProfileMenu: React.FC<UserProfileMenuProps> = ({ mounted }) => {
             </DropdownMenuLabel>
             <DropdownMenuSeparator className={`my-1 ${themedClasses.separatorClass}`} />
             
-            <Link href="/profile">
-              <DropdownMenuItem className={`group cursor-pointer py-2.5 px-3 rounded-lg ${themedClasses.dropdownItemClass}`}>
-                <motion.div
-                  custom={0}
-                  initial="hidden"
-                  animate="visible"
-                  variants={menuItemVariants}
-                  className="flex items-center w-full"
-                >
-                  <UserCircle className="h-4 w-4 mr-3 text-tech-cyan group-hover:scale-110 transition-transform duration-200" />
-                  <span className={`${themedClasses.textColorClass}`}>个人资料</span>
-                </motion.div>
-              </DropdownMenuItem>
-            </Link>
+            <DropdownMenuItem 
+              className={`group cursor-pointer py-2.5 px-3 rounded-lg ${themedClasses.dropdownItemClass}`}
+              onClick={() => {
+                setIsOpen(false);
+                if (typeof window !== 'undefined') {
+                  window.location.href = '/profile';
+                }
+              }}
+            >
+              <motion.div
+                custom={0}
+                initial="hidden"
+                animate="visible"
+                variants={menuItemVariants}
+                className="flex items-center w-full"
+              >
+                <UserCircle className="h-4 w-4 mr-3 text-tech-cyan group-hover:scale-110 transition-transform duration-200" />
+                <span className={`${themedClasses.textColorClass}`}>个人资料</span>
+              </motion.div>
+            </DropdownMenuItem>
             
             <DropdownMenuItem className={`group cursor-pointer py-2.5 px-3 rounded-lg ${themedClasses.dropdownItemClass}`}>
               <motion.div
@@ -156,10 +164,33 @@ const UserProfileMenu: React.FC<UserProfileMenuProps> = ({ mounted }) => {
             </DropdownMenuItem>
             
             <DropdownMenuSeparator className={`my-1 ${themedClasses.separatorClass}`} />
-            
-            <DropdownMenuItem className={`group cursor-pointer py-2.5 px-3 rounded-lg ${themedClasses.dropdownItemClass}`}>
+
+            <DropdownMenuItem 
+              className={`group cursor-pointer py-2.5 px-3 rounded-lg ${themedClasses.dropdownItemClass}`}
+              onClick={() => {
+                setIsOpen(false);
+                if (typeof window !== 'undefined') {
+                  window.location.href = '/admin';
+                }
+              }}
+            >
               <motion.div
                 custom={3}
+                initial="hidden"
+                animate="visible"
+                variants={menuItemVariants}
+                className="flex items-center w-full"
+              >
+                <FolderOpen className="h-4 w-4 mr-3 text-tech-cyan group-hover:scale-110 transition-transform duration-200" />
+                <span className={`${themedClasses.textColorClass}`}>后台管理系统</span>
+              </motion.div>
+            </DropdownMenuItem>
+
+            <DropdownMenuSeparator className={`my-1 ${themedClasses.separatorClass}`} />
+
+            <DropdownMenuItem className={`group cursor-pointer py-2.5 px-3 rounded-lg ${themedClasses.dropdownItemClass}`}>
+              <motion.div
+                custom={4}
                 initial="hidden"
                 animate="visible"
                 variants={menuItemVariants}
@@ -172,15 +203,15 @@ const UserProfileMenu: React.FC<UserProfileMenuProps> = ({ mounted }) => {
             
             <DropdownMenuSeparator className={`my-1 ${themedClasses.separatorClass}`} />
             
-            <DropdownMenuItem 
+            <DropdownMenuItem
               className={`group cursor-pointer py-2.5 px-3 rounded-lg ${
-                mounted && isDark 
-                  ? 'focus:bg-red-500/15 hover:bg-red-500/20 transition-all duration-200' 
+                mounted && isDark
+                  ? 'focus:bg-red-500/15 hover:bg-red-500/20 transition-all duration-200'
                   : 'focus:bg-red-50 hover:bg-red-50 transition-all duration-200'
               }`}
             >
               <motion.div
-                custom={4}
+                custom={5}
                 initial="hidden"
                 animate="visible"
                 variants={menuItemVariants}

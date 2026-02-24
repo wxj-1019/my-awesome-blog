@@ -330,7 +330,7 @@ export default function MessageReplies({
           >
             <div className="flex gap-2">
               <LazyAvatar
-                src={currentUser?.avatar}
+                src={undefined}
                 fallback={currentUser?.username[0] || 'U'}
                 className="w-6 h-6 flex-shrink-0"
               />

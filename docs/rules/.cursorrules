@@ -3,8 +3,8 @@
 ## Project Overview & Tech Stack
 
 My Awesome Blog is a modern monorepo containing:
-- **Frontend**: Next.js 16 with App Router, TypeScript, Tailwind CSS
-- **Backend**: FastAPI with Python 3.12+, SQLAlchemy 2.0, Pydantic v2
+- **Frontend**: Next.js 16 with App Router, TypeScript, Tailwind CSS (port: 3000)
+- **Backend**: FastAPI with Python 3.12+, SQLAlchemy 2.0, Pydantic v2 (port: 8989)
 - **Database**: PostgreSQL (production), SQLite (development)
 - **Design System**: Glassmorphism with tech-themed color palette and custom animations
 - **Architecture**: Containerized with Docker Compose

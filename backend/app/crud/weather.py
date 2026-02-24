@@ -1,4 +1,5 @@
 from typing import Optional, List
+from uuid import UUID
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
 from app.models.weather import Weather
@@ -10,7 +11,7 @@ def get_weather_by_city(db: Session, city: str) -> Optional[Weather]:
     return db_weather
 
 
-def get_weather_by_id(db: Session, weather_id: int) -> Optional[Weather]:
+def get_weather_by_id(db: Session, weather_id: UUID) -> Optional[Weather]:
     db_weather = db.query(Weather).filter(Weather.id == weather_id).first()
     return db_weather
 
@@ -194,7 +195,7 @@ def create_or_update_weather(
         )
 
 
-def delete_weather(db: Session, weather_id: int) -> Optional[Weather]:
+def delete_weather(db: Session, weather_id: UUID) -> Optional[Weather]:
     db_weather = db.query(Weather).filter(Weather.id == weather_id).first()
     if db_weather:
         db.delete(db_weather)

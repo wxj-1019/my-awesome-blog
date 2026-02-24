@@ -4,7 +4,11 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
-export default function AnimatedLogo() {
+interface AnimatedLogoProps {
+  isNavbarHovered?: boolean;
+}
+
+export default function AnimatedLogo({ isNavbarHovered = false }: AnimatedLogoProps) {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
@@ -13,18 +17,19 @@ export default function AnimatedLogo() {
       className="flex items-center space-x-2 text-tech-cyan hover:text-tech-cyan transition-colors"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      aria-hidden={!isNavbarHovered}
     >
       {/* Logo 图标 */}
       <div className={cn(
         "w-10 h-10 rounded-lg flex items-center justify-center bg-gradient-to-br from-tech-cyan to-tech-lightcyan transition-all duration-300",
-        isHovered && "scale-110 rotate-3 shadow-lg shadow-tech-cyan/30"
+        (isHovered || isNavbarHovered) && "scale-110 rotate-3 shadow-lg shadow-tech-cyan/30"
       )}>
         <svg
           viewBox="0 0 29.667 31.69"
           xmlns="http://www.w3.org/2000/svg"
           className={cn(
             "w-6 h-6 text-white transition-all duration-300",
-            isHovered && "scale-110"
+            (isHovered || isNavbarHovered) && "scale-110"
           )}
         >
           <path
@@ -49,9 +54,9 @@ export default function AnimatedLogo() {
       <div className="flex flex-col">
         <span className={cn(
           "font-bold text-foreground whitespace-nowrap transition-all duration-300 ease-out",
-          isHovered ? "text-xl scale-105" : "text-lg"
+          (isHovered || isNavbarHovered) ? "text-xl scale-105" : "text-lg"
         )}>
-          {isHovered ? 'Awesome Blog' : 'Blog'}
+          {(isHovered || isNavbarHovered) ? 'Awesome Blog' : 'Blog'}
         </span>
       </div>
     </Link>

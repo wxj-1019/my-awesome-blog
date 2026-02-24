@@ -46,7 +46,7 @@ export function useMousePosition(ref?: RefObject<HTMLElement>) {
     return () => {
       element.removeEventListener('mousemove', handleMouseMove as EventListener);
     };
-  }, [ref, handleMouseMove]);
+  }, [ref, handleMouseMove, setPosition]);
 
   return position;
 }
@@ -103,7 +103,7 @@ export function useElementMousePosition(ref: RefObject<HTMLElement>) {
       element.removeEventListener('mousemove', handleMouseMove);
       element.removeEventListener('mouseleave', handleMouseLeave);
     };
-  }, [ref, handleMouseMove, handleMouseLeave]);
+  }, [ref, handleMouseMove, handleMouseLeave, setPosition]);
 
   return position;
 }

@@ -53,10 +53,9 @@ export default function LoginPageContent() {
 
       if (redirectPath.startsWith('/') && !redirectPath.startsWith('//')) {
         console.log('[Login] 延迟 500ms 后跳转到:', redirectPath);
-        // 增加延迟，确保 token 完全保存到 localStorage
         setTimeout(() => {
           console.log('[Login] 开始执行跳转');
-          router.push(redirectPath);
+          router.push(redirectPath as '/profile');
         }, 500);
       } else {
         console.log('[Login] 路径无效，跳转到默认的个人资料页面');

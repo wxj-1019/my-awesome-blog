@@ -103,10 +103,10 @@ export interface TypewriterContent {
 
 // 用户统计类型
 export interface UserStats {
-  article_count?: number;
-  comment_count?: number;
-  joined_date?: string;
-  total_views?: number;
+  article_count: number;
+  comment_count: number;
+  joined_date: string;
+  total_views: number;
 }
 
 // 回复类型
@@ -555,6 +555,189 @@ export interface TenantLimits {
     max_storage_mb: number;
   };
   reason?: string;
+}
+
+// 通用响应类型
+export interface ApiResponse<T = unknown> {
+  success: boolean;
+  data?: T;
+  message?: string;
+  error?: string;
+  code?: number;
+}
+
+// API 错误类型
+export interface ApiError {
+  message: string;
+  code: string;
+  details?: Record<string, unknown>;
+}
+
+// 网络请求状态
+export type RequestStatus = 'idle' | 'loading' | 'success' | 'error';
+
+// 用户认证相关类型
+export interface User {
+  id: string;
+  username: string;
+  email: string;
+  avatar?: string;
+  role: 'admin' | 'user' | 'guest';
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AuthState {
+  user: User | null;
+  isAuthenticated: boolean;
+  token: string | null;
+  loading: boolean;
+}
+
+// 导航链接类型
+export interface NavLink {
+  href: string;
+  label: string;
+  icon?: React.ComponentType<{ className?: string }>;
+  children?: NavLink[];
+}
+
+// 表单相关类型
+export interface FormField<T = string> {
+  name: string;
+  label: string;
+  value: T;
+  error?: string;
+  touched: boolean;
+}
+
+export type FormState<T> = {
+  [K in keyof T]: FormField<T[K]>;
+};
+
+// UI 组件通用类型
+export type SizeVariant = 'sm' | 'md' | 'lg' | 'xl';
+export type ColorVariant = 'primary' | 'secondary' | 'success' | 'warning' | 'error' | 'info';
+export type Variant = 'default' | 'outline' | 'ghost' | 'link' | 'glass' | 'destructive';
+
+// Toast 通知类型
+export type ToastType = 'success' | 'error' | 'warning' | 'info';
+export interface Toast {
+  id: string;
+  type: ToastType;
+  title: string;
+  description?: string;
+  duration?: number;
+  action?: {
+    label: string;
+    onClick: () => void;
+  };
+}
+
+// 确认对话框类型
+export type ConfirmDialogType = 'default' | 'danger' | 'warning' | 'success';
+export interface ConfirmDialogProps {
+  open: boolean;
+  title: string;
+  description: string;
+  type?: ConfirmDialogType;
+  confirmText?: string;
+  cancelText?: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+}
+
+// 页面过渡动画类型
+export type TransitionType = 'fade' | 'slide' | 'scale' | 'slide-up' | 'slide-down';
+export interface PageTransitionProps {
+  children: React.ReactNode;
+  type?: TransitionType;
+  duration?: number;
+  className?: string;
+}
+
+// 加载状态类型
+export interface LoadingState {
+  isLoading: boolean;
+  message?: string;
+  progress?: number;
+}
+
+// 搜索相关类型
+export interface SearchParams {
+  query: string;
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+export interface SearchResults<T> {
+  items: T[];
+  total: number;
+  hasMore: boolean;
+  nextPage?: number;
+}
+
+// 文件上传类型
+export interface UploadFile {
+  id: string;
+  name: string;
+  size: number;
+  type: string;
+  url?: string;
+  preview?: string;
+  progress?: number;
+  status: 'pending' | 'uploading' | 'success' | 'error';
+  error?: string;
+}
+
+// 响应式断点类型
+export type Breakpoint = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+export interface ResponsiveValue<T> {
+  xs?: T;
+  sm?: T;
+  md?: T;
+  lg?: T;
+  xl?: T;
+  '2xl'?: T;
+}
+
+// 主题相关类型
+export type Theme = 'light' | 'dark' | 'auto';
+export interface ThemeContextType {
+  theme: Theme;
+  resolvedTheme: 'light' | 'dark';
+  setTheme: (theme: Theme) => void;
+}
+
+// 错误边界类型
+export interface ErrorBoundaryState {
+  hasError: boolean;
+  error?: Error;
+  errorInfo?: React.ErrorInfo;
+}
+
+export interface ErrorBoundaryProps {
+  children: React.ReactNode;
+  fallback?: React.ReactNode;
+  onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
+}
+
+// 性能监控类型
+export interface PerformanceMetric {
+  name: string;
+  duration: number;
+  timestamp: number;
+  metadata?: Record<string, unknown>;
+}
+
+export interface PerformanceReport {
+  metrics: PerformanceMetric[];
+  startTime: number;
+  endTime: number;
+  totalTime: number;
 }
 
 // 分页响应类型

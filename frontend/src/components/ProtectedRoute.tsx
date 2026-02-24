@@ -39,7 +39,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
           const encodedRedirectPath = encodeURIComponent(pathname);
           const loginUrl = `${redirectTo}?message=${encodeURIComponent('请先登录以查看此页面')}&redirect=${encodedRedirectPath}`;
           console.log('[ProtectedRoute] 重定向到:', loginUrl);
-          router.push(loginUrl);
+          router.push(loginUrl as never);
         }
       } catch (error) {
         console.error('[ProtectedRoute] 认证检查错误:', error);
@@ -57,7 +57,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
           const encodedRedirectPath = encodeURIComponent(pathname);
           const loginUrl = `${redirectTo}?message=${encodeURIComponent('请先登录以查看此页面')}&redirect=${encodedRedirectPath}`;
           console.log('[ProtectedRoute] 重试失败，重定向到:', loginUrl);
-          router.push(loginUrl);
+          router.push(loginUrl as never);
         }
       }
     };

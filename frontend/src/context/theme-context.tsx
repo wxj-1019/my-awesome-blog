@@ -74,7 +74,7 @@ export function ThemeProvider({
     } catch (e) {
       console.error('无法保存主题到localStorage:', e);
     }
-  }, [theme, storageKey, isMounted]);
+  }, [theme, storageKey, isMounted, setResolvedTheme]);
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
@@ -119,7 +119,7 @@ export function ThemeProvider({
       mediaQuery.removeEventListener('change', handleChange);
       clearTimeout(timeoutId);
     };
-  }, [theme, isMounted]);
+  }, [theme, isMounted, setResolvedTheme]);
 
   const value = {
     theme,

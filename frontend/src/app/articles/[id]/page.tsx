@@ -14,7 +14,7 @@ import { useCodeBlockEnhancement } from '@/hooks/useCodeBlockEnhancement';
 import { getArticleById, getRelatedArticles, RelatedArticle } from '@/services/articleService';
 import { useLoading } from '@/context/loading-context';
 import PostCard from '@/components/ui/PostCard';
-import { Progress } from '@/components/ui/Progress';
+import { Progress } from '@/components/ui/progress';
 import MediaPlayer from '@/components/ui/MediaPlayer';
 import ReadingProgressBar from '@/components/articles/ReadingProgressBar';
 import CommentTree from '@/components/articles/CommentTree';

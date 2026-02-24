@@ -1,6 +1,6 @@
 'use client';
 
-import { motion, Variants, Transition } from 'framer-motion';
+import { motion, Variants, Transition, TargetAndTransition, VariantLabels } from 'framer-motion';
 import { useReducedMotion, useAnimationConfig } from '@/hooks/useReducedMotion';
 import { cn } from '@/lib/utils';
 import { ReactNode } from 'react';
@@ -9,14 +9,14 @@ interface OptimizedMotionProps {
   children: ReactNode;
   className?: string;
   variants?: Variants;
-  initial?: string | object;
-  animate?: string | object;
-  exit?: string | object;
+  initial?: boolean | TargetAndTransition | VariantLabels;
+  animate?: boolean | TargetAndTransition | VariantLabels;
+  exit?: boolean | TargetAndTransition | VariantLabels;
   transition?: Transition;
-  whileHover?: object;
-  whileTap?: object;
-  whileInView?: object;
-  viewport?: object;
+  whileHover?: TargetAndTransition;
+  whileTap?: TargetAndTransition;
+  whileInView?: TargetAndTransition;
+  viewport?: { once?: boolean; amount?: number | 'some' | 'all' };
   onClick?: () => void;
 }
 
@@ -63,7 +63,7 @@ export default function OptimizedMotion({
       variants={variants}
       initial={initial}
       animate={animate}
-      exit={exit}
+      exit={exit as never}
       transition={{
         ...transition,
         // 使用 GPU 加速的缓动函数

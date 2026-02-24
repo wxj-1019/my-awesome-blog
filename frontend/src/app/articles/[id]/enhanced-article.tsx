@@ -12,7 +12,7 @@ import { Calendar, Tag, User, Eye, MessageCircle, Share2, Bookmark, Heart, Arrow
 import { useThemedClasses } from '@/hooks/useThemedClasses';
 import { getArticleById, getRelatedArticles, RelatedArticle } from '@/services/articleService';
 import PostCard from '@/components/ui/PostCard';
-import { Progress } from '@/components/ui/Progress';
+import { Progress } from '@/components/ui/progress';
 
 interface Article {
   id: string;

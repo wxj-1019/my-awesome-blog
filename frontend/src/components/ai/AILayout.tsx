@@ -35,7 +35,7 @@ export default function AILayout({ children, title, currentPath }: AILayoutProps
             {navItems.map((item) => (
               <Link
                 key={item.href}
-                href={item.href}
+                href={item.href as never}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${
                   currentPath === item.href
                     ? 'bg-tech-cyan text-white'
@@ -75,7 +75,7 @@ export default function AILayout({ children, title, currentPath }: AILayoutProps
             {navItems.map((item) => (
               <Link
                 key={item.href}
-                href={item.href}
+                href={item.href as never}
                 className={`flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-all duration-200 ${
                   currentPath === item.href
                     ? 'text-tech-cyan'

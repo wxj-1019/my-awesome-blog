@@ -39,14 +39,33 @@ export default function ProfilePage() {
       setIsPageLoading(true);
 
       // 加载资料和统计数据
-      const [profileData, statsData] = await Promise.all([
+      const [profileData, statsData] = await Promise.allSettled([
         fetchCurrentUserProfile(),
         fetchCurrentUserStats()
       ]);
 
-      setProfile(profileData);
-      setStats(statsData);
-      setFormData(profileData);
+      // 处理 profile 数据
+      if (profileData.status === 'fulfilled') {
+        setProfile(profileData.value);
+        setFormData(profileData.value);
+      } else {
+        console.error('Failed to load profile:', profileData.reason);
+        throw profileData.reason;
+      }
+
+      // 处理 stats 数据（可选，失败不影响 profile 显示）
+      if (statsData.status === 'fulfilled') {
+        setStats(statsData.value);
+      } else {
+        console.error('Failed to load stats:', statsData.reason);
+        // stats 加载失败不影响 profile 显示
+        setStats({
+          article_count: 0,
+          comment_count: 0,
+          total_views: 0,
+          joined_date: ''
+        });
+      }
     } catch (error) {
       console.error('Error loading profile data:', error);
       // 数据加载失败，显示错误提示

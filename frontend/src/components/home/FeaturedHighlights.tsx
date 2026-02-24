@@ -11,7 +11,7 @@ interface HighlightItem {
   type: 'pinned' | 'featured' | 'trending' | 'latest'
   title: string
   description: string
-  icon: React.ReactNode
+  icon: React.ComponentType<{ className?: string }>
   link: string
   badge: string
   color: string

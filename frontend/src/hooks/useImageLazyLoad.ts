@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { motion } from 'framer-motion';
 
@@ -69,7 +69,7 @@ export function LazyImage({
   };
 
   if (!isInView && placeholder) {
-    return <>{placeholder}</>;
+    return <div style={{ display: 'contents' }}>{placeholder}</div>;
   }
 
   return (

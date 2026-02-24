@@ -6,7 +6,6 @@ import { NextRequest, NextResponse } from 'next/server';
 // 客户端路由（如 /profile）由 ProtectedRoute 组件保护
 const protectedPaths = [
   '/dashboard',
-  '/admin',
   // 可以在这里添加更多需要认证的路径
 ];
 

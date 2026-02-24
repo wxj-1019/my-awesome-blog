@@ -101,7 +101,7 @@ export default function AvailabilityCard() {
             </p>
           </div>
 
-          <GlassCard padding="xl">
+          <GlassCard padding="lg">
             <div className="flex items-center gap-6 mb-8">
               <motion.div
                 animate={{

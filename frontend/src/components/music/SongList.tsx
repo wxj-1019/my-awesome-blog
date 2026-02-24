@@ -73,7 +73,7 @@ export default function SongList({
             showAlbum={showAlbum}
             showDuration={showDuration}
             onSongClick={onSongClick}
-            onSongDoubleClick={onSongDoubleClick}
+            onDoubleClick={onSongDoubleClick}
           />
         ))}
       </div>

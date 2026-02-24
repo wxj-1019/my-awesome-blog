@@ -1,114 +1,165 @@
 'use client';
 
-import React, { Component, type ReactNode } from 'react';
-import type { ErrorInfo } from 'react';
+import { Component, ErrorInfo, ReactNode } from 'react';
+import { Button } from '@/components/ui/Button';
+import { RefreshCw, AlertTriangle } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
   fallback?: ReactNode;
   onError?: (error: Error, errorInfo: ErrorInfo) => void;
+  showDetails?: boolean;
 }
 
 interface ErrorBoundaryState {
   hasError: boolean;
-  error: Error | null;
-  errorInfo: ErrorInfo | null;
+  error?: Error;
+  errorInfo?: ErrorInfo;
 }
 
-export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
-    this.state = {
-      hasError: false,
-      error: null,
-      errorInfo: null,
+    this.state = { 
+      hasError: false 
     };
   }
 
-  static getDerivedStateFromError(error: Error): Partial<ErrorBoundaryState> {
-    return {
-      hasError: true,
-      error,
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { 
+      hasError: true, 
+      error 
     };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    const { onError } = this.props;
-
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
-
-    if (onError) {
-      onError(error, errorInfo);
-    }
-
+    console.error('Error caught by boundary:', error, errorInfo);
+    
     this.setState({
       error,
-      errorInfo,
+      errorInfo
     });
+
+    // 调用外部错误处理函数
+    this.props.onError?.(error, errorInfo);
+
+    // 生产环境可以发送错误报告到监控服务
+    if (process.env.NODE_ENV === 'production') {
+      // 这里可以集成错误监控服务如 Sentry
+      this.reportError(error, errorInfo);
+    }
   }
 
-  handleReset = () => {
-    this.setState({
+  private reportError(error: Error, errorInfo: ErrorInfo) {
+    // 错误上报逻辑
+    const errorReport = {
+      message: error.message,
+      stack: error.stack,
+      componentStack: errorInfo.componentStack,
+      url: typeof window !== 'undefined' ? window.location.href : '',
+      timestamp: new Date().toISOString(),
+      userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : ''
+    };
+
+    // 发送到错误监控服务
+    console.log('Reporting error:', errorReport);
+    // fetch('/api/error-report', {
+    //   method: 'POST',
+    //   headers: { 'Content-Type': 'application/json' },
+    //   body: JSON.stringify(errorReport)
+    // }).catch(console.error);
+  }
+
+  private handleRetry = () => {
+    this.setState({ 
       hasError: false,
-      error: null,
-      errorInfo: null,
+      error: undefined,
+      errorInfo: undefined
     });
   };
 
   render() {
-    const { children, fallback } = this.props;
-    const { hasError, error } = this.state;
-
-    if (hasError) {
-      if (fallback) {
-        return <>{fallback}</>;
+    if (this.state.hasError) {
+      // 如果提供了自定义 fallback 组件
+      if (this.props.fallback) {
+        return this.props.fallback;
       }
 
+      // 默认错误 UI
       return (
-        <div className="min-h-screen flex items-center justify-center bg-background">
-          <div className="max-w-md mx-4 p-8">
-            <div className="text-center mb-8">
-              <div className="text-6xl mb-4">⚠️</div>
-              <h1 className="text-2xl font-bold text-foreground mb-2">
-                出现了问题
-              </h1>
-              <p className="text-muted-foreground mb-6">
-                抱歉，应用遇到了一个错误。请刷新页面或联系支持团队。
+        <div 
+          className={cn(
+            "min-h-screen flex items-center justify-center p-4",
+            "bg-gradient-to-br from-destructive/10 via-background to-destructive/5"
+          )}
+          role="alert"
+          aria-live="polite"
+        >
+          <div className={cn(
+            "max-w-md w-full bg-glass backdrop-blur-xl border border-destructive/30",
+            "rounded-2xl p-8 shadow-2xl text-center"
+          )}>
+            <div className="mb-6">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-destructive/10 mb-4">
+                <AlertTriangle className="h-8 w-8 text-destructive" />
+              </div>
+              <h2 className="text-xl font-bold text-foreground mb-2">
+                出现了一些问题
+              </h2>
+              <p className="text-foreground/70">
+                很抱歉，页面加载出现了意外错误。请尝试刷新页面或稍后重试。
               </p>
             </div>
 
-            {error && (
-              <details className="mb-6">
-                <summary className="cursor-pointer text-sm font-medium text-muted-foreground hover:text-foreground">
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button
+                onClick={this.handleRetry}
+                className="flex items-center gap-2 bg-primary hover:bg-primary/90"
+                aria-label="重试加载页面"
+              >
+                <RefreshCw className="h-4 w-4" />
+                重试
+              </Button>
+              
+              <Button
+                variant="outline"
+                onClick={() => window.location.reload()}
+                className="flex items-center gap-2"
+                aria-label="刷新页面"
+              >
+                刷新页面
+              </Button>
+            </div>
+
+            {this.props.showDetails && this.state.error && (
+              <details className="mt-6 text-left">
+                <summary className="cursor-pointer text-sm font-medium text-foreground/70 hover:text-foreground">
                   查看错误详情
                 </summary>
-                <pre className="mt-4 p-4 bg-card rounded-lg text-sm overflow-auto max-h-64 border">
-                  <code className="text-destructive">
-                    {error.toString()}
-                  </code>
-                </pre>
+                <div className="mt-2 p-3 bg-destructive/5 rounded-lg">
+                  <p className="text-sm font-mono text-destructive">
+                    {this.state.error.message}
+                  </p>
+                  {this.state.errorInfo?.componentStack && (
+                    <pre className="mt-2 text-xs text-foreground/60 overflow-x-auto">
+                      {this.state.errorInfo.componentStack}
+                    </pre>
+                  )}
+                </div>
               </details>
             )}
 
-            <div className="flex flex-col gap-4">
-              <button
-                onClick={this.handleReset}
-                className="w-full py-3 px-6 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors"
-              >
-                重试
-              </button>
-              <button
-                onClick={() => window.location.href = '/'}
-                className="w-full py-3 px-6 bg-secondary text-secondary-foreground rounded-lg font-medium hover:bg-secondary/90 transition-colors"
-              >
-                返回首页
-              </button>
+            <div className="mt-6 text-xs text-foreground/50">
+              错误ID: {this.state.error?.message.substring(0, 8) || 'unknown'}
             </div>
           </div>
         </div>
       );
     }
 
-    return <>{children}</>;
+    return this.props.children;
   }
 }
+
+export default ErrorBoundary;

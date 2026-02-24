@@ -20,7 +20,7 @@ export const useAuthCheck = (extraCondition?: () => boolean) => {
         const loginUrl = `/login?message=${encodeURIComponent('请先登录以查看您的个人资料')}&redirect=${encodeURIComponent(pathname)}`;
         
         // 使用 router.push 进行导航，保持 Next.js 客户端导航
-        router.push(loginUrl);
+        router.push(loginUrl as never);
       }
     };
 

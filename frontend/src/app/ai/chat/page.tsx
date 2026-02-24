@@ -30,10 +30,10 @@ export default function ChatPage() {
 
   const loadConversations = async () => {
     try {
-      const data = await conversationService.getAll();
-      setConversations(data);
-      if (data.length > 0 && !currentConversation) {
-        selectConversation(data[0].id);
+      const response = await conversationService.getConversations();
+      setConversations(response.items || []);
+      if ((response.items?.length ?? 0) > 0 && !currentConversation) {
+        selectConversation(response.items![0].id);
       }
     } catch (error) {
       console.error('Failed to load conversations:', error);
@@ -45,8 +45,8 @@ export default function ChatPage() {
       const conversation = conversations.find(c => c.id === id);
       if (conversation) {
         setCurrentConversation(conversation);
-        const msgs = await conversationService.getMessages(id);
-        setMessages(msgs);
+        const response = await conversationService.getConversationMessages(id);
+        setMessages(response.items || []);
       }
     } catch (error) {
       console.error('Failed to load conversation:', error);
@@ -55,9 +55,8 @@ export default function ChatPage() {
 
   const handleCreateConversation = async () => {
     try {
-      const conversation = await conversationService.create({
+      const conversation = await conversationService.createConversation({
         title: '新对话',
-        provider: 'deepseek',
         model: 'deepseek-chat',
       });
       setConversations([conversation, ...conversations]);
@@ -70,7 +69,7 @@ export default function ChatPage() {
 
   const handleDeleteConversation = async (id: string) => {
     try {
-      await conversationService.delete(id);
+      await conversationService.deleteConversation(id);
       setConversations(conversations.filter(c => c.id !== id));
       if (currentConversation?.id === id) {
         setCurrentConversation(null);
@@ -83,10 +82,10 @@ export default function ChatPage() {
 
   const handleArchiveConversation = async (id: string) => {
     try {
-      await conversationService.archive(id);
+      await conversationService.archiveConversation(id);
       const conversation = conversations.find(c => c.id === id);
       if (conversation) {
-        setCurrentConversation({ ...conversation, archived: true });
+        setCurrentConversation({ ...conversation, status: 'archived' });
       }
     } catch (error) {
       console.error('Failed to archive conversation:', error);
