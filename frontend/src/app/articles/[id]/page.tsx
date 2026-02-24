@@ -12,7 +12,7 @@ import { Calendar, Tag, User, Eye, MessageCircle, Share2, Bookmark, Heart, Arrow
 import { useThemedClasses } from '@/hooks/useThemedClasses';
 import { useCodeBlockEnhancement } from '@/hooks/useCodeBlockEnhancement';
 import { getArticleById, getRelatedArticles } from '@/services/articleService';
-import type { RelatedArticle } from '@/types';
+import type { RelatedArticle, Article } from '@/types';
 import { useLoading } from '@/context/loading-context';
 import PostCard from '@/components/ui/PostCard';
 import { Progress } from '@/components/ui/progress';
@@ -20,45 +20,6 @@ import MediaPlayer from '@/components/ui/MediaPlayer';
 import ReadingProgressBar from '@/components/articles/ReadingProgressBar';
 import CommentTree from '@/components/articles/CommentTree';
 import { Comment } from '@/types';
-
-interface Article {
-  id: string;
-  title: string;
-  content: string;
-  excerpt: string;
-  is_published: boolean;
-  view_count: number;
-  created_at: string;
-  updated_at: string;
-  published_at: string;
-  author_id: string;
-  category_id: string;
-  featured_image?: string;
-  read_time: number; // 阅读时间（分钟）
-  likes_count: number; // 点赞数
-  comments_count: number; // 评论数
-  shares_count: number; // 分享数
-  author: {
-    id: string;
-    username: string;
-    email: string;
-    avatar?: string;
-    bio?: string;
-    reputation: number; // 声誉分数
-    followers_count: number; // 关注者数量
-  };
-  category: {
-    id: string;
-    name: string;
-    slug: string;
-    description: string;
-  };
-  tags: Array<{
-    id: string;
-    name: string;
-    slug: string;
-  }>;
-}
 
 // 将 RelatedArticle 转换为 Article 类型的辅助函数
 const convertToArticle = (related: RelatedArticle): Article => {
@@ -73,8 +34,8 @@ const convertToArticle = (related: RelatedArticle): Article => {
     updated_at: related.published_at,
     published_at: related.published_at,
     author_id: '1',
-    category_id: '1',
-    featured_image: undefined,
+    category_id: undefined,
+    cover_image: undefined,
     read_time: 0,
     likes_count: 0,
     comments_count: 0,
