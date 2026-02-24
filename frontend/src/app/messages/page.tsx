@@ -354,6 +354,12 @@ useEffect(() => {
         const newDanmaku: DanmakuMessageType = {
           id: msg.id,
           content: msg.content,
+          author: {
+            id: msg.author.id,
+            username: msg.author.username,
+            avatar: msg.author.avatar,
+          },
+          created_at: msg.created_at,
           color: msg.color || selectedColor,
           speed: Math.random() * 10 + 15,
           y: Math.random() * 70 + 10,
