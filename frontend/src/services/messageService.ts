@@ -1,4 +1,4 @@
-import { Message, CreateMessageRequest } from '@/types';
+import { Message, CreateMessageRequest, DanmakuMessage } from '@/types';
 import { API_BASE_URL } from '@/config/api';
 
 // 通用请求函数

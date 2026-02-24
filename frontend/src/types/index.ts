@@ -153,6 +153,22 @@ export interface Message {
   mentionedUsers?: string[]; // @的用户列表
 }
 
+// 弹幕消息类型（扩展Message）
+export interface DanmakuMessage {
+  id: string;
+  content: string;
+  author: {
+    id: string;
+    username: string;
+    avatar?: string;
+  };
+  created_at: string;
+  color?: string;
+  speed: number; // 弹幕速度
+  y: number; // 弹幕垂直位置
+  layer: number; // 弹幕层级
+}
+
 // 创建留言请求类型
 export interface CreateMessageRequest {
   content: string;
