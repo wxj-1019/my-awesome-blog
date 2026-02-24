@@ -10,7 +10,8 @@ import { Badge } from '@/components/ui/Badge';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { Calendar, Tag, User, Eye, MessageCircle, Share2, Bookmark, Heart, ArrowLeft, Clock, ThumbsUp, MessageSquare, TrendingUp, Award, Users } from 'lucide-react';
 import { useThemedClasses } from '@/hooks/useThemedClasses';
-import { getArticleById, getRelatedArticles, RelatedArticle } from '@/services/articleService';
+import { getArticleById, getRelatedArticles } from '@/services/articleService';
+import type { RelatedArticle } from '@/types';
 import PostCard from '@/components/ui/PostCard';
 import { Progress } from '@/components/ui/progress';
 
