@@ -1,13 +1,23 @@
+'use client';
+
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, Plus, Trash2, Settings, Github, Menu, X, Cpu } from 'lucide-react';
+import { MessageSquare, Plus, Trash2, FileText, Github, Menu, X, Cpu, Star, Check, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
+import PromptSettings from './PromptSettings';
 
 export interface ChatSession {
   id: string;
   title: string;
   updatedAt: number;
   preview?: string;
+}
+
+export interface SelectedPromptInfo {
+  id: string;
+  name: string;
+  description?: string;
+  category?: string;
 }
 
 interface ChatSidebarProps {
@@ -18,6 +28,8 @@ interface ChatSidebarProps {
   onDeleteSession: (id: string, e: React.MouseEvent) => void;
   isOpen: boolean;
   onClose: () => void;
+  onSelectPrompt?: (prompt: any) => void;
+  selectedPrompt?: SelectedPromptInfo | null;
 }
 
 export function ChatSidebar({
@@ -27,8 +39,16 @@ export function ChatSidebar({
   onNewChat,
   onDeleteSession,
   isOpen,
-  onClose
+  onClose,
+  onSelectPrompt,
+  selectedPrompt,
 }: ChatSidebarProps) {
+  const [isPromptSettingsOpen, setIsPromptSettingsOpen] = useState(false);
+
+  const handleSelectPrompt = (prompt: any) => {
+    onSelectPrompt?.(prompt);
+  };
+
   return (
     <>
       {/* Mobile Overlay */}
@@ -143,20 +163,106 @@ export function ChatSidebar({
           </div>
         </div>
 
-        {/* Footer */}
+        {/* Footer - 提示词设置入口 */}
         <div className="border-t border-white/5 p-4">
-          <div className="flex items-center gap-2 rounded-xl bg-white/5 p-3">
-            <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500" />
-            <div className="flex-1 overflow-hidden">
-              <div className="truncate text-sm font-medium text-white">Guest User</div>
-              <div className="truncate text-xs text-zinc-500">Pro Plan</div>
+          <button
+            onClick={() => setIsPromptSettingsOpen(true)}
+            className={cn(
+              "w-full flex items-center gap-3 rounded-xl p-3 transition-all group relative overflow-hidden",
+              selectedPrompt 
+                ? "bg-gradient-to-r from-cyan-500/20 to-blue-600/20 border border-cyan-500/30" 
+                : "bg-white/5 hover:bg-white/10"
+            )}
+          >
+            {/* Animated glow effect when prompt is selected */}
+            {selectedPrompt && (
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-blue-600/10"
+                animate={{
+                  opacity: [0.5, 1, 0.5],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              />
+            )}
+            
+            <div className={cn(
+              "flex h-9 w-9 items-center justify-center rounded-lg transition-all",
+              selectedPrompt 
+                ? "bg-gradient-to-br from-cyan-500 to-blue-600 shadow-lg shadow-cyan-500/30" 
+                : "bg-gradient-to-br from-cyan-500/50 to-blue-600/50"
+            )}>
+              {selectedPrompt ? (
+                <Sparkles size={18} className="text-white" />
+              ) : (
+                <FileText size={18} className="text-white" />
+              )}
             </div>
-            <button className="rounded p-1.5 text-zinc-400 hover:text-white transition-colors">
-              <Settings size={16} />
-            </button>
-          </div>
+            
+            <div className="flex-1 overflow-hidden text-left relative z-10">
+              <div className="flex items-center gap-2">
+                <span className={cn(
+                  "truncate text-sm font-medium transition-colors",
+                  selectedPrompt ? "text-cyan-300" : "text-white"
+                )}>
+                  {selectedPrompt?.name || '提示词设置'}
+                </span>
+                {selectedPrompt && (
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="flex h-5 w-5 items-center justify-center rounded-full bg-cyan-500"
+                  >
+                    <Check size={12} className="text-white" />
+                  </motion.div>
+                )}
+              </div>
+              <div className={cn(
+                "truncate text-xs transition-colors",
+                selectedPrompt ? "text-cyan-400/70" : "text-zinc-500"
+              )}>
+                {selectedPrompt ? selectedPrompt.description?.slice(0, 30) || '点击更换提示词' : '点击选择提示词'}
+              </div>
+            </div>
+
+            {/* Arrow indicator */}
+            <motion.div
+              animate={{ x: [0, 4, 0] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+              className="text-zinc-500"
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M6 12L10 8L6 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </motion.div>
+          </button>
+
+          {/* Category badge when selected */}
+          {selectedPrompt?.category && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-2 flex justify-center"
+            >
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400 text-xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                {selectedPrompt.category}
+              </span>
+            </motion.div>
+          )}
         </div>
       </motion.aside>
+
+      {/* Prompt Settings Panel */}
+      <PromptSettings
+        isOpen={isPromptSettingsOpen}
+        onClose={() => setIsPromptSettingsOpen(false)}
+        onSelectPrompt={handleSelectPrompt}
+        selectedPromptId={selectedPrompt?.id}
+      />
     </>
   );
 }

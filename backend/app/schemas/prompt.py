@@ -5,6 +5,7 @@ Prompt 管理相关的请求和响应 Schema
 
 from typing import Optional, List, Dict, Any
 from datetime import datetime
+from uuid import UUID
 from pydantic import BaseModel, Field
 
 
@@ -60,14 +61,14 @@ class PromptInDBBase(PromptBase):
     """
     数据库中的 Prompt 基础 Schema
     """
-    id: str
-    tenant_id: str
+    id: UUID
+    tenant_id: UUID
     is_active: bool
     usage_count: int = 0
     success_rate: int = 0
     total_interactions: int = 0
     created_at: datetime
-    updated_at: Optional[datetime]
+    updated_at: Optional[datetime] = None
 
 
 class Prompt(PromptInDBBase):

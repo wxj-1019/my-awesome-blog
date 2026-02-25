@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { ChatLayout } from '@/components/chat/ChatLayout';
-import { ChatSidebar, ChatSession } from '@/components/chat/ChatSidebar';
+import { ChatSidebar, ChatSession, SelectedPromptInfo } from '@/components/chat/ChatSidebar';
 import { ChatWindow, ChatMessage } from '@/components/chat/ChatWindow';
 import { useAuthCheck } from '@/hooks/useAuthCheck';
 
-// Local storage key
+// Local storage keys
 const STORAGE_KEY = 'chat_sessions_v1';
+const SELECTED_PROMPT_KEY = 'selected_prompt_v1';
 
 interface StoredData {
   sessions: ChatSession[];
@@ -21,6 +22,7 @@ export default function ChatPage() {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [sessionMessages, setSessionMessages] = useState<Record<string, ChatMessage[]>>({});
+  const [selectedPrompt, setSelectedPrompt] = useState<SelectedPromptInfo | null>(null);
 
   // Load from local storage on mount
   useEffect(() => {
@@ -37,8 +39,17 @@ export default function ChatPage() {
         console.error('Failed to load chat history', e);
       }
     } else {
-      // Create initial session
       createNewSession();
+    }
+
+    // Load selected prompt
+    const savedPrompt = localStorage.getItem(SELECTED_PROMPT_KEY);
+    if (savedPrompt) {
+      try {
+        setSelectedPrompt(JSON.parse(savedPrompt));
+      } catch (e) {
+        console.error('Failed to load selected prompt', e);
+      }
     }
   }, []);
 
@@ -52,6 +63,15 @@ export default function ChatPage() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     }
   }, [sessions, sessionMessages]);
+
+  // Save selected prompt to local storage
+  useEffect(() => {
+    if (selectedPrompt) {
+      localStorage.setItem(SELECTED_PROMPT_KEY, JSON.stringify(selectedPrompt));
+    } else {
+      localStorage.removeItem(SELECTED_PROMPT_KEY);
+    }
+  }, [selectedPrompt]);
 
   const createNewSession = () => {
     const newId = Date.now().toString();
@@ -113,6 +133,15 @@ export default function ChatPage() {
     }
   };
 
+  const handleSelectPrompt = (prompt: any) => {
+    setSelectedPrompt({
+      id: prompt.id,
+      name: prompt.name,
+      description: prompt.description,
+      category: prompt.category,
+    });
+  };
+
   const currentMessages = currentSessionId ? sessionMessages[currentSessionId] || [] : [];
 
   return (
@@ -127,6 +156,8 @@ export default function ChatPage() {
           onDeleteSession={deleteSession}
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
+          onSelectPrompt={handleSelectPrompt}
+          selectedPrompt={selectedPrompt}
         />
       }
     >
@@ -135,6 +166,7 @@ export default function ChatPage() {
         sessionMessages={currentMessages}
         onMessagesChange={updateMessages}
         onNewSession={createNewSession}
+        selectedPrompt={selectedPrompt}
       />
     </ChatLayout>
   );

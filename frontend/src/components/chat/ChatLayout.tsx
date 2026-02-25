@@ -9,7 +9,7 @@ interface ChatLayoutProps {
 
 export function ChatLayout({ children, sidebar, isSidebarOpen }: ChatLayoutProps) {
   return (
-    <div className="flex h-[calc(100vh-6rem)] w-full mt-16 overflow-hidden bg-black text-white selection:bg-cyan-500/30">
+    <div className="fixed inset-0 top-16 flex overflow-hidden bg-transparent text-white selection:bg-cyan-500/30">
       {/* Aurora Background Effect */}
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
         <div className="absolute -top-[20%] -left-[10%] h-[70%] w-[70%] rounded-full bg-cyan-500/10 blur-[120px] animate-pulse-glow" />

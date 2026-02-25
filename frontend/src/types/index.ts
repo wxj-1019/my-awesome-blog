@@ -393,6 +393,31 @@ export interface PromptVersion {
   created_at: string;
 }
 
+export interface PromptListResponse {
+  prompts: Prompt[];
+  total: number;
+  page: number;
+  page_size: number;
+}
+
+export interface PromptFolder {
+  id: string;
+  name: string;
+  parent_id?: string;
+  color?: string;
+  icon?: string;
+  sort_order: number;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface PromptWithFolder extends Prompt {
+  folder_id?: string;
+  folder?: PromptFolder;
+  tags?: string[];
+  is_default?: boolean;
+}
+
 export interface ABTestResult {
   prompt_id: string;
   group_a: {

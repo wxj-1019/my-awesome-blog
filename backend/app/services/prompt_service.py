@@ -64,10 +64,18 @@ class PromptService:
         Returns:
             Prompt: Prompt 对象或 None
         """
+        from uuid import UUID
+        
         prompt = prompt_crud.get_prompt(db, prompt_id)
-        if prompt and prompt.tenant_id != tenant_id:
-            app_logger.warning(f"Prompt {prompt_id} does not belong to tenant {tenant_id}")
-            return None
+        if prompt:
+            try:
+                tenant_uuid = UUID(tenant_id) if isinstance(tenant_id, str) else tenant_id
+                if prompt.tenant_id != tenant_uuid:
+                    app_logger.warning(f"Prompt {prompt_id} does not belong to tenant {tenant_id}")
+                    return None
+            except ValueError:
+                app_logger.warning(f"Invalid tenant_id format: {tenant_id}")
+                return None
         return prompt
 
     def get_prompts(
