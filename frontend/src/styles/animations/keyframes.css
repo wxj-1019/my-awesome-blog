@@ -121,6 +121,15 @@
   100% { transform: translateX(-100%); }
 }
 
+@keyframes danmaku-scroll {
+  from { 
+    transform: translateX(100vw);
+  }
+  to { 
+    transform: translateX(calc(-100vw - 100%));
+  }
+}
+
 @keyframes glitch-1 {
   0% { clip: rect(20px, 9999px, 80px, 0); transform: translate(-2px, -2px); }
   20% { clip: rect(60px, 9999px, 10px, 0); transform: translate(2px, 2px); }
