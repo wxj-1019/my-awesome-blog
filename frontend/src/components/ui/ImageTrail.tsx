@@ -241,7 +241,7 @@ abstract class BaseImageTrail {
 
   constructor(container: HTMLDivElement) {
     this.container = container;
-    this.images = [...container.querySelectorAll('.content__img')].map(img => new ImageItem(img as HTMLDivElement));
+    this.images = Array.from(container.querySelectorAll('.content__img')).map(img => new ImageItem(img as HTMLDivElement));
     this.imagesTotal = this.images.length;
     this.imgPosition = 0;
     this.zIndexVal = 1;
@@ -264,7 +264,7 @@ abstract class BaseImageTrail {
       if (this.isDisposed) return;
       const rect = this.container.getBoundingClientRect();
       this.mousePos = getLocalPointerPos(ev, rect);
-      if (!this.isRunning && !this.visibilityManager.isHidden) {
+      if (!this.isRunning && this.visibilityManager.isVisible()) {
         this.cacheMousePos = { ...this.mousePos };
         this.lastMousePos = { ...this.mousePos };
         this.isRunning = true;
@@ -292,7 +292,7 @@ abstract class BaseImageTrail {
 
   protected initVisibilityHandler() {
     this.visibilityManager.onVisibilityChange(() => {
-      if (this.visibilityManager.isHidden) {
+      if (!this.visibilityManager.isVisible()) {
         this.rafManager.pause();
       } else {
         this.rafManager.resume();

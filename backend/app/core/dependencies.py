@@ -25,11 +25,13 @@ async def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
     
+    app_logger.debug(f"Authentication attempt with token: {token[:20]}...")
+    
     # 检查令牌是否在黑名单中
     try:
         is_blacklisted = await cache_service.exists(f"blacklist:token:{token}")
         if is_blacklisted:
-            app_logger.warning(f"Attempt to use blacklisted token")
+            app_logger.warning(f"Attempt to use blacklisted token: {token[:20]}...")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Token has been revoked",
@@ -40,19 +42,48 @@ async def get_current_user(
         app_logger.error(f"Error checking token blacklist: {str(e)}")
     
     try:
+        app_logger.debug("Verifying token...")
         payload = security.verify_token(token)
         if payload is None:
+            app_logger.warning("Token verification failed: payload is None")
             raise credentials_exception
         
         user_id: Optional[str] = payload.get("sub")
         if user_id is None:
+            app_logger.warning("Token payload missing 'sub' field")
             raise credentials_exception
-    except JWTError:
+        
+        app_logger.debug(f"Token verified successfully, user_id: {user_id}")
+    except JWTError as e:
+        app_logger.error(f"JWT decode error: {e}, token: {token[:20]}...")
         raise credentials_exception
+    except Exception as e:
+        app_logger.error(f"Unexpected error during token verification: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error while validating credentials"
+        )
     
-    user = crud.get_user(db, user_id=UUID(user_id))
-    if user is None:
-        raise credentials_exception
+    try:
+        app_logger.debug(f"Fetching user from database: {user_id}")
+        user = crud.get_user(db, user_id=UUID(user_id))
+        if user is None:
+            app_logger.warning(f"User not found for ID: {user_id}")
+            raise credentials_exception
+        
+        app_logger.debug(f"User found: {user.username} (ID: {user_id})")
+    except ValueError as e:
+        app_logger.error(f"Invalid user_id format: {user_id}, error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid user ID format"
+        )
+    except Exception as e:
+        app_logger.error(f"Database error while fetching user {user_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error while fetching user"
+        )
     
     return user
 

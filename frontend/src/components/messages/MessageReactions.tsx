@@ -98,7 +98,6 @@ const MessageReactionsComponent = function MessageReactions({
               className={cn(
                 "relative flex items-center gap-1 px-2 py-1 rounded-full",
                 "text-sm transition-all duration-200",
-                "hover:scale-110",
                 isReacted
                   ? "bg-tech-cyan/20 text-tech-cyan border-tech-cyan/50"
                   : "bg-black/40 text-white/70 border-white/10 hover:border-white/30"

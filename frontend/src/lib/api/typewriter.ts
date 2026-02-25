@@ -4,9 +4,7 @@ const API_BASE_URL = env.NEXT_PUBLIC_API_URL || 'http://localhost:8989/api/v1';
 
 export interface TypewriterContent {
   id: string;
-  title: string;
-  content: string;
-  type: string;
+  text: string;
   priority: number;
   is_active: boolean;
   created_at: string;

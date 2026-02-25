@@ -1,7 +1,7 @@
 from typing import List, Optional
 from uuid import UUID
 from sqlalchemy.orm import Session
-from sqlalchemy import select, and_, func
+from sqlalchemy import func
 from app.models.category import Category
 from app.models.article_category import ArticleCategory
 from app.schemas.category import CategoryCreate, CategoryUpdate
@@ -55,7 +55,6 @@ def get_categories_with_article_count(
         query = query.filter(Category.is_active == is_active)
     
     result = query.offset(skip).limit(limit).all()
-    # 将结果转换为带有 article_count 属性的 Category 对象
     categories = []
     for category, article_count in result:
         category.article_count = article_count
@@ -75,7 +74,7 @@ def create_category(db: Session, category: CategoryCreate) -> Category:
 
 def update_category(db: Session, category_id: UUID, category_update: CategoryUpdate) -> Optional[Category]:
     """更新分类"""
-    db_category = get_category(db, category_id)
+    db_category = get_category(db, category_id=category_id)
     if db_category:
         update_data = category_update.model_dump(exclude_unset=True)
         for field, value in update_data.items():
@@ -87,7 +86,7 @@ def update_category(db: Session, category_id: UUID, category_update: CategoryUpd
 
 def delete_category(db: Session, category_id: UUID) -> bool:
     """删除分类"""
-    db_category = get_category(db, category_id)
+    db_category = get_category(db, category_id=category_id)
     if db_category:
         db.delete(db_category)
         db.commit()

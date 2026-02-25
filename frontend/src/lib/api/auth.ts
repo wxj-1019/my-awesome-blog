@@ -67,7 +67,7 @@ export const loginApi = async (username: string, password: string): Promise<Auth
     console.log('[loginApi] 原始响应文本:', responseText);
 
     if (!response.ok) {
-      let errorData = {};
+      let errorData: { detail?: string; message?: string } = {};
 
       try {
         if (responseText) {
@@ -131,14 +131,14 @@ export const getCurrentUserApi = async (): Promise<UserProfile | null> => {
     return userData;
   } catch (error) {
     if (error instanceof Error) {
-      if (error.message.includes('401') || error.message.includes('UNAUTHORIZED') || error.message.includes('Could not validate credentials')) {
+      if (error.message.includes('401') || error.message.includes('UNAUTHORIZED') || error.message.includes('Could not validate credentials') || error.message.includes('Internal server error')) {
         // 静默处理认证失败 - 这是预期的行为（token 过期或无效）
         removeToken();
         localStorage.removeItem('auth_user');
       } else if (error.message.includes('404') || error.message.includes('Not Found')) {
         console.warn('[getCurrentUserApi] 用户端点不存在');
       } else {
-        console.error('[getCurrentUserApi] 获取用户信息失败:', error.message);
+        console.warn('[getCurrentUserApi] 获取用户信息失败:', error.message);
       }
     }
     return null;

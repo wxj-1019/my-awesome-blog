@@ -130,7 +130,7 @@ function MessageManageDialog({
                 disabled={isSubmitting}
                 className="text-white/50 hover:text-white transition-colors disabled:opacity-50"
               >
-                <X className="w-5 h-5" />
+                <CloseIcon className="w-5 h-5" />
               </button>
             </div>
 

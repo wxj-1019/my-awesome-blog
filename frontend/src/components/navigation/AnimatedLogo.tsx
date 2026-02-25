@@ -17,6 +17,7 @@ export default function AnimatedLogo({ isNavbarHovered = false }: AnimatedLogoPr
       className="flex items-center space-x-2 text-tech-cyan hover:text-tech-cyan transition-colors"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      aria-hidden={!isNavbarHovered}
     >
       {/* Logo 图标 - 只在导航栏 hover 时显示 */}
       <div className={cn(
@@ -28,7 +29,7 @@ export default function AnimatedLogo({ isNavbarHovered = false }: AnimatedLogoPr
           xmlns="http://www.w3.org/2000/svg"
           className={cn(
             "w-6 h-6 text-white transition-all duration-300",
-            isHovered && "scale-110"
+            (isHovered || isNavbarHovered) && "scale-110"
           )}
         >
           <path
@@ -55,7 +56,7 @@ export default function AnimatedLogo({ isNavbarHovered = false }: AnimatedLogoPr
           "font-bold text-foreground whitespace-nowrap transition-all duration-300 ease-out",
           isNavbarHovered ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4"
         )}>
-          {isHovered ? 'Awesome Blog' : 'Blog'}
+          {(isHovered || isNavbarHovered) ? 'Awesome Blog' : 'Blog'}
         </span>
       </div>
     </Link>

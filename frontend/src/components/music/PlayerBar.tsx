@@ -72,6 +72,13 @@ export default function PlayerBar({
     }
   };
 
+  const cyclePlayMode = () => {
+    const modes: PlayMode[] = ['list', 'random', 'single'];
+    const currentIndex = modes.indexOf(playMode);
+    const nextIndex = (currentIndex + 1) % modes.length;
+    onModeChange(modes[nextIndex]);
+  };
+
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50">
       <div className={cn(
@@ -153,7 +160,7 @@ export default function PlayerBar({
                     ? "text-pink-400 bg-pink-400/10"
                     : "text-white/40 hover:text-white/70 hover:bg-white/5"
                 )}
-                onClick={onModeChange}
+                onClick={cyclePlayMode}
                 aria-label="切换播放模式"
               >
                 {getPlayModeIcon()}

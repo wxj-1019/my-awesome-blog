@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GitBranch, RotateCcw, Check } from 'lucide-react';
 import type { PromptVersion } from '@/types';

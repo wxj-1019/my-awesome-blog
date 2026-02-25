@@ -3,11 +3,12 @@
 ## Project Overview & Tech Stack
 
 My Awesome Blog is a modern monorepo containing:
-- **Frontend**: Next.js 14 with App Router, TypeScript, Tailwind CSS
-- **Backend**: FastAPI with Python, SQLAlchemy 2.0, Pydantic v2
+- **Frontend**: Next.js 16 with App Router, TypeScript, Tailwind CSS (port: 3000)
+- **Backend**: FastAPI with Python 3.12+, SQLAlchemy 2.0, Pydantic v2 (port: 8989)
 - **Database**: PostgreSQL (production), SQLite (development)
-- **Design System**: Glassmorphism with tech-themed color palette
+- **Design System**: Glassmorphism with tech-themed color palette and custom animations
 - **Architecture**: Containerized with Docker Compose
+- **Additional Features**: LLM integration, Redis caching, Aliyun OSS support
 
 ## Role Definition
 
@@ -24,23 +25,31 @@ You are a senior full-stack developer with expertise in:
 - `frontend/` - Next.js application with App Router
 - `backend/` - FastAPI application with API v1 endpoints
 - `docs/` - Documentation files
+- `docker-compose.yml` - Container orchestration
 - Shared configuration files at root level
 
 ### Frontend Architecture
-- Next.js 14 with App Router (`app/` directory structure)
+- Next.js 16 with App Router (`app/` directory structure)
 - TypeScript with strict mode enabled
-- Tailwind CSS for styling with custom theme
-- Component organization: `components/ui`, `components/blog`, `components/home`
+- Tailwind CSS with custom theme and extensive animations
+- Component organization: `components/ui` (42+ components), `components/navigation`, `components/articles`, `components/chat`, `components/music`
 - Absolute imports using `@/*` alias (configured in `tsconfig.json`)
+- Custom fonts: Inter, Syne, Manrope
+- Dark/light theme support with system preference detection
 
 ### Backend Architecture
 - FastAPI with APIRouter for endpoint organization
 - SQLAlchemy 2.0 ORM with async support
 - Pydantic v2 for request/response validation
-- CRUD operations separated in `app/crud/`
-- Models defined in `app/models/`
-- Schemas in `app/schemas/`
+- CRUD operations separated in `app/crud/` (20+ modules)
+- Models defined in `app/models/` (23+ models)
+- Schemas in `app/schemas/` (25+ schemas)
 - Dependency injection for authentication and database sessions
+- Comprehensive middleware system
+- LLM provider integration (DeepSeek, GLM, Qwen)
+- Redis caching layer
+- Aliyun OSS file storage support
+- Multi-tenant architecture support
 
 ## Frontend Development Guidelines
 
@@ -55,6 +64,8 @@ You are a senior full-stack developer with expertise in:
 - Use React.forwardRef when DOM access is needed
 - Implement React.memo for components that render frequently with same props
 - Use useCallback/useMemo for expensive computations to optimize performance
+- Leverage React Context for global state management
+- Implement proper error boundaries for better error handling
 
 ### Import Patterns
 - Group imports: React → external libraries → internal modules
@@ -121,6 +132,8 @@ You are a senior full-stack developer with expertise in:
 - Layouts: `layout.tsx`
 - TypeScript utility files: `.ts` extension
 - Server Components: Use `.tsx` extension and add `'use client'` directive for Client Components
+- Custom hooks: `use*.ts` (e.g., `useTheme.ts`, `useMediaQuery.ts`)
+- Context providers: `*Context.ts` or `*-context.ts` (e.g., `loading-context.ts`)
 
 ## Backend Development Guidelines
 
@@ -132,6 +145,9 @@ You are a senior full-stack developer with expertise in:
 - Follow FastAPI best practices for path operations
 - Use HTTPException for error responses
 - Structure endpoints with APIRouter
+- Implement proper middleware chain for logging, rate limiting, performance monitoring
+- Use lifecycle event handlers (`@app.on_event("startup")`) for initialization
+- Apply proper validation in `@field_validator` decorators
 - Example endpoint pattern:
   ```python
   from fastapi import APIRouter, Depends, HTTPException, status
@@ -257,12 +273,23 @@ You are a senior full-stack developer with expertise in:
 - Add `text-white` for text contrast on glass backgrounds
 - Implement `glass-float` animation for floating effect
 - Apply `pulse-glow` for interactive elements
+- Utilize `glass-fade-in-up`, `slide-in-left` and other custom animations
+- Maintain consistent rounded corners using Tailwind's border-radius utilities
+- Balance transparency (0.3-0.5) for visual hierarchy
+- Ensure proper contrast ratios for accessibility
+- Support dark/light mode variants consistently
 
 ### Color Palette
 - Primary tech colors: `tech-darkblue (#0f172a)`, `tech-deepblue (#1e3a8a)`
 - Cyan accents: `tech-cyan (#06b6d4)`, `tech-lightcyan (#22d3ee)`, `tech-sky (#0ea5e9)`
 - Glass colors: `glass` (rgba(15, 23, 42, 0.5)), `glass-light`, `glass-border`, `glass-glow`
+- Extended colors: Mac OS-style colors (`macos-light`, `macos-dark`) with comprehensive scale
+- Success/Warn/Error/Info state colors for feedback
+- Text color hierarchy: primary/secondary/tertiary/disabled
+- Background: dark/white/base depending on context
+- All CSS variables defined in `globals.css`
 - Avoid generic color schemes; stick to defined palette
+- Consider system color preference for dynamic themes
 
 ### Typography
 - Use Inter font as configured in `layout.tsx`
@@ -285,12 +312,17 @@ You are a senior full-stack developer with expertise in:
 
 ### Spacing & Composition
 - Follow consistent spacing patterns using Tailwind scale (p-4, p-6, p-8, etc.)
+- Custom extended spacing defined for both gaps and widths/heights
 - Maintain visual hierarchy with appropriate sizing (text-sm, text-base, text-lg, text-xl)
 - Use glass cards for content containers
 - Apply proper padding and margins for readability
 - Balance transparency and opacity for visual clarity
 - Use flexbox and grid layouts for responsive designs
 - Implement consistent gutter spacing with `gap-x-*` and `gap-y-*` classes
+- Custom border radius scale: `macos-xs` to `macos-3xl` for consistent rounded elements
+- Apple-inspired typography scale with predefined font sizes and line heights
+- Responsive breakpoints: xs, sm, md, tab, lg, xl, 2xl
+- Consistent z-index management for layering
 
 ### Anti-Patterns to Avoid
 - Generic font stacks (avoid default Inter/Roboto without customization)
@@ -355,13 +387,18 @@ You are a senior full-stack developer with expertise in:
 ### Testing Guidelines
 - Frontend: Use Jest with React Testing Library
 - Backend: Use pytest with TestClient for API tests
-- Write tests that focus on user interactions
-- Mock external dependencies appropriately
+- Write tests that focus on user interactions and business logic
+- Mock external dependencies appropriately (API calls, database, third-party services)
 - Maintain 50%+ coverage thresholds as configured
+- Use descriptive test names that explain the behavior being tested
+- Test both success and error scenarios
+- Implement integration tests for critical user flows
+- Use factory patterns for test data generation
 - Frontend test example:
   ```typescript
-  import { render, screen, fireEvent } from '@testing-library/react';
+  import { render, screen, fireEvent, waitFor } from '@testing-library/react';
   import GlassCard from '@/components/ui/GlassCard';
+  import { mockArticle } from '@/__tests__/mocks/article';
   
   describe('GlassCard', () => {
     it('renders children correctly', () => {
@@ -375,13 +412,21 @@ You are a senior full-stack developer with expertise in:
       fireEvent.mouseEnter(card);
       expect(card).toHaveClass('hover:-translate-y-1');
     });
+    
+    it('handles loading states gracefully', async () => {
+      render(<GlassCard loading={true}>Test</GlassCard>);
+      expect(screen.getByRole('progressbar')).toBeInTheDocument();
+    });
   });
   ```
 - Backend test example:
   ```python
   import pytest
   from fastapi.testclient import TestClient
+  from sqlalchemy.orm import Session
   from app.main import app
+  from app.tests.utils.utils import random_lower_string
+  from app.tests.utils.article import create_random_article
   
   client = TestClient(app)
   
@@ -391,16 +436,38 @@ You are a senior full-stack developer with expertise in:
       assert response.json() == {"msg": "Welcome to My Awesome Blog API"}
   
   @pytest.mark.asyncio
-  async def test_create_article():
+  async def test_create_article_success(
+      db: Session,
+      normal_user_token_headers: dict[str, str]
+  ):
       article_data = {
           "title": "Test Article",
-          "content": "Test content",
+          "content": "Test content with sufficient length",
           "is_published": True
       }
-      response = client.post("/api/v1/articles/", json=article_data)
+      response = client.post(
+          "/api/v1/articles/",
+          headers=normal_user_token_headers,
+          json=article_data
+      )
       assert response.status_code == 200
       data = response.json()
       assert data["title"] == "Test Article"
+      assert data["author_id"] is not None
+  
+  @pytest.mark.asyncio
+  async def test_create_article_unauthorized():
+      article_data = {
+          "title": "Test Article",
+          "content": "Test content"
+      }
+      response = client.post("/api/v1/articles/", json=article_data)
+      assert response.status_code == 401
+  
+  @pytest.mark.asyncio
+  async def test_get_article_not_found():
+      response = client.get("/api/v1/articles/999999")
+      assert response.status_code == 404
   ```
 
 ## AI Assistant Guidelines
@@ -428,12 +495,20 @@ You are a senior full-stack developer with expertise in:
 ## Performance & Accessibility Requirements
 
 ### Performance Optimization
-- Optimize images and assets appropriately
+- Optimize images and assets appropriately (use WebP format, proper sizing)
 - Use lazy loading for components that appear below the fold
 - Implement proper code splitting with dynamic imports when appropriate
 - Minimize bundle size by avoiding unnecessary dependencies
 - Optimize database queries in backend operations
 - Use memoization techniques (useMemo, useCallback) when appropriate
+- Implement efficient caching strategies (Redis for backend, browser cache for frontend)
+- Use `React.lazy()` and `Suspense` for route-based code splitting
+- Optimize API response times with proper indexing and query optimization
+- Implement pagination for large datasets
+- Use connection pooling for database connections
+- Apply gzip/brotli compression for HTTP responses
+- Minimize re-renders with proper dependency arrays in hooks
+- Use `useTransition` for non-urgent state updates
 
 ### Accessibility Standards
 - Implement proper ARIA labels and attributes
@@ -443,6 +518,14 @@ You are a senior full-stack developer with expertise in:
 - Provide alternative text for images
 - Use focus indicators for interactive elements
 - Ensure screen reader compatibility
+- Support high contrast mode
+- Implement skip-to-content links
+- Use proper heading hierarchy (h1-h6)
+- Ensure form inputs have associated labels
+- Provide sufficient color contrast ratios (minimum 4.5:1)
+- Support reduced motion preferences
+- Test with screen readers and keyboard navigation
+- Implement proper error messaging and validation feedback
 
 ## References & Key Files
 
@@ -458,18 +541,35 @@ You are a senior full-stack developer with expertise in:
 - `README.md` - Project overview and setup instructions
 - `frontend/README.md` - Frontend-specific documentation
 - `backend/README.md` - Backend-specific documentation
+- `docs/` - Additional documentation files
+- `backend/docs/` - Backend API and architecture documentation
+- `design-system.md` - Design system specifications
 
 ### Key Implementation Examples
 - `frontend/src/components/ui/GlassCard.tsx` - Glassmorphism component implementation
 - `frontend/src/lib/utils.ts` - Utility functions (cn function)
+- `frontend/src/app/layout.tsx` - Next.js layout structure with theme support
+- `frontend/src/components/navigation/Navbar.tsx` - Navigation component example
 - `backend/app/models/article.py` - SQLAlchemy model example
 - `backend/app/schemas/article.py` - Pydantic schema example
 - `backend/app/api/v1/endpoints/articles.py` - FastAPI endpoint patterns
-- `frontend/src/app/layout.tsx` - Next.js layout structure
+- `backend/app/core/database.py` - Database configuration and connection pooling
+- `backend/app/core/config.py` - Configuration management with validation
+- `backend/app/main.py` - FastAPI application setup with middleware
 
 ### Additional Configuration Files
 - `frontend/package.json` - Frontend dependencies and scripts
-- `frontend/next.config.mjs` - Next.js configuration
+- `frontend/next.config.mjs` - Next.js configuration with bundle analyzer
 - `frontend/components.json` - Component library configuration
+- `frontend/.env.production` - Production environment variables
+- `frontend/.eslintrc.cjs` - ESLint configuration
+- `frontend/.prettierrc.json` - Prettier formatting rules
 - `backend/app/main.py` - FastAPI application entry point
 - `backend/app/core/config.py` - Backend configuration settings
+- `backend/requirements.txt` - Backend dependencies
+- `backend/alembic.ini` - Database migration configuration
+- `docker-compose.yml` - Container orchestration
+- `tailwind.config.js` - Extended Tailwind configuration with custom animations
+- `tsconfig.json` - TypeScript configuration with path aliases
+- `.env.example` - Environment variable templates
+- `alembic.ini` - Database migration configuration

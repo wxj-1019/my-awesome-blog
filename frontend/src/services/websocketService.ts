@@ -137,7 +137,7 @@ class WebSocketService {
               author: {
                 id: randomId(),
                 username: randomUsername(),
-                avatar: null
+                avatar: undefined
               },
               created_at: now,
               color: '#00D9FF',
@@ -158,7 +158,7 @@ class WebSocketService {
                 author: {
                   id: randomId(),
                   username: randomUsername(),
-                  avatar: null
+                  avatar: undefined
                 },
                 created_at: now,
                 color: '#FF6B9D',
@@ -201,7 +201,7 @@ class WebSocketService {
               author: {
                 id: randomId(),
                 username: randomUsername(),
-                avatar: null
+                avatar: undefined
               },
               created_at: now,
               color: '#00D9FF',

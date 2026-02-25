@@ -1,4 +1,5 @@
 from typing import Any, List
+from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from app.core.database import get_db
@@ -45,7 +46,7 @@ def read_active_typewriter_contents(
 
 @router.get("/{content_id}", response_model=TypewriterContent)
 def read_typewriter_content(
-    content_id: str,
+    content_id: UUID,
     db: Session = Depends(get_db),
 ) -> Any:
     """
@@ -77,7 +78,7 @@ def create_typewriter_content(
 
 @router.put("/{content_id}", response_model=TypewriterContent)
 def update_typewriter_content(
-    content_id: str,
+    content_id: UUID,
     content_update: TypewriterContentUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_superuser),
@@ -106,7 +107,7 @@ def update_typewriter_content(
 
 @router.delete("/{content_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_typewriter_content(
-    content_id: str,
+    content_id: UUID,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_superuser),
 ) -> None:
@@ -131,7 +132,7 @@ def delete_typewriter_content(
 
 @router.post("/{content_id}/deactivate", response_model=TypewriterContent)
 def deactivate_typewriter_content(
-    content_id: str,
+    content_id: UUID,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_superuser),
 ) -> Any:

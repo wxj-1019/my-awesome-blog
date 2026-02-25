@@ -3,7 +3,7 @@ from apscheduler.triggers.cron import CronTrigger
 from sqlalchemy.orm import Session
 from app.core.database import SessionLocal
 from app.crud.weather import create_or_update_weather
-from app.services.weather_service import weather_service
+from app.services.weather_service import WeatherService
 from app.utils.logger import app_logger
 
 
@@ -16,7 +16,8 @@ class WeatherUpdateService:
         db = SessionLocal()
         try:
             app_logger.info(f"Starting scheduled weather update for city: {city}")
-            weather_response = await weather_service.get_weather(city)
+            weather_service = WeatherService()
+            weather_response = await weather_service.get_weather(city, db)
             
             if weather_response.data:
                 data = weather_response.data

@@ -10,32 +10,37 @@ export interface FriendLinkCardProps extends React.HTMLAttributes<HTMLDivElement
   hoverEffect?: boolean;
   glowEffect?: boolean;
   className?: string;
-  cornerAnimation?: boolean; // 是否启用角部扩展动画
+  cornerAnimation?: boolean;
 }
 
 const FriendLinkCard = React.forwardRef<HTMLDivElement, FriendLinkCardProps>(
-  ({ 
-    children, 
-    padding = 'md', 
-    hoverEffect = false, 
-    glowEffect = false, 
-    className, 
+  ({
+    children,
+    padding = 'md',
+    hoverEffect = false,
+    glowEffect = false,
+    className,
     cornerAnimation = false,
-    ...props 
+    ...props
   }, ref) => {
     const { resolvedTheme } = useTheme();
-    
+    const [mounted, setMounted] = React.useState(false);
+
+    React.useEffect(() => {
+      setMounted(true);
+    }, []);
+
     const paddingClasses = {
       none: '',
       sm: 'p-4',
       md: 'p-6',
       lg: 'p-8',
     };
-    
-    // 使用 CSS 变量替代条件 className，避免 hydration 不匹配
-    // 透明度由 --glass-default CSS 变量根据主题自动控制
-    const backgroundClass = 'bg-glass backdrop-blur-xl';
-    
+
+    const backgroundClass = mounted && resolvedTheme === 'dark'
+      ? 'bg-glass/30 backdrop-blur-xl'
+      : 'bg-white/80 backdrop-blur-xl';
+
     return (
       <div
         ref={ref}

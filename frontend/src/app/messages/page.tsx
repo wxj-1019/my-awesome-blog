@@ -40,6 +40,7 @@ import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import MarkdownRenderer from '@/components/ui/MarkdownRenderer';
+import type { DanmakuMessage as DanmakuMessageType } from '@/types';
 
 const debounce = <T extends (...args: any[]) => any>(
   func: T,
@@ -61,20 +62,10 @@ interface Reaction {
   users: string[];
 }
 
-interface DanmakuMessage {
-  id: string;
-  content: string;
-  color: string;
-  speed: number;
-  y: number;
-  layer: number;
-  message?: Message; // 完整的留言信息，用于悬停和交互
-}
-
 export default function MessagesPage() {
   const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([]);
-  const [danmakuList, setDanmakuList] = useState<DanmakuMessage[]>([]);
+  const [danmakuList, setDanmakuList] = useState<DanmakuMessageType[]>([]);
   const [trendingMessages, setTrendingMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
@@ -301,22 +292,17 @@ useEffect(() => {
         toast({
           title: "新留言",
           description: `${event.data.author.username}: ${event.data.content.substring(0, 50)}${event.data.content.length > 50 ? '...' : ''}`,
-          duration: 5000,
         });
-        // 自动添加到消息列表
         setMessages(prev => [event.data, ...prev]);
         break;
       case 'new_reply':
         toast({
           title: "新回复",
           description: `${event.data.reply.author.username} 回复了留言`,
-          duration: 5000,
         });
-        // 重新加载数据以获取最新回复
         loadData();
         break;
       case 'message_liked':
-        // 更新对应留言的点赞数
         setMessages(prev => prev.map(m => 
           m.id === event.data.messageId 
             ? { ...m, likes: event.data.likes }
@@ -327,14 +313,12 @@ useEffect(() => {
         toast({
           title: "用户上线",
           description: `${event.data.username} 已接入网络`,
-          duration: 3000,
         });
         break;
       case 'user_offline':
         toast({
           title: "用户离线",
-          description: `${event.data.username} 已断开连接`,
-          duration: 3000,
+          description: `用户已断开连接`,
         });
         break;
     }
@@ -367,9 +351,15 @@ useEffect(() => {
 
       setMessages([msg, ...messages]);
       if (isDanmaku) {
-        const newDanmaku: DanmakuMessage = {
+        const newDanmaku: DanmakuMessageType = {
           id: msg.id,
           content: msg.content,
+          author: {
+            id: msg.author.id,
+            username: msg.author.username,
+            avatar: msg.author.avatar,
+          },
+          created_at: msg.created_at,
           color: msg.color || selectedColor,
           speed: Math.random() * 10 + 15,
           y: Math.random() * 70 + 10,
@@ -786,7 +776,7 @@ useEffect(() => {
                           key={c.value}
                           onClick={() => setSelectedColor(c.value)}
                           className={cn(
-                            "w-6 h-6 rounded-sm border transition-transform hover:scale-110",
+                            "w-6 h-6 rounded-sm border transition-transform",
                             selectedColor === c.value ? "border-white scale-110" : "border-transparent opacity-70"
                           )}
                           style={{ backgroundColor: c.value }}
@@ -812,7 +802,7 @@ useEffect(() => {
                   <button
                     onClick={handleSubmit}
                     disabled={isSubmitting || !newMessage.trim()}
-                    className="flex items-center gap-2 px-6 py-2.5 bg-tech-cyan text-black font-bold uppercase tracking-wider hover:bg-tech-lightcyan transition-all hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(0,217,255,0.4)] active:scale-[0.98]"
+                    className="flex items-center gap-2 px-6 py-2.5 bg-tech-cyan text-black font-bold uppercase tracking-wider hover:bg-tech-lightcyan transition-all hover:shadow-[0_0_20px_rgba(0,217,255,0.4)]"
                   >
                     {isSubmitting ? (
                       <>

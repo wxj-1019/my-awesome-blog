@@ -8,6 +8,7 @@ import { LoadingProvider } from '@/context/loading-context';
 import LoadingHandler from '@/components/loading/LoadingHandler';
 import { Toaster } from '@/components/ui/toaster';
 import Live2DWidget from '@/components/live2d/Live2DWidget';
+import { ErrorBoundaryProvider } from '@/components/error/ErrorBoundaryProvider';
 import { env } from '@/lib/env';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
@@ -33,7 +34,7 @@ const ClientLayout = ({ children }: { children: React.ReactNode }) => {
   <Footer />
   <Toaster />
 </div>
-<Live2DWidget />
+{/* <Live2DWidget /> */}
       </ThemeWrapper>
     </LoadingProvider>
   );
@@ -66,7 +67,9 @@ export default function RootLayout({
         />
       </head>
       <body className={`${inter.variable} ${syne.variable} ${manrope.variable} font-sans bg-background`}>
-        <ClientLayout>{children}</ClientLayout>
+        <ErrorBoundaryProvider showDetails={process.env.NODE_ENV === 'development'}>
+          <ClientLayout>{children}</ClientLayout>
+        </ErrorBoundaryProvider>
       </body>
     </html>
   );

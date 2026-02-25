@@ -24,7 +24,7 @@ export default function Section({ title, titleClassName, children, moreLink, mor
         </h2>
         {moreLink && (
           <Link
-            href={moreLink}
+            href={moreLink as never}
             className={cn(
               'group inline-flex items-center gap-1',
               'text-sm font-medium text-indigo-400',

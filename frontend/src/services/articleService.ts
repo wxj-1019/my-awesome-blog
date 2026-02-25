@@ -1,6 +1,6 @@
 import { API_BASE_URL } from '@/config/api';
 import logger from '@/utils/logger';
-export type { Article, Category, Tag, RelatedArticle } from '@/types';
+import type { Article, Category, Tag, RelatedArticle } from '@/types';
 
 // 通用请求函数
 const apiRequest = async (endpoint: string, options: RequestInit = {}) => {

@@ -36,12 +36,49 @@ export async function apiRequest<T>(endpoint: string, options: ApiRequestOptions
 }
 
 export interface TypewriterContent {
-  id: string;  // UUID from backend
+  id: string;
   text: string;
   priority: number;
   is_active: boolean;
   created_at: string;
   updated_at?: string;
+}
+
+interface ApiRequestOptions {
+  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+  headers?: Record<string, string>;
+  body?: any;
+}
+
+/**
+ * 通用 API 请求函数
+ */
+export async function apiRequest<T>(url: string, options: ApiRequestOptions = {}): Promise<T> {
+  const {
+    method = 'GET',
+    headers = {},
+    body,
+  } = options;
+
+  const config: RequestInit = {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      ...headers,
+    },
+  };
+
+  if (body) {
+    config.body = JSON.stringify(body);
+  }
+
+  const response = await fetch(url, config);
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  return response.json();
 }
 
 /**
@@ -58,7 +95,6 @@ export async function getActiveTypewriterContents(): Promise<TypewriterContent[]
     return data;
   } catch (error) {
     console.error('Failed to fetch typewriter contents:', error);
-    // 返回空数组作为 fallback
     return [];
   }
 }

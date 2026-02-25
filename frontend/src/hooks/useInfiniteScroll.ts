@@ -42,7 +42,7 @@ export function useInfiniteScroll({
         observer.unobserve(observerTargetRef.current);
       }
     };
-  }, [hasMore, loading, handleLoadMore, threshold, rootMargin]);
+  }, [hasMore, loading, handleLoadMore, threshold, rootMargin, onLoadMore]);
 
   return observerTargetRef;
 }

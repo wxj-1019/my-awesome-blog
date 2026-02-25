@@ -72,8 +72,8 @@ export default function FriendLinks({ links }: FriendLinksProps) {
                 </div>
               </FriendLinkCard>
             </a>
-          ))}
-        </div>
+        ))}
+      </div>
     </section>
   );
 }

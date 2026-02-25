@@ -211,7 +211,7 @@ export default function ContactForm() {
             </p>
           </motion.div>
 
-          <GlassCard padding="xl" className="shadow-xl shadow-foreground/5 dark:shadow-black/20">
+          <GlassCard padding="lg" className="shadow-xl shadow-foreground/5 dark:shadow-black/20">
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

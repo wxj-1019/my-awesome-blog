@@ -3,14 +3,10 @@ import { getToken } from '../auth-utils';
 import { API_BASE_URL } from '@/config/api';
 
 export interface UserStats {
-  posts: number;
-  followers: number;
-  following: number;
-  likes: number;
-  article_count?: number;
-  comment_count?: number;
-  total_views?: number;
-  joined_date?: string;
+  article_count: number;
+  comment_count: number;
+  total_views: number;
+  joined_date: string;
 }
 
 // 获取当前用户信息
@@ -81,17 +77,24 @@ export const updateUserProfile = async (profileData: Partial<UserProfile>): Prom
 // 获取用户统计信息
 export const fetchCurrentUserStats = async (): Promise<UserStats> => {
   const token = getToken();
-  const response = await fetch(`${API_BASE_URL}/users/me/stats`, {
+  const url = `${API_BASE_URL}/users/me/stats`;
+  console.log('Fetching user stats from:', url);
+  
+  const response = await fetch(url, {
     headers: {
       'Authorization': `Bearer ${token}`
     }
   });
 
   if (!response.ok) {
-    throw new Error('Failed to fetch user stats');
+    const errorText = await response.text();
+    console.error('Failed to fetch user stats:', response.status, errorText);
+    throw new Error(`Failed to fetch user stats: ${response.status} - ${errorText}`);
   }
 
-  return response.json();
+  const data = await response.json();
+  console.log('User stats data:', data);
+  return data;
 };
 
 // 上传头像

@@ -9,7 +9,6 @@ import Timeline from '@/components/home/Timeline'
 import Portfolio from '@/components/home/Portfolio'
 import SubscribeCard from '@/components/home/SubscribeCard'
 import ScrollProgress from '@/components/home/ScrollProgress'
-import BackToTop from '@/components/home/BackToTop'
 import MobileDrawer from '@/components/home/MobileDrawer'
 import WeatherCard from '@/components/home/WeatherCard'
 
@@ -17,7 +16,6 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <ScrollProgress />
-      <BackToTop />
       <MobileDrawer />
       <WeatherCard />
 

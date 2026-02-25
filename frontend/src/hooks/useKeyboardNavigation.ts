@@ -47,8 +47,11 @@ export function useKeyboardNavigation({
         const prevIndex = currentIndex - 1;
         if (prevIndex >= 0) {
           refs[prevIndex].current?.focus();
-        } else if (loop && refs[refs.length - 1].current) {
-          refs[refs.length - 1].current.focus();
+        } else if (loop) {
+          const lastRef = refs[refs.length - 1];
+          if (lastRef.current) {
+            lastRef.current.focus();
+          }
         }
       }
 

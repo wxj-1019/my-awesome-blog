@@ -247,7 +247,7 @@ export default function PromptsPage() {
           exit={{ width: 0, opacity: 0 }}
           className="w-96 bg-glass/30 backdrop-blur-xl rounded-xl border border-glass-border"
         />
-      </motion.div>
+      </div>
 
       <AnimatePresence>
         {showEditor && (

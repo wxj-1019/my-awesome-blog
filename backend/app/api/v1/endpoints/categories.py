@@ -1,4 +1,5 @@
 from typing import Any, List
+from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.core.database import get_db
@@ -7,8 +8,6 @@ from app import crud
 from app.schemas.category import Category, CategoryCreate, CategoryUpdate, CategoryWithArticleCount
 from app.schemas.article import ArticleWithAuthor
 from app.models.user import User
-from app.models.article import Article
-from app.utils.common_helpers import parse_uuid
 from app.utils.logger import app_logger
 
 router = APIRouter()
@@ -43,7 +42,6 @@ def create_category(
     """
     Create new category
     """
-    # Check if category with same name or slug already exists
     existing_category_by_name = crud.get_category_by_name(db, category_in.name)
     if existing_category_by_name:
         raise HTTPException(
@@ -65,22 +63,19 @@ def create_category(
 
 @router.get("/{category_id}", response_model=CategoryWithArticleCount)
 def read_category_by_id(
-    category_id: str,
+    category_id: UUID,
     db: Session = Depends(get_db)
 ) -> Any:
     """
     Get a specific category by id
     """
-    category_uuid = parse_uuid(category_id, error_detail="Invalid category ID format")
-
-    category = crud.get_category(db, category_id=category_uuid)
+    category = crud.get_category(db, category_id=category_id)
     if not category:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Category not found",
         )
 
-    # Manually add article count since the CRUD function returns a list
     article_count = len(category.articles)
     category.article_count = article_count
 
@@ -91,23 +86,20 @@ def read_category_by_id(
 def update_category(
     *,
     db: Session = Depends(get_db),
-    category_id: str,
+    category_id: UUID,
     category_in: CategoryUpdate,
     current_user: User = Depends(get_current_superuser)
 ) -> Any:
     """
     Update a category
     """
-    category_uuid = parse_uuid(category_id, error_detail="Invalid category ID format")
-
-    category = crud.get_category(db, category_id=category_uuid)
+    category = crud.get_category(db, category_id=category_id)
     if not category:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Category not found",
         )
 
-    # Check if slug or name is being updated to an existing value
     if category_in.slug and category_in.slug != category.slug:
         existing_category = crud.get_category_by_slug(db, category_in.slug)
         if existing_category and existing_category.id != category.id:
@@ -124,7 +116,7 @@ def update_category(
                 detail="A category with this name already exists",
             )
 
-    category = crud.update_category(db, category_id=category_uuid, category_update=category_in)
+    category = crud.update_category(db, category_id=category_id, category_update=category_in)
     app_logger.info(f"更新分类: {category.name} (ID: {category_id}), 操作者: {current_user.username}")
     return category
 
@@ -133,29 +125,26 @@ def update_category(
 def delete_category(
     *,
     db: Session = Depends(get_db),
-    category_id: str,
+    category_id: UUID,
     current_user: User = Depends(get_current_superuser)
 ) -> Any:
     """
     Delete a category
     """
-    category_uuid = parse_uuid(category_id, error_detail="Invalid category ID format")
-
-    category = crud.get_category(db, category_id=category_uuid)
+    category = crud.get_category(db, category_id=category_id)
     if not category:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Category not found",
         )
 
-    # Check if category has associated articles
     if category.articles:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Cannot delete category that has associated articles",
         )
 
-    deleted = crud.delete_category(db, category_id=category_uuid)
+    deleted = crud.delete_category(db, category_id=category_id)
     if not deleted:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -168,7 +157,7 @@ def delete_category(
 
 @router.get("/{category_id}/articles", response_model=List[ArticleWithAuthor])
 def read_articles_by_category(
-    category_id: str,
+    category_id: UUID,
     skip: int = 0,
     limit: int = 100,
     published_only: bool = True,
@@ -177,22 +166,19 @@ def read_articles_by_category(
     """
     Get articles in a specific category
     """
-    category_uuid = parse_uuid(category_id, error_detail="Invalid category ID format")
-
-    category = crud.get_category(db, category_id=category_uuid)
+    category = crud.get_category(db, category_id=category_id)
     if not category:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Category not found",
         )
 
-    # Get articles by category
     articles = crud.get_articles(
         db,
         skip=skip,
         limit=limit,
         published_only=published_only,
-        category_id=category_uuid
+        category_id=category_id
     )
 
     return articles

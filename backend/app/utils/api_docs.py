@@ -26,8 +26,12 @@ def enhance_openapi(app: FastAPI) -> Dict[str, Any]:
         servers=app.servers,
     )
 
-    # 添加额外的服务器信息
+    # 添加额外的服务器信息 - 开发环境默认使用本地服务器
     openapi_schema["servers"] = [
+        {
+            "url": "http://localhost:8989",
+            "description": "Development server (default)"
+        },
         {
             "url": "https://api.myawesomeblog.com",
             "description": "Production server"
@@ -35,22 +39,25 @@ def enhance_openapi(app: FastAPI) -> Dict[str, Any]:
         {
             "url": "https://staging-api.myawesomeblog.com",
             "description": "Staging server"
-        },
-        {
-            "url": "http://localhost:8000",
-            "description": "Development server"
         }
     ]
 
-    # 为所有路径添加额外的描述和标签
+    # 为需要认证的路径添加额外的描述和标签
     for path, methods in openapi_schema["paths"].items():
         for method, details in methods.items():
-            # 添加安全要求说明
-            details["security"] = [
-                {
-                    "OAuth2PasswordBearer": []
-                }
-            ]
+            # 只为需要认证的端点添加安全要求
+            # 检查端点是否需要认证（通过检查是否有 security 字段）
+            if "security" in details or any(
+                "get_current_user" in str(details.get("parameters", {})) or
+                "get_current_active_user" in str(details.get("parameters", {})) or
+                "get_current_superuser" in str(details.get("parameters", {}))
+                for _ in [details]
+            ):
+                details["security"] = [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
             
             # 添加性能和缓存说明
             details["x-performance-tips"] = "This endpoint is optimized with caching and connection pooling."
@@ -67,7 +74,7 @@ def enhance_openapi(app: FastAPI) -> Dict[str, Any]:
         "type": "oauth2",
         "flows": {
             "password": {
-                "tokenUrl": "/api/v1/auth/login",
+                "tokenUrl": "http://127.0.0.1:8989/api/v1/auth/login",
                 "scopes": {
                     "read:users": "Read user information",
                     "write:users": "Modify user information",

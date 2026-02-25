@@ -226,7 +226,7 @@ export default function MarkdownRenderer({
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeRaw, rehypeSanitize]}
-        components={components}
+        components={components as never}
         allowedElements={allowedElements}
         unwrapDisallowed
       >

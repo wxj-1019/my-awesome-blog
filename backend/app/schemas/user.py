@@ -16,6 +16,10 @@ class UserBase(BaseModel):
     github: Optional[str] = Field(None, max_length=100, description="GitHub username")
     linkedin: Optional[str] = Field(None, max_length=100, description="LinkedIn profile URL")
 
+    @field_serializer('full_name')
+    def serialize_full_name(self, value: Optional[str]) -> Optional[str]:
+        return value
+
 
 # Create schemas
 class UserCreate(UserBase):

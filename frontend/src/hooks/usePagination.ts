@@ -35,7 +35,7 @@ export function usePagination({ totalItems, itemsPerPage, onPageChange }: UsePag
       setCurrentPage(newPage);
       onPageChange?.(newPage);
     }
-  }, [currentPage, hasNextPage, onPageChange]);
+  }, [currentPage, hasNextPage, onPageChange, setCurrentPage]);
 
   const prevPage = useCallback(() => {
     if (hasPrevPage) {
@@ -43,19 +43,19 @@ export function usePagination({ totalItems, itemsPerPage, onPageChange }: UsePag
       setCurrentPage(newPage);
       onPageChange?.(newPage);
     }
-  }, [currentPage, hasPrevPage, onPageChange]);
+  }, [currentPage, hasPrevPage, onPageChange, setCurrentPage]);
 
   const goToPage = useCallback((page: number) => {
     if (page >= 1 && page <= totalPages && page !== currentPage) {
       setCurrentPage(page);
       onPageChange?.(page);
     }
-  }, [currentPage, totalPages, onPageChange]);
+  }, [currentPage, totalPages, onPageChange, setCurrentPage]);
 
   const reset = useCallback(() => {
     setCurrentPage(1);
     onPageChange?.(1);
-  }, [onPageChange]);
+  }, [onPageChange, setCurrentPage]);
 
   return {
     currentPage,

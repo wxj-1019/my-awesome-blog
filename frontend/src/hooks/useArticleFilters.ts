@@ -38,23 +38,23 @@ export function useArticleFilters({ categories, tags }: UseArticleFiltersProps):
     setSelectedCategory(categoryId);
     setSelectedTag(null);
     setSearchQuery('');
-  }, []);
+  }, [setSelectedCategory, setSelectedTag, setSearchQuery]);
 
   const handleTagChange = useCallback((tagId: string | null) => {
     setSelectedTag(tagId);
     setSelectedCategory(null);
     setSearchQuery('');
-  }, []);
+  }, [setSelectedTag, setSelectedCategory, setSearchQuery]);
 
   const handleSearchChange = useCallback((query: string) => {
     setSearchQuery(query);
-  }, []);
+  }, [setSearchQuery]);
 
   const resetFilters = useCallback(() => {
     setSelectedCategory(null);
     setSelectedTag(null);
     setSearchQuery('');
-  }, []);
+  }, [setSelectedCategory, setSelectedTag, setSearchQuery]);
 
   const activeCategory = categories.find(c => c.id === selectedCategory);
   const activeTag = tags.find(t => t.id === selectedTag);
