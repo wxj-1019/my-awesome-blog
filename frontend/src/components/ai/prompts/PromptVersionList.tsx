@@ -21,7 +21,7 @@ export default function PromptVersionList({ promptId, currentVersion, onSelectVe
     setLoading(true);
     try {
       const result = await promptService.getPromptVersions(promptId);
-      setVersions(result.items);
+      setVersions(result.versions);
     } catch (error) {
       console.error('Failed to load versions:', error);
     } finally {

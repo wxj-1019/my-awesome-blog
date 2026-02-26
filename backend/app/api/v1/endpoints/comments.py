@@ -2,7 +2,7 @@ from typing import Any, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from app.core.database import get_db
-from app.core.dependencies import get_current_active_user, get_current_superuser
+from app.core.dependencies import get_current_active_user, get_current_superuser, get_current_user_optional
 from app import crud
 from app.schemas.comment import Comment, CommentCreate, CommentUpdate, CommentWithAuthor
 from app.models.user import User
@@ -17,11 +17,15 @@ def read_comments(
     limit: int = 100,
     article_id: Optional[str] = Query(None, description="Filter by article ID"),
     author_id: Optional[str] = Query(None, description="Filter by author ID"),
-    approved_only: bool = Query(True, description="Only return approved comments"),
-    db: Session = Depends(get_db)
+    approved: Optional[bool] = Query(None, description="Filter by approval status (true=approved, false=pending, null=all for admin)"),
+    db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(get_current_user_optional)
 ) -> Any:
     """
     Retrieve comments
+    
+    - Regular users: must provide article_id or author_id filter, only see approved comments
+    - Admin users: can list all comments without filters, can filter by approval status
     """
     from uuid import UUID
 
@@ -32,7 +36,7 @@ def read_comments(
             article_id=article_uuid,
             skip=skip,
             limit=limit,
-            approved_only=approved_only,
+            approved_only=approved if approved is not None else True,
             with_relationships=True
         )
     elif author_id:
@@ -44,8 +48,15 @@ def read_comments(
             limit=limit,
             with_relationships=True
         )
+    elif current_user and current_user.is_superuser:
+        comments = crud.get_all_comments(
+            db,
+            skip=skip,
+            limit=limit,
+            approved_only=approved,
+            with_relationships=True
+        )
     else:
-        # In a real implementation, you might want to limit this or require filters
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Please provide either article_id or author_id filter",
@@ -208,5 +219,38 @@ def approve_comment(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Comment not found",
         )
+
+    return comment
+
+
+@router.post("/{comment_id}/reject", response_model=Comment)
+def reject_comment(
+    *,
+    db: Session = Depends(get_db),
+    comment_id: str,
+    current_user: User = Depends(get_current_active_user)
+) -> Any:
+    """
+    Reject a comment (admin or article author only)
+    将评论标记为未审核状态
+    """
+    from sqlalchemy.orm import joinedload
+    from uuid import UUID
+
+    comment_uuid = UUID(comment_id)
+
+    comment = db.query(Comment).options(joinedload(Comment.article)).filter(Comment.id == comment_uuid).first()
+    if not comment:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Comment not found",
+        )
+
+    from app.utils.permission_helpers import check_approve_permission
+    check_approve_permission(comment.article, current_user, resource_name="评论")
+
+    comment.is_approved = False  # type: ignore
+    db.commit()
+    db.refresh(comment)
 
     return comment

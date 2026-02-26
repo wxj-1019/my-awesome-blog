@@ -98,6 +98,38 @@ def get_comments_by_author(
     return query.order_by(Comment.created_at.desc()).offset(skip).limit(limit).all()
 
 
+def get_all_comments(
+    db: Session,
+    skip: int = 0,
+    limit: int = 100,
+    approved_only: Optional[bool] = None,
+    with_relationships: bool = True,
+):
+    """
+    获取所有评论列表（管理员用）
+    
+    Args:
+        skip: 跳过的记录数
+        limit: 返回的最大记录数
+        approved_only: None 表示全部，True 表示只返回已审核，False 表示只返回未审核
+        with_relationships: 是否预加载关联数据（文章和作者）
+    """
+    from sqlalchemy.orm import joinedload
+    
+    query = db.query(Comment)
+    
+    if approved_only is not None:
+        query = query.filter(Comment.is_approved == approved_only)
+    
+    if with_relationships:
+        query = query.options(
+            joinedload(Comment.article),
+            joinedload(Comment.author)
+        )
+    
+    return query.order_by(Comment.created_at.desc()).offset(skip).limit(limit).all()
+
+
 def get_replies(db: Session, comment_id: UUID, skip: int = 0, limit: int = 100, with_relationships: bool = True):
     """
     获取评论的回复列表

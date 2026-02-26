@@ -53,13 +53,14 @@ export default function RootLayout({
             __html: `
               (function() {
                 try {
-                  const theme = localStorage.getItem('theme') || 'auto';
-                  const isDark = theme === 'dark' || (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-                  if (isDark) {
-                    document.documentElement.classList.add('dark');
-                  }
+                  var theme = localStorage.getItem('theme') || 'auto';
+                  var isDark = theme === 'dark' || (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                  var root = document.documentElement;
+                  root.classList.remove('light', 'dark');
+                  root.classList.add(isDark ? 'dark' : 'light');
+                  root.setAttribute('data-theme', isDark ? 'dark' : 'light');
                 } catch (e) {
-                  console.error('Error setting initial theme:', e);
+                  document.documentElement.classList.add('dark');
                 }
               })();
             `,

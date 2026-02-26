@@ -3,15 +3,15 @@
 import { useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  LayoutDashboard, 
-  FileText, 
-  Folder, 
-  Tag, 
-  Users, 
-  Image, 
-  MessageSquare, 
-  Link2, 
+import {
+  LayoutDashboard,
+  FileText,
+  Folder,
+  Tag,
+  Users,
+  Image,
+  MessageSquare,
+  Link2,
   Settings,
   BarChart3,
   FileImage,
@@ -24,7 +24,10 @@ import {
   X,
   Sparkles,
   Moon,
-  Sun
+  Sun,
+  Activity,
+  ScrollText,
+  Mail,
 } from 'lucide-react'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import AdminSidebar from '@/components/ui/AdminSidebar'
@@ -58,6 +61,7 @@ const menuGroups: MenuGroup[] = [
       { id: 'categories', label: '分类管理', icon: Folder, href: '/admin/categories' },
       { id: 'tags', label: '标签管理', icon: Tag, href: '/admin/tags' },
       { id: 'comments', label: '评论管理', icon: MessageSquare, href: '/admin/comments' },
+      { id: 'messages', label: '留言管理', icon: Mail, href: '/admin/messages' },
     ]
   },
   {
@@ -89,6 +93,8 @@ const menuGroups: MenuGroup[] = [
     id: 'system',
     label: '系统',
     items: [
+      { id: 'monitoring', label: '系统监控', icon: Activity, href: '/admin/monitoring' },
+      { id: 'audit-logs', label: '审计日志', icon: ScrollText, href: '/admin/audit-logs' },
       { id: 'settings', label: '系统设置', icon: Settings, href: '/admin/settings' },
     ]
   },
@@ -287,9 +293,17 @@ function getCurrentPageDescription(pathname: string): string {
     '/admin/tags': '管理文章标签和关键词',
     '/admin/users': '管理网站用户和权限',
     '/admin/comments': '审核和管理用户评论',
+    '/admin/messages': '管理网站留言和弹幕',
     '/admin/images': '管理媒体图片和文件',
+    '/admin/portfolios': '管理作品集展示',
+    '/admin/timeline': '管理时间线事件',
+    '/admin/subscriptions': '管理用户订阅',
     '/admin/friend-links': '管理友情链接和合作伙伴',
-  };
+    '/admin/monitoring': '实时监控系统运行状态',
+    '/admin/audit-logs': '查看系统操作审计日志',
+    '/admin/settings': '配置系统参数和设置',
+    '/admin/weather': '查看天气数据信息',
+  }
   
-  return descriptions[pathname] || '管理系统功能';
+  return descriptions[pathname] || '管理系统功能'
 }

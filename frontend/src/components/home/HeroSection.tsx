@@ -129,7 +129,7 @@ export default function HeroSection() {
           style={{
             backgroundImage: mounted && resolvedTheme === 'dark'
               ? 'linear-gradient(135deg, var(--tech-darkblue), var(--tech-deepblue), var(--tech-cyan))'
-              : 'linear-gradient(135deg, var(--secondary), var(--accent), var(--primary))',
+              : 'linear-gradient(135deg, #e0f2fe, #bae6fd, #93c5fd)',
             backgroundSize: '400% 400%',
             animation: 'gradient-move 8s ease infinite'
           }}
@@ -137,7 +137,7 @@ export default function HeroSection() {
         />
 
         <div
-          className="absolute inset-0 bg-[color:var(--background)]/[.3]"
+          className="absolute inset-0 bg-[color:var(--background)]/[.2]"
           aria-hidden="true"
         />
       </div>

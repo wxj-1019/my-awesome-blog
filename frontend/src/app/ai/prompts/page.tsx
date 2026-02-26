@@ -57,7 +57,7 @@ export default function PromptsPage() {
     setLoading(true);
     try {
       const result = await promptService.getPrompts({ limit: 100 });
-      setPrompts(result.items);
+      setPrompts(result.prompts);
     } catch (error) {
       console.error('Failed to load prompts:', error);
     } finally {

@@ -24,8 +24,27 @@
   color: var(--foreground);
 }
 
+.text-primary-color {
+  color: var(--text-primary);
+}
+
+.text-secondary-color {
+  color: var(--text-secondary);
+}
+
+.text-muted-color {
+  color: var(--text-muted);
+}
+
 .text-gradient {
   background: linear-gradient(135deg, var(--tech-cyan), var(--tech-sky), var(--tech-cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.light .text-gradient {
+  background: linear-gradient(135deg, #2563eb, #0ea5e9, #2563eb);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -45,6 +64,13 @@
   background-clip: text;
 }
 
+.light .text-gradient-primary {
+  background: linear-gradient(135deg, #2563eb, #0ea5e9, #2563eb);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
 .dark .text-gradient-primary {
   background: linear-gradient(135deg, var(--tech-lightcyan), var(--tech-sky), var(--tech-lightcyan));
   -webkit-background-clip: text;
@@ -58,8 +84,47 @@
   animation: gradient-move 8s ease infinite;
 }
 
+.light .gradient-bg {
+  background: linear-gradient(-45deg, #f8fafc, #e0f2fe, #bae6fd, #93c5fd);
+  background-size: 400% 400%;
+  animation: gradient-move 8s ease infinite;
+}
+
 .dark .gradient-bg {
   background: linear-gradient(-45deg, var(--background), var(--tech-deepblue), var(--tech-lightcyan), var(--tech-sky));
   background-size: 400% 400%;
   animation: gradient-move 8s ease infinite;
+}
+
+.glass-effect {
+  background: var(--glass-default);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.light .glass-effect {
+  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(59, 130, 246, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+.dark .glass-effect {
+  background: rgba(17, 17, 17, 0.85);
+  border-color: rgba(34, 211, 238, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.card-shadow {
+  box-shadow: var(--shadow-default);
+}
+
+.card-shadow-hover {
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.card-shadow-hover:hover {
+  box-shadow: var(--shadow-tech-cyan);
+  transform: translateY(-2px);
 }

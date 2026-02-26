@@ -106,7 +106,6 @@ export default function Navbar() {
       icon: Home,
       children: [
         { href: '/music', label: '音乐馆', icon: Music },
-        { href: '/gallery', label: '画廊', icon: Image },
         { href: '/videos', label: '视频', icon: Film },
         { href: '/games', label: '游戏', icon: Gamepad2 },
       ]
@@ -235,10 +234,10 @@ export default function Navbar() {
                               animate={{ opacity: 1, y: 0, scale: 1 }}
                               exit={{ opacity: 0, y: 10, scale: 0.95 }}
                               transition={{ duration: 0.2 }}
-                              className="absolute top-full left-0 mt-2 w-48 py-2 bg-glass backdrop-blur-3xl rounded-xl border border-white/10 shadow-2xl overflow-hidden z-50"
+                              className="absolute top-full left-0 mt-2 w-48 py-2 bg-glass backdrop-blur-3xl rounded-xl border border-glass-border shadow-2xl overflow-hidden z-50"
                             >
-                              <div className="px-3 py-2 border-b border-white/10 mb-1">
-                                <span className="text-xs font-medium text-white/50 uppercase tracking-wider">探索</span>
+                              <div className="px-3 py-2 border-b border-glass-border mb-1">
+                                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">探索</span>
                               </div>
                               {link.children?.map((child) => {
                                 const ChildIcon = child.icon;
@@ -247,7 +246,7 @@ export default function Navbar() {
                                     key={child.href}
                                     href={child.href as any}
                                     className={cn(
-                                      'flex items-center space-x-3 px-4 py-2.5 text-sm transition-colors hover:bg-white/5',
+                                      'flex items-center space-x-3 px-4 py-2.5 text-sm transition-colors hover:bg-glass',
                                       pathname === child.href
                                         ? "text-tech-cyan bg-tech-cyan/10"
                                         : "text-foreground/80 hover:text-tech-cyan"
@@ -311,10 +310,10 @@ export default function Navbar() {
                               animate={{ opacity: 1, y: 0, scale: 1 }}
                               exit={{ opacity: 0, y: 10, scale: 0.95 }}
                               transition={{ duration: 0.2 }}
-                              className="absolute top-full left-0 mt-2 w-48 py-2 bg-glass backdrop-blur-3xl rounded-xl border border-white/10 shadow-2xl overflow-hidden z-50"
+                              className="absolute top-full left-0 mt-2 w-48 py-2 bg-glass backdrop-blur-3xl rounded-xl border border-glass-border shadow-2xl overflow-hidden z-50"
                             >
-                              <div className="px-3 py-2 border-b border-white/10 mb-1">
-                                <span className="text-xs font-medium text-white/50 uppercase tracking-wider">工具</span>
+                              <div className="px-3 py-2 border-b border-glass-border mb-1">
+                                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">工具</span>
                               </div>
                               {link.children?.map((child) => {
                                 const ChildIcon = child.icon;
@@ -323,7 +322,7 @@ export default function Navbar() {
                                     key={child.href}
                                     href={child.href as any}
                                     className={cn(
-                                      'flex items-center space-x-3 px-4 py-2.5 text-sm transition-colors hover:bg-white/5',
+                                      'flex items-center space-x-3 px-4 py-2.5 text-sm transition-colors hover:bg-glass',
                                       pathname === child.href
                                         ? "text-tech-cyan bg-tech-cyan/10"
                                         : "text-foreground/80 hover:text-tech-cyan"
@@ -446,7 +445,7 @@ export default function Navbar() {
         <AnimatePresence>
           {mobileMenuOpen && (
             <motion.div
-              className="md:hidden absolute top-16 left-0 right-0 bg-glass backdrop-blur-3xl border-b border-white/10 overflow-y-auto"
+              className="md:hidden absolute top-16 left-0 right-0 bg-glass backdrop-blur-3xl border-b border-glass-border overflow-y-auto"
               initial="hidden"
               animate="visible"
               exit="hidden"
@@ -471,7 +470,7 @@ export default function Navbar() {
                           'flex items-center space-x-3 py-3 px-4 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-tech-cyan',
                           pathname === link.href
                             ? "bg-tech-cyan/20 text-tech-cyan"
-                            : "text-foreground/80 hover:bg-white/5 hover:text-tech-cyan"
+                            : "text-foreground/80 hover:bg-glass hover:text-tech-cyan"
                         )}
                         aria-current={pathname === link.href ? "page" : undefined}
                       >
@@ -481,7 +480,7 @@ export default function Navbar() {
                       
                       {/* 移动端子菜单 */}
                       {hasChildren && (
-                        <div className="ml-4 mt-1 space-y-1 border-l-2 border-white/10 pl-4">
+                        <div className="ml-4 mt-1 space-y-1 border-l-2 border-glass-border pl-4">
                           {link.children?.map((child) => {
                             const ChildIcon = child.icon;
                             return (
@@ -493,7 +492,7 @@ export default function Navbar() {
                                   'flex items-center space-x-3 py-2 px-3 rounded-lg transition-colors text-sm',
                                   pathname === child.href
                                     ? "text-tech-cyan bg-tech-cyan/10"
-                                    : "text-foreground/60 hover:text-tech-cyan hover:bg-white/5"
+                                    : "text-foreground/60 hover:text-tech-cyan hover:bg-glass"
                                 )}
                               >
                                 <ChildIcon className="h-4 w-4" />

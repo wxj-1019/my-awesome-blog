@@ -122,11 +122,11 @@ export default function FeaturedHighlights() {
 
   if (error) {
     return (
-      <section className="relative overflow-hidden py-6 sm:py-8 lg:py-10 bg-gradient-to-b from-tech-darkblue to-transparent">
+      <section className="relative overflow-hidden py-6 sm:py-8 lg:py-10 bg-gradient-to-b from-blue-50/50 to-transparent dark:from-tech-darkblue dark:to-transparent">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center py-12">
             <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
-            <p className="text-red-400 text-center">{error}</p>
+            <p className="text-red-500 dark:text-red-400 text-center">{error}</p>
           </div>
         </div>
       </section>
@@ -135,11 +135,11 @@ export default function FeaturedHighlights() {
 
   if (loading) {
     return (
-      <section className="relative overflow-hidden py-6 sm:py-8 lg:py-10 bg-gradient-to-b from-tech-darkblue to-transparent">
+      <section className="relative overflow-hidden py-6 sm:py-8 lg:py-10 bg-gradient-to-b from-blue-50/50 to-transparent dark:from-tech-darkblue dark:to-transparent">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center py-12">
             <RefreshCw className="w-12 h-12 text-tech-cyan animate-spin" />
-            <p className="text-gray-400 ml-4">加载中...</p>
+            <p className="text-muted-foreground ml-4">加载中...</p>
           </div>
         </div>
       </section>
@@ -148,10 +148,10 @@ export default function FeaturedHighlights() {
 
   if (highlights.length === 0 && !loading) {
     return (
-      <section className="relative overflow-hidden py-6 sm:py-8 lg:py-10 bg-gradient-to-b from-tech-darkblue to-transparent">
+      <section className="relative overflow-hidden py-6 sm:py-8 lg:py-10 bg-gradient-to-b from-blue-50/50 to-transparent dark:from-tech-darkblue dark:to-transparent">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center py-12">
-            <p className="text-gray-400">暂无精选文章</p>
+            <p className="text-muted-foreground">暂无精选文章</p>
           </div>
         </div>
       </section>
@@ -159,7 +159,7 @@ export default function FeaturedHighlights() {
   }
 
   return (
-    <section className="relative overflow-hidden py-6 sm:py-8 lg:py-10 bg-gradient-to-b from-tech-darkblue to-transparent">
+    <section className="relative overflow-hidden py-6 sm:py-8 lg:py-10 bg-gradient-to-b from-blue-50/50 to-transparent dark:from-tech-darkblue dark:to-transparent">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -169,12 +169,12 @@ export default function FeaturedHighlights() {
         >
           <div className="flex items-center gap-2">
             <div className="w-1 h-7 sm:h-8 bg-gradient-to-b from-tech-cyan to-tech-sky rounded-full animate-pulse-glow" />
-            <h2 className="text-xl sm:text-2xl font-bold text-white">
+            <h2 className="text-xl sm:text-2xl font-bold text-foreground">
               精选推荐
             </h2>
           </div>
           <div className="flex-1 h-px bg-gradient-to-r from-glass-border/50 to-transparent" />
-          <span className="text-xs sm:text-sm text-gray-400">
+          <span className="text-xs sm:text-sm text-muted-foreground">
             {highlights.length} 篇精选
           </span>
         </motion.div>
@@ -199,13 +199,16 @@ export default function FeaturedHighlights() {
               <a
                 href={item.link}
                 className={cn(
-                  'block h-full bg-glass/30 backdrop-blur-xl border border-glass-border rounded-2xl',
+                  'block h-full backdrop-blur-xl border rounded-2xl',
                   'p-5 sm:p-6 transition-all duration-300',
-                  'hover:shadow-2xl hover:shadow-tech-cyan/10',
+                  'hover:shadow-2xl dark:hover:shadow-tech-cyan/10',
                   'cursor-pointer relative overflow-hidden',
+                  'bg-white/90 border-glass-border hover:border-tech-cyan/30',
+                  'dark:bg-glass/30 dark:border-glass-border dark:hover:border-glass-glow',
                   'before:absolute before:inset-0 before:rounded-2xl before:pointer-events-none',
-                  'before:bg-gradient-to-br before:from-white/5 before:to-transparent',
-                  'group-hover:before:from-white/10'
+                  'before:bg-gradient-to-br before:from-blue-50/50 before:to-transparent',
+                  'dark:before:from-white/5 dark:before:to-transparent',
+                  'group-hover:before:from-blue-100/50 dark:group-hover:before:from-white/10'
                 )}
               >
                 <div className="relative z-10">
@@ -232,23 +235,23 @@ export default function FeaturedHighlights() {
                         {item.badge}
                       </span>
                       {item.category && (
-                        <span className="text-[10px] sm:text-xs text-gray-400 bg-glass/50 px-2 py-1 rounded">
+                        <span className="text-[10px] sm:text-xs text-muted-foreground bg-glass/50 px-2 py-1 rounded">
                           {item.category}
                         </span>
                       )}
                     </div>
                   </div>
 
-                  <h3 className="text-base sm:text-lg font-bold text-white mb-2 line-clamp-2 group-hover:text-tech-cyan transition-colors">
+                  <h3 className="text-base sm:text-lg font-bold text-foreground mb-2 line-clamp-2 group-hover:text-tech-cyan transition-colors">
                     {item.title}
                   </h3>
 
-                  <p className="text-xs sm:text-sm text-gray-400 mb-4 line-clamp-3 leading-relaxed">
+                  <p className="text-xs sm:text-sm text-muted-foreground mb-4 line-clamp-3 leading-relaxed">
                     {item.description}
                   </p>
 
                   <div className="space-y-3">
-                    <div className="flex items-center gap-3 text-xs text-gray-400">
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
                       {item.readTime && (
                         <div className="flex items-center gap-1.5">
                           <Clock className="w-3.5 h-3.5" />
@@ -260,13 +263,13 @@ export default function FeaturedHighlights() {
                     <div className="flex items-center justify-between pt-3 border-t border-glass-border/50">
                       <div className="flex items-center gap-3">
                         {item.stats.views && (
-                          <div className="flex items-center gap-1 group-hover:text-tech-cyan transition-colors">
+                          <div className="flex items-center gap-1 group-hover:text-tech-cyan transition-colors text-muted-foreground">
                             <Eye className="w-3.5 h-3.5" />
                             <span className="text-xs font-medium">{formatNumber(item.stats.views)}</span>
                           </div>
                         )}
                         {item.stats.likes && (
-                          <div className="flex items-center gap-1 group-hover:text-pink-400 transition-colors">
+                          <div className="flex items-center gap-1 group-hover:text-pink-500 transition-colors text-muted-foreground">
                             <Heart className="w-3.5 h-3.5" />
                             <span className="text-xs font-medium">{formatNumber(item.stats.likes)}</span>
                           </div>
@@ -282,7 +285,7 @@ export default function FeaturedHighlights() {
                 </div>
 
                 <motion.div
-                  className="absolute inset-0 rounded-2xl bg-gradient-to-br from-tech-cyan/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-100/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 dark:from-tech-cyan/5"
                   initial={false}
                 />
               </a>
@@ -298,7 +301,7 @@ export default function FeaturedHighlights() {
         >
           <a
             href="/articles"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-glass/30 backdrop-blur-xl border border-glass-border rounded-full text-white hover:bg-glass/50 hover:border-tech-cyan/50 hover:shadow-lg hover:shadow-tech-cyan/10 transition-all duration-300 cursor-pointer group"
+            className="inline-flex items-center gap-2 px-6 py-3 backdrop-blur-xl border rounded-full transition-all duration-300 cursor-pointer group bg-white/90 border-glass-border text-foreground hover:bg-white hover:border-tech-cyan/50 hover:shadow-lg dark:bg-glass/30 dark:border-glass-border dark:text-foreground dark:hover:bg-glass/50 dark:hover:border-tech-cyan/50 dark:hover:shadow-tech-cyan/10"
           >
             <span className="text-sm sm:text-base font-medium">查看更多精选</span>
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

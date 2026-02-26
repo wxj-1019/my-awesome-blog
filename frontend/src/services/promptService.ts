@@ -122,8 +122,14 @@ export const promptService = {
     }
   },
 
-  async getPromptVersions(name: string): Promise<{ name: string; versions: PromptVersion[] }> {
-    return apiRequest<{ name: string; versions: PromptVersion[] }>(`${API_BASE}/${name}/versions`);
+  async getPromptVersions(promptId: string): Promise<{ name: string; versions: PromptVersion[] }> {
+    return apiRequest<{ name: string; versions: PromptVersion[] }>(`${API_BASE}/${promptId}/versions`);
+  },
+
+  async activatePromptVersion(promptId: string, version: string): Promise<PromptVersion> {
+    return apiRequest<PromptVersion>(`${API_BASE}/${promptId}/versions/${version}/activate`, {
+      method: 'POST',
+    });
   },
 
   async incrementUsage(id: string): Promise<void> {

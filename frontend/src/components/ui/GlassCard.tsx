@@ -23,19 +23,29 @@ const GlassCard = React.forwardRef<HTMLDivElement, GlassCardProps>(
       lg: 'p-8',
     };
     
-    // 使用 CSS 变量替代条件 className，避免 hydration 不匹配
-    // 透明度由 --glass-default CSS 变量根据主题自动控制
-    const backgroundClass = 'bg-glass backdrop-blur-xl';
+    const isLight = resolvedTheme === 'light';
     
     return (
       <div
         ref={ref}
         className={cn(
-          'rounded-xl border border-glass-border shadow-lg text-foreground transition-all duration-300',
-          backgroundClass,
+          'rounded-xl border shadow-lg transition-all duration-300',
+          'backdrop-blur-xl',
           paddingClasses[padding],
-          hoverEffect && 'hover:-translate-y-1 hover:shadow-2xl hover:border-glass-glow',
-          glowEffect && 'hover:shadow-[0_0_30px_var(--shadow-tech-cyan)]',
+          isLight ? [
+            'bg-white/90',
+            'border-glass-border',
+            'text-foreground',
+            'shadow-md',
+            hoverEffect && 'hover:shadow-xl hover:-translate-y-1 hover:border-tech-cyan/30 cursor-pointer',
+            glowEffect && 'hover:shadow-[0_0_25px_rgba(59,130,246,0.2)]',
+          ] : [
+            'bg-glass',
+            'border-glass-border',
+            'text-foreground',
+            hoverEffect && 'hover:-translate-y-1 hover:shadow-2xl hover:border-glass-glow cursor-pointer',
+            glowEffect && 'hover:shadow-[0_0_30px_var(--shadow-tech-cyan)]',
+          ],
           className
         )}
         {...props}

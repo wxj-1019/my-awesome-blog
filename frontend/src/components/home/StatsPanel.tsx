@@ -109,7 +109,7 @@ function ArticleCard({ article, delayClass }: { article: Article; delayClass: st
     <article role="article" aria-label={article.title} tabIndex={0} className="group">
       <Card
         key={article.id}
-        className={`glass-card backdrop-blur-xl bg-card/40 hover:bg-card/60 hover:shadow-[0_0_40px_var(--shadow-tech-cyan),0_8px_32px_rgba(0,0,0,0.12)] border-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] animate-fade-in-up ${delayClass} overflow-hidden cursor-pointer`}
+        className={`glass-card backdrop-blur-xl bg-card/40 hover:bg-card/60 hover:shadow-[0_0_40px_var(--shadow-tech-cyan),0_8px_32px_rgba(0,0,0,0.12)] border-glass-border hover:border-tech-cyan/30 transition-all duration-300 hover:scale-[1.02] animate-fade-in-up ${delayClass} overflow-hidden cursor-pointer`}
       >
         <CardContent className="p-0">
           <div className="flex flex-col sm:flex-row">
@@ -245,7 +245,7 @@ function StatsCharts() {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <Card className="glass-card backdrop-blur-xl bg-card/40 border-white/10 p-5 sm:p-6 overflow-hidden hover:shadow-[0_0_40px_var(--shadow-tech-cyan),0_8px_32px_rgba(0,0,0,0.12)] transition-all duration-300">
+      <Card className="glass-card backdrop-blur-xl bg-card/40 border-glass-border p-5 sm:p-6 overflow-hidden hover:shadow-[0_0_40px_var(--shadow-tech-cyan),0_8px_32px_rgba(0,0,0,0.12)] transition-all duration-300">
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-2">
             <motion.div 
@@ -257,7 +257,7 @@ function StatsCharts() {
             </motion.div>
             <h3 className="text-lg sm:text-xl font-bold text-foreground">月度统计</h3>
           </div>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground bg-glass/30 px-3 py-1.5 rounded-full">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground bg-glass/30 px-3 py-1.5 rounded-full border border-glass-border/50">
             <Activity className="w-3.5 h-3.5" />
             <span>6个月数据</span>
           </div>
@@ -369,7 +369,7 @@ function StatsCharts() {
         </ResponsiveContainer>
       </Card>
 
-      <Card className="glass-card backdrop-blur-xl bg-card/40 border-white/10 p-5 sm:p-6 overflow-hidden hover:shadow-[0_0_40px_var(--shadow-tech-cyan),0_8px_32px_rgba(0,0,0,0.12)] transition-all duration-300">
+      <Card className="glass-card backdrop-blur-xl bg-card/40 border-glass-border p-5 sm:p-6 overflow-hidden hover:shadow-[0_0_40px_var(--shadow-tech-cyan),0_8px_32px_rgba(0,0,0,0.12)] transition-all duration-300">
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-2">
             <motion.div 
@@ -381,7 +381,7 @@ function StatsCharts() {
             </motion.div>
             <h3 className="text-lg sm:text-xl font-bold text-foreground">周活跃度</h3>
           </div>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground bg-glass/30 px-3 py-1.5 rounded-full">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground bg-glass/30 px-3 py-1.5 rounded-full border border-glass-border/50">
             <span>实时数据</span>
             <motion.span 
               className="w-2 h-2 bg-green-500 rounded-full"

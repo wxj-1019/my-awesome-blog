@@ -12,12 +12,53 @@ from app.models.user import User
 from app.services.cache_service import cache_service
 from app.utils.logger import app_logger
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=False)
+
+
+async def get_current_user_optional(
+    db: Session = Depends(get_db),
+    token: Optional[str] = Depends(oauth2_scheme)
+) -> Optional[User]:
+    """
+    可选认证依赖 - 如果提供了有效的 token 则返回用户，否则返回 None
+    用于需要区分登录用户和匿名用户的端点
+    """
+    if token is None:
+        return None
+    
+    try:
+        is_blacklisted = await cache_service.exists(f"blacklist:token:{token}")
+        if is_blacklisted:
+            return None
+    except Exception as e:
+        app_logger.error(f"Error checking token blacklist: {str(e)}")
+    
+    try:
+        payload = security.verify_token(token)
+        if payload is None:
+            return None
+        
+        user_id: Optional[str] = payload.get("sub")
+        if user_id is None:
+            return None
+    except (JWTError, Exception) as e:
+        app_logger.debug(f"Optional auth failed: {e}")
+        return None
+    
+    try:
+        user = crud.get_user(db, user_id=UUID(user_id))
+        return user
+    except Exception as e:
+        app_logger.debug(f"Failed to fetch user in optional auth: {e}")
+        return None
+
+
+oauth2_scheme_required = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 
 async def get_current_user(
     db: Session = Depends(get_db),
-    token: str = Depends(oauth2_scheme)
+    token: str = Depends(oauth2_scheme_required)
 ) -> User:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
