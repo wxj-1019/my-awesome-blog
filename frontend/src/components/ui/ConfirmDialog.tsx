@@ -3,7 +3,7 @@
 import { ReactNode } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X } from 'lucide-react'
-import Button from '@/components/ui/Button'
+import { Button } from '@/components/ui/Button'
 import GlassCardAdmin from '@/components/ui/GlassCardAdmin'
 import { cn } from '@/lib/utils'
 
