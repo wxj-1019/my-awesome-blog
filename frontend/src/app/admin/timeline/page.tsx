@@ -236,7 +236,7 @@ export default function TimelinePage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <GlassCardAdmin className="p-6" variant="primary">
+        <GlassCardAdmin className="p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <motion.div
@@ -276,7 +276,7 @@ export default function TimelinePage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.1 }}
       >
-        <GlassCardAdmin className="p-4" variant="secondary">
+        <GlassCardAdmin className="p-4">
           <div className="flex flex-col lg:flex-row gap-4">
             <div className="flex-1">
               <FormInput
@@ -320,7 +320,7 @@ export default function TimelinePage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
       >
-        <GlassCardAdmin className="overflow-hidden" variant="secondary">
+        <GlassCardAdmin className="overflow-hidden">
           {loading ? (
             <div className="p-12">
               <LoadingState message="加载中..." size="md" variant="dots" />
@@ -370,7 +370,7 @@ export default function TimelinePage() {
                                 {typeInfo.label}
                               </span>
                               {!event.is_active && (
-                                <span className="px-2 py-0.5 text-xs bg-gray-500/20 text-gray-400 rounded">
+                                <span className="px-2 py-0.5 text-xs bg-gray-500/20 text-gray-400 dark:text-gray-500 dark:text-gray-400 rounded">
                                   已隐藏
                                 </span>
                               )}
@@ -482,7 +482,7 @@ export default function TimelinePage() {
               exit={{ scale: 0.95, opacity: 0 }}
               className="w-full max-w-lg max-h-[90vh] overflow-y-auto"
             >
-              <GlassCardAdmin className="p-6" variant="primary">
+              <GlassCardAdmin className="p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-xl font-bold text-foreground">
                     {editDialog.mode === 'create' ? '新建事件' : '编辑事件'}

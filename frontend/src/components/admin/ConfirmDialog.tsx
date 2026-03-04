@@ -133,7 +133,7 @@ const ConfirmDialog = React.forwardRef<HTMLDivElement, ConfirmDialogProps>(
                     whileTap={{ scale: 0.98 }}
                     onClick={onClose}
                     disabled={isConfirming || isLoading}
-                    className="px-4 py-2 text-sm font-medium text-foreground hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded-lg transition-colors disabled:opacity-50"
+                    className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded-lg transition-colors disabled:opacity-50"
                   >
                     {cancelText}
                   </motion.button>

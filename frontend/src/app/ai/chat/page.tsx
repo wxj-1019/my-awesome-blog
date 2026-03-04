@@ -184,16 +184,16 @@ export default function ChatPage() {
           onArchiveConversation={handleArchiveConversation}
         />
 
-        <div className="flex-1 flex flex-col bg-glass/20 backdrop-blur-xl rounded-xl border border-glass-border">
+        <div className="flex-1 flex flex-col bg-card dark:bg-card/90 backdrop-blur-xl rounded-xl border border-border dark:border-glass-border shadow-lg dark:shadow-xl">
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {!currentConversation ? (
               <div className="flex h-full items-center justify-center">
                 <div className="text-center">
-                  <svg className="w-16 h-16 mx-auto mb-4 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50 dark:text-foreground/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-3.582 8-8 8s-8-3.582-8-8 8-3.582 8-8 8-8zM12 14a2 2 0 100-4 2 2 0 114-4 2 0 014z" />
                   </svg>
-                  <h3 className="text-lg font-medium text-white mb-2">开始一个新对话</h3>
-                  <p className="text-sm text-white/50">选择左侧的对话或创建新对话</p>
+                  <h3 className="text-lg font-medium text-foreground dark:text-foreground mb-2">开始一个新对话</h3>
+                  <p className="text-sm text-muted-foreground dark:text-foreground/50">选择左侧的对话或创建新对话</p>
                 </div>
               </div>
             ) : (

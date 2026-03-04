@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import GlassCardAdmin from '@/components/ui/AdminGlassCard';
+import GlassCardAdmin from '@/components/ui/GlassCardAdmin';
 import StatCard from '@/components/ui/StatCard';
 import LoadingState from '@/components/admin/LoadingState';
 import EmptyState from '@/components/admin/EmptyState';
@@ -67,7 +67,7 @@ export default function AdminTestPage() {
         const statusMap = {
           published: { label: '已发布', className: 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400' },
           draft: { label: '草稿', className: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400' },
-          archived: { label: '已归档', className: 'bg-gray-100 dark:bg-gray-900/30 text-gray-600 dark:text-gray-400' },
+          archived: { label: '已归档', className: 'bg-gray-100 dark:bg-gray-900/30 text-gray-600 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400' },
         };
         const config = statusMap[value as keyof typeof statusMap];
         return (
@@ -124,7 +124,7 @@ export default function AdminTestPage() {
         <section className="space-y-4">
           <h2 className="text-2xl font-bold">Glass Cards</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <GlassCardAdmin variant="primary" className="p-6">
+            <GlassCardAdmin className="p-6">
               <h3 className="text-lg font-semibold mb-2">Primary Card</h3>
               <p className="text-foreground/70">主要样式的毛玻璃卡片</p>
             </GlassCardAdmin>
@@ -132,7 +132,7 @@ export default function AdminTestPage() {
               <h3 className="text-lg font-semibold mb-2">Accent Card</h3>
               <p className="text-foreground/70">强调样式的毛玻璃卡片</p>
             </GlassCardAdmin>
-            <GlassCardAdmin variant="success" className="p-6">
+            <GlassCardAdmin className="p-6">
               <h3 className="text-lg font-semibold mb-2">Success Card</h3>
               <p className="text-foreground/70">成功样式的毛玻璃卡片</p>
             </GlassCardAdmin>

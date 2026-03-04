@@ -55,9 +55,9 @@ export default function TagCloud() {
     })
 
   const getTrendColor = (trend: number) => {
-    if (trend > 15) return 'text-green-400'
-    if (trend > 8) return 'text-yellow-400'
-    return 'text-gray-400'
+    if (trend > 15) return 'text-green-500 dark:text-green-400'
+    if (trend > 8) return 'text-yellow-500 dark:text-yellow-400'
+    return 'text-muted-foreground'
   }
 
   const getTrendIcon = (trend: number) => {
@@ -102,10 +102,10 @@ export default function TagCloud() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="搜索标签..."
-              className="w-full px-4 py-3 pl-10 rounded-lg bg-glass/40 border border-glass-border text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-tech-cyan/50 transition-all"
+              className="w-full px-4 py-3 pl-10 rounded-lg bg-glass/40 border border-glass-border text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-tech-cyan/50 transition-all"
               aria-label="搜索标签"
             />
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           </div>
 
           <div className="flex flex-wrap gap-2">

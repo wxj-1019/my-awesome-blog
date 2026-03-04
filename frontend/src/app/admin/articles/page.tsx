@@ -28,7 +28,7 @@ import Button from '@/components/admin/Button'
 import FormInput from '@/components/admin/FormInput'
 import ConfirmDialog from '@/components/admin/ConfirmDialog'
 import { useToast } from '@/components/admin/Toast'
-import GlassCardAdmin from '@/components/ui/AdminGlassCard'
+import GlassCardAdmin from '@/components/ui/GlassCardAdmin'
 
 interface Article {
   id: string
@@ -203,7 +203,7 @@ export default function ArticlesPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <GlassCardAdmin className="p-6" variant="primary">
+        <GlassCardAdmin className="p-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-3">
               <motion.div
@@ -226,7 +226,7 @@ export default function ArticlesPage() {
             >
               <Link
                 href="/admin/articles/new"
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-tech-cyan to-tech-sky text-white rounded-xl hover:shadow-lg hover:shadow-tech-cyan/25 transition-all duration-300 font-medium"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-tech-cyan to-tech-sky text-white dark:text-gray-100 rounded-xl hover:shadow-lg hover:shadow-tech-cyan/25 transition-all duration-300 font-medium"
               >
                 <Plus className="w-5 h-5" />
                 新建文章
@@ -241,7 +241,7 @@ export default function ArticlesPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.1 }}
       >
-        <GlassCardAdmin className="p-4" variant="secondary">
+        <GlassCardAdmin className="p-4">
           <div className="flex flex-col sm:flex-row gap-4">
             <form onSubmit={handleSearch} className="flex-1">
               <FormInput
@@ -276,7 +276,7 @@ export default function ArticlesPage() {
                     className={cn(
                       "px-4 py-2.5 text-sm font-medium transition-all duration-200 flex items-center gap-2",
                       filter === btn.key 
-                        ? "bg-gradient-to-r from-tech-cyan to-tech-sky text-white" 
+                        ? "bg-gradient-to-r from-tech-cyan to-tech-sky text-white dark:text-gray-100" 
                         : "text-foreground/70 hover:text-foreground hover:bg-glass/30"
                     )}
                     whileHover={{ scale: 1.02 }}
@@ -304,7 +304,7 @@ export default function ArticlesPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
       >
-        <GlassCardAdmin className="overflow-hidden" variant="secondary">
+        <GlassCardAdmin className="overflow-hidden">
           {loading ? (
             <div className="flex flex-col items-center justify-center h-64 gap-4">
               <motion.div className="relative">
@@ -339,7 +339,7 @@ export default function ArticlesPage() {
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Link
                   href="/admin/articles/new"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-tech-cyan to-tech-sky text-white rounded-xl font-medium hover:shadow-lg hover:shadow-tech-cyan/25 transition-all duration-300"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-tech-cyan to-tech-sky text-white dark:text-gray-100 rounded-xl font-medium hover:shadow-lg hover:shadow-tech-cyan/25 transition-all duration-300"
                 >
                   <Plus className="w-5 h-5" />
                   创建第一篇文章

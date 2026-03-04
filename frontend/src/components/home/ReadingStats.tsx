@@ -53,7 +53,7 @@ function Star({ className }: { className?: string }) {
 
 function HeatmapCell({ count, date }: { count: number; date: string }) {
   const getIntensity = (count: number) => {
-    if (count === 0) return 'bg-gray-800/50'
+    if (count === 0) return 'bg-gray-800/50 dark:bg-gray-900/50'
     if (count < 3) return 'bg-tech-cyan/30'
     if (count < 6) return 'bg-tech-cyan/60'
     if (count < 9) return 'bg-tech-cyan/80'
@@ -114,7 +114,7 @@ export default function ReadingStats() {
                 'px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200',
                 selectedPeriod === period.id
                   ? 'bg-tech-cyan text-white shadow-lg shadow-tech-cyan/30'
-                  : 'text-gray-400 hover:bg-gray-800/50 hover:text-gray-200'
+                  : 'text-muted-foreground hover:bg-gray-800/50 hover:text-foreground'
               )}
               aria-label={`切换到${period.label}数据`}
               aria-pressed={selectedPeriod === period.id}
@@ -137,7 +137,7 @@ export default function ReadingStats() {
                   'flex items-center gap-2 px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-medium transition-colors relative',
                   activeTab === tab.id
                     ? 'text-tech-cyan'
-                    : 'text-gray-400 hover:text-gray-200'
+                    : 'text-muted-foreground hover:text-foreground'
                 )}
                 aria-label={`查看${tab.label}数据`}
                 aria-pressed={activeTab === tab.id}

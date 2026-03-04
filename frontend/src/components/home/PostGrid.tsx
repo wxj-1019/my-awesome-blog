@@ -57,7 +57,7 @@ export default function PostGrid({ posts, loading = false, hasMore = true, onLoa
 
   const glassCardClass = mounted && resolvedTheme === 'dark'
     ? 'glass-card'
-    : 'bg-gray-100 shadow-lg border border-gray-200';
+    : 'bg-muted/80 shadow-lg border border-border';
 
   const [page, setPage] = useState(1);
   const [hasMoreLocal, setHasMoreLocal] = useState(hasMore);

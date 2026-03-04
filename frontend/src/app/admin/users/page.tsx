@@ -12,7 +12,7 @@ import ConfirmDialog from '@/components/admin/ConfirmDialog'
 import { useToast } from '@/components/admin/Toast'
 import LoadingState from '@/components/admin/LoadingState'
 import EmptyState from '@/components/admin/EmptyState'
-import GlassCardAdmin from '@/components/ui/AdminGlassCard'
+import GlassCardAdmin from '@/components/ui/GlassCardAdmin'
 
 interface User {
   id: string
@@ -195,7 +195,7 @@ export default function UsersPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
       >
-        <GlassCardAdmin className="overflow-hidden" variant="secondary">
+        <GlassCardAdmin className="overflow-hidden">
           {loading ? (
             <div className="p-12">
               <LoadingState message="加载中..." size="md" variant="dots" />
@@ -241,7 +241,7 @@ export default function UsersPage() {
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
                             <motion.div
-                              className="w-10 h-10 rounded-full bg-gradient-to-br from-tech-cyan to-tech-sky flex items-center justify-center text-white font-medium shadow-lg shadow-tech-cyan/30"
+                              className="w-10 h-10 rounded-full bg-gradient-to-br from-tech-cyan to-tech-sky flex items-center justify-center text-white dark:text-gray-100 font-medium shadow-lg shadow-tech-cyan/30"
                               whileHover={{ scale: 1.1, rotate: 5 }}
                               transition={{ duration: 0.2 }}
                             >
@@ -267,7 +267,7 @@ export default function UsersPage() {
                               "px-3 py-1 text-xs font-medium rounded-full transition-all duration-200",
                               user.is_active 
                                 ? "bg-green-500/20 text-green-400 border border-green-500/30" 
-                                : "bg-gray-500/20 text-gray-400 border border-gray-500/30"
+                                : "bg-gray-500/20 text-gray-400 dark:text-gray-500 dark:text-gray-400 border border-gray-500/30"
                             )}
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}

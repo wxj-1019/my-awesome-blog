@@ -22,7 +22,7 @@ import FormInput from '@/components/admin/FormInput'
 import { useToast } from '@/components/admin/Toast'
 import LoadingState from '@/components/admin/LoadingState'
 import EmptyState from '@/components/admin/EmptyState'
-import GlassCardAdmin from '@/components/ui/AdminGlassCard'
+import GlassCardAdmin from '@/components/ui/GlassCardAdmin'
 
 interface AuditLogUser {
   id: string
@@ -49,7 +49,7 @@ const ACTION_LABELS: Record<string, { label: string; color: string }> = {
   update: { label: '更新', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
   delete: { label: '删除', color: 'bg-red-500/20 text-red-400 border-red-500/30' },
   login: { label: '登录', color: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30' },
-  logout: { label: '登出', color: 'bg-gray-500/20 text-gray-400 border-gray-500/30' },
+  logout: { label: '登出', color: 'bg-gray-500/20 text-gray-400 dark:text-gray-500 dark:text-gray-400 border-gray-500/30' },
   register: { label: '注册', color: 'bg-purple-500/20 text-purple-400 border-purple-500/30' },
   approve: { label: '批准', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
   reject: { label: '拒绝', color: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
@@ -166,7 +166,7 @@ export default function AuditLogsPage() {
   }
 
   const getActionInfo = (action: string) => {
-    return ACTION_LABELS[action] || { label: action, color: 'bg-gray-500/20 text-gray-400 border-gray-500/30' }
+    return ACTION_LABELS[action] || { label: action, color: 'bg-gray-500/20 text-gray-400 dark:text-gray-500 dark:text-gray-400 border-gray-500/30' }
   }
 
   const getResourceTypeLabel = (type: string) => {
@@ -193,7 +193,7 @@ export default function AuditLogsPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <GlassCardAdmin className="p-6" variant="primary">
+        <GlassCardAdmin className="p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <motion.div
@@ -221,7 +221,7 @@ export default function AuditLogsPage() {
             >
               <Button
                 onClick={exportToCSV}
-                variant="glass"
+                variant="secondary"
                 leftIcon={Download}
                 disabled={logs.length === 0}
               >
@@ -291,7 +291,7 @@ export default function AuditLogsPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
       >
-        <GlassCardAdmin className="overflow-hidden" variant="secondary">
+        <GlassCardAdmin className="overflow-hidden">
           {loading ? (
             <div className="p-12">
               <LoadingState message="加载中..." size="md" variant="dots" />
@@ -329,9 +329,9 @@ export default function AuditLogsPage() {
                           transition={{ duration: 0.2 }}
                         >
                           {log.user ? (
-                            <User className="w-5 h-5 text-white" />
+                            <User className="w-5 h-5 text-white dark:text-gray-100" />
                           ) : (
-                            <Activity className="w-5 h-5 text-white" />
+                            <Activity className="w-5 h-5 text-white dark:text-gray-100" />
                           )}
                         </motion.div>
                         

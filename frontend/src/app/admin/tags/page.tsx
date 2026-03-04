@@ -11,7 +11,7 @@ import ConfirmDialog from '@/components/admin/ConfirmDialog'
 import { useToast } from '@/components/admin/Toast'
 import LoadingState from '@/components/admin/LoadingState'
 import EmptyState from '@/components/admin/EmptyState'
-import GlassCardAdmin from '@/components/ui/AdminGlassCard'
+import GlassCardAdmin from '@/components/ui/GlassCardAdmin'
 
 interface Tag {
   id: string
@@ -119,7 +119,7 @@ export default function TagsPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <GlassCardAdmin className="p-6" variant="primary">
+        <GlassCardAdmin className="p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <motion.div
@@ -161,7 +161,7 @@ export default function TagsPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.1 }}
       >
-        <GlassCardAdmin className="p-6" variant="secondary">
+        <GlassCardAdmin className="p-6">
           {loading ? (
             <LoadingState message="加载中..." size="md" variant="dots" />
           ) : tags.length === 0 ? (

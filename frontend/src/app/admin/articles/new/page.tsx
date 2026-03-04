@@ -40,7 +40,7 @@ import { adminApi } from '@/lib/admin-api-client';
 import Button from '@/components/admin/Button';
 import FormInput from '@/components/admin/FormInput';
 import { useToast, ToastContainer } from '@/components/admin/Toast';
-import GlassCardAdmin from '@/components/ui/AdminGlassCard';
+import GlassCardAdmin from '@/components/ui/GlassCardAdmin';
 
 interface Category {
   id: string;
@@ -450,7 +450,7 @@ export default function NewArticlePage() {
 
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
         <div className="xl:col-span-3 space-y-6">
-          <GlassCardAdmin variant="secondary" className="p-6" hoverEffect={false}>
+          <GlassCardAdmin className="p-6">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-tech-cyan/10">
@@ -469,7 +469,7 @@ export default function NewArticlePage() {
                       onClick={() => setEditorMode(mode)}
                       className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
                         editorMode === mode
-                          ? 'bg-tech-cyan text-white shadow-sm shadow-tech-cyan/20'
+                          ? 'bg-tech-cyan text-white dark:text-gray-100 shadow-sm shadow-tech-cyan/20'
                           : 'text-foreground/60 hover:text-foreground hover:bg-background/50'
                       }`}
                     >
@@ -629,7 +629,7 @@ export default function NewArticlePage() {
             </div>
           </GlassCardAdmin>
 
-          <GlassCardAdmin variant="secondary" className="p-6" hoverEffect={false}>
+          <GlassCardAdmin className="p-6">
             <div className="flex items-center gap-3 mb-6">
               <div className="p-2 rounded-lg bg-purple-500/10">
                 <Sparkles className="w-5 h-5 text-purple-400" />
@@ -707,7 +707,7 @@ export default function NewArticlePage() {
         </div>
 
         <div className="space-y-6">
-          <GlassCardAdmin variant="secondary" className="p-5 sticky top-6" hoverEffect={false}>
+          <GlassCardAdmin className="p-5 sticky top-6">
             <div className="flex items-center gap-2 mb-4">
               <div className="relative flex-1">
                 <div className={`h-2 rounded-full overflow-hidden ${progressPercentage === 100 ? 'animate-pulse' : ''} bg-background/50`}>
@@ -777,7 +777,7 @@ export default function NewArticlePage() {
             </div>
           </GlassCardAdmin>
 
-          <GlassCardAdmin variant="secondary" className="p-5" hoverEffect={false}>
+          <GlassCardAdmin className="p-5">
             <div className="flex items-center gap-2 mb-4">
               <div className="p-1.5 rounded-lg bg-blue-500/10">
                 <FolderTree className="w-4 h-4 text-blue-400" />
@@ -896,7 +896,7 @@ export default function NewArticlePage() {
             </div>
           </GlassCardAdmin>
 
-          <GlassCardAdmin variant="accent" className="p-5" hoverEffect={false}>
+          <GlassCardAdmin className="p-5">
             <h2 className="text-base font-semibold text-foreground mb-4 flex items-center gap-2">
               <div className="p-1.5 rounded-lg bg-green-500/10">
                 <Send className="w-4 h-4 text-green-400" />

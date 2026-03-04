@@ -21,7 +21,7 @@ import { cn } from '@/lib/utils'
 import Button from '@/components/admin/Button'
 import FormInput from '@/components/admin/FormInput'
 import { useToast } from '@/components/admin/Toast'
-import GlassCardAdmin from '@/components/ui/AdminGlassCard'
+import GlassCardAdmin from '@/components/ui/GlassCardAdmin'
 
 interface SiteSettings {
   siteName: string
@@ -574,7 +574,7 @@ export default function SettingsPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <GlassCardAdmin className="p-6" variant="primary">
+        <GlassCardAdmin className="p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <motion.div
@@ -667,7 +667,7 @@ export default function SettingsPage() {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="lg:col-span-3"
         >
-          <GlassCardAdmin className="p-6" variant="secondary">
+          <GlassCardAdmin className="p-6">
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeSection}

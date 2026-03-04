@@ -22,7 +22,7 @@ import {
   AlertTriangle,
 } from 'lucide-react'
 import GlassCardAdmin from '@/components/ui/GlassCardAdmin'
-import Button from '@/components/ui/Button'
+import { Button } from '@/components/ui/Button'
 import LoadingState from '@/components/ui/LoadingState'
 import EmptyState from '@/components/ui/EmptyState'
 import ConfirmDialog from '@/components/ui/ConfirmDialog'
@@ -211,8 +211,8 @@ export default function MessagesAdminPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">留言管理</h1>
-          <p className="text-gray-400 mt-1">管理网站留言和弹幕</p>
+          <h1 className="text-2xl font-bold text-white dark:text-gray-100">留言管理</h1>
+          <p className="text-gray-400 dark:text-gray-500 dark:text-gray-400 mt-1">管理网站留言和弹幕</p>
         </div>
         <div className="flex gap-3">
           <Button
@@ -244,7 +244,7 @@ export default function MessagesAdminPage() {
 
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500 dark:text-gray-400" />
           <input
             type="text"
             placeholder="搜索留言内容或作者..."
@@ -253,7 +253,7 @@ export default function MessagesAdminPage() {
               setSearchTerm(e.target.value)
               setPage(1)
             }}
-            className="w-full pl-10 pr-4 py-2.5 bg-glass/30 backdrop-blur-xl border border-glass-border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-tech-cyan transition-colors"
+            className="w-full pl-10 pr-4 py-2.5 bg-glass/30 backdrop-blur-xl border border-glass-border rounded-lg text-white dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:border-tech-cyan transition-colors"
           />
         </div>
         <Button
@@ -276,7 +276,7 @@ export default function MessagesAdminPage() {
             <GlassCardAdmin className="p-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm text-gray-400 mb-2">留言类型</label>
+                  <label className="block text-sm text-gray-400 dark:text-gray-500 dark:text-gray-400 mb-2">留言类型</label>
                   <div className="flex gap-2">
                     {[
                       { value: 'all', label: '全部' },
@@ -292,8 +292,8 @@ export default function MessagesAdminPage() {
                         className={cn(
                           'px-3 py-1.5 rounded-lg text-sm transition-colors cursor-pointer',
                           filterDanmaku === option.value
-                            ? 'bg-tech-cyan text-white'
-                            : 'bg-white/5 text-gray-300 hover:bg-white/10'
+                            ? 'bg-tech-cyan text-white dark:text-gray-100'
+                            : 'bg-white/5 text-gray-300 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 hover:bg-white/10'
                         )}
                       >
                         {option.label}
@@ -302,7 +302,7 @@ export default function MessagesAdminPage() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-400 mb-2">状态</label>
+                  <label className="block text-sm text-gray-400 dark:text-gray-500 dark:text-gray-400 mb-2">状态</label>
                   <div className="flex gap-2">
                     {[
                       { value: 'active', label: '正常' },
@@ -318,8 +318,8 @@ export default function MessagesAdminPage() {
                         className={cn(
                           'px-3 py-1.5 rounded-lg text-sm transition-colors cursor-pointer',
                           filterDeleted === option.value
-                            ? 'bg-tech-cyan text-white'
-                            : 'bg-white/5 text-gray-300 hover:bg-white/10'
+                            ? 'bg-tech-cyan text-white dark:text-gray-100'
+                            : 'bg-white/5 text-gray-300 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 hover:bg-white/10'
                         )}
                       >
                         {option.label}
@@ -378,7 +378,7 @@ export default function MessagesAdminPage() {
                               <User className="w-3 h-3 text-tech-cyan" />
                             </div>
                           )}
-                          <span className="text-white font-medium text-sm">
+                          <span className="text-white dark:text-gray-100 font-medium text-sm">
                             {message.author?.username || '匿名用户'}
                           </span>
                           {message.is_danmaku && (
@@ -401,12 +401,12 @@ export default function MessagesAdminPage() {
                           )}
                         </div>
                         <p
-                          className="text-gray-300 text-sm line-clamp-2"
+                          className="text-gray-300 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 text-sm line-clamp-2"
                           style={{ borderLeft: `3px solid ${message.color}`, paddingLeft: '8px' }}
                         >
                           {truncateContent(message.content)}
                         </p>
-                        <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                        <div className="flex items-center gap-4 mt-2 text-xs text-gray-500 dark:text-gray-400">
                           <span className="flex items-center gap-1">
                             <Clock className="w-3 h-3" />
                             {formatDate(message.created_at)}
@@ -424,7 +424,7 @@ export default function MessagesAdminPage() {
                             setSelectedMessage(message)
                             setShowDetailModal(true)
                           }}
-                          className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors cursor-pointer"
+                          className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 dark:text-gray-500 dark:text-gray-400 hover:text-white dark:text-gray-100 transition-colors cursor-pointer"
                           title="查看详情"
                         >
                           <Eye className="w-4 h-4" />
@@ -434,7 +434,7 @@ export default function MessagesAdminPage() {
                             onClick={() =>
                               setDeleteConfirm({ open: true, message, hard: false })
                             }
-                            className="p-2 rounded-lg bg-white/5 hover:bg-red-500/20 text-gray-400 hover:text-red-400 transition-colors cursor-pointer"
+                            className="p-2 rounded-lg bg-white/5 hover:bg-red-500/20 text-gray-400 dark:text-gray-500 dark:text-gray-400 hover:text-red-400 transition-colors cursor-pointer"
                             title="删除"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -468,7 +468,7 @@ export default function MessagesAdminPage() {
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </Button>
-                <span className="text-gray-400 text-sm">
+                <span className="text-gray-400 dark:text-gray-500 dark:text-gray-400 text-sm">
                   {page} / {totalPages}
                 </span>
                 <Button
@@ -502,10 +502,10 @@ export default function MessagesAdminPage() {
               className="bg-tech-darkblue border border-glass-border rounded-xl p-6 max-w-lg w-full max-h-[80vh] overflow-y-auto"
             >
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-white">留言详情</h3>
+                <h3 className="text-lg font-semibold text-white dark:text-gray-100">留言详情</h3>
                 <button
                   onClick={() => setShowDetailModal(false)}
-                  className="p-1 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors cursor-pointer"
+                  className="p-1 rounded-lg hover:bg-white/10 text-gray-400 dark:text-gray-500 dark:text-gray-400 hover:text-white dark:text-gray-100 transition-colors cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -525,10 +525,10 @@ export default function MessagesAdminPage() {
                     </div>
                   )}
                   <div>
-                    <p className="text-white font-medium">
+                    <p className="text-white dark:text-gray-100 font-medium">
                       {selectedMessage.author?.username || '匿名用户'}
                     </p>
-                    <p className="text-gray-500 text-xs">{selectedMessage.author?.email}</p>
+                    <p className="text-gray-500 dark:text-gray-400 text-xs">{selectedMessage.author?.email}</p>
                   </div>
                 </div>
 
@@ -536,51 +536,51 @@ export default function MessagesAdminPage() {
                   className="p-4 rounded-lg bg-white/5"
                   style={{ borderLeft: `4px solid ${selectedMessage.color}` }}
                 >
-                  <p className="text-gray-300 whitespace-pre-wrap">{selectedMessage.content}</p>
+                  <p className="text-gray-300 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 whitespace-pre-wrap">{selectedMessage.content}</p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <span className="text-gray-500">留言 ID</span>
-                    <p className="text-gray-300 font-mono text-xs mt-1">{selectedMessage.id}</p>
+                    <span className="text-gray-500 dark:text-gray-400">留言 ID</span>
+                    <p className="text-gray-300 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 font-mono text-xs mt-1">{selectedMessage.id}</p>
                   </div>
                   <div>
-                    <span className="text-gray-500">作者 ID</span>
-                    <p className="text-gray-300 font-mono text-xs mt-1">
+                    <span className="text-gray-500 dark:text-gray-400">作者 ID</span>
+                    <p className="text-gray-300 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 font-mono text-xs mt-1">
                       {selectedMessage.author_id}
                     </p>
                   </div>
                   <div>
-                    <span className="text-gray-500">创建时间</span>
-                    <p className="text-gray-300 mt-1">{formatDate(selectedMessage.created_at)}</p>
+                    <span className="text-gray-500 dark:text-gray-400">创建时间</span>
+                    <p className="text-gray-300 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 mt-1">{formatDate(selectedMessage.created_at)}</p>
                   </div>
                   <div>
-                    <span className="text-gray-500">更新时间</span>
-                    <p className="text-gray-300 mt-1">
+                    <span className="text-gray-500 dark:text-gray-400">更新时间</span>
+                    <p className="text-gray-300 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 mt-1">
                       {selectedMessage.updated_at
                         ? formatDate(selectedMessage.updated_at)
                         : '从未更新'}
                     </p>
                   </div>
                   <div>
-                    <span className="text-gray-500">点赞数</span>
-                    <p className="text-gray-300 mt-1 flex items-center gap-1">
+                    <span className="text-gray-500 dark:text-gray-400">点赞数</span>
+                    <p className="text-gray-300 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-1">
                       <Heart className="w-4 h-4 text-red-400" />
                       {selectedMessage.likes}
                     </p>
                   </div>
                   <div>
-                    <span className="text-gray-500">用户等级</span>
-                    <p className="text-gray-300 mt-1">Lv.{selectedMessage.level}</p>
+                    <span className="text-gray-500 dark:text-gray-400">用户等级</span>
+                    <p className="text-gray-300 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 mt-1">Lv.{selectedMessage.level}</p>
                   </div>
                   <div>
-                    <span className="text-gray-500">弹幕</span>
-                    <p className="text-gray-300 mt-1">
+                    <span className="text-gray-500 dark:text-gray-400">弹幕</span>
+                    <p className="text-gray-300 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 mt-1">
                       {selectedMessage.is_danmaku ? '是' : '否'}
                     </p>
                   </div>
                   <div>
-                    <span className="text-gray-500">状态</span>
+                    <span className="text-gray-500 dark:text-gray-400">状态</span>
                     <p
                       className={cn(
                         'mt-1',
@@ -594,8 +594,8 @@ export default function MessagesAdminPage() {
 
                 {selectedMessage.parent_id && (
                   <div>
-                    <span className="text-gray-500 text-sm">回复的留言</span>
-                    <p className="text-gray-400 font-mono text-xs mt-1">
+                    <span className="text-gray-500 dark:text-gray-400 text-sm">回复的留言</span>
+                    <p className="text-gray-400 dark:text-gray-500 dark:text-gray-400 font-mono text-xs mt-1">
                       {selectedMessage.parent_id}
                     </p>
                   </div>
@@ -623,13 +623,13 @@ export default function MessagesAdminPage() {
               className="bg-tech-darkblue border border-glass-border rounded-xl p-6 max-w-lg w-full max-h-[80vh] overflow-y-auto"
             >
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-white dark:text-gray-100 flex items-center gap-2">
                   <TrendingUp className="w-5 h-5 text-tech-cyan" />
                   热门留言
                 </h3>
                 <button
                   onClick={() => setShowTrendingModal(false)}
-                  className="p-1 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors cursor-pointer"
+                  className="p-1 rounded-lg hover:bg-white/10 text-gray-400 dark:text-gray-500 dark:text-gray-400 hover:text-white dark:text-gray-100 transition-colors cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -637,12 +637,12 @@ export default function MessagesAdminPage() {
 
               <div className="space-y-3">
                 {trendingMessages.length === 0 ? (
-                  <p className="text-gray-400 text-center py-4">暂无热门留言</p>
+                  <p className="text-gray-400 dark:text-gray-500 dark:text-gray-400 text-center py-4">暂无热门留言</p>
                 ) : (
                   trendingMessages.map((message, index) => (
                     <div
                       key={message.id}
-                      className="p-3 rounded-lg bg-white/5 border border-white/10"
+                      className="p-3 rounded-lg bg-white/5 dark:bg-white/5 border border-white/10 dark:border-white/5"
                     >
                       <div className="flex items-center gap-2 mb-2">
                         <span
@@ -654,21 +654,21 @@ export default function MessagesAdminPage() {
                                 ? 'bg-gray-300 text-gray-700'
                                 : index === 2
                                   ? 'bg-amber-600 text-amber-100'
-                                  : 'bg-white/10 text-gray-400'
+                                  : 'bg-white/10 text-gray-400 dark:text-gray-500 dark:text-gray-400'
                           )}
                         >
                           {index + 1}
                         </span>
-                        <span className="text-white text-sm font-medium">
+                        <span className="text-white dark:text-gray-100 text-sm font-medium">
                           {message.author?.username || '匿名'}
                         </span>
-                        <span className="text-gray-500 text-xs flex items-center gap-1 ml-auto">
+                        <span className="text-gray-500 dark:text-gray-400 text-xs flex items-center gap-1 ml-auto">
                           <Heart className="w-3 h-3 text-red-400" />
                           {message.likes}
                         </span>
                       </div>
                       <p
-                        className="text-gray-400 text-sm line-clamp-2"
+                        className="text-gray-400 dark:text-gray-500 dark:text-gray-400 text-sm line-clamp-2"
                         style={{ borderLeft: `2px solid ${message.color}`, paddingLeft: '8px' }}
                       >
                         {truncateContent(message.content, 80)}
@@ -699,13 +699,13 @@ export default function MessagesAdminPage() {
               className="bg-tech-darkblue border border-glass-border rounded-xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto"
             >
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-white dark:text-gray-100 flex items-center gap-2">
                   <BarChart3 className="w-5 h-5 text-tech-cyan" />
                   近14天活动统计
                 </h3>
                 <button
                   onClick={() => setShowStatsModal(false)}
-                  className="p-1 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors cursor-pointer"
+                  className="p-1 rounded-lg hover:bg-white/10 text-gray-400 dark:text-gray-500 dark:text-gray-400 hover:text-white dark:text-gray-100 transition-colors cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -713,11 +713,11 @@ export default function MessagesAdminPage() {
 
               <div className="space-y-2">
                 {activityStats.length === 0 ? (
-                  <p className="text-gray-400 text-center py-4">暂无活动数据</p>
+                  <p className="text-gray-400 dark:text-gray-500 dark:text-gray-400 text-center py-4">暂无活动数据</p>
                 ) : (
                   activityStats.map(stat => (
                     <div key={stat.date} className="flex items-center gap-3">
-                      <span className="text-gray-500 text-xs w-24">{stat.date}</span>
+                      <span className="text-gray-500 dark:text-gray-400 text-xs w-24">{stat.date}</span>
                       <div className="flex-1 h-6 bg-white/5 rounded overflow-hidden">
                         <motion.div
                           initial={{ width: 0 }}
@@ -726,7 +726,7 @@ export default function MessagesAdminPage() {
                           className="h-full bg-gradient-to-r from-tech-cyan to-tech-lightcyan"
                         />
                       </div>
-                      <span className="text-gray-400 text-sm w-8 text-right">{stat.count}</span>
+                      <span className="text-gray-400 dark:text-gray-500 dark:text-gray-400 text-sm w-8 text-right">{stat.count}</span>
                     </div>
                   ))
                 )}
@@ -734,8 +734,8 @@ export default function MessagesAdminPage() {
 
               <div className="mt-4 pt-4 border-t border-white/10">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-500">总计留言</span>
-                  <span className="text-white font-medium">
+                  <span className="text-gray-500 dark:text-gray-400">总计留言</span>
+                  <span className="text-white dark:text-gray-100 font-medium">
                     {activityStats.reduce((sum, s) => sum + s.count, 0)}
                   </span>
                 </div>

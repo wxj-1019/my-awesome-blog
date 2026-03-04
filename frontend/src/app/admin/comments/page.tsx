@@ -22,7 +22,7 @@ import ConfirmDialog from '@/components/admin/ConfirmDialog'
 import { useToast } from '@/components/admin/Toast'
 import LoadingState from '@/components/admin/LoadingState'
 import EmptyState from '@/components/admin/EmptyState'
-import GlassCardAdmin from '@/components/ui/AdminGlassCard'
+import GlassCardAdmin from '@/components/ui/GlassCardAdmin'
 
 interface Comment {
   id: string
@@ -151,7 +151,7 @@ export default function CommentsPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <GlassCardAdmin className="p-6" variant="primary">
+        <GlassCardAdmin className="p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <motion.div
@@ -189,7 +189,7 @@ export default function CommentsPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.1 }}
       >
-        <GlassCardAdmin className="p-4" variant="secondary">
+        <GlassCardAdmin className="p-4">
           <div className="flex flex-col lg:flex-row gap-4">
             <div className="flex-1">
               <FormInput
@@ -254,7 +254,7 @@ export default function CommentsPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
       >
-        <GlassCardAdmin className="overflow-hidden" variant="secondary">
+        <GlassCardAdmin className="overflow-hidden">
           {loading ? (
             <div className="p-12">
               <LoadingState message="加载中..." size="md" variant="dots" />
@@ -282,7 +282,7 @@ export default function CommentsPage() {
                   >
                     <div className="flex items-start gap-4">
                       <motion.div
-                        className="w-10 h-10 rounded-full bg-gradient-to-br from-tech-cyan to-tech-sky flex items-center justify-center text-white font-medium flex-shrink-0 shadow-lg shadow-tech-cyan/30"
+                        className="w-10 h-10 rounded-full bg-gradient-to-br from-tech-cyan to-tech-sky flex items-center justify-center text-white dark:text-gray-100 font-medium flex-shrink-0 shadow-lg shadow-tech-cyan/30"
                         whileHover={{ scale: 1.1, rotate: 5 }}
                         transition={{ duration: 0.2 }}
                       >

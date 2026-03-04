@@ -11,7 +11,7 @@ import ConfirmDialog from '@/components/admin/ConfirmDialog'
 import { useToast } from '@/components/admin/Toast'
 import LoadingState from '@/components/admin/LoadingState'
 import EmptyState from '@/components/admin/EmptyState'
-import GlassCardAdmin from '@/components/ui/AdminGlassCard'
+import GlassCardAdmin from '@/components/ui/GlassCardAdmin'
 
 interface Category {
   id: string
@@ -138,7 +138,7 @@ export default function CategoriesPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <GlassCardAdmin className="p-6" variant="primary">
+        <GlassCardAdmin className="p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <motion.div
@@ -180,7 +180,7 @@ export default function CategoriesPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.1 }}
       >
-        <GlassCardAdmin className="p-6" variant="secondary">
+        <GlassCardAdmin className="p-6">
           {loading ? (
             <LoadingState message="加载中..." size="md" variant="dots" />
           ) : categories.length === 0 ? (
@@ -220,7 +220,7 @@ export default function CategoriesPage() {
                           style={{ backgroundColor: category.color }}
                           whileHover={{ scale: 1.1, rotate: 5 }}
                         >
-                          <span className="text-xl font-bold text-white">
+                          <span className="text-xl font-bold text-white dark:text-gray-100">
                             {category.name.charAt(0)}
                           </span>
                         </motion.div>
@@ -397,7 +397,7 @@ export default function CategoriesPage() {
                   </motion.button>
                   <motion.button
                     type="submit"
-                    className="px-6 py-2.5 bg-gradient-to-r from-tech-cyan to-tech-sky text-white rounded-xl font-medium hover:shadow-lg hover:shadow-tech-cyan/25 transition-all duration-300"
+                    className="px-6 py-2.5 bg-gradient-to-r from-tech-cyan to-tech-sky text-white dark:text-gray-100 rounded-xl font-medium hover:shadow-lg hover:shadow-tech-cyan/25 transition-all duration-300"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >

@@ -22,7 +22,7 @@ import {
   RefreshCw
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import GlassCardAdmin from '@/components/ui/AdminGlassCard'
+import GlassCardAdmin from '@/components/ui/GlassCardAdmin'
 import StatCard from '@/components/ui/StatCard'
 import LoadingState from '@/components/admin/LoadingState'
 import EmptyState from '@/components/admin/EmptyState'
@@ -299,7 +299,7 @@ export default function AdminDashboard() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.6, duration: 0.6 }}
         >
-          <GlassCardAdmin className="p-6" variant="primary">
+          <GlassCardAdmin className="p-6">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 rounded-xl bg-gradient-to-br from-tech-cyan/30 to-tech-sky/30">
@@ -385,7 +385,7 @@ export default function AdminDashboard() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.6, duration: 0.6 }}
         >
-          <GlassCardAdmin className="p-6" variant="secondary">
+          <GlassCardAdmin className="p-6">
             <div className="flex items-center gap-3 mb-6">
               <div className="p-2.5 rounded-xl bg-gradient-to-br from-purple-500/30 to-pink-500/30">
                 <BarChart2 className="w-5 h-5 text-purple-500" />
@@ -436,7 +436,7 @@ export default function AdminDashboard() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 1.0, duration: 0.6 }}
       >
-        <GlassCardAdmin className="p-6" variant="accent">
+        <GlassCardAdmin className="p-6">
           <div className="flex items-center gap-3 mb-6">
             <div className="p-2.5 rounded-xl bg-gradient-to-br from-tech-cyan/40 to-tech-sky/40">
               <TrendingUp className="w-5 h-5 text-tech-cyan" />

@@ -155,7 +155,7 @@ export default function Portfolio() {
                 'flex items-center gap-2',
                 selectedCategory === cat.id
                   ? 'bg-gradient-to-r text-white shadow-lg shadow-tech-cyan/30'
-                  : 'bg-glass/40 text-gray-400 hover:bg-glass/60 hover:text-gray-200 border border-glass-border'
+                  : 'bg-glass/40 text-muted-foreground hover:bg-glass/60 hover:text-foreground border border-glass-border'
               )}
               style={{
                 ...(selectedCategory === cat.id ? { backgroundImage: cat.color } : {})
@@ -349,7 +349,7 @@ export default function Portfolio() {
                         href={project.githubUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-gray-800 text-white hover:bg-gray-700 transition-colors text-sm font-medium cursor-pointer"
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-gray-800 dark:bg-gray-700 text-white hover:bg-gray-700 dark:hover:bg-gray-600 transition-colors text-sm font-medium cursor-pointer"
                       >
                         <Code className="w-4 h-4" />
                         访问GitHub仓库
