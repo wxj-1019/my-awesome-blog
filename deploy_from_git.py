@@ -50,10 +50,10 @@ def main():
     print()
 
     print("步骤 3/6: 克隆/更新代码仓库...")
-    code, out, err = ssh_exec(client, f"test -d {DEPLOY_PATH} && echo EXISTS || echo NOT_EXISTS")
+    code, out, err = ssh_exec(client, f"test -d {DEPLOY_PATH}/.git && echo IS_GIT_REPO || echo NOT_GIT_REPO")
     
-    if "EXISTS" in out:
-        print("  目录已存在，拉取最新代码...")
+    if "IS_GIT_REPO" in out:
+        print("  目录已存在且为 Git 仓库，拉取最新代码...")
         code, out, err = ssh_exec(client, f"cd {DEPLOY_PATH} && git fetch origin && git reset --hard origin/main")
         if code != 0:
             code, out, err = ssh_exec(client, f"cd {DEPLOY_PATH} && git fetch origin && git reset --hard origin/master")
