@@ -5,7 +5,9 @@ uvicorn[standard]==0.36.0
 # Database
 sqlalchemy==2.0.23
 alembic==1.13.1
-psycopg2-binary==2.9.9  # PostgreSQL driver
+psycopg2-binary==2.9.9  # PostgreSQL driver (sync)
+asyncpg==0.29.0  # PostgreSQL async driver
+pgvector==0.2.5  # PostgreSQL vector extension support
 
 # Data validation
 pydantic==2.12.5

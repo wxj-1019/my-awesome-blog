@@ -11,7 +11,7 @@ from app import crud
 from app.schemas.token import Token, LoginRequest
 from app.schemas.user import UserCreate, User as UserSchema
 from app.models.user import User
-# from app.utils.rate_limit import limiter, login_rate_limit, register_rate_limit
+from app.utils.rate_limit import login_rate_limit, register_rate_limit
 from app.services.cache_service import cache_service
 from app.utils.logger import app_logger
 
@@ -20,7 +20,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 
 @router.post("/login", response_model=Token)
-# @login_rate_limit
+@login_rate_limit
 async def login(
     request: Request,
     form_data: OAuth2PasswordRequestForm = Depends(),
@@ -55,7 +55,7 @@ async def login(
 
 
 @router.post("/login-json", response_model=Token)
-# @login_rate_limit
+@login_rate_limit
 async def login_json(
     request: Request,
     login_data: LoginRequest,
@@ -90,7 +90,7 @@ async def login_json(
 
 
 @router.post("/register", response_model=dict)
-# @register_rate_limit
+@register_rate_limit
 async def register(
     request: Request,
     user_in: UserCreate,

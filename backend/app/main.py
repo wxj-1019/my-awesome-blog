@@ -1,5 +1,6 @@
 import sys
 import os
+from contextlib import asynccontextmanager
 # 添加backend目录到Python路径，以便可以直接运行此文件
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 
@@ -17,21 +18,58 @@ from app.utils.api_docs import customize_openapi
 from app.utils.config_validator import validate_and_log_config
 from app.middleware.request_size_limit import RequestSizeLimitMiddleware
 from app.services.weather_update_service import weather_update_service
+from app.core.exception_handlers import register_exception_handlers
 
 # Validate configuration on startup
 validate_and_log_config()
 
-# Create FastAPI app
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    应用生命周期管理器 - 替代已弃用的 @app.on_event
+    处理启动和关闭事件
+    """
+    # Startup
+    app_logger.info("Application starting up...")
+    
+    app_logger.info("Connecting to Redis...")
+    await cache_service.connect()
+    
+    app_logger.info("Starting weather update scheduler...")
+    weather_update_service.start()
+    await weather_update_service.initial_update()
+    
+    app_logger.info("Application startup complete")
+    
+    yield
+    
+    # Shutdown
+    app_logger.info("Application shutting down...")
+    
+    app_logger.info("Closing Redis connection...")
+    await cache_service.close()
+    
+    app_logger.info("Stopping weather update scheduler...")
+    weather_update_service.shutdown()
+    
+    app_logger.info("Application shutdown complete")
+
+
+# Create FastAPI app with lifespan
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
     openapi_url="/api/v1/openapi.json",
     docs_url="/docs",
     redoc_url="/redoc",
+    lifespan=lifespan,
 )
 
 # Customize API documentation
 customize_openapi(app)
+
+# Add custom middleware for request logging (放在最外层，确保所有请求都被记录)
+app.add_middleware(RequestLoggingMiddleware)
 
 # Add rate limiting middleware
 add_rate_limit_middleware(app)
@@ -41,9 +79,6 @@ app.add_middleware(PerformanceMonitoringMiddleware)
 
 # Add request size limit middleware (防止大请求体DoS攻击)
 app.add_middleware(RequestSizeLimitMiddleware)
-
-# Add custom middleware for request logging
-app.add_middleware(RequestLoggingMiddleware)
 
 # Set up CORS - 限制允许的HTTP方法和头部
 if settings.BACKEND_CORS_ORIGINS:
@@ -62,29 +97,9 @@ app.include_router(api_router, prefix="/api/v1")
 
 # Add exception handlers
 add_exception_handlers(app)
+register_exception_handlers(app)  # 注册新的统一异常处理器
 
 
-@app.on_event("startup")
-async def startup_event():
-    app_logger.info("Connecting to Redis...")
-    await cache_service.connect()
-    
-    app_logger.info("Starting weather update scheduler...")
-    weather_update_service.start()
-    await weather_update_service.initial_update()
-    
-    app_logger.info("Application startup complete")
-
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    app_logger.info("Closing Redis connection...")
-    await cache_service.close()
-    
-    app_logger.info("Stopping weather update scheduler...")
-    weather_update_service.shutdown()
-    
-    app_logger.info("Application shutdown complete")
 
 # Health check endpoint
 @app.get("/health")
