@@ -3,7 +3,8 @@ LLM API Endpoints
 提供 LLM 对话相关的 API 接口
 """
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, Request
+from app.exceptions import LLMServiceException, ServiceUnavailableException
 from fastapi.responses import StreamingResponse
 from app.services.llm_service import llm_service
 from app.schemas.llm import (
@@ -12,14 +13,17 @@ from app.schemas.llm import (
     LLMModelsResponse
 )
 from app.utils.logger import app_logger
+from app.utils.rate_limit import llm_chat_rate_limit
 
 router = APIRouter()
 
 
 @router.post("/chat", response_model=LLMChatResponse, status_code=status.HTTP_200_OK)
+@llm_chat_rate_limit
 async def chat(
+    request: Request,
     *,
-    request: LLMChatRequest,
+    chat_request: LLMChatRequest,
 ) -> LLMChatResponse:
     """
     LLM 聊天接口
@@ -31,15 +35,17 @@ async def chat(
     - **max_tokens**: 最大生成 token 数
     - **top_p**: 核采样参数 (0.0-1.0)
     """
-    app_logger.info(f"LLM chat request with provider: {request.provider or 'default'}")
-    response = await llm_service.chat(request)
+    app_logger.info(f"LLM chat request with provider: {chat_request.provider or 'default'}")
+    response = await llm_service.chat(chat_request)
     return response
 
 
 @router.post("/chat/stream")
+@llm_chat_rate_limit
 async def stream_chat(
+    request: Request,
     *,
-    request: LLMChatRequest,
+    chat_request: LLMChatRequest,
 ):
     """
     LLM 流式聊天接口
@@ -58,10 +64,10 @@ async def stream_chat(
     - data: {"content": "更多内容", "finish_reason": null}
     - data: [DONE]
     """
-    app_logger.info(f"LLM stream chat request with provider: {request.provider or 'default'}")
+    app_logger.info(f"LLM stream chat request with provider: {chat_request.provider or 'default'}")
 
     async def generate():
-        async for chunk in llm_service.stream_chat(request):
+        async for chunk in llm_service.stream_chat(chat_request):
             yield chunk
 
     return StreamingResponse(

@@ -1,5 +1,10 @@
 from typing import Any, List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, status, Query, Request
+from app.exceptions import (
+    NotFoundException,
+    ValidationException,
+    ForbiddenException,
+)
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.dependencies import get_current_active_user, get_current_superuser, get_current_user_optional
@@ -7,6 +12,7 @@ from app import crud
 from app.schemas.comment import Comment, CommentCreate, CommentUpdate, CommentWithAuthor
 from app.models.user import User
 from app.utils.permission_helpers import check_edit_permission, check_comment_delete_permission
+from app.utils.rate_limit import comment_rate_limit
 
 router = APIRouter()
 
@@ -57,9 +63,9 @@ def read_comments(
             with_relationships=True
         )
     else:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Please provide either article_id or author_id filter",
+        raise ValidationException(
+            field="filter",
+            field_message="Please provide either article_id or author_id filter"
         )
 
     return comments
@@ -77,9 +83,9 @@ def read_comment_by_id(
     comment_uuid = UUID(comment_id)
     comment = crud.get_comment(db, comment_id=comment_uuid, with_relationships=True)
     if not comment:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Comment not found",
+        raise NotFoundException(
+            resource="Comment",
+            identifier=comment_id
         )
     return comment
 
@@ -101,7 +107,9 @@ def read_comment_replies(
 
 
 @router.post("/", response_model=Comment)
+@comment_rate_limit
 def create_comment(
+    request: Request,
     *,
     db: Session = Depends(get_db),
     comment_in: CommentCreate,
@@ -129,9 +137,9 @@ def update_comment(
     comment_uuid = UUID(comment_id)
     comment = crud.get_comment(db, comment_id=comment_uuid, with_relationships=True)
     if not comment:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Comment not found",
+        raise NotFoundException(
+            resource="Comment",
+            identifier=comment_id
         )
 
     # 使用统一的权限检查
@@ -159,9 +167,9 @@ def delete_comment(
     # Load comment with its article relationship to avoid N+1 queries
     comment = db.query(Comment).options(joinedload(Comment.article)).filter(Comment.id == comment_uuid).first()
     if not comment:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Comment not found",
+        raise NotFoundException(
+            resource="Comment",
+            identifier=comment_id
         )
 
     # 使用统一的权限检查（评论作者或文章作者可以删除）
@@ -169,9 +177,9 @@ def delete_comment(
 
     deleted = crud.delete_comment(db, comment_id=comment_uuid)
     if not deleted:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Comment not found",
+        raise NotFoundException(
+            resource="Comment",
+            identifier=comment_id
         )
 
     return {"message": "Comment deleted successfully"}
@@ -196,9 +204,9 @@ def approve_comment(
     # First get the comment with its article relationship to avoid N+1 queries
     comment = db.query(Comment).options(joinedload(Comment.article)).filter(Comment.id == comment_uuid).first()
     if not comment:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Comment not found",
+        raise NotFoundException(
+            resource="Comment",
+            identifier=comment_id
         )
 
     # 使用统一的权限检查（文章作者或超级用户可以批准）
@@ -207,17 +215,17 @@ def approve_comment(
 
     # 检查文章是否已发布 - 未发布的文章不能批准评论
     if not comment.article.is_published:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Cannot approve comments on unpublished articles",
+        raise ValidationException(
+            field="article",
+            field_message="Cannot approve comments on unpublished articles"
         )
 
     # Now approve the comment
     comment = crud.approve_comment(db, comment_id=comment_uuid)
     if not comment:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Comment not found",
+        raise NotFoundException(
+            resource="Comment",
+            identifier=comment_id
         )
 
     return comment
@@ -241,9 +249,9 @@ def reject_comment(
 
     comment = db.query(Comment).options(joinedload(Comment.article)).filter(Comment.id == comment_uuid).first()
     if not comment:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Comment not found",
+        raise NotFoundException(
+            resource="Comment",
+            identifier=comment_id
         )
 
     from app.utils.permission_helpers import check_approve_permission

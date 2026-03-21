@@ -4,8 +4,13 @@ Conversations API Endpoints
 """
 
 from typing import Optional
-from fastapi import APIRouter, Depends, status, Query
+from fastapi import APIRouter, Depends, status, Query, Request
 from fastapi.responses import StreamingResponse
+from app.exceptions import (
+    NotFoundException,
+    ValidationException,
+    ResourceNotFoundException,
+)
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.dependencies import get_current_active_user
@@ -21,6 +26,7 @@ from app.schemas.conversation import (
 from app.models.user import User
 from app.services.conversation_service import conversation_service
 from app.utils.logger import app_logger
+from app.utils.rate_limit import conversation_create_rate_limit, llm_chat_rate_limit
 import json
 
 
@@ -28,7 +34,9 @@ router = APIRouter()
 
 
 @router.post("/", response_model=Conversation, status_code=status.HTTP_201_CREATED)
+@conversation_create_rate_limit
 async def create_conversation(
+    request: Request,
     *,
     db: Session = Depends(get_db),
     conversation_in: ConversationCreate,
@@ -73,10 +81,9 @@ async def get_conversation(
     )
     
     if not conversation:
-        from fastapi import HTTPException
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Conversation not found"
+        raise NotFoundException(
+            resource="Conversation",
+            identifier=conversation_id
         )
     
     return conversation
@@ -134,10 +141,9 @@ async def update_conversation(
     )
     
     if not conversation:
-        from fastapi import HTTPException
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Conversation not found"
+        raise NotFoundException(
+            resource="Conversation",
+            identifier=conversation_id
         )
     
     app_logger.info(f"User {current_user.username} updated conversation: {conversation_id}")
@@ -164,17 +170,18 @@ async def delete_conversation(
     )
     
     if not conversation:
-        from fastapi import HTTPException
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Conversation not found"
+        raise NotFoundException(
+            resource="Conversation",
+            identifier=conversation_id
         )
     
     app_logger.info(f"User {current_user.username} deleted conversation: {conversation_id}")
 
 
 @router.post("/chat", response_model=ChatResponse, status_code=status.HTTP_200_OK)
+@llm_chat_rate_limit
 async def chat(
+    request: Request,
     *,
     db: Session = Depends(get_db),
     chat_request: ChatRequest,
@@ -200,7 +207,9 @@ async def chat(
 
 
 @router.post("/chat/stream")
+@llm_chat_rate_limit
 async def chat_stream(
+    request: Request,
     *,
     db: Session = Depends(get_db),
     chat_request: ChatRequest,

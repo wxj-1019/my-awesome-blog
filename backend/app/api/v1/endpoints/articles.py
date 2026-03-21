@@ -1,5 +1,11 @@
 from typing import Any, List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, status, Query, Request, HTTPException
+from app.exceptions import (
+    NotFoundException,
+    ValidationException,
+    ConflictException,
+    InternalServerException,
+)
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.dependencies import get_current_active_user, get_current_superuser
@@ -12,12 +18,15 @@ from app.utils.pagination import CursorPaginationParams
 from app.utils.db_utils import get_articles_by_multiple_filters, get_popular_articles_optimized
 from app.utils.common_helpers import parse_uuid_list
 from app.utils.logger import app_logger
+from app.utils.rate_limit import article_create_rate_limit, article_read_rate_limit
 
 router = APIRouter()
 
 
 @router.get("/", response_model=List[ArticleWithAuthor])
+@article_read_rate_limit
 def read_articles(
+    request: Request,
     skip: int = 0,
     limit: int = 100,
     published_only: bool = Query(True, description="Only return published articles"),
@@ -51,7 +60,9 @@ def read_articles(
 
 
 @router.post("/", response_model=Article)
+@article_create_rate_limit
 async def create_article(
+    request: Request,
     *,
     db: Session = Depends(get_db),
     article_in: ArticleCreate,
@@ -63,9 +74,10 @@ async def create_article(
     # Check if slug already exists
     existing_article = crud.get_article_by_slug(db, slug=article_in.slug)
     if existing_article:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="An article with this slug already exists",
+        raise ConflictException(
+            resource="Article",
+            field="slug",
+            value=article_in.slug
         )
     
     article = crud.create_article(db, article=article_in, author_id=current_user.id)  # type: ignore
@@ -78,7 +90,9 @@ async def create_article(
 
 
 @router.get("/featured", response_model=List[ArticleWithAuthor])
+@article_read_rate_limit
 def read_featured_articles(
+    request: Request,
     limit: int = Query(10, ge=1, le=50, description="Number of featured articles to return"),
     db: Session = Depends(get_db)
 ) -> Any:
@@ -98,7 +112,9 @@ def test_public():
 
 
 @router.get("/popular", response_model=List[ArticleWithAuthor])
+@article_read_rate_limit
 def read_popular_articles(
+    request: Request,
     limit: int = Query(10, ge=1, le=50, description="Number of popular articles to return"),
     days: int = Query(30, ge=1, description="Number of days to consider for popularity calculation"),
     db: Session = Depends(get_db)
@@ -123,14 +139,15 @@ def read_popular_articles(
         return articles
     except Exception as e:
         app_logger.error(f"Error fetching popular articles: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to fetch popular articles: {str(e)}"
+        raise InternalServerException(
+            message=f"Failed to fetch popular articles: {str(e)}"
         )
 
 
 @router.get("/search", response_model=List[ArticleWithAuthor])
+@article_read_rate_limit
 def search_articles(
+    request: Request,
     q: str = Query(..., min_length=1, max_length=100, description="Search query"),
     category_slug: Optional[str] = Query(None, description="Filter by category slug"),
     tag_slug: Optional[str] = Query(None, description="Filter by tag slug"),
@@ -192,9 +209,9 @@ async def read_article_by_slug(
     """
     article = await crud.get_article_by_slug_with_relationships_async(db, slug=slug)
     if not article:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Article not found",
+        raise NotFoundException(
+            resource="Article",
+            identifier=article_id
         )
 
     # Increment view count
@@ -215,9 +232,9 @@ async def read_related_articles(
     article_uuid = UUID(article_id)
     article = await crud.get_article_async(db, article_id=article_uuid)
     if not article:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Article not found",
+        raise NotFoundException(
+            resource="Article",
+            identifier=article_id
         )
 
     related_articles = crud.get_related_articles(db, article_id=article_uuid, limit=limit)
@@ -237,9 +254,9 @@ async def read_article_by_id(
     # Increment view count and get updated article with relationships
     article = await crud.increment_view_count(db, article_id=article_uuid)
     if not article:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Article not found",
+        raise NotFoundException(
+            resource="Article",
+            identifier=article_id
         )
 
     return article
@@ -258,9 +275,9 @@ async def update_article(
     article_uuid = UUID(article_id)
     article = await crud.update_article(db, article_id=article_uuid, article_update=article_update)
     if not article:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Article not found",
+        raise NotFoundException(
+            resource="Article",
+            identifier=article_id
         )
     
     # Clear related caches
@@ -283,9 +300,9 @@ async def delete_article(
     article_uuid = UUID(article_id)
     success = await crud.delete_article(db, article_id=article_uuid)
     if not success:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Article not found",
+        raise NotFoundException(
+            resource="Article",
+            identifier=article_id
         )
     
     # Clear related caches

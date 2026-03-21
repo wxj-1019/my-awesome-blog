@@ -4,7 +4,12 @@ Memories API Endpoints
 """
 
 from typing import Optional
-from fastapi import APIRouter, Depends, status, Query
+from fastapi import APIRouter, Depends, status, Query, Request
+from app.exceptions import (
+    NotFoundException,
+    ValidationException,
+    ResourceNotFoundException,
+)
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.dependencies import get_current_active_user
@@ -21,12 +26,15 @@ from app.schemas.memory import (
 from app.models.user import User
 from app.services.memory_service import memory_service
 from app.utils.logger import app_logger
+from app.utils.rate_limit import memory_create_rate_limit, batch_operation_rate_limit
 
 router = APIRouter()
 
 
 @router.post("/", response_model=Memory, status_code=status.HTTP_201_CREATED)
+@memory_create_rate_limit
 async def create_memory(
+    request: Request,
     *,
     db: Session = Depends(get_db),
     memory_in: MemoryCreate,
@@ -52,7 +60,9 @@ async def create_memory(
 
 
 @router.post("/batch", response_model=list[Memory], status_code=status.HTTP_201_CREATED)
+@batch_operation_rate_limit
 async def batch_create_memories(
+    request: Request,
     *,
     db: Session = Depends(get_db),
     batch_request: MemoryBatchCreate,
@@ -93,10 +103,9 @@ async def get_memory(
     )
     
     if not memory:
-        from fastapi import HTTPException
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Memory not found"
+        raise NotFoundException(
+            resource="Memory",
+            identifier=memory_id
         )
     
     return memory
@@ -179,10 +188,9 @@ async def update_memory(
     )
     
     if not memory:
-        from fastapi import HTTPException
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Memory not found"
+        raise NotFoundException(
+            resource="Memory",
+            identifier=memory_id
         )
     
     app_logger.info(f"User {current_user.username} updated memory: {memory_id}")
@@ -208,10 +216,9 @@ async def delete_memory(
     )
     
     if not memory:
-        from fastapi import HTTPException
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Memory not found"
+        raise NotFoundException(
+            resource="Memory",
+            identifier=memory_id
         )
     
     app_logger.info(f"User {current_user.username} deleted memory: {memory_id}")

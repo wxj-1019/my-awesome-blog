@@ -2,23 +2,33 @@
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from app.core.config import settings
 from app.utils.logger import app_logger
 
 
-# 创建限速器实例
 limiter = Limiter(
-    key_func=get_remote_address,  # 使用IP地址作为限速键
-    default_limits=["1000 per hour"]  # 默认限制：每小时1000次请求
+    key_func=get_remote_address,
+    default_limits=["1000 per hour"]
 )
 
 
 async def _rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded):
     """处理速率限制超出异常"""
-    return HTTPException(
+    app_logger.warning(f"Rate limit exceeded for IP: {get_remote_address(request)}, Path: {request.url.path}")
+    return JSONResponse(
         status_code=429,
-        detail="请求过于频繁，请稍后再试"
+        content={
+            "success": False,
+            "error": "RATE_LIMIT_EXCEEDED",
+            "error_code": "RATE_LIMIT_EXCEEDED",
+            "message": "请求过于频繁，请稍后再试",
+            "details": {
+                "path": str(request.url.path),
+                "method": request.method
+            }
+        }
     )
 
 
@@ -71,3 +81,39 @@ register_rate_limit = limiter.limit(get_rate_limit_for_endpoint("register"))
 article_read_rate_limit = limiter.limit(get_rate_limit_for_endpoint("default"))
 article_create_rate_limit = limiter.limit(get_rate_limit_for_endpoint("article_create"))
 comment_rate_limit = limiter.limit(get_rate_limit_for_endpoint("comment"))
+
+# 新增限流装饰器
+forgot_password_rate_limit = limiter.limit(get_rate_limit_for_endpoint("forgot_password"))
+reset_password_rate_limit = limiter.limit(get_rate_limit_for_endpoint("reset_password"))
+contact_rate_limit = limiter.limit(get_rate_limit_for_endpoint("contact"))
+
+# API 限流 - 更严格的限制
+llm_chat_rate_limit = limiter.limit("20 per minute")  # LLM 聊天接口
+conversation_create_rate_limit = limiter.limit("10 per minute")  # 创建对话
+memory_create_rate_limit = limiter.limit("30 per minute")  # 创建记忆
+image_upload_rate_limit = limiter.limit("10 per minute")  # 图片上传
+oss_upload_rate_limit = limiter.limit("20 per minute")  # OSS 上传
+
+# 批量操作限流
+batch_operation_rate_limit = limiter.limit("5 per minute")
+
+# 导出所有限流装饰器
+__all__ = [
+    'limiter',
+    'add_rate_limit_middleware',
+    'get_rate_limit_for_endpoint',
+    'login_rate_limit',
+    'register_rate_limit',
+    'article_read_rate_limit',
+    'article_create_rate_limit',
+    'comment_rate_limit',
+    'forgot_password_rate_limit',
+    'reset_password_rate_limit',
+    'contact_rate_limit',
+    'llm_chat_rate_limit',
+    'conversation_create_rate_limit',
+    'memory_create_rate_limit',
+    'image_upload_rate_limit',
+    'oss_upload_rate_limit',
+    'batch_operation_rate_limit',
+]
