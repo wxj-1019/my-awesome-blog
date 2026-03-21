@@ -28,6 +28,9 @@ import {
   Activity,
   ScrollText,
   Mail,
+  Type,
+  Brain,
+  MessagesSquare,
 } from 'lucide-react'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import AdminSidebar from '@/components/ui/AdminSidebar'
@@ -70,6 +73,16 @@ const menuGroups: MenuGroup[] = [
     items: [
       { id: 'images', label: '图片管理', icon: Image, href: '/admin/images' },
       { id: 'portfolios', label: '作品集', icon: FileImage, href: '/admin/portfolios' },
+    ]
+  },
+  {
+    id: 'ai',
+    label: 'AI 功能',
+    items: [
+      { id: 'typewriter', label: '打字机内容', icon: Type, href: '/admin/typewriter' },
+      { id: 'prompts', label: 'Prompt 管理', icon: Sparkles, href: '/admin/prompts' },
+      { id: 'conversations', label: '对话管理', icon: MessagesSquare, href: '/admin/conversations' },
+      { id: 'memories', label: '记忆管理', icon: Brain, href: '/admin/memories' },
     ]
   },
   {
@@ -303,6 +316,10 @@ function getCurrentPageDescription(pathname: string): string {
     '/admin/audit-logs': '查看系统操作审计日志',
     '/admin/settings': '配置系统参数和设置',
     '/admin/weather': '查看天气数据信息',
+    '/admin/typewriter': '管理首页打字机效果内容',
+    '/admin/prompts': '管理 AI 对话提示词模板',
+    '/admin/conversations': '查看和管理 AI 对话记录',
+    '/admin/memories': '管理 AI 记忆库内容',
   }
   
   return descriptions[pathname] || '管理系统功能'

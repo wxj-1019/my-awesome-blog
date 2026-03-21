@@ -344,4 +344,92 @@ export const adminApi = {
     current: (city?: string) => AdminApiClient.get(`/weather/current${city ? `?city=${encodeURIComponent(city)}` : ''}`),
     forecast: (city?: string, days?: number) => AdminApiClient.get(`/weather/forecast${city ? `?city=${encodeURIComponent(city)}&days=${days || 7}` : ''}`),
   },
+  
+  typewriter: {
+    list: (params?: { skip?: number; limit?: number; active_only?: boolean }) => {
+      const searchParams = new URLSearchParams();
+      if (params?.skip) searchParams.set('skip', params.skip.toString());
+      if (params?.limit) searchParams.set('limit', params.limit.toString());
+      if (params?.active_only !== undefined) searchParams.set('active_only', params.active_only.toString());
+      const query = searchParams.toString();
+      return AdminApiClient.get(`/typewriter-contents/${query ? `?${query}` : ''}`);
+    },
+    get: (id: string) => AdminApiClient.get(`/typewriter-contents/${id}`),
+    create: (data: any) => AdminApiClient.post('/typewriter-contents/', data),
+    update: (id: string, data: any) => AdminApiClient.put(`/typewriter-contents/${id}`, data),
+    delete: (id: string) => AdminApiClient.delete(`/typewriter-contents/${id}`),
+    deactivate: (id: string) => AdminApiClient.post(`/typewriter-contents/${id}/deactivate`, {}),
+  },
+  
+  prompts: {
+    list: (params?: { skip?: number; limit?: number; category?: string; is_active?: boolean; is_system?: boolean }) => {
+      const searchParams = new URLSearchParams();
+      if (params?.skip) searchParams.set('skip', params.skip.toString());
+      if (params?.limit) searchParams.set('limit', params.limit.toString());
+      if (params?.category) searchParams.set('category', params.category);
+      if (params?.is_active !== undefined) searchParams.set('is_active', params.is_active.toString());
+      if (params?.is_system !== undefined) searchParams.set('is_system', params.is_system.toString());
+      const query = searchParams.toString();
+      return AdminApiClient.get(`/prompts/${query ? `?${query}` : ''}`);
+    },
+    get: (id: string) => AdminApiClient.get(`/prompts/${id}`),
+    create: (data: any) => AdminApiClient.post('/prompts/', data),
+    update: (id: string, data: any) => AdminApiClient.put(`/prompts/${id}`, data),
+    delete: (id: string) => AdminApiClient.delete(`/prompts/${id}`),
+    duplicate: (id: string) => AdminApiClient.post(`/prompts/${id}/duplicate`, {}),
+    setDefault: (id: string) => AdminApiClient.post(`/prompts/${id}/default`, {}),
+    getFolders: () => AdminApiClient.get('/prompts/folders'),
+    createFolder: (data: any) => AdminApiClient.post('/prompts/folders', data),
+    updateFolder: (id: string, data: any) => AdminApiClient.put(`/prompts/folders/${id}`, data),
+    deleteFolder: (id: string, moveTo?: string) => AdminApiClient.delete(`/prompts/folders/${id}${moveTo ? `?move_to=${moveTo}` : ''}`),
+    getStats: () => AdminApiClient.get('/prompts/stats'),
+    export: (ids?: string[]) => AdminApiClient.get(`/prompts/export${ids ? `?ids=${ids.join(',')}` : ''}`),
+    import: (data: any) => AdminApiClient.post('/prompts/import', data),
+    optimize: (content: string, maxLength?: number) => AdminApiClient.get(`/prompts/optimize?content=${encodeURIComponent(content)}${maxLength ? `&max_length=${maxLength}` : ''}`),
+    getVersions: (name: string) => AdminApiClient.get(`/prompts/${name}/versions`),
+  },
+  
+  conversations: {
+    list: (params?: { skip?: number; limit?: number; status?: string }) => {
+      const searchParams = new URLSearchParams();
+      if (params?.skip) searchParams.set('skip', params.skip.toString());
+      if (params?.limit) searchParams.set('limit', params.limit.toString());
+      if (params?.status) searchParams.set('status', params.status);
+      const query = searchParams.toString();
+      return AdminApiClient.get(`/conversations/${query ? `?${query}` : ''}`);
+    },
+    get: (id: string) => AdminApiClient.get(`/conversations/${id}`),
+    create: (data: any) => AdminApiClient.post('/conversations/', data),
+    update: (id: string, data: any) => AdminApiClient.put(`/conversations/${id}`, data),
+    delete: (id: string) => AdminApiClient.delete(`/conversations/${id}`),
+    getMessages: (id: string, params?: { skip?: number; limit?: number }) => {
+      const searchParams = new URLSearchParams();
+      if (params?.skip) searchParams.set('skip', params.skip.toString());
+      if (params?.limit) searchParams.set('limit', params.limit.toString());
+      const query = searchParams.toString();
+      return AdminApiClient.get(`/conversations/${id}/messages${query ? `?${query}` : ''}`);
+    },
+    deleteMessages: (id: string) => AdminApiClient.delete(`/conversations/${id}/messages`),
+  },
+  
+  memories: {
+    list: (params?: { skip?: number; limit?: number; memory_type?: string; min_importance?: number }) => {
+      const searchParams = new URLSearchParams();
+      if (params?.skip) searchParams.set('skip', params.skip.toString());
+      if (params?.limit) searchParams.set('limit', params.limit.toString());
+      if (params?.memory_type) searchParams.set('memory_type', params.memory_type);
+      if (params?.min_importance !== undefined) searchParams.set('min_importance', params.min_importance.toString());
+      const query = searchParams.toString();
+      return AdminApiClient.get(`/memories/${query ? `?${query}` : ''}`);
+    },
+    get: (id: string) => AdminApiClient.get(`/memories/${id}`),
+    create: (data: any) => AdminApiClient.post('/memories/', data),
+    batchCreate: (memories: any[]) => AdminApiClient.post('/memories/batch', { memories }),
+    update: (id: string, data: any) => AdminApiClient.put(`/memories/${id}`, data),
+    delete: (id: string) => AdminApiClient.delete(`/memories/${id}`),
+    search: (query: string, params?: { memory_type?: string; min_importance?: number; top_k?: number }) => 
+      AdminApiClient.post('/memories/search', { query, ...params }),
+    getStats: () => AdminApiClient.get('/memories/stats/summary'),
+    cleanup: () => AdminApiClient.post('/memories/cleanup', {}),
+  },
 };
