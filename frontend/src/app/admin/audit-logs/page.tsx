@@ -183,8 +183,8 @@ export default function AuditLogsPage() {
   }
 
   const totalPages = Math.ceil(totalCount / pageSize)
-  const uniqueActions = [...new Set(logs.map(l => l.action).filter(Boolean))]
-  const uniqueResourceTypes = [...new Set(logs.map(l => l.resource_type).filter(Boolean))]
+  const uniqueActions = Array.from(new Set(logs.map(l => l.action).filter(Boolean)))
+  const uniqueResourceTypes = Array.from(new Set(logs.map(l => l.resource_type).filter(Boolean)))
 
   return (
     <div className="space-y-6">
