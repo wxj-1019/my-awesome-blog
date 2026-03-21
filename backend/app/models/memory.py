@@ -8,9 +8,10 @@ from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 import uuid
 from app.core.database import Base
+from app.core.soft_delete import SoftDeleteMixinSync
 
 
-class Memory(Base):
+class Memory(Base, SoftDeleteMixinSync):
     """
     记忆模型
     
