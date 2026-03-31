@@ -114,7 +114,7 @@ export default function MessagesAdminPage() {
         params.danmaku_only = true
       }
 
-      const response = await adminApi.getMessages(params)
+      const response = await adminApi.getMessages(params) as any
       let filteredData = response.data || []
 
       if (searchTerm) {
@@ -144,10 +144,10 @@ export default function MessagesAdminPage() {
 
   const fetchTrending = async () => {
     try {
-      const response = await adminApi.get<{ data: MessageItem[] }>('/messages/trending', {
+      const response = await adminApi.get<MessageItem[]>('/messages/trending', {
         params: { limit: 10 },
       })
-      setTrendingMessages(response.data.data || [])
+      setTrendingMessages(Array.isArray(response) ? response : (response as any)?.data || [])
     } catch (error) {
       console.error('Failed to fetch trending messages:', error)
     }
@@ -158,7 +158,7 @@ export default function MessagesAdminPage() {
       const response = await adminApi.get<{ data: ActivityStat[] }>('/messages/stats/activity', {
         params: { days: 14 },
       })
-      setActivityStats(response.data.data || [])
+      setActivityStats((response as any)?.data || [])
     } catch (error) {
       console.error('Failed to fetch activity stats:', error)
     }
@@ -756,7 +756,7 @@ export default function MessagesAdminPage() {
             : '确定要删除这条留言吗？删除后可以恢复。'
         }
         confirmText={deleteConfirm.hard ? '永久删除' : '删除'}
-        variant="danger"
+        variant="destructive"
       />
     </div>
   )

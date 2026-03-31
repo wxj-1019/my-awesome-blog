@@ -84,10 +84,10 @@ export default function AdminTestPage() {
       title: '操作',
       render: (_, row) => (
         <div className="flex gap-2">
-          <Button variant="ghost" size="xs">
+          <Button variant="ghost" size="sm">
             <Edit className="w-4 h-4" />
           </Button>
-          <Button variant="ghost" size="xs">
+          <Button variant="ghost" size="sm">
             <Trash2 className="w-4 h-4" />
           </Button>
         </div>
@@ -128,7 +128,7 @@ export default function AdminTestPage() {
               <h3 className="text-lg font-semibold mb-2">Primary Card</h3>
               <p className="text-foreground/70">主要样式的毛玻璃卡片</p>
             </GlassCardAdmin>
-            <GlassCardAdmin variant="accent" className="p-6">
+            <GlassCardAdmin variant="primary" className="p-6">
               <h3 className="text-lg font-semibold mb-2">Accent Card</h3>
               <p className="text-foreground/70">强调样式的毛玻璃卡片</p>
             </GlassCardAdmin>
@@ -149,22 +149,18 @@ export default function AdminTestPage() {
                 <Button variant="outline" size="md">Outline</Button>
                 <Button variant="ghost" size="md">Ghost</Button>
                 <Button variant="danger" size="md">Danger</Button>
-                <Button variant="success" size="md">Success</Button>
-                <Button variant="warning" size="md">Warning</Button>
               </div>
               <div className="flex flex-wrap gap-3">
-                <Button variant="primary" size="xs">Extra Small</Button>
+                <Button variant="primary" size="sm">Extra Small</Button>
                 <Button variant="primary" size="sm">Small</Button>
                 <Button variant="primary" size="md">Medium</Button>
                 <Button variant="primary" size="lg">Large</Button>
-                <Button variant="primary" size="xl">Extra Large</Button>
               </div>
               <div className="flex flex-wrap gap-3">
                 <Button variant="primary" leftIcon={Plus}>新建</Button>
                 <Button variant="secondary" rightIcon={Download}>下载</Button>
-                <Button variant="success" leftIcon={Share2}>分享</Button>
+                <Button variant="outline" leftIcon={Share2}>分享</Button>
                 <Button variant="primary" loading>Loading</Button>
-                <Button variant="success" success>Success</Button>
               </div>
             </div>
           </GlassCardAdmin>
@@ -223,10 +219,10 @@ export default function AdminTestPage() {
               <Button variant="danger" onClick={() => error('操作失败！请重试。')}>
                 Error Toast
               </Button>
-              <Button variant="warning" onClick={() => warning('警告：请注意数据安全。')}>
+              <Button variant="outline" onClick={() => warning('警告：请注意数据安全。')}>
                 Warning Toast
               </Button>
-              <Button variant="secondary" onClick={() => info('提示：系统将在5分钟后维护。')}>
+              <Button variant="ghost" onClick={() => info('提示：系统将在5分钟后维护。')}>
                 Info Toast
               </Button>
             </div>

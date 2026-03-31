@@ -911,7 +911,6 @@ export default function NewArticlePage() {
                 className="w-full justify-center"
                 disabled={isSubmitting || progressPercentage < 40}
                 onClick={handlePublish}
-                glowEffect
               >
                 {isSubmitting ? (
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />

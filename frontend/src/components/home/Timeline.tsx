@@ -1,16 +1,12 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { useState, useEffect } from 'react'
+import { motion, useReducedMotion } from 'framer-motion'
 import { Award, Calendar, Image, Video, ChevronDown, ChevronRight, Badge, ExternalLink, FileText } from 'lucide-react'
 import GlassCard from '@/components/ui/GlassCard'
 import { cn } from '@/lib/utils'
 import { timelineService, TimelineEvent as ApiTimelineEvent } from '@/services/timelineService'
-
-if (typeof window !== 'undefined') {
-  gsap.registerPlugin(ScrollTrigger)
-}
+import ScrollReveal from './decorations/ScrollReveal'
 
 interface MediaItem {
   type: 'image' | 'video' | 'article'
@@ -130,221 +126,254 @@ const mediaIcons = {
   article: FileText
 }
 
+// 节点脉冲动画变体
+const pulseVariants = {
+  initial: {
+    boxShadow: '0 0 0px rgba(6, 182, 212, 0.4)'
+  },
+  animate: {
+    boxShadow: [
+      '0 0 0px rgba(6, 182, 212, 0.4)',
+      '0 0 20px rgba(6, 182, 212, 0.8)',
+      '0 0 0px rgba(6, 182, 212, 0.4)'
+    ],
+    transition: {
+      duration: 2,
+      repeat: Infinity,
+      ease: 'easeInOut' as const
+    }
+  }
+}
+
+// 垂直线动画变体
+const lineVariants = {
+  hidden: { scaleY: 0 },
+  visible: {
+    scaleY: 1,
+    transition: {
+      duration: 1.5,
+      ease: 'easeOut' as const
+    }
+  }
+}
+
 interface TimelineEventItemProps {
   event: TimelineEvent
   index: number
 }
 
 function TimelineEventItem({ event, index }: TimelineEventItemProps) {
-  const itemRef = useRef<HTMLDivElement>(null)
-  const dotRef = useRef<HTMLDivElement>(null)
-  const cardRef = useRef<HTMLDivElement>(null)
   const [isExpanded, setIsExpanded] = useState(false)
   const [showMediaPreview, setShowMediaPreview] = useState(false)
+  const shouldReduceMotion = useReducedMotion()
 
   const isLeft = index % 2 === 0
 
-  useEffect(() => {
-    const item = itemRef.current
-    const dot = dotRef.current
-    const card = cardRef.current
-
-    if (!item || !dot || !card || typeof window === 'undefined') return
-
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: item,
-        start: 'top 85%',
-        end: 'top 15%',
-        scrub: 1
-      }
-    })
-
-    tl.fromTo(dot,
-      { scale: 0, opacity: 0, boxShadow: '0 0 0px var(--tech-cyan)' },
-      {
-        scale: 1,
-        opacity: 1,
-        boxShadow: '0 0 20px var(--tech-cyan)',
+  const slideVariants = {
+    hidden: {
+      x: shouldReduceMotion ? 0 : (isLeft ? -80 : 80),
+      opacity: shouldReduceMotion ? 1 : 0,
+      y: shouldReduceMotion ? 0 : 30,
+      scale: shouldReduceMotion ? 1 : 0.9
+    },
+    visible: {
+      x: 0,
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: {
         duration: 0.8,
-        ease: 'elastic.out(1, 0.5)'
-      },
-      0
-    )
-
-    tl.fromTo(card,
-      {
-        x: isLeft ? -80 : 80,
-        opacity: 0,
-        y: 30,
-        rotateY: isLeft ? -30 : 30,
-        scale: 0.9
-      },
-      {
-        x: 0,
-        opacity: 1,
-        y: 0,
-        rotateY: 0,
-        scale: 1,
-        duration: 1.2,
-        ease: 'power3.out'
-      },
-      '<0.2'
-    )
-
-    return () => {
-      tl.scrollTrigger?.kill()
-      tl.kill()
-      ScrollTrigger.getAll().forEach(trigger => trigger.kill())
+        ease: [0.25, 0.46, 0.45, 0.94] as const,
+        delay: index * 0.1
+      }
     }
-  }, [isLeft, index])
+  } as const
+
+  // 节点动画
+  const dotVariants = {
+    hidden: {
+      scale: shouldReduceMotion ? 1 : 0,
+      opacity: shouldReduceMotion ? 1 : 0
+    },
+    visible: {
+      scale: 1,
+      opacity: 1,
+      transition: {
+        duration: 0.5,
+        ease: 'backOut' as const,
+        delay: index * 0.1 + 0.2
+      }
+    }
+  }
 
   const BadgeIcon = event.badge ? badgeIcons[event.badge.type] : null
 
   return (
     <div
-      ref={itemRef}
       className={cn('relative flex items-start mb-8 sm:mb-10 lg:mb-12', isLeft ? 'flex-row' : 'flex-row-reverse')}
     >
+      {/* 时间线节点 */}
       <div className="relative z-20 w-12 h-16 sm:w-16 flex items-center justify-center flex-shrink-0">
-        <div
-          ref={dotRef}
-          className="w-4 h-4 sm:w-5 sm:h-5 bg-tech-cyan rounded-full"
+        <motion.div
+          variants={dotVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.5 }}
+          animate={shouldReduceMotion ? {} : 'animate'}
+          className="w-4 h-4 sm:w-5 sm:h-5 bg-tech-cyan rounded-full relative"
           style={{
             backgroundColor: 'var(--tech-cyan)',
-            boxShadow: '0 0 15px var(--tech-cyan)',
             filter: 'blur(0.5px)'
           }}
-        />
+        >
+          {/* 脉冲效果环 */}
+          {!shouldReduceMotion && (
+            <motion.div
+              className="absolute inset-0 rounded-full bg-tech-cyan"
+              variants={pulseVariants}
+              initial="initial"
+              animate="animate"
+              style={{ backgroundColor: 'var(--tech-cyan)' }}
+            />
+          )}
+        </motion.div>
       </div>
 
-      <GlassCard
-        ref={cardRef}
-        className="flex-1 ml-3 sm:ml-4 relative z-10"
-        hoverEffect={true}
-        padding="sm"
+      {/* 卡片内容 */}
+      <motion.div
+        variants={slideVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.3 }}
+        className="flex-1 ml-3 sm:ml-4"
       >
-        <div className="flex items-start justify-between mb-2 sm:mb-3">
-          <div className="flex items-center gap-2">
-            <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-tech-cyan" />
-            <span className="text-xs sm:text-sm text-tech-cyan font-medium">{event.date}</span>
-          </div>
-
-          {event.badge && BadgeIcon && (
-            <div
-              className={cn(
-                'flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold',
-                'bg-gradient-to-r',
-                event.badge.color,
-                'text-white'
-              )}
-            >
-              <BadgeIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-              {event.badge.label}
-            </div>
-          )}
-        </div>
-
-        <h4 className="text-base sm:text-lg font-bold text-foreground mb-1.5 sm:mb-2">{event.title}</h4>
-
-        <p
-          className={cn(
-            'text-xs sm:text-sm text-muted-foreground transition-all duration-300',
-            !isExpanded && 'line-clamp-2'
-          )}
+        <GlassCard
+          className="relative z-10"
+          hoverEffect={true}
+          padding="sm"
         >
-          {event.description}
-        </p>
+          <div className="flex items-start justify-between mb-2 sm:mb-3">
+            <div className="flex items-center gap-2">
+              <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-tech-cyan" />
+              <span className="text-xs sm:text-sm text-tech-cyan font-medium">{event.date}</span>
+            </div>
 
-        {(event.media || event.link) && (
-          <div className="mt-3 sm:mt-4 space-y-2 sm:space-y-3">
-            {event.media && event.media.length > 0 && (
-              <div>
-                <button
-                  onClick={() => setShowMediaPreview(!showMediaPreview)}
-                  className="flex items-center gap-2 text-xs sm:text-sm text-tech-cyan hover:text-tech-lightcyan transition-colors"
-                  aria-expanded={showMediaPreview}
-                  aria-label={showMediaPreview ? '隐藏媒体预览' : '显示媒体预览'}
-                >
-                  {showMediaPreview ? (
-                    <>
-                      <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                      隐藏媒体
-                    </>
-                  ) : (
-                    <>
-                      <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                      查看媒体 ({event.media.length})
-                    </>
-                  )}
-                </button>
-
-                {showMediaPreview && (
-                  <div className="mt-2 sm:mt-3 grid grid-cols-2 sm:grid-cols-3 gap-1.5 sm:gap-2 animate-fade-in-up">
-                    {event.media.map((media, idx) => {
-                      const MediaIcon = mediaIcons[media.type]
-                      return (
-                        <div
-                          key={idx}
-                          className={cn(
-                            'relative group overflow-hidden rounded-lg',
-                            'bg-glass/20 border border-glass-border',
-                            'cursor-pointer transition-all duration-300',
-                            'hover:scale-105 hover:shadow-lg'
-                          )}
-                          onClick={() => window.open(media.url, '_blank')}
-                          aria-label={`查看${media.title}`}
-                        >
-                          <div className="p-2 sm:p-3 flex flex-col items-center gap-1.5 sm:gap-2">
-                            <MediaIcon className="w-6 h-6 sm:w-8 sm:h-8 text-tech-cyan" />
-                            <span className="text-[10px] sm:text-xs text-center text-foreground truncate w-full">{media.title}</span>
-                          </div>
-
-                          <div className="absolute inset-0 bg-tech-cyan/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                            <ExternalLink className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
+            {event.badge && BadgeIcon && (
+              <div
+                className={cn(
+                  'flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold',
+                  'bg-gradient-to-r',
+                  event.badge.color,
+                  'text-white'
                 )}
+              >
+                <BadgeIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                {event.badge.label}
               </div>
             )}
-
-            {event.link && (
-              <a
-                href={event.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-xs sm:text-sm text-tech-cyan hover:text-tech-lightcyan transition-colors"
-              >
-                查看详情
-                <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              </a>
-            )}
           </div>
-        )}
 
-        {event.description.length > 100 && (
-          <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="mt-2 sm:mt-3 flex items-center gap-1 text-xs sm:text-sm text-tech-cyan hover:text-tech-lightcyan transition-colors"
-            aria-expanded={isExpanded}
-          >
-            {isExpanded ? (
-              <>
-                <ChevronUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                收起
-              </>
-            ) : (
-              <>
-                <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                展开更多
-              </>
+          <h4 className="text-base sm:text-lg font-bold text-foreground mb-1.5 sm:mb-2">{event.title}</h4>
+
+          <p
+            className={cn(
+              'text-xs sm:text-sm text-muted-foreground transition-all duration-300',
+              !isExpanded && 'line-clamp-2'
             )}
-          </button>
-        )}
-      </GlassCard>
+          >
+            {event.description}
+          </p>
+
+          {(event.media || event.link) && (
+            <div className="mt-3 sm:mt-4 space-y-2 sm:space-y-3">
+              {event.media && event.media.length > 0 && (
+                <div>
+                  <button
+                    onClick={() => setShowMediaPreview(!showMediaPreview)}
+                    className="flex items-center gap-2 text-xs sm:text-sm text-tech-cyan hover:text-tech-lightcyan transition-colors"
+                    aria-expanded={showMediaPreview}
+                    aria-label={showMediaPreview ? '隐藏媒体预览' : '显示媒体预览'}
+                  >
+                    {showMediaPreview ? (
+                      <>
+                        <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                        隐藏媒体
+                      </>
+                    ) : (
+                      <>
+                        <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                        查看媒体 ({event.media.length})
+                      </>
+                    )}
+                  </button>
+
+                  {showMediaPreview && (
+                    <div className="mt-2 sm:mt-3 grid grid-cols-2 sm:grid-cols-3 gap-1.5 sm:gap-2 animate-fade-in-up">
+                      {event.media.map((media, idx) => {
+                        const MediaIcon = mediaIcons[media.type]
+                        return (
+                          <div
+                            key={idx}
+                            className={cn(
+                              'relative group overflow-hidden rounded-lg',
+                              'bg-glass/20 border border-glass-border',
+                              'cursor-pointer transition-all duration-300',
+                              'hover:scale-105 hover:shadow-lg'
+                            )}
+                            onClick={() => window.open(media.url, '_blank')}
+                            aria-label={`查看${media.title}`}
+                          >
+                            <div className="p-2 sm:p-3 flex flex-col items-center gap-1.5 sm:gap-2">
+                              <MediaIcon className="w-6 h-6 sm:w-8 sm:h-8 text-tech-cyan" />
+                              <span className="text-[10px] sm:text-xs text-center text-foreground truncate w-full">{media.title}</span>
+                            </div>
+
+                            <div className="absolute inset-0 bg-tech-cyan/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <ExternalLink className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {event.link && (
+                <a
+                  href={event.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-xs sm:text-sm text-tech-cyan hover:text-tech-lightcyan transition-colors"
+                >
+                  查看详情
+                  <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                </a>
+              )}
+            </div>
+          )}
+
+          {event.description.length > 100 && (
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="mt-2 sm:mt-3 flex items-center gap-1 text-xs sm:text-sm text-tech-cyan hover:text-tech-lightcyan transition-colors"
+              aria-expanded={isExpanded}
+            >
+              {isExpanded ? (
+                <>
+                  <ChevronUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  收起
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  展开更多
+                </>
+              )}
+            </button>
+          )}
+        </GlassCard>
+      </motion.div>
     </div>
   )
 }
@@ -354,10 +383,9 @@ function ChevronUp({ className }: { className?: string }) {
 }
 
 export default function Timeline() {
-  const timelineRef = useRef<HTMLDivElement>(null)
-  const verticalLineRef = useRef<HTMLDivElement>(null)
   const [events, setEvents] = useState<TimelineEvent[]>([])
   const [loading, setLoading] = useState(true)
+  const shouldReduceMotion = useReducedMotion()
 
   useEffect(() => {
     const loadEvents = async () => {
@@ -375,65 +403,28 @@ export default function Timeline() {
     loadEvents()
   }, [])
 
-  useEffect(() => {
-    const timeline = timelineRef.current
-    const verticalLine = verticalLineRef.current
-
-    if (!timeline || !verticalLine || typeof window === 'undefined') return
-
-    gsap.fromTo(timeline,
-      { y: 60, opacity: 0, scale: 0.98 },
-      {
-        y: 0,
-        opacity: 1,
-        scale: 1,
-        duration: 1.2,
-        ease: 'power3.out',
-        scrollTrigger: {
-          trigger: timeline,
-          start: 'top 85%',
-          end: 'bottom 10%',
-          toggleActions: 'play none none reverse'
-        }
-      }
-    )
-
-    gsap.fromTo(verticalLine,
-      { scaleY: 0 },
-      {
-        scaleY: 1,
-        transformOrigin: 'top',
-        duration: 2,
-        ease: 'power1.out',
-        scrollTrigger: {
-          trigger: timeline,
-          start: 'top 90%',
-          end: 'bottom 10%',
-          scrub: 0.5
-        }
-      }
-    )
-
-    return () => {
-      ScrollTrigger.getAll().forEach(trigger => trigger.kill())
-    }
-  }, [events])
-
   return (
     <section className="py-12 sm:py-14 md:py-16 lg:py-20 relative overflow-hidden">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-8 sm:mb-10 lg:mb-12 animate-fade-in-up text-foreground">
-          我的历程
-        </h2>
+        {/* 标题使用 ScrollReveal 包装 */}
+        <ScrollReveal animation="slideUp" className="mb-8 sm:mb-10 lg:mb-12">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center text-foreground">
+            我的历程
+          </h2>
+        </ScrollReveal>
 
         {loading ? (
           <div className="flex justify-center items-center py-16 sm:py-20">
             <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-tech-cyan" />
           </div>
         ) : (
-          <div ref={timelineRef} className="relative max-w-4xl mx-auto px-2 sm:px-4">
-            <div
-              ref={verticalLineRef}
+          <div className="relative max-w-4xl mx-auto px-2 sm:px-4">
+            {/* 垂直时间线 */}
+            <motion.div
+              variants={shouldReduceMotion ? undefined : lineVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.1 }}
               className="absolute left-6 sm:left-8 top-0 bottom-0 w-0.5 origin-top"
               style={{
                 background: 'linear-gradient(to bottom, transparent 0%, var(--tech-cyan) 10%, var(--tech-cyan) 90%, transparent 100%)',
@@ -441,6 +432,7 @@ export default function Timeline() {
               }}
             />
 
+            {/* 发光效果背景 */}
             <div className="absolute left-6 sm:left-8 top-0 h-full w-32 sm:w-40 -ml-16 sm:-ml-20 bg-gradient-to-r from-transparent via-tech-cyan/10 to-transparent opacity-30 pointer-events-none" />
 
             {events.map((event, index) => (

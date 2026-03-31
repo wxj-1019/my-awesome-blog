@@ -184,10 +184,10 @@ export default function MonitoringAdminPage() {
         adminApi.get<Analytics>('/monitoring/analytics'),
       ])
 
-      setHealth(healthRes.data)
-      setMetrics(metricsRes.data)
-      setStatus(statusRes.data)
-      setAnalytics(analyticsRes.data)
+      setHealth(healthRes)
+      setMetrics(metricsRes)
+      setStatus(statusRes)
+      setAnalytics(analyticsRes)
 
       if (showToast) toast.success('数据已刷新')
     } catch (error) {

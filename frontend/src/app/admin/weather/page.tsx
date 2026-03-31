@@ -184,8 +184,8 @@ export default function WeatherAdminPage() {
           params: { city },
         })
 
-        if (response.data.success) {
-          setWeatherData(response.data)
+        if (response.success) {
+          setWeatherData(response)
           setCurrentCity(city)
 
           setRecentCities(prev => {
@@ -197,7 +197,7 @@ export default function WeatherAdminPage() {
 
           if (showToast) toast.success(`已获取 ${city} 天气数据`)
         } else {
-          toast.error(response.data.message || '获取天气数据失败')
+          toast.error(response.message || '获取天气数据失败')
         }
       } catch (error) {
         console.error('Failed to fetch weather:', error)

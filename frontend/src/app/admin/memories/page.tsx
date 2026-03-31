@@ -57,7 +57,7 @@ export default function MemoriesPage() {
       const params: any = {}
       if (typeFilter) params.memory_type = typeFilter
       if (minImportance > 0) params.min_importance = minImportance
-      const data = await adminApi.memories.list(params)
+      const data = await adminApi.memories.list(params) as any
       setMemories(data?.items || Array.isArray(data) ? (data.items || data) : [])
     } catch (err) {
       console.error('Failed to fetch memories:', err)
@@ -69,7 +69,7 @@ export default function MemoriesPage() {
 
   const fetchStats = useCallback(async () => {
     try {
-      const data = await adminApi.memories.getStats()
+      const data = await adminApi.memories.getStats() as any
       setStats(data)
     } catch (err) {
       console.error('Failed to fetch stats:', err)
@@ -127,7 +127,7 @@ export default function MemoriesPage() {
 
   const handleCleanup = async () => {
     try {
-      const result = await adminApi.memories.cleanup()
+      const result = await adminApi.memories.cleanup() as any
       success(`清理完成，删除了 ${result?.deleted_count || 0} 条过期记忆`)
       fetchMemories()
       fetchStats()
@@ -149,7 +149,7 @@ export default function MemoriesPage() {
         memory_type: typeFilter || undefined,
         min_importance: minImportance > 0 ? minImportance : undefined,
         top_k: 50
-      })
+      }) as any
       setMemories(data?.results || [])
     } catch (err) {
       console.error('Failed to search:', err)

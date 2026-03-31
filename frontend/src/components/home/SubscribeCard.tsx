@@ -1,306 +1,606 @@
 'use client'
 
-import { useState } from 'react'
-import { Mail, CheckCircle, XCircle, FileText, Calendar, Bell, ExternalLink, ArrowRight } from 'lucide-react'
-import GlassCard from '@/components/ui/GlassCard'
+import { useRef, useState, useCallback, useEffect } from 'react'
+import { motion, AnimatePresence, useInView, useReducedMotion } from 'framer-motion'
+import { Mail, Send, CheckCircle, Loader2, Sparkles, ArrowRight, Bell } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
-import { cn } from '@/lib/utils'
 import { subscriptionService } from '@/services/subscriptionService'
+import { useToast } from '@/components/ui/use-toast'
+import ScrollReveal from './decorations/ScrollReveal'
 
-interface SubscriptionStatus {
-  isSubscribed: boolean
-  email: string
-  subscribedDate?: string
-  format: 'html' | 'text' | 'digest'
+const APPLE_EASE = [0.25, 0.1, 0.25, 1] as const
+
+interface FloatingLabelInputProps {
+  id: string
+  type: string
+  label: string
+  value: string
+  onChange: (value: string) => void
+  placeholder?: string
+  required?: boolean
+  icon?: React.ReactNode
 }
 
-const mockRecentNewsletters = [
-  {
-    id: '1',
-    title: 'Next.js 14 最佳实践',
-    date: '2025-01-20',
-    preview: '探索Next.js 14的新特性和App Router的最佳实践...',
-    readTime: '5分钟'
-  },
-  {
-    id: '2',
-    title: 'TypeScript 高级技巧',
-    date: '2025-01-15',
-    preview: '深入学习TypeScript的高级类型系统和实用技巧...',
-    readTime: '7分钟'
-  },
-  {
-    id: '3',
-    title: 'React 性能优化',
-    date: '2025-01-10',
-    preview: '提升React应用性能的关键技术和策略...',
-    readTime: '6分钟'
-  }
+function FloatingLabelInput({
+  id,
+  type,
+  label,
+  value,
+  onChange,
+  placeholder,
+  required = false,
+  icon
+}: FloatingLabelInputProps) {
+  const [isFocused, setIsFocused] = useState(false)
+  const hasValue = value.length > 0
+
+  return (
+    <div className="relative">
+      <motion.label
+        htmlFor={id}
+        className="absolute left-4 sm:left-5 text-muted-foreground pointer-events-none origin-left"
+        initial={false}
+        animate={{
+          y: isFocused || hasValue ? -24 : 0,
+          scale: isFocused || hasValue ? 0.85 : 1,
+          color: isFocused ? 'rgb(6, 182, 212)' : 'rgb(156, 163, 175)'
+        }}
+        transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+        style={{ top: '50%', transform: 'translateY(-50%)' }}
+      >
+        {label}
+      </motion.label>
+
+      <div className="relative">
+        {icon && (
+          <motion.div 
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
+            animate={{ color: isFocused ? 'rgb(6, 182, 212)' : 'rgb(156, 163, 175)' }}
+          >
+            {icon}
+          </motion.div>
+        )}
+        
+        <input
+          id={id}
+          type={type}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          placeholder={isFocused ? placeholder : ''}
+          required={required}
+          className={`
+            w-full px-4 py-4 sm:px-5 sm:py-5 rounded-xl
+            bg-glass/30 backdrop-blur-xl border border-glass-border
+            text-foreground placeholder:text-muted-foreground/50
+            focus:outline-none focus:border-tech-cyan/50 focus:ring-2 focus:ring-tech-cyan/20
+            transition-all duration-200
+            ${icon ? 'pl-12' : ''}
+          `}
+        />
+
+        <motion.div
+          className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-tech-cyan to-tech-sky rounded-full"
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: isFocused ? 1 : 0 }}
+          transition={{ duration: 0.3, ease: APPLE_EASE }}
+          style={{ transformOrigin: 'left' }}
+        />
+      </div>
+    </div>
+  )
+}
+
+interface RippleButtonProps {
+  children: React.ReactNode
+  onClick: () => void
+  disabled?: boolean
+  loading?: boolean
+  className?: string
+}
+
+function RippleButton({ children, onClick, disabled, loading, className }: RippleButtonProps) {
+  const [ripples, setRipples] = useState<{ x: number; y: number; id: number }[]>([])
+  const buttonRef = useRef<HTMLButtonElement>(null)
+  const shouldReduceMotion = useReducedMotion()
+
+  const handleClick = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+    if (disabled || loading) return
+
+    const rect = buttonRef.current?.getBoundingClientRect()
+    if (rect) {
+      const x = e.clientX - rect.left
+      const y = e.clientY - rect.top
+      const id = Date.now()
+      
+      setRipples(prev => [...prev, { x, y, id }])
+      
+      setTimeout(() => {
+        setRipples(prev => prev.filter(r => r.id !== id))
+      }, 600)
+    }
+
+    onClick()
+  }, [disabled, loading, onClick])
+
+  return (
+    <motion.button
+      ref={buttonRef}
+      onClick={handleClick}
+      disabled={disabled || loading}
+      className={`relative overflow-hidden ${className}`}
+      whileHover={shouldReduceMotion ? {} : { scale: disabled ? 1 : 1.02 }}
+      whileTap={shouldReduceMotion ? {} : { scale: disabled ? 1 : 0.98 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+    >
+      {loading ? (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="flex items-center justify-center gap-2"
+        >
+          <Loader2 className="w-5 h-5 animate-spin" />
+          <span>处理中...</span>
+        </motion.div>
+      ) : (
+        children
+      )}
+
+      <AnimatePresence>
+        {ripples.map(ripple => (
+          <motion.span
+            key={ripple.id}
+            initial={{ scale: 0, opacity: 0.5 }}
+            animate={{ scale: 4, opacity: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+            className="absolute w-20 h-20 -ml-10 -mt-10 rounded-full bg-white/30 pointer-events-none"
+            style={{ left: ripple.x, top: ripple.y }}
+          />
+        ))}
+      </AnimatePresence>
+    </motion.button>
+  )
+}
+
+interface FormatOption {
+  id: string
+  label: string
+  description: string
+  icon: React.ReactNode
+}
+
+const formatOptions: FormatOption[] = [
+  { id: 'email', label: '邮件', description: '每日摘要', icon: <Mail className="w-4 h-4" /> },
+  { id: 'push', label: '推送', description: '实时通知', icon: <Bell className="w-4 h-4" /> },
 ]
+
+interface FormatSelectorProps {
+  selected: string
+  onSelect: (format: string) => void
+}
+
+function FormatSelector({ selected, onSelect }: FormatSelectorProps) {
+  const shouldReduceMotion = useReducedMotion()
+
+  return (
+    <div className="flex gap-3">
+      {formatOptions.map((option) => (
+        <motion.button
+          key={option.id}
+          onClick={() => onSelect(option.id)}
+          className={`
+            flex-1 p-3 rounded-xl border transition-all duration-200 cursor-pointer
+            ${selected === option.id 
+              ? 'bg-tech-cyan/20 border-tech-cyan/50 text-tech-cyan' 
+              : 'bg-glass/30 border-glass-border text-muted-foreground hover:border-glass-border/80'}
+          `}
+          whileHover={shouldReduceMotion ? {} : { scale: 1.02, y: -2 }}
+          whileTap={shouldReduceMotion ? {} : { scale: 0.98 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+        >
+          <div className="flex items-center justify-center gap-2 mb-1">
+            {option.icon}
+            <span className="text-sm font-medium">{option.label}</span>
+          </div>
+          <span className="text-xs opacity-70">{option.description}</span>
+        </motion.button>
+      ))}
+    </div>
+  )
+}
+
+interface SuccessStateProps {
+  onReset: () => void
+}
+
+function SuccessState({ onReset }: SuccessStateProps) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+      className="text-center py-8"
+    >
+      <motion.div
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 15, delay: 0.1 }}
+        className="w-16 h-16 mx-auto mb-4 rounded-full bg-tech-cyan/20 flex items-center justify-center"
+      >
+        <motion.div
+          initial={{ scale: 0, rotate: -180 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 15, delay: 0.2 }}
+        >
+          <CheckCircle className="w-8 h-8 text-tech-cyan" />
+        </motion.div>
+      </motion.div>
+      
+      <motion.h3
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="text-xl font-bold text-foreground mb-2"
+      >
+        订阅成功！
+      </motion.h3>
+      
+      <motion.p
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+        className="text-muted-foreground mb-6"
+      >
+        感谢您的订阅，我们会定期推送最新内容
+      </motion.p>
+
+      <motion.button
+        onClick={onReset}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.5 }}
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        className="text-sm text-tech-cyan hover:text-tech-lightcyan transition-colors cursor-pointer"
+      >
+        继续订阅其他邮箱
+      </motion.button>
+    </motion.div>
+  )
+}
+
+// 浮动粒子组件
+interface FloatingParticle {
+  id: number
+  x: number
+  y: number
+  size: number
+  duration: number
+  delay: number
+}
+
+function FloatingParticles() {
+  const shouldReduceMotion = useReducedMotion()
+  const [particles, setParticles] = useState<FloatingParticle[]>([])
+
+  useEffect(() => {
+    // 生成随机粒子
+    const newParticles: FloatingParticle[] = Array.from({ length: 6 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: Math.random() * 4 + 2,
+      duration: Math.random() * 3 + 4,
+      delay: Math.random() * 2,
+    }))
+    setParticles(newParticles)
+  }, [])
+
+  if (shouldReduceMotion) return null
+
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {particles.map((particle) => (
+        <motion.div
+          key={particle.id}
+          className="absolute rounded-full bg-gradient-to-br from-tech-cyan/30 to-tech-sky/20"
+          style={{
+            left: `${particle.x}%`,
+            top: `${particle.y}%`,
+            width: particle.size,
+            height: particle.size,
+          }}
+          animate={{
+            y: [-20, 20, -20],
+            x: [-10, 10, -10],
+            opacity: [0.3, 0.6, 0.3],
+            scale: [1, 1.2, 1],
+          }}
+          transition={{
+            duration: particle.duration,
+            delay: particle.delay,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+        />
+      ))}
+    </div>
+  )
+}
+
+// 磁吸按钮组件
+interface MagneticButtonProps {
+  children: React.ReactNode
+  onClick: () => void
+  disabled?: boolean
+  loading?: boolean
+  className?: string
+}
+
+function MagneticButton({ children, onClick, disabled, loading, className }: MagneticButtonProps) {
+  const buttonRef = useRef<HTMLButtonElement>(null)
+  const [position, setPosition] = useState({ x: 0, y: 0 })
+  const shouldReduceMotion = useReducedMotion()
+
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+    if (shouldReduceMotion || disabled || loading) return
+    
+    const rect = buttonRef.current?.getBoundingClientRect()
+    if (!rect) return
+
+    const centerX = rect.left + rect.width / 2
+    const centerY = rect.top + rect.height / 2
+    
+    const distanceX = e.clientX - centerX
+    const distanceY = e.clientY - centerY
+    
+    // 磁吸效果 - 限制最大移动距离
+    const maxMove = 8
+    const x = (distanceX / rect.width) * maxMove
+    const y = (distanceY / rect.height) * maxMove
+    
+    setPosition({ x, y })
+  }, [shouldReduceMotion, disabled, loading])
+
+  const handleMouseLeave = useCallback(() => {
+    setPosition({ x: 0, y: 0 })
+  }, [])
+
+  return (
+    <motion.button
+      ref={buttonRef}
+      onClick={onClick}
+      disabled={disabled || loading}
+      className={`relative overflow-hidden ${className}`}
+      animate={{
+        x: position.x,
+        y: position.y,
+      }}
+      transition={{
+        type: 'spring',
+        stiffness: 150,
+        damping: 15,
+        mass: 0.1,
+      }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+    >
+      {loading ? (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="flex items-center justify-center gap-2"
+        >
+          <Loader2 className="w-5 h-5 animate-spin" />
+          <span>处理中...</span>
+        </motion.div>
+      ) : (
+        children
+      )}
+    </motion.button>
+  )
+}
 
 export default function SubscribeCard() {
   const [email, setEmail] = useState('')
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
-  const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null)
-  const [selectedFormat, setSelectedFormat] = useState<'html' | 'text' | 'digest'>('html')
-  const [showPreview, setShowPreview] = useState(false)
+  const [name, setName] = useState('')
+  const [format, setFormat] = useState('email')
+  const [loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
+  const { toast } = useToast()
+  const shouldReduceMotion = useReducedMotion()
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!email) return
+  const cardRef = useRef<HTMLDivElement>(null)
+  const isInView = useInView(cardRef, { once: true, margin: '-100px' })
 
-    setStatus('loading')
+  const handleSubmit = useCallback(async () => {
+    if (!email) {
+      toast({
+        title: '请输入邮箱地址',
+        variant: 'error'
+      })
+      return
+    }
 
+    setLoading(true)
+    
     try {
       await subscriptionService.createSubscription(email)
-      setStatus('success')
-      setSubscriptionStatus({
-        isSubscribed: true,
-        email,
-        subscribedDate: new Date().toISOString(),
-        format: selectedFormat
+      setSuccess(true)
+      toast({
+        title: '订阅成功！',
+        description: '感谢您的订阅',
+        variant: 'success'
       })
-
-      setTimeout(() => setStatus('idle'), 3000)
     } catch (error) {
-      console.error('Failed to subscribe:', error)
-      setStatus('error')
+      toast({
+        title: '订阅失败',
+        description: error instanceof Error ? error.message : '请稍后重试',
+        variant: 'error'
+      })
+    } finally {
+      setLoading(false)
+    }
+  }, [email, name, format, toast])
+
+  const handleReset = useCallback(() => {
+    setEmail('')
+    setName('')
+    setFormat('email')
+    setSuccess(false)
+  }, [])
+
+  // 卡片动画配置
+  const cardVariants = {
+    hidden: { 
+      opacity: 0, 
+      scale: 0.9,
+      y: 30 
+    },
+    visible: { 
+      opacity: 1, 
+      scale: 1,
+      y: 0,
+      transition: {
+        duration: shouldReduceMotion ? 0.2 : 0.6,
+        ease: APPLE_EASE,
+        staggerChildren: 0.1,
+      }
     }
   }
-
-  const handleUnsubscribe = async () => {
-    if (!subscriptionStatus?.email) return
-
-    setStatus('loading')
-
-    try {
-      await subscriptionService.unsubscribe(subscriptionStatus.email)
-      setSubscriptionStatus(null)
-      setStatus('success')
-      setEmail('')
-
-      setTimeout(() => setStatus('idle'), 3000)
-    } catch (error) {
-      console.error('Failed to unsubscribe:', error)
-      setStatus('error')
-    }
-  }
-
-  const formats = [
-    { id: 'html' as const, label: 'HTML邮件', icon: FileText, description: '富文本格式' },
-    { id: 'text' as const, label: '纯文本', icon: FileText, description: '简洁文本格式' },
-    { id: 'digest' as const, label: '周报摘要', icon: Calendar, description: '每周汇总' }
-  ]
 
   return (
-    <GlassCard
-      className="container mx-auto px-4 py-6 sm:py-8 md:py-10"
-      padding="lg"
-      aria-label="订阅卡片"
-    >
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-6 sm:mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-tech-cyan to-tech-sky mb-3 sm:mb-4 animate-bounce">
-            <Mail className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
-          </div>
+    <ScrollReveal animation="scaleIn" delay={0.1}>
+      <motion.div
+        ref={cardRef}
+        className="relative bg-glass/30 backdrop-blur-xl border border-glass-border rounded-2xl overflow-hidden"
+        initial="hidden"
+        animate={isInView ? "visible" : "hidden"}
+        variants={shouldReduceMotion ? { hidden: {}, visible: {} } : cardVariants}
+      >
+        {/* 顶部渐变线 */}
+        <motion.div
+          className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-tech-cyan to-transparent"
+          animate={shouldReduceMotion ? {} : { opacity: [0.3, 0.6, 0.3] }}
+          transition={{ duration: 2, repeat: Infinity }}
+        />
 
-          <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-2 sm:mb-3">
-            订阅更新
-          </h3>
+        {/* 浮动粒子背景 */}
+        <FloatingParticles />
 
-          <p className="text-muted-foreground max-w-2xl mx-auto text-sm sm:text-base">
-            加入我们的邮件列表，获取最新文章、技巧和资源。
-          </p>
+        {/* 背景装饰 */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <motion.div
+            className="absolute -top-20 -right-20 w-40 h-40 bg-tech-cyan/5 rounded-full blur-3xl"
+            animate={shouldReduceMotion ? {} : {
+              scale: [1, 1.2, 1],
+              opacity: [0.3, 0.5, 0.3],
+            }}
+            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+          />
+          <motion.div
+            className="absolute -bottom-20 -left-20 w-40 h-40 bg-tech-sky/5 rounded-full blur-3xl"
+            animate={shouldReduceMotion ? {} : {
+              scale: [1.2, 1, 1.2],
+              opacity: [0.3, 0.5, 0.3],
+            }}
+            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+          />
         </div>
 
-        {subscriptionStatus?.isSubscribed ? (
-          <div className="space-y-4 sm:space-y-6">
-            <div className="p-4 sm:p-6 rounded-xl bg-green-500/10 border border-green-500/30">
-              <div className="flex items-start gap-2 sm:gap-3">
-                <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-500 flex-shrink-0 mt-0.5" />
-                <div>
-                  <h4 className="text-base sm:text-lg font-semibold text-foreground mb-1.5 sm:mb-2">
-                    订阅成功！
-                  </h4>
-                  <p className="text-xs sm:text-sm text-muted-foreground">
-                    感谢您的订阅。我们已向 <span className="text-tech-cyan font-medium">{subscriptionStatus.email}</span> 发送确认邮件。
+        <div className="relative p-6 sm:p-8">
+          <AnimatePresence mode="wait">
+            {success ? (
+              <SuccessState key="success" onReset={handleReset} />
+            ) : (
+              <motion.div
+                key="form"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <motion.div 
+                  className="flex items-center gap-3 mb-6"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: shouldReduceMotion ? 0 : 0.2 }}
+                >
+                  <motion.div
+                    className="p-3 rounded-xl bg-tech-cyan/20"
+                    whileHover={shouldReduceMotion ? {} : { scale: 1.1, rotate: 5 }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 15 }}
+                  >
+                    <Sparkles className="w-6 h-6 text-tech-cyan" />
+                  </motion.div>
+                  <div>
+                    <h3 className="text-xl font-bold text-foreground">订阅更新</h3>
+                    <p className="text-sm text-muted-foreground">获取最新文章和动态</p>
+                  </div>
+                </motion.div>
+
+                <motion.div 
+                  className="space-y-4 mb-6"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: shouldReduceMotion ? 0 : 0.3 }}
+                >
+                  <FloatingLabelInput
+                    id="subscribe-email"
+                    type="email"
+                    label="邮箱地址"
+                    value={email}
+                    onChange={setEmail}
+                    placeholder="your@email.com"
+                    required
+                    icon={<Mail className="w-5 h-5" />}
+                  />
+                  
+                  <FloatingLabelInput
+                    id="subscribe-name"
+                    type="text"
+                    label="您的称呼（可选）"
+                    value={name}
+                    onChange={setName}
+                    placeholder="请输入您的称呼"
+                  />
+                </motion.div>
+
+                <motion.div 
+                  className="mb-6"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: shouldReduceMotion ? 0 : 0.4 }}
+                >
+                  <p className="text-sm text-muted-foreground mb-3">接收方式</p>
+                  <FormatSelector selected={format} onSelect={setFormat} />
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: shouldReduceMotion ? 0 : 0.5 }}
+                >
+                  <MagneticButton
+                    onClick={handleSubmit}
+                    disabled={!email}
+                    loading={loading}
+                    className="w-full py-4 rounded-xl bg-gradient-to-r from-tech-cyan to-tech-sky text-white font-medium flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-tech-cyan/20 transition-shadow disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    <span>立即订阅</span>
+                    <ArrowRight className="w-5 h-5" />
+                  </MagneticButton>
+
+                  <p className="text-xs text-muted-foreground text-center mt-4">
+                    订阅即表示您同意接收我们的更新通知，您可以随时取消订阅
                   </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-              <div className="p-3 sm:p-4 rounded-lg bg-glass/20 border border-glass-border">
-                <div className="flex items-center gap-2 mb-1.5 sm:mb-2">
-                  <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-tech-cyan" />
-                  <span className="text-[10px] sm:text-xs text-muted-foreground">订阅邮箱</span>
-                </div>
-                <p className="text-xs sm:text-sm font-medium text-foreground truncate">{subscriptionStatus.email}</p>
-              </div>
-
-              <div className="p-3 sm:p-4 rounded-lg bg-glass/20 border border-glass-border">
-                <div className="flex items-center gap-2 mb-1.5 sm:mb-2">
-                  <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-tech-cyan" />
-                  <span className="text-[10px] sm:text-xs text-muted-foreground">订阅日期</span>
-                </div>
-                <p className="text-xs sm:text-sm font-medium text-foreground">
-                  {subscriptionStatus.subscribedDate ? new Date(subscriptionStatus.subscribedDate).toLocaleDateString('zh-CN') : '今天'}
-                </p>
-              </div>
-
-              <div className="p-3 sm:p-4 rounded-lg bg-glass/20 border border-glass-border">
-                <div className="flex items-center gap-2 mb-1.5 sm:mb-2">
-                  <Bell className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-tech-cyan" />
-                  <span className="text-[10px] sm:text-xs text-muted-foreground">邮件格式</span>
-                </div>
-                <p className="text-xs sm:text-sm font-medium text-foreground">
-                  {formats.find(f => f.id === subscriptionStatus.format)?.label}
-                </p>
-              </div>
-            </div>
-
-            <div>
-              <button
-                onClick={() => setShowPreview(!showPreview)}
-                className="flex items-center gap-2 text-xs sm:text-sm text-tech-cyan hover:text-tech-lightcyan transition-colors mb-3 sm:mb-4"
-                aria-expanded={showPreview}
-              >
-                {showPreview ? '隐藏' : '查看'} 邮件预览
-                <ArrowRight className={cn('w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform', showPreview ? 'rotate-90' : '')} />
-              </button>
-
-              {showPreview && (
-                <div className="p-3 sm:p-4 rounded-lg bg-glass/20 border border-glass-border space-y-2.5 sm:space-y-3 animate-fade-in-up">
-                  <h5 className="text-xs sm:text-sm font-semibold text-foreground">最近发送的邮件</h5>
-                  {mockRecentNewsletters.map(newsletter => (
-                    <div
-                      key={newsletter.id}
-                      className="p-2.5 sm:p-3 rounded-lg hover:bg-glass/30 transition-colors cursor-pointer"
-                    >
-                      <div className="flex items-start justify-between mb-1">
-                        <h6 className="text-xs sm:text-sm font-medium text-foreground">{newsletter.title}</h6>
-                        <span className="text-[10px] sm:text-xs text-muted-foreground">{newsletter.date}</span>
-                      </div>
-                      <p className="text-[10px] sm:text-xs text-muted-foreground line-clamp-2">{newsletter.preview}</p>
-                      <div className="flex items-center gap-3 mt-2 text-[10px] sm:text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <FileText className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                          {newsletter.readTime}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Button
-                onClick={handleUnsubscribe}
-                className="flex-1 bg-gray-700 text-white hover:bg-gray-600 transition-colors"
-                disabled={status === 'loading'}
-              >
-                {status === 'loading' ? '处理中...' : '取消订阅'}
-              </Button>
-
-              <a
-                href="/archive"
-                className="flex-1 flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg bg-glass/40 border border-glass-border text-foreground hover:bg-glass/60 transition-colors text-xs sm:text-sm font-medium"
-              >
-                查看历史归档
-                <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              </a>
-            </div>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
-            <div>
-              <label htmlFor="email" className="block text-xs sm:text-sm font-medium text-foreground mb-2">
-                邮箱地址
-              </label>
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="your@email.com"
-                className="w-full px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-lg bg-glass/40 border border-glass-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-tech-cyan/50 backdrop-blur-lg transition-all text-sm sm:text-base"
-                disabled={status === 'loading'}
-                aria-invalid={status === 'error'}
-              />
-              {status === 'error' && (
-                <div className="flex items-center gap-2 mt-2 text-xs sm:text-sm text-red-400">
-                  <XCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                  <span>请输入有效的邮箱地址</span>
-                </div>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-xs sm:text-sm font-medium text-foreground mb-2 sm:mb-3">
-                邮件格式
-              </label>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
-                {formats.map((format) => {
-                  const Icon = format.icon
-                  return (
-                    <button
-                      key={format.id}
-                      type="button"
-                      onClick={() => setSelectedFormat(format.id)}
-                      className={cn(
-                        'p-2.5 sm:p-4 rounded-lg border-2 transition-all duration-200',
-                        'flex flex-col items-center gap-1.5 sm:gap-2 text-center',
-                        selectedFormat === format.id
-                          ? 'border-tech-cyan bg-tech-cyan/10'
-                          : 'border-glass-border bg-glass/20 hover:bg-glass/40'
-                      )}
-                      aria-pressed={selectedFormat === format.id}
-                    >
-                      <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-tech-cyan" />
-                      <span className="text-xs sm:text-sm font-medium text-foreground">{format.label}</span>
-                      <span className="text-[10px] sm:text-xs text-muted-foreground">{format.description}</span>
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-
-            <Button
-              type="submit"
-              className="w-full bg-tech-cyan text-white hover:bg-tech-lightcyan transition-colors flex items-center justify-center gap-2"
-              disabled={status === 'loading' || !email}
-            >
-              {status === 'loading' ? (
-                <>
-                  <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  处理中...
-                </>
-              ) : (
-                <>
-                  <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
-                  订阅更新
-                </>
-              )}
-            </Button>
-
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 text-[10px] sm:text-xs text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <CheckCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-green-500" />
-                <span>无垃圾邮件</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <CheckCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-green-500" />
-                <span>随时取消</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <CheckCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-green-500" />
-                <span>每周更新</span>
-              </div>
-            </div>
-          </form>
-        )}
-      </div>
-    </GlassCard>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </motion.div>
+    </ScrollReveal>
   )
 }

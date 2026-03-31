@@ -949,20 +949,19 @@ export default function EditArticlePage() {
 
             <div className="space-y-3">
               <Button
-                type="button"
-                variant="primary"
-                className="w-full justify-center"
-                disabled={isSubmitting || progressPercentage < 40}
-                onClick={handlePublish}
-                glowEffect
-              >
-                {isSubmitting ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <Send className="w-4 h-4 mr-2" />
-                )}
-                {formData.is_published ? '更新并发布' : '发布文章'}
-              </Button>
+            type="button"
+            variant="primary"
+            className="w-full justify-center"
+            disabled={isSubmitting || progressPercentage < 40}
+            onClick={handlePublish}
+          >
+            {isSubmitting ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <Send className="w-4 h-4 mr-2" />
+            )}
+            {formData.is_published ? '更新并发布' : '发布文章'}
+          </Button>
 
               <Button
                 type="button"

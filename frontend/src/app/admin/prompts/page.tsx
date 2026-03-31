@@ -76,7 +76,7 @@ export default function PromptsPage() {
       setLoading(true)
       const params: any = {}
       if (selectedCategory) params.category = selectedCategory
-      const data = await adminApi.prompts.list(params)
+      const data = await adminApi.prompts.list(params) as any
       setPrompts(data?.items || Array.isArray(data) ? (data.items || data) : [])
     } catch (err) {
       console.error('Failed to fetch prompts:', err)
@@ -238,7 +238,7 @@ export default function PromptsPage() {
     (p.category && p.category.toLowerCase().includes(searchQuery.toLowerCase()))
   )
 
-  const categories = [...new Set(prompts.map(p => p.category).filter(Boolean))]
+  const categories = Array.from(new Set(prompts.map(p => p.category).filter(Boolean)))
 
   return (
     <div className="space-y-6">

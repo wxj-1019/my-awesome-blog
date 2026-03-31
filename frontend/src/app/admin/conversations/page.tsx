@@ -49,7 +49,7 @@ export default function ConversationsPage() {
       setLoading(true)
       const params: any = {}
       if (statusFilter) params.status = statusFilter
-      const data = await adminApi.conversations.list(params)
+      const data = await adminApi.conversations.list(params) as any
       setConversations(data?.items || Array.isArray(data) ? (data.items || data) : [])
     } catch (err) {
       console.error('Failed to fetch conversations:', err)
@@ -66,7 +66,7 @@ export default function ConversationsPage() {
   const fetchMessages = async (conversationId: string) => {
     try {
       setMessagesLoading(true)
-      const data = await adminApi.conversations.getMessages(conversationId, { limit: 100 })
+      const data = await adminApi.conversations.getMessages(conversationId, { limit: 100 }) as any
       setMessages(data?.messages || [])
     } catch (err) {
       console.error('Failed to fetch messages:', err)
