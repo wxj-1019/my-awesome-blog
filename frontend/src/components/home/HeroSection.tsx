@@ -94,7 +94,7 @@ export default function HeroSection() {
   return (
     <section
       ref={heroRef}
-      className="relative h-screen flex flex-col items-center justify-start overflow-hidden -mt-16"
+      className="relative h-screen flex flex-col items-center justify-start overflow-hidden"
       aria-label="英雄区域"
     >
       <div className="absolute inset-0 z-0">

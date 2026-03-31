@@ -353,7 +353,7 @@ export default function FeaturedHighlights() {
 
   if (error) {
     return (
-      <section className="relative overflow-hidden py-6 sm:py-8 lg:py-10 bg-gradient-to-b from-muted/30 to-transparent dark:from-background dark:to-transparent">
+      <section className="relative overflow-hidden py-6 sm:py-8 lg:py-10">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center py-12">
             <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
@@ -366,7 +366,7 @@ export default function FeaturedHighlights() {
 
   if (loading) {
     return (
-      <section className="relative overflow-hidden py-6 sm:py-8 lg:py-10 bg-gradient-to-b from-muted/30 to-transparent dark:from-background dark:to-transparent">
+      <section className="relative overflow-hidden py-6 sm:py-8 lg:py-10">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center py-12">
             <RefreshCw className="w-12 h-12 text-tech-cyan animate-spin" />
@@ -379,7 +379,7 @@ export default function FeaturedHighlights() {
 
   if (highlights.length === 0 && !loading) {
     return (
-      <section className="relative overflow-hidden py-6 sm:py-8 lg:py-10 bg-gradient-to-b from-muted/30 to-transparent dark:from-background dark:to-transparent">
+      <section className="relative overflow-hidden py-6 sm:py-8 lg:py-10">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center py-12">
             <p className="text-muted-foreground">暂无精选文章</p>
@@ -390,7 +390,7 @@ export default function FeaturedHighlights() {
   }
 
   return (
-    <section className="relative overflow-hidden py-6 sm:py-8 lg:py-10 bg-gradient-to-b from-muted/30 to-transparent dark:from-background dark:to-transparent">
+    <section className="relative overflow-hidden py-6 sm:py-8 lg:py-10">
       {/* 装饰元素 */}
       <SparkleDecoration className="top-10 left-[10%]" />
       <SparkleDecoration className="top-20 right-[15%]" />

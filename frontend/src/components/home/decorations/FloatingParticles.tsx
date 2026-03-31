@@ -11,6 +11,7 @@ interface Particle {
   duration: number
   delay: number
   opacity: number
+  xDrift: number
 }
 
 interface FloatingParticlesProps {
@@ -27,7 +28,6 @@ export default function FloatingParticles({
   const [particles, setParticles] = useState<Particle[]>([])
   const [isVisible, setIsVisible] = useState(true)
 
-  // 生成随机粒子
   const generateParticles = useCallback(() => {
     return Array.from({ length: count }, (_, i) => ({
       id: i,
@@ -37,6 +37,7 @@ export default function FloatingParticles({
       duration: Math.random() * 15 + 10,
       delay: Math.random() * 5,
       opacity: Math.random() * 0.5 + 0.2,
+      xDrift: Math.random() * 50 - 25,
     }))
   }, [count])
 
@@ -74,7 +75,7 @@ export default function FloatingParticles({
           }}
           animate={{
             y: [0, -100, 0],
-            x: [0, Math.random() * 50 - 25, 0],
+            x: [0, particle.xDrift, 0],
             opacity: [particle.opacity, particle.opacity * 1.5, particle.opacity],
             scale: [1, 1.2, 1],
           }}

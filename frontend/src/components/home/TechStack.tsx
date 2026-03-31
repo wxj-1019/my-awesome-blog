@@ -1,7 +1,11 @@
 'use client'
 
-import { Code2, Database, Server, Cpu, Layout, Cloud, Shield, Zap } from 'lucide-react'
+import { useRef, useState, useEffect } from 'react'
+import { motion, useInView, useScroll, useTransform, useReducedMotion } from 'framer-motion'
+import { Code2, Database, Server, Cpu, Layout, Cloud, Shield, Zap, Wrench } from 'lucide-react'
 import LogoLoop, { type LogoItem } from '@/components/ui/LogoLoop'
+import ScrollReveal from './decorations/ScrollReveal'
+import { staggerContainer, staggerItem, VIEWPORT } from '@/lib/animation-utils'
 
 interface TechItem {
   name: string
@@ -25,49 +29,303 @@ const techItems: TechItem[] = [
   { name: 'Vercel', icon: <Cloud className="w-6 h-6" />, color: '#000000', href: 'https://vercel.com' },
 ]
 
+const APPLE_EASE = [0.25, 0.1, 0.25, 1] as const
+
+// 浮动粒子装饰
+function FloatingDots() {
+  const [dots, setDots] = useState<Array<{ id: number; x: number; y: number; size: number; delay: number }>>([])
+
+  useEffect(() => {
+    setDots(
+      Array.from({ length: 6 }, (_, i) => ({
+        id: i,
+        x: Math.random() * 100,
+        y: Math.random() * 100,
+        size: Math.random() * 4 + 2,
+        delay: Math.random() * 2,
+      }))
+    )
+  }, [])
+
+  if (dots.length === 0) return null
+
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {dots.map((dot) => (
+        <motion.div
+          key={dot.id}
+          className="absolute rounded-full bg-tech-cyan/30"
+          style={{
+            left: `${dot.x}%`,
+            top: `${dot.y}%`,
+            width: dot.size,
+            height: dot.size,
+          }}
+          animate={{
+            y: [0, -20, 0],
+            opacity: [0.3, 0.6, 0.3],
+          }}
+          transition={{
+            duration: 4,
+            delay: dot.delay,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+        />
+      ))}
+    </div>
+  )
+}
+
 const logoLoopItems: LogoItem[] = techItems.map((item) => ({
   node: (
-    <div
-      className="flex items-center gap-2 px-4 py-2 rounded-lg bg-glass/30 backdrop-blur-xl border border-glass-border hover:bg-glass/50 hover:border-tech-cyan/30 transition-all duration-300 group"
+    <motion.div
+      className="flex items-center gap-2 px-4 py-2 rounded-lg bg-glass/30 backdrop-blur-xl border border-glass-border hover:bg-glass/50 hover:border-tech-cyan/30 transition-colors duration-200 group"
+      whileHover={{ scale: 1.05, y: -2 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
     >
-      <div className="text-gray-400 group-hover:text-tech-cyan transition-colors">
+      <motion.div 
+        className="text-gray-400 group-hover:text-tech-cyan transition-colors"
+        whileHover={{ rotate: 360 }}
+        transition={{ duration: 0.5 }}
+      >
         {item.icon}
-      </div>
+      </motion.div>
       <span className="text-sm font-medium text-gray-300 group-hover:text-white transition-colors">
         {item.name}
       </span>
-    </div>
+    </motion.div>
   ),
   href: item.href,
   title: item.name,
   ariaLabel: `Learn more about ${item.name}`,
 }))
 
-export default function TechStack() {
+interface TechIconCardProps {
+  item: TechItem
+  index: number
+}
+
+function TechIconCard({ item, index }: TechIconCardProps) {
+  const shouldReduceMotion = useReducedMotion()
+  
   return (
-    <section className="py-6 sm:py-8 md:py-10 lg:py-12">
+    <motion.div
+      variants={staggerItem}
+      className="flex flex-col items-center p-2 sm:p-3 rounded-lg bg-glass/30 backdrop-blur-xl border border-glass-border cursor-pointer group relative overflow-hidden"
+      style={{ perspective: 1000 }}
+      whileHover={shouldReduceMotion ? {} : {
+        scale: 1.1,
+        y: -4,
+        rotateY: 10,
+        transition: { type: 'spring', stiffness: 300, damping: 20 }
+      }}
+    >
+      {/* 悬停光晕 */}
+      <motion.div
+        className="absolute inset-0 bg-gradient-to-br from-tech-cyan/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+      />
+      
+      <motion.div
+        className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center mb-1.5 sm:mb-2 relative z-10"
+        style={{ backgroundColor: `${item.color}20` }}
+        whileHover={shouldReduceMotion ? {} : {
+          rotate: 360,
+          scale: 1.1,
+        }}
+        transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+      >
+        <div style={{ color: item.color }}>
+          {item.icon}
+        </div>
+      </motion.div>
+      <span className="text-[10px] sm:text-xs font-medium text-gray-300 group-hover:text-white transition-colors text-center truncate w-full relative z-10">
+        {item.name}
+      </span>
+      
+      {/* 发光效果 */}
+      <motion.div
+        className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+        style={{
+          boxShadow: `0 0 20px ${item.color}40`,
+        }}
+      />
+    </motion.div>
+  )
+}
+
+interface FeatureCardProps {
+  icon: React.ReactNode
+  title: string
+  description: string
+  gradient: string
+  delay: number
+}
+
+function FeatureCard({ icon, title, description, gradient, delay }: FeatureCardProps) {
+  const shouldReduceMotion = useReducedMotion()
+  
+  return (
+    <motion.div
+      variants={staggerItem}
+      className="bg-glass/30 backdrop-blur-xl border border-glass-border rounded-lg p-4 sm:p-5 cursor-pointer group relative overflow-hidden"
+      whileHover={shouldReduceMotion ? {} : {
+        y: -8,
+        scale: 1.02,
+        transition: { type: 'spring', stiffness: 300, damping: 20 }
+      }}
+    >
+      {/* 悬停背景渐变 */}
+      <motion.div
+        className="absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-10 transition-opacity duration-300"
+        style={{ background: `linear-gradient(135deg, ${gradient.includes('tech-cyan') ? '#06b6d4' : gradient.includes('purple') ? '#8b5cf6' : '#f97316'}, transparent)` }}
+      />
+      
+      <motion.div
+        className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-gradient-to-br ${gradient} flex items-center justify-center mb-3 relative z-10`}
+        whileHover={shouldReduceMotion ? {} : {
+          scale: 1.15,
+          rotate: 5,
+        }}
+        transition={{ type: 'spring', stiffness: 300, damping: 15 }}
+      >
+        {icon}
+        {/* 脉冲效果 */}
+        <motion.div
+          className="absolute inset-0 rounded-lg bg-white/30"
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.5, 0, 0.5],
+          }}
+          transition={{
+            duration: 2,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+        />
+      </motion.div>
+      <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2 group-hover:text-tech-cyan transition-colors relative z-10">
+        {title}
+      </h3>
+      <p className="text-xs sm:text-sm text-muted-foreground relative z-10">
+        {description}
+      </p>
+    </motion.div>
+  )
+}
+
+export default function TechStack() {
+  const sectionRef = useRef<HTMLDivElement>(null)
+  const shouldReduceMotion = useReducedMotion()
+  
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start end', 'end start']
+  })
+
+  const y1 = useTransform(scrollYProgress, [0, 1], shouldReduceMotion ? [0, 0] : [30, -30])
+  const y2 = useTransform(scrollYProgress, [0, 1], shouldReduceMotion ? [0, 0] : [20, -20])
+
+  const titleRef = useRef<HTMLDivElement>(null)
+  const isTitleInView = useInView(titleRef, { once: true, margin: '-100px' })
+
+  return (
+    <section ref={sectionRef} className="py-6 sm:py-8 md:py-10 lg:py-12 relative">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-3 mb-5 sm:mb-6">
-          <div className="w-1 h-6 sm:h-8 bg-gradient-to-b from-tech-cyan to-tech-sky rounded-full animate-fade-in-up" />
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground animate-fade-in-up">
+        {/* 标题区域 */}
+        <motion.div
+          ref={titleRef}
+          className="flex items-center gap-3 mb-5 sm:mb-6"
+          initial={{ opacity: 0, y: -20 }}
+          animate={isTitleInView ? { opacity: 1, y: 0 } : { opacity: 0, y: -20 }}
+          transition={{ duration: 0.6, ease: APPLE_EASE }}
+        >
+          <motion.div
+            className="w-1 h-6 sm:h-8 bg-gradient-to-b from-tech-cyan to-tech-sky rounded-full relative"
+            animate={{
+              boxShadow: [
+                '0 0 10px rgba(6, 182, 212, 0.3)',
+                '0 0 25px rgba(6, 182, 212, 0.6)',
+                '0 0 10px rgba(6, 182, 212, 0.3)'
+              ]
+            }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            <motion.div
+              className="absolute inset-0 bg-white/50 rounded-full"
+              animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            />
+          </motion.div>
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">
             技术栈
           </h2>
-          <span className="text-xs sm:text-sm text-muted-foreground animate-fade-in-up delay-100">
+          <motion.div
+            animate={{ rotate: [0, 15, -15, 0] }}
+            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+          >
+            <Wrench className="w-5 h-5 text-tech-cyan/60" />
+          </motion.div>
+          <motion.span
+            className="text-xs sm:text-sm text-muted-foreground ml-auto"
+            initial={{ opacity: 0, x: 20 }}
+            animate={isTitleInView ? { opacity: 1, x: 0 } : { opacity: 0, x: 20 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
             Technologies & Tools
-          </span>
-        </div>
+          </motion.span>
+        </motion.div>
 
-        <div className="relative bg-glass/20 backdrop-blur-xl border border-glass-border rounded-lg p-4 sm:p-6 md:p-8 overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-tech-cyan to-transparent opacity-50 animate-pulse" />
-          <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-tech-cyan to-transparent opacity-50 animate-pulse" />
+        {/* 主卡片区域 */}
+        <motion.div
+          className="relative bg-glass/20 backdrop-blur-xl border border-glass-border rounded-lg p-4 sm:p-6 md:p-8 overflow-hidden"
+          style={{ y: y1 }}
+          initial={{ opacity: 0, scale: 0.95 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, ease: APPLE_EASE }}
+        >
+          <FloatingDots />
+          
+          {/* 顶部流光线条 */}
+          <motion.div
+            className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-tech-cyan to-transparent"
+            animate={{ 
+              opacity: [0.3, 0.8, 0.3],
+              backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+            }}
+            transition={{ duration: 3, repeat: Infinity }}
+            style={{ backgroundSize: '200% 200%' }}
+          />
+          <motion.div
+            className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-tech-cyan to-transparent"
+            animate={{ 
+              opacity: [0.3, 0.8, 0.3],
+            }}
+            transition={{ duration: 3, repeat: Infinity, delay: 1.5 }}
+          />
 
-          <div className="mb-5">
+          {/* 描述文字 */}
+          <motion.div 
+            className="mb-5"
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+          >
             <p className="text-sm sm:text-base text-muted-foreground">
               本项目使用现代化技术栈构建，注重性能、可维护性和开发体验。
             </p>
-          </div>
+          </motion.div>
 
-          <div className="py-3 sm:py-4">
+          {/* Logo 循环滚动 */}
+          <motion.div 
+            className="py-3 sm:py-4"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.3 }}
+          >
             <LogoLoop
               logos={logoLoopItems}
               speed={80}
@@ -76,68 +334,53 @@ export default function TechStack() {
               ariaLabel="Technology stack logos"
               className="w-full"
             />
-          </div>
+          </motion.div>
 
-          <div className="mt-5 sm:mt-6 grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-3">
+          {/* 技术图标网格 */}
+          <motion.div
+            variants={staggerContainer(0.05)}
+            initial="hidden"
+            whileInView="visible"
+            viewport={VIEWPORT.ONCE}
+            className="mt-5 sm:mt-6 grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-3"
+          >
             {techItems.slice(0, 8).map((item, index) => (
-              <div
-                key={item.name}
-                className="flex flex-col items-center p-2 sm:p-3 rounded-lg bg-glass/30 backdrop-blur-xl border border-glass-border hover:border-tech-cyan/30 hover:scale-105 transition-all duration-300 cursor-pointer group animate-fade-in-up"
-                style={{ animationDelay: `${index * 50}ms` }}
-              >
-                <div
-                  className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg bg-glass/50 flex items-center justify-center mb-1.5 sm:mb-2 group-hover:bg-tech-cyan/20 transition-colors"
-                  style={{ backgroundColor: `${item.color}20` }}
-                >
-                  <div className="text-gray-400 group-hover:text-tech-cyan transition-colors">
-                    {item.icon}
-                  </div>
-                </div>
-                <span className="text-[10px] sm:text-xs font-medium text-gray-300 group-hover:text-white transition-colors text-center truncate w-full">
-                  {item.name}
-                </span>
-              </div>
+              <TechIconCard key={item.name} item={item} index={index} />
             ))}
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
-        <div className="mt-5 sm:mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-glass/30 backdrop-blur-xl border border-glass-border rounded-lg p-4 sm:p-5 hover:-translate-y-1 transition-transform duration-300 cursor-pointer group">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-gradient-to-br from-tech-cyan to-tech-sky flex items-center justify-center mb-3">
-              <Code2 className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-            </div>
-            <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2 group-hover:text-tech-cyan transition-colors">
-              前端开发
-            </h3>
-            <p className="text-xs sm:text-sm text-muted-foreground">
-              Next.js 14 + React + TypeScript，打造高性能、SEO友好的现代化Web应用
-            </p>
-          </div>
-
-          <div className="bg-glass/30 backdrop-blur-xl border border-glass-border rounded-lg p-4 sm:p-5 hover:-translate-y-1 transition-transform duration-300 cursor-pointer group delay-100">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center mb-3">
-              <Server className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-            </div>
-            <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2 group-hover:text-tech-cyan transition-colors">
-              后端服务
-            </h3>
-            <p className="text-xs sm:text-sm text-muted-foreground">
-              FastAPI + PostgreSQL + Redis，提供快速、可靠的API服务和数据存储
-            </p>
-          </div>
-
-          <div className="bg-glass/30 backdrop-blur-xl border border-glass-border rounded-lg p-4 sm:p-5 hover:-translate-y-1 transition-transform duration-300 cursor-pointer group delay-200">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center mb-3">
-              <Cloud className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-            </div>
-            <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2 group-hover:text-tech-cyan transition-colors">
-              部署运维
-            </h3>
-            <p className="text-xs sm:text-sm text-muted-foreground">
-              Docker + Vercel，实现容器化部署和自动化CI/CD流程
-            </p>
-          </div>
-        </div>
+        {/* 特性卡片区域 */}
+        <motion.div
+          className="mt-5 sm:mt-6 grid grid-cols-1 md:grid-cols-3 gap-4"
+          style={{ y: y2 }}
+          variants={staggerContainer(0.15)}
+          initial="hidden"
+          whileInView="visible"
+          viewport={VIEWPORT.ONCE}
+        >
+          <FeatureCard
+            icon={<Code2 className="w-5 h-5 sm:w-6 sm:h-6 text-white" />}
+            title="前端开发"
+            description="Next.js 14 + React + TypeScript，打造高性能、SEO友好的现代化Web应用"
+            gradient="from-tech-cyan to-tech-sky"
+            delay={0.1}
+          />
+          <FeatureCard
+            icon={<Server className="w-5 h-5 sm:w-6 sm:h-6 text-white" />}
+            title="后端服务"
+            description="FastAPI + PostgreSQL + Redis，提供快速、可靠的API服务和数据存储"
+            gradient="from-purple-500 to-pink-500"
+            delay={0.2}
+          />
+          <FeatureCard
+            icon={<Cloud className="w-5 h-5 sm:w-6 sm:h-6 text-white" />}
+            title="部署运维"
+            description="Docker + Vercel，实现容器化部署和自动化CI/CD流程"
+            gradient="from-orange-500 to-red-500"
+            delay={0.3}
+          />
+        </motion.div>
       </div>
     </section>
   )
