@@ -40,17 +40,16 @@ const titleVariants = {
 }
 
 const enhancedCardVariants = {
-  hidden: { 
-    opacity: 0, 
-    y: 40,
-    scale: 0.9,
-    rotateX: -10,
+  hidden: {
+    opacity: 0,
+    y: 30,
+    scale: 0.95,
+    // 移除rotateX以保持文字清晰
   },
   visible: {
     opacity: 1,
     y: 0,
     scale: 1,
-    rotateX: 0,
     transition: {
       duration: 0.5,
       ease: [0.25, 0.1, 0.25, 1] as const,
@@ -110,21 +109,22 @@ function formatReadTime(content: string): string {
 function HighlightCard({ item, index }: { item: HighlightItem; index: number }) {
   const shouldReduceMotion = useReducedMotion()
   const Icon = item.icon
-  
+  const cardId = `highlight-card-${item.id}`
+
   return (
-    <motion.div
+    <motion.article
       variants={enhancedCardVariants}
-      whileHover={shouldReduceMotion ? {} : { 
-        y: -10,
-        scale: 1.02,
-        transition: { 
+      whileHover={shouldReduceMotion ? {} : {
+        y: -6,
+        transition: {
           type: 'spring',
-          stiffness: 300,
-          damping: 20,
+          stiffness: 400,
+          damping: 25,
         }
       }}
       className="group h-full"
-      style={{ perspective: '1000px' }}
+      id={cardId}
+      aria-labelledby={`${cardId}-title`}
     >
       <a
         href={item.link}
@@ -136,6 +136,7 @@ function HighlightCard({ item, index }: { item: HighlightItem; index: number }) 
           'bg-card/80 border-border hover:border-tech-cyan/40',
           'dark:bg-card/90 dark:border-glass-border dark:hover:border-tech-cyan/50',
         )}
+        aria-describedby={`${cardId}-desc ${cardId}-stats`}
       >
         {/* 悬浮光效层 */}
         <motion.div
@@ -228,15 +229,15 @@ function HighlightCard({ item, index }: { item: HighlightItem; index: number }) 
             </div>
           </div>
 
-          <h3 className="text-base sm:text-lg font-bold text-foreground mb-2 line-clamp-2 group-hover:text-tech-cyan transition-colors duration-300">
+          <h3 id={`${cardId}-title`} className="text-base sm:text-lg font-bold text-foreground mb-2 line-clamp-2 group-hover:text-tech-cyan transition-colors duration-300">
             {item.title}
           </h3>
 
-          <p className="text-xs sm:text-sm text-muted-foreground mb-4 line-clamp-3 leading-relaxed">
+          <p id={`${cardId}-desc`} className="text-xs sm:text-sm text-muted-foreground mb-4 line-clamp-3 leading-relaxed">
             {item.description}
           </p>
 
-          <div className="space-y-3">
+          <div id={`${cardId}-stats`} className="space-y-3">
             <div className="flex items-center gap-3 text-xs text-muted-foreground">
               {item.readTime && (
                 <motion.div 
@@ -292,7 +293,7 @@ function HighlightCard({ item, index }: { item: HighlightItem; index: number }) 
           </div>
         </div>
       </a>
-    </motion.div>
+    </motion.article>
   )
 }
 
@@ -301,6 +302,10 @@ export default function FeaturedHighlights() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const shouldReduceMotion = useReducedMotion()
+
+  // 生成唯一的section ID用于ARIA
+  const sectionId = 'featured-highlights-section'
+  const headingId = 'featured-highlights-heading'
 
   useEffect(() => {
     const fetchHighlights = async () => {
@@ -390,11 +395,15 @@ export default function FeaturedHighlights() {
   }
 
   return (
-    <section className="relative overflow-hidden py-6 sm:py-8 lg:py-10">
-      {/* 装饰元素 */}
-      <SparkleDecoration className="top-10 left-[10%]" />
-      <SparkleDecoration className="top-20 right-[15%]" />
-      <SparkleDecoration className="bottom-20 left-[5%]" />
+    <section
+      id={sectionId}
+      aria-labelledby={headingId}
+      className="relative overflow-hidden py-6 sm:py-8 lg:py-10"
+    >
+      {/* 装饰元素 - 隐藏于屏幕阅读器 */}
+      <SparkleDecoration className="top-10 left-[10%]" aria-hidden="true" />
+      <SparkleDecoration className="top-20 right-[15%]" aria-hidden="true" />
+      <SparkleDecoration className="bottom-20 left-[5%]" aria-hidden="true" />
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* 标题区域 - 滚动触发入场 */}
@@ -407,13 +416,13 @@ export default function FeaturedHighlights() {
             viewport={VIEWPORT.ONCE}
           >
             <div className="flex items-center gap-2">
-              <motion.div 
+              <motion.div
                 className="w-1 h-7 sm:h-8 bg-gradient-to-b from-tech-cyan to-tech-sky rounded-full"
                 animate={shouldReduceMotion ? {} : {
                   boxShadow: [
-                    '0 0 10px rgba(6, 182, 212, 0.3)',
-                    '0 0 25px rgba(6, 182, 212, 0.6)',
-                    '0 0 10px rgba(6, 182, 212, 0.3)',
+                    '0 0 10px rgba(14, 165, 233, 0.3)',
+                    '0 0 25px rgba(14, 165, 233, 0.6)',
+                    '0 0 10px rgba(14, 165, 233, 0.3)',
                   ],
                 }}
                 transition={{
@@ -421,18 +430,20 @@ export default function FeaturedHighlights() {
                   repeat: Infinity,
                   ease: 'easeInOut',
                 }}
+                aria-hidden="true"
               />
-              <h2 className="text-xl sm:text-2xl font-bold text-foreground">
+              <h2 id={headingId} className="text-xl sm:text-2xl font-bold text-foreground">
                 精选推荐
               </h2>
             </div>
-            <div className="flex-1 h-px bg-gradient-to-r from-glass-border/50 to-transparent" />
-            <motion.span 
+            <div className="flex-1 h-px bg-gradient-to-r from-glass-border/50 to-transparent" aria-hidden="true" />
+            <motion.span
               className="text-xs sm:text-sm text-muted-foreground"
               initial={{ opacity: 0, x: 20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.3 }}
+              aria-live="polite"
             >
               {highlights.length} 篇精选
             </motion.span>
@@ -454,31 +465,35 @@ export default function FeaturedHighlights() {
 
         {/* 查看更多按钮 - 淡入上浮 */}
         <ScrollReveal animation="fadeIn" delay={0.4} className="mt-8 sm:mt-10">
-          <motion.div
-            className="text-center"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <motion.a
-              href="/articles"
-              className="inline-flex items-center gap-2 px-6 py-3 backdrop-blur-xl border rounded-full transition-all duration-300 cursor-pointer group bg-card/80 border-border text-foreground hover:bg-card hover:border-tech-cyan/50 hover:shadow-lg hover:shadow-tech-cyan/10 dark:bg-card/90 dark:border-glass-border dark:hover:bg-card dark:hover:border-tech-cyan/40 dark:hover:shadow-tech-cyan/15"
-              whileHover={{
-                boxShadow: '0 0 30px rgba(6, 182, 212, 0.2)',
-              }}
+          <nav aria-label="精选文章导航">
+            <motion.div
+              className="text-center"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
-              <span className="text-sm sm:text-base font-medium">查看更多精选</span>
-              <motion.div
-                animate={{ x: [0, 4, 0] }}
-                transition={{
-                  duration: 1.5,
-                  repeat: Infinity,
-                  ease: 'easeInOut',
+              <motion.a
+                href="/articles"
+                className="inline-flex items-center gap-2 px-6 py-3 backdrop-blur-xl border rounded-full transition-all duration-300 cursor-pointer group bg-card/80 border-border text-foreground hover:bg-card hover:border-tech-cyan/50 hover:shadow-lg hover:shadow-tech-cyan/10 dark:bg-card/90 dark:border-glass-border dark:hover:bg-card dark:hover:border-tech-cyan/40 dark:hover:shadow-tech-cyan/15"
+                whileHover={{
+                  boxShadow: '0 0 30px rgba(14, 165, 233, 0.2)',
                 }}
+                aria-label="查看全部精选文章列表"
               >
-                <ArrowRight className="w-4 h-4" />
-              </motion.div>
-            </motion.a>
-          </motion.div>
+                <span className="text-sm sm:text-base font-medium">查看更多精选</span>
+                <motion.div
+                  animate={shouldReduceMotion ? {} : { x: [0, 4, 0] }}
+                  transition={{
+                    duration: 1.5,
+                    repeat: Infinity,
+                    ease: 'easeInOut',
+                  }}
+                  aria-hidden="true"
+                >
+                  <ArrowRight className="w-4 h-4" aria-hidden="true" />
+                </motion.div>
+              </motion.a>
+            </motion.div>
+          </nav>
         </ScrollReveal>
       </div>
     </section>

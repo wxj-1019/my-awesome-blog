@@ -10,7 +10,7 @@ import { Variants, Transition } from 'framer-motion'
 // 缓动函数预设
 // ============================================
 export const EASE = {
-  // Apple 风格缓动
+  // Apple 风格缓动 - 硬件加速友好
   APPLE: [0.25, 0.1, 0.25, 1] as const,
   // 弹性缓动
   BOUNCE: [0.68, -0.55, 0.265, 1.55] as const,
@@ -18,8 +18,8 @@ export const EASE = {
   SMOOTH: [0.4, 0, 0.2, 1] as const,
   // 迅捷缓动
   SNAPPY: [0.16, 1, 0.3, 1] as const,
-  // 弹簧效果
-  SPRING: { type: 'spring', stiffness: 300, damping: 25 } as const,
+  // 弹簧效果 - 优化damping避免过度计算
+  SPRING: { type: 'spring', stiffness: 300, damping: 30 } as const,
 }
 
 // ============================================
@@ -154,7 +154,7 @@ export const scaleUp: Variants = {
   },
 }
 
-// 弹跳入场
+// 弹跳入场 - 优化spring参数
 export const bounceIn: Variants = {
   hidden: { opacity: 0, scale: 0.3, y: 50 },
   visible: {
@@ -164,7 +164,8 @@ export const bounceIn: Variants = {
     transition: {
       type: 'spring',
       stiffness: 400,
-      damping: 15,
+      damping: 25, // 增加damping减少过冲
+      mass: 0.8,   // 降低质量提升响应
     },
   },
   exit: {
@@ -200,14 +201,14 @@ export const staggerContainer = (staggerChildren = 0.1, delayChildren = 0): Vari
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren,
+      staggerChildren: Math.max(staggerChildren, 0.05), // 最小0.05s避免过度触发
       delayChildren,
     },
   },
   exit: {
     opacity: 0,
     transition: {
-      staggerChildren: staggerChildren * 0.5,
+      staggerChildren: Math.max(staggerChildren * 0.5, 0.03),
       staggerDirection: -1,
     },
   },

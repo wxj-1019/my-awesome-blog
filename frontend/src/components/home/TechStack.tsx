@@ -86,7 +86,7 @@ const logoLoopItems: LogoItem[] = techItems.map((item) => ({
     >
       <motion.div 
         className="text-gray-400 group-hover:text-tech-cyan transition-colors"
-        whileHover={{ rotate: 360 }}
+        whileHover={{ rotate: 180 }}
         transition={{ duration: 0.5 }}
       >
         {item.icon}
@@ -108,16 +108,14 @@ interface TechIconCardProps {
 
 function TechIconCard({ item, index }: TechIconCardProps) {
   const shouldReduceMotion = useReducedMotion()
-  
+
   return (
     <motion.div
       variants={staggerItem}
       className="flex flex-col items-center p-2 sm:p-3 rounded-lg bg-glass/30 backdrop-blur-xl border border-glass-border cursor-pointer group relative overflow-hidden"
-      style={{ perspective: 1000 }}
       whileHover={shouldReduceMotion ? {} : {
-        scale: 1.1,
+        scale: 1.05,
         y: -4,
-        rotateY: 10,
         transition: { type: 'spring', stiffness: 300, damping: 20 }
       }}
     >

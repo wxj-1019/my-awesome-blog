@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { motion } from 'framer-motion';
 import TextType from './TextType';
 import GlassCard from '../ui/GlassCard';
 import { useTheme } from '../../context/theme-context';
 import WaveStack from '../ui/WaveStack';
+import ScrollIndicator from './ScrollIndicator';
 import logger from '@/utils/logger';
 
 export default function HeroSection() {
@@ -95,9 +97,37 @@ export default function HeroSection() {
     <section
       ref={heroRef}
       className="relative h-screen flex flex-col items-center justify-start overflow-hidden"
-      aria-label="英雄区域"
+      aria-label="首屏欢迎区域"
     >
+      {/* 跳过链接 - 无障碍导航 */}
+      <a href="#content" className="skip-link">
+        跳转到主要内容
+      </a>
       <div className="absolute inset-0 z-0">
+        {/* 视频骨架屏 - 加载状态 */}
+        {shouldLoadVideo && !videoLoaded && !videoError && (
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-br from-slate-200 via-slate-300 to-slate-200 dark:from-slate-800 dark:via-slate-700 dark:to-slate-800"
+            initial={{ opacity: 1 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            {/* 骨架屏动画效果 */}
+            <div className="absolute inset-0 overflow-hidden">
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent dark:via-white/10"
+                initial={{ x: '-100%' }}
+                animate={{ x: '100%' }}
+                transition={{
+                  duration: 1.5,
+                  repeat: Infinity,
+                  ease: 'linear',
+                }}
+              />
+            </div>
+          </motion.div>
+        )}
+
         {mounted && shouldLoadVideo && !videoError && (
           <video
             ref={videoRef}
@@ -124,6 +154,7 @@ export default function HeroSection() {
           />
         )}
 
+        {/* 后备渐变背景 */}
         <div
           className={`absolute inset-0 w-full h-full transition-opacity duration-700 ${videoLoaded ? 'opacity-0' : 'opacity-100'}`}
           style={{
@@ -145,25 +176,68 @@ export default function HeroSection() {
       <div className="relative z-20 flex flex-col w-full flex-1">
         <div className="container mx-auto px-4 text-center flex-1 flex flex-col justify-center">
           <GlassCard
-            padding="sm"
+            padding="md"
             hoverEffect={false}
             glowEffect={true}
-            className="max-w-2xl mx-auto text-center animate-fade-in-up"
-            aria-label="欢迎信息"
+            className="max-w-3xl mx-auto text-center animate-fade-in-up"
+            role="banner"
           >
+            {/* 副标题 */}
+            <p className="text-sm md:text-base text-tech-cyan font-medium mb-3 tracking-wide uppercase">
+              技术 · 设计 · 生活
+            </p>
+
             <h1
-              className="text-2xl md:text-3xl font-bold mb-4"
+              className="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-6 tracking-tight leading-tight"
               id="hero-title"
             >
               <TextType
                 fetchFromApi={true}
-                typingSpeed={150}
-                pauseDuration={1500}
+                typingSpeed={120}
+                pauseDuration={2000}
                 showCursor
                 cursorCharacter="_"
                 loop={true}
+                aria-live="polite"
+                aria-atomic="true"
               />
+              {/* 屏幕阅读器备用文本 */}
+              <span className="sr-only">
+                欢迎来到我的博客，这里分享技术、设计与生活
+              </span>
             </h1>
+
+            {/* 描述文本 */}
+            <p className="text-base md:text-lg text-muted-foreground max-w-xl mx-auto mb-6 leading-relaxed">
+              探索前沿技术，分享设计灵感，记录生活点滴。
+              <br className="hidden sm:block" />
+              与你一起构建更美好的数字世界。
+            </p>
+
+            {/* CTA按钮 */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <a
+                href="#featured-highlights"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-tech-cyan text-white rounded-full font-medium
+                  hover:bg-tech-lightcyan transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-tech-cyan/25"
+              >
+                开始探索
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </a>
+              <a
+                href="/articles"
+                className="inline-flex items-center gap-2 px-6 py-3 border border-border rounded-full font-medium
+                  hover:bg-glass hover:border-tech-cyan/50 transition-all duration-300"
+              >
+                浏览文章
+              </a>
+            </div>
+
+            <p className="text-sm text-muted-foreground sr-only">
+              按Tab键继续浏览网站内容
+            </p>
           </GlassCard>
         </div>
 
@@ -174,6 +248,9 @@ export default function HeroSection() {
           <WaveStack className="wave-stack" waveCount={3} />
         </div>
       </div>
+
+      {/* 向下滚动指示器 */}
+      <ScrollIndicator />
     </section>
   );
 }

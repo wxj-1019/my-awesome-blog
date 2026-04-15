@@ -28,34 +28,44 @@ export default function Home() {
       <WeatherCard />
 
       <div id="content" className="relative z-10">
-        {/* Hero 区域 - 保持原有动画 */}
+        {/* Hero 区域 - 全屏高度，无上下间距 */}
         <HeroSection />
 
-        {/* 精选推荐 - 增强动画 */}
-        <section id="featured-highlights" className="relative">
+        {/* 精选推荐 - 紧凑入场 */}
+        <section id="featured-highlights" className="relative py-16 sm:py-20 lg:py-24">
           <FeaturedHighlights />
         </section>
 
-        {/* 统计面板 - 入场动画 */}
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-          <StatsPanel />
-        </div>
+        {/* 统计面板 - 标准区块间距 */}
+        <section className="py-16 sm:py-20 lg:py-24">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <StatsPanel />
+          </div>
+        </section>
 
-        {/* 技术栈 - 视差滚动 */}
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-          <TechStack />
-        </div>
+        {/* 技术栈 - 标准区块间距 */}
+        <section className="py-16 sm:py-20 lg:py-24">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <TechStack />
+          </div>
+        </section>
 
-        {/* 阅读统计 - 标签切换动画 */}
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-          <ReadingStats />
-        </div>
+        {/* 阅读统计 - 标准区块间距 */}
+        <section className="py-16 sm:py-20 lg:py-24">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <ReadingStats />
+          </div>
+        </section>
 
-        {/* 时间线 - 滚动触发动画 */}
-        <Timeline />
+        {/* 时间线 - 带间距的区块 */}
+        <section className="py-16 sm:py-20 lg:py-24">
+          <Timeline />
+        </section>
 
-        {/* 订阅卡片 - 粒子背景 */}
-        <SubscribeCard />
+        {/* 订阅卡片 - 底部区块 */}
+        <section className="py-16 sm:py-20 lg:py-24">
+          <SubscribeCard />
+        </section>
       </div>
     </div>
   )

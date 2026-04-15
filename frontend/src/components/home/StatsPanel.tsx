@@ -230,11 +230,10 @@ function ArticleCard({ article, index }: { article: Article; index: number }) {
                   </div>
                 </div>
 
-                <motion.div 
+                <motion.div
                   className="flex-shrink-0"
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                  transition={{ type: 'spring', stiffness: 300, damping: 15 }}
-                >
+                  whileHover={{ scale: 1.05 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 25 }}
                   <div
                     className="w-10 h-10 rounded-full bg-tech-cyan/20 flex items-center justify-center group-hover:bg-tech-cyan transition-colors duration-300"
                   >
@@ -358,11 +357,10 @@ function StatsCharts() {
           <Card className="glass-card backdrop-blur-xl bg-card/40 border-glass-border p-5 sm:p-6 overflow-hidden hover:shadow-[0_0_40px_var(--shadow-tech-cyan),0_8px_32px_rgba(0,0,0,0.12)] transition-all duration-300">
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-2">
-                <motion.div 
+                <motion.div
                   className="p-2 rounded-lg bg-tech-cyan/20"
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                  transition={{ type: 'spring', stiffness: 300, damping: 15 }}
-                >
+                  whileHover={{ scale: 1.05 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 25 }}
                   <TrendingUp className="w-5 h-5 text-tech-cyan" />
                 </motion.div>
                 <h3 className="text-lg sm:text-xl font-bold text-foreground">月度统计</h3>
@@ -450,11 +448,10 @@ function StatsCharts() {
           <Card className="glass-card backdrop-blur-xl bg-card/40 border-glass-border p-5 sm:p-6 overflow-hidden hover:shadow-[0_0_40px_var(--shadow-tech-cyan),0_8px_32px_rgba(0,0,0,0.12)] transition-all duration-300">
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-2">
-                <motion.div 
+                <motion.div
                   className="p-2 rounded-lg bg-tech-cyan/20"
-                  whileHover={{ scale: 1.1, rotate: -5 }}
-                  transition={{ type: 'spring', stiffness: 300, damping: 15 }}
-                >
+                  whileHover={{ scale: 1.05 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 25 }}
                   <Activity className="w-5 h-5 text-tech-cyan" />
                 </motion.div>
                 <h3 className="text-lg sm:text-xl font-bold text-foreground">周活跃度</h3>
