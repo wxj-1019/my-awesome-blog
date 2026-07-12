@@ -3,7 +3,7 @@ import { Shield, Lock, Palette, Bell, Globe, Mail, KeyRound } from 'lucide-react
 import GlassCard from '@/components/ui/GlassCard';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/Label';
+import { Label } from '@/components/ui/label';
 
 export default function SettingsView() {
   const [settings, setSettings] = useState({

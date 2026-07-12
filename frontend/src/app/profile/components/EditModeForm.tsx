@@ -6,7 +6,7 @@ import GlassCard from '@/components/ui/GlassCard';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/Label';
+import { Label } from '@/components/ui/label';
 import { validateSocialLink } from '@/lib/validation';
 
 interface EditModeFormProps {

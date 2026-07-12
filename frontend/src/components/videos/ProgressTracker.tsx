@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Save, Clock, ChevronDown, Play, Pause, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/Label';
+import { Label } from '@/components/ui/label';
 import GlassCard from '@/components/ui/GlassCard';
 import { VideoItem, Episode } from './VideoCard';
 import { cn } from '@/lib/utils';

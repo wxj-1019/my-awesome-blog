@@ -405,7 +405,13 @@ export default function Timeline() {
 
   return (
     <section className="py-12 sm:py-14 md:py-16 lg:py-20 relative overflow-hidden">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div data-testid="timeline-route-layer" className="absolute inset-0 pointer-events-none" aria-hidden="true">
+        <div className="absolute left-1/2 top-8 h-[calc(100%-4rem)] w-px bg-gradient-to-b from-transparent via-tech-cyan/15 to-transparent" />
+        <div className="absolute inset-x-0 top-1/3 h-px bg-gradient-to-r from-transparent via-tech-cyan/20 to-transparent" />
+        <div className="absolute left-[8%] top-24 h-24 w-24 rounded-full border border-tech-cyan/10 shadow-[0_0_60px_rgba(6,182,212,.1)]" />
+        <div className="absolute right-[10%] bottom-24 h-32 w-32 rounded-full border border-purple-500/10 shadow-[0_0_70px_rgba(168,85,247,.1)]" />
+      </div>
+      <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
         {/* 标题使用 ScrollReveal 包装 */}
         <ScrollReveal animation="slideUp" className="mb-8 sm:mb-10 lg:mb-12">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center text-foreground">
@@ -415,7 +421,7 @@ export default function Timeline() {
 
         {loading ? (
           <div className="flex justify-center items-center py-16 sm:py-20">
-            <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-tech-cyan" />
+            <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-tech-cyan" aria-label="时间线加载中" />
           </div>
         ) : (
           <div className="relative max-w-4xl mx-auto px-2 sm:px-4">

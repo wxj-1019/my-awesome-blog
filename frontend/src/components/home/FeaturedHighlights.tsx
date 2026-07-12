@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { Pin, Star, TrendingUp, ArrowRight, Eye, Heart, Flame, Clock, AlertCircle, RefreshCw, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { getPopularArticles } from '@/lib/api/articles'
-import { staggerContainer, staggerItem, slideDown, VIEWPORT } from '@/lib/animation-utils'
+import { getPopularArticles } from '@/services/articleService'
+import { staggerContainer, VIEWPORT } from '@/lib/animation-utils'
 import ScrollReveal from './decorations/ScrollReveal'
 
 interface HighlightItem {
@@ -40,16 +40,17 @@ const titleVariants = {
 }
 
 const enhancedCardVariants = {
-  hidden: {
-    opacity: 0,
-    y: 30,
-    scale: 0.95,
-    // 移除rotateX以保持文字清晰
+  hidden: { 
+    opacity: 0, 
+    y: 40,
+    scale: 0.9,
+    rotateX: -10,
   },
   visible: {
     opacity: 1,
     y: 0,
     scale: 1,
+    rotateX: 0,
     transition: {
       duration: 0.5,
       ease: [0.25, 0.1, 0.25, 1] as const,
@@ -106,37 +107,38 @@ function formatReadTime(content: string): string {
 }
 
 // 增强的卡片组件
-function HighlightCard({ item, index }: { item: HighlightItem; index: number }) {
+function HighlightCard({ item, index, variant = 'satellite' }: { item: HighlightItem; index: number; variant?: 'hero' | 'satellite' }) {
   const shouldReduceMotion = useReducedMotion()
   const Icon = item.icon
-  const cardId = `highlight-card-${item.id}`
-
+  const isHero = variant === 'hero'
+  
   return (
-    <motion.article
+    <motion.div
       variants={enhancedCardVariants}
-      whileHover={shouldReduceMotion ? {} : {
-        y: -6,
-        transition: {
+      whileHover={shouldReduceMotion ? {} : { 
+        y: -10,
+        scale: 1.02,
+        transition: { 
           type: 'spring',
-          stiffness: 400,
-          damping: 25,
+          stiffness: 300,
+          damping: 20,
         }
       }}
-      className="group h-full"
-      id={cardId}
-      aria-labelledby={`${cardId}-title`}
+      className={cn('group h-full', isHero && 'lg:col-span-2 lg:row-span-2')}
+      style={{ perspective: '1000px' }}
+      data-testid={isHero ? 'featured-hero-card' : 'featured-satellite-card'}
     >
       <a
         href={item.link}
         className={cn(
           'block h-full backdrop-blur-xl border rounded-2xl',
-          'p-5 sm:p-6 transition-all duration-300',
+          isHero ? 'p-6 sm:p-8 lg:p-9 min-h-[360px]' : 'p-5 sm:p-6',
+          'transition-all duration-300',
           'hover:shadow-2xl hover:shadow-tech-cyan/10 dark:hover:shadow-tech-cyan/20',
           'cursor-pointer relative overflow-hidden',
           'bg-card/80 border-border hover:border-tech-cyan/40',
           'dark:bg-card/90 dark:border-glass-border dark:hover:border-tech-cyan/50',
         )}
-        aria-describedby={`${cardId}-desc ${cardId}-stats`}
       >
         {/* 悬浮光效层 */}
         <motion.div
@@ -162,6 +164,15 @@ function HighlightCard({ item, index }: { item: HighlightItem; index: number }) 
             }}
           />
         </div>
+
+        {/* 主推卡扫描线 */}
+        {isHero && (
+          <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-tech-cyan/80 to-transparent" />
+            <div className="absolute -left-1/3 top-0 h-full w-1/2 bg-gradient-to-r from-transparent via-tech-cyan/10 to-transparent blur-xl transition-transform duration-700 group-hover:translate-x-[260%]" />
+            <div className="absolute bottom-4 left-6 right-6 h-px bg-gradient-to-r from-tech-cyan/30 via-tech-sky/10 to-transparent" />
+          </div>
+        )}
 
         <div className="relative z-10">
           <div className="flex items-start justify-between mb-4">
@@ -229,15 +240,21 @@ function HighlightCard({ item, index }: { item: HighlightItem; index: number }) 
             </div>
           </div>
 
-          <h3 id={`${cardId}-title`} className="text-base sm:text-lg font-bold text-foreground mb-2 line-clamp-2 group-hover:text-tech-cyan transition-colors duration-300">
+          <h3 className={cn(
+            'font-bold text-foreground mb-2 line-clamp-2 group-hover:text-tech-cyan transition-colors duration-300',
+            isHero ? 'text-2xl sm:text-3xl lg:text-4xl leading-tight mb-4' : 'text-base sm:text-lg'
+          )}>
             {item.title}
           </h3>
 
-          <p id={`${cardId}-desc`} className="text-xs sm:text-sm text-muted-foreground mb-4 line-clamp-3 leading-relaxed">
+          <p className={cn(
+            'text-muted-foreground mb-4 line-clamp-3 leading-relaxed',
+            isHero ? 'text-sm sm:text-base lg:text-lg max-w-2xl' : 'text-xs sm:text-sm'
+          )}>
             {item.description}
           </p>
 
-          <div id={`${cardId}-stats`} className="space-y-3">
+          <div className="space-y-3">
             <div className="flex items-center gap-3 text-xs text-muted-foreground">
               {item.readTime && (
                 <motion.div 
@@ -293,7 +310,7 @@ function HighlightCard({ item, index }: { item: HighlightItem; index: number }) 
           </div>
         </div>
       </a>
-    </motion.article>
+    </motion.div>
   )
 }
 
@@ -303,16 +320,12 @@ export default function FeaturedHighlights() {
   const [error, setError] = useState<string | null>(null)
   const shouldReduceMotion = useReducedMotion()
 
-  // 生成唯一的section ID用于ARIA
-  const sectionId = 'featured-highlights-section'
-  const headingId = 'featured-highlights-heading'
-
   useEffect(() => {
     const fetchHighlights = async () => {
       try {
         setLoading(true)
         setError(null)
-        const articles = await getPopularArticles({ limit: 6 })
+        const articles = await getPopularArticles(6)
 
         const mappedHighlights: HighlightItem[] = articles.map((article, index) => {
           const type: HighlightItem['type'] = index === 0 ? 'pinned' : index === 1 ? 'featured' : index === 2 ? 'trending' : 'latest'
@@ -358,7 +371,7 @@ export default function FeaturedHighlights() {
 
   if (error) {
     return (
-      <section className="relative overflow-hidden py-6 sm:py-8 lg:py-10">
+      <section className="relative overflow-hidden py-6 sm:py-8 lg:py-10 bg-gradient-to-b from-muted/30 to-transparent dark:from-background dark:to-transparent">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center py-12">
             <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
@@ -371,7 +384,7 @@ export default function FeaturedHighlights() {
 
   if (loading) {
     return (
-      <section className="relative overflow-hidden py-6 sm:py-8 lg:py-10">
+      <section className="relative overflow-hidden py-6 sm:py-8 lg:py-10 bg-gradient-to-b from-muted/30 to-transparent dark:from-background dark:to-transparent">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center py-12">
             <RefreshCw className="w-12 h-12 text-tech-cyan animate-spin" />
@@ -384,7 +397,7 @@ export default function FeaturedHighlights() {
 
   if (highlights.length === 0 && !loading) {
     return (
-      <section className="relative overflow-hidden py-6 sm:py-8 lg:py-10">
+      <section className="relative overflow-hidden py-6 sm:py-8 lg:py-10 bg-gradient-to-b from-muted/30 to-transparent dark:from-background dark:to-transparent">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center py-12">
             <p className="text-muted-foreground">暂无精选文章</p>
@@ -395,15 +408,11 @@ export default function FeaturedHighlights() {
   }
 
   return (
-    <section
-      id={sectionId}
-      aria-labelledby={headingId}
-      className="relative overflow-hidden py-6 sm:py-8 lg:py-10"
-    >
-      {/* 装饰元素 - 隐藏于屏幕阅读器 */}
-      <SparkleDecoration className="top-10 left-[10%]" aria-hidden="true" />
-      <SparkleDecoration className="top-20 right-[15%]" aria-hidden="true" />
-      <SparkleDecoration className="bottom-20 left-[5%]" aria-hidden="true" />
+    <section className="relative overflow-hidden py-6 sm:py-8 lg:py-10 bg-gradient-to-b from-muted/30 to-transparent dark:from-background dark:to-transparent">
+      {/* 装饰元素 */}
+      <SparkleDecoration className="top-10 left-[10%]" />
+      <SparkleDecoration className="top-20 right-[15%]" />
+      <SparkleDecoration className="bottom-20 left-[5%]" />
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* 标题区域 - 滚动触发入场 */}
@@ -416,13 +425,13 @@ export default function FeaturedHighlights() {
             viewport={VIEWPORT.ONCE}
           >
             <div className="flex items-center gap-2">
-              <motion.div
+              <motion.div 
                 className="w-1 h-7 sm:h-8 bg-gradient-to-b from-tech-cyan to-tech-sky rounded-full"
                 animate={shouldReduceMotion ? {} : {
                   boxShadow: [
-                    '0 0 10px rgba(14, 165, 233, 0.3)',
-                    '0 0 25px rgba(14, 165, 233, 0.6)',
-                    '0 0 10px rgba(14, 165, 233, 0.3)',
+                    '0 0 10px rgba(6, 182, 212, 0.3)',
+                    '0 0 25px rgba(6, 182, 212, 0.6)',
+                    '0 0 10px rgba(6, 182, 212, 0.3)',
                   ],
                 }}
                 transition={{
@@ -430,70 +439,69 @@ export default function FeaturedHighlights() {
                   repeat: Infinity,
                   ease: 'easeInOut',
                 }}
-                aria-hidden="true"
               />
-              <h2 id={headingId} className="text-xl sm:text-2xl font-bold text-foreground">
+              <h2 className="text-xl sm:text-2xl font-bold text-foreground">
                 精选推荐
               </h2>
             </div>
-            <div className="flex-1 h-px bg-gradient-to-r from-glass-border/50 to-transparent" aria-hidden="true" />
-            <motion.span
+            <div className="flex-1 h-px bg-gradient-to-r from-glass-border/50 to-transparent" />
+            <motion.span 
               className="text-xs sm:text-sm text-muted-foreground"
               initial={{ opacity: 0, x: 20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.3 }}
-              aria-live="polite"
             >
               {highlights.length} 篇精选
             </motion.span>
           </motion.div>
         </ScrollReveal>
 
-        {/* 卡片网格 - 交错入场动画 */}
+        {/* 卡片网格 - 主推 + 卫星卡片 */}
         <motion.div
           variants={staggerContainer(0.08)}
           initial="hidden"
           whileInView="visible"
           viewport={VIEWPORT.ONCE}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"
+          className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6 auto-rows-fr"
         >
           {highlights.map((item, index) => (
-            <HighlightCard key={item.id} item={item} index={index} />
+            <HighlightCard
+              key={item.id}
+              item={item}
+              index={index}
+              variant={index === 0 ? 'hero' : 'satellite'}
+            />
           ))}
         </motion.div>
 
         {/* 查看更多按钮 - 淡入上浮 */}
         <ScrollReveal animation="fadeIn" delay={0.4} className="mt-8 sm:mt-10">
-          <nav aria-label="精选文章导航">
-            <motion.div
-              className="text-center"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+          <motion.div
+            className="text-center"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <motion.a
+              href="/articles"
+              className="inline-flex items-center gap-2 px-6 py-3 backdrop-blur-xl border rounded-full transition-all duration-300 cursor-pointer group bg-card/80 border-border text-foreground hover:bg-card hover:border-tech-cyan/50 hover:shadow-lg hover:shadow-tech-cyan/10 dark:bg-card/90 dark:border-glass-border dark:hover:bg-card dark:hover:border-tech-cyan/40 dark:hover:shadow-tech-cyan/15"
+              whileHover={{
+                boxShadow: '0 0 30px rgba(6, 182, 212, 0.2)',
+              }}
             >
-              <motion.a
-                href="/articles"
-                className="inline-flex items-center gap-2 px-6 py-3 backdrop-blur-xl border rounded-full transition-all duration-300 cursor-pointer group bg-card/80 border-border text-foreground hover:bg-card hover:border-tech-cyan/50 hover:shadow-lg hover:shadow-tech-cyan/10 dark:bg-card/90 dark:border-glass-border dark:hover:bg-card dark:hover:border-tech-cyan/40 dark:hover:shadow-tech-cyan/15"
-                whileHover={{
-                  boxShadow: '0 0 30px rgba(14, 165, 233, 0.2)',
+              <span className="text-sm sm:text-base font-medium">查看更多精选</span>
+              <motion.div
+                animate={{ x: [0, 4, 0] }}
+                transition={{
+                  duration: 1.5,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
                 }}
-                aria-label="查看全部精选文章列表"
               >
-                <span className="text-sm sm:text-base font-medium">查看更多精选</span>
-                <motion.div
-                  animate={shouldReduceMotion ? {} : { x: [0, 4, 0] }}
-                  transition={{
-                    duration: 1.5,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                  }}
-                  aria-hidden="true"
-                >
-                  <ArrowRight className="w-4 h-4" aria-hidden="true" />
-                </motion.div>
-              </motion.a>
-            </motion.div>
-          </nav>
+                <ArrowRight className="w-4 h-4" />
+              </motion.div>
+            </motion.a>
+          </motion.div>
         </ScrollReveal>
       </div>
     </section>

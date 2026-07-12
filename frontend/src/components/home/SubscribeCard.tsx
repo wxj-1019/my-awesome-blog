@@ -2,8 +2,7 @@
 
 import { useRef, useState, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence, useInView, useReducedMotion } from 'framer-motion'
-import { Mail, Send, CheckCircle, Loader2, Sparkles, ArrowRight, Bell } from 'lucide-react'
-import { Button } from '@/components/ui/Button'
+import { Mail, CheckCircle, Loader2, Sparkles, ArrowRight, Bell } from 'lucide-react'
 import { subscriptionService } from '@/services/subscriptionService'
 import { useToast } from '@/components/ui/use-toast'
 import ScrollReveal from './decorations/ScrollReveal'
@@ -89,78 +88,6 @@ function FloatingLabelInput({
         />
       </div>
     </div>
-  )
-}
-
-interface RippleButtonProps {
-  children: React.ReactNode
-  onClick: () => void
-  disabled?: boolean
-  loading?: boolean
-  className?: string
-}
-
-function RippleButton({ children, onClick, disabled, loading, className }: RippleButtonProps) {
-  const [ripples, setRipples] = useState<{ x: number; y: number; id: number }[]>([])
-  const buttonRef = useRef<HTMLButtonElement>(null)
-  const shouldReduceMotion = useReducedMotion()
-
-  const handleClick = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
-    if (disabled || loading) return
-
-    const rect = buttonRef.current?.getBoundingClientRect()
-    if (rect) {
-      const x = e.clientX - rect.left
-      const y = e.clientY - rect.top
-      const id = Date.now()
-      
-      setRipples(prev => [...prev, { x, y, id }])
-      
-      setTimeout(() => {
-        setRipples(prev => prev.filter(r => r.id !== id))
-      }, 600)
-    }
-
-    onClick()
-  }, [disabled, loading, onClick])
-
-  return (
-    <motion.button
-      ref={buttonRef}
-      onClick={handleClick}
-      disabled={disabled || loading}
-      className={`relative overflow-hidden ${className}`}
-      whileHover={shouldReduceMotion ? {} : { scale: disabled ? 1 : 1.02 }}
-      whileTap={shouldReduceMotion ? {} : { scale: disabled ? 1 : 0.98 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-    >
-      {loading ? (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="flex items-center justify-center gap-2"
-        >
-          <Loader2 className="w-5 h-5 animate-spin" />
-          <span>处理中...</span>
-        </motion.div>
-      ) : (
-        children
-      )}
-
-      <AnimatePresence>
-        {ripples.map(ripple => (
-          <motion.span
-            key={ripple.id}
-            initial={{ scale: 0, opacity: 0.5 }}
-            animate={{ scale: 4, opacity: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.6, ease: 'easeOut' }}
-            className="absolute w-20 h-20 -ml-10 -mt-10 rounded-full bg-white/30 pointer-events-none"
-            style={{ left: ripple.x, top: ripple.y }}
-          />
-        ))}
-      </AnimatePresence>
-    </motion.button>
   )
 }
 
@@ -298,7 +225,7 @@ function FloatingParticles() {
     setParticles(newParticles)
   }, [])
 
-  if (shouldReduceMotion) return null
+  if (shouldReduceMotion) {return null}
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -345,10 +272,10 @@ function MagneticButton({ children, onClick, disabled, loading, className }: Mag
   const shouldReduceMotion = useReducedMotion()
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
-    if (shouldReduceMotion || disabled || loading) return
+    if (shouldReduceMotion || disabled || loading) {return}
     
     const rect = buttonRef.current?.getBoundingClientRect()
-    if (!rect) return
+    if (!rect) {return}
 
     const centerX = rect.left + rect.width / 2
     const centerY = rect.top + rect.height / 2
@@ -443,7 +370,7 @@ export default function SubscribeCard() {
     } finally {
       setLoading(false)
     }
-  }, [email, name, format, toast])
+  }, [email, toast])
 
   const handleReset = useCallback(() => {
     setEmail('')
@@ -475,11 +402,19 @@ export default function SubscribeCard() {
     <ScrollReveal animation="scaleIn" delay={0.1}>
       <motion.div
         ref={cardRef}
-        className="relative bg-glass/30 backdrop-blur-xl border border-glass-border rounded-2xl overflow-hidden"
+        className="relative mx-auto max-w-6xl bg-glass/30 backdrop-blur-xl border border-glass-border rounded-2xl overflow-hidden shadow-[0_0_80px_rgba(6,182,212,.12)]"
         initial="hidden"
         animate={isInView ? "visible" : "hidden"}
         variants={shouldReduceMotion ? { hidden: {}, visible: {} } : cardVariants}
       >
+        {/* 沉浸式结尾面板 */}
+        <div data-testid="subscribe-band-layer" className="absolute inset-0 pointer-events-none" aria-hidden="true">
+          <div className="absolute inset-0 opacity-[0.08] [background-image:linear-gradient(rgba(6,182,212,.5)_1px,transparent_1px),linear-gradient(90deg,rgba(6,182,212,.5)_1px,transparent_1px)] [background-size:40px_40px]" />
+          <div className="absolute -left-20 top-1/2 h-56 w-56 -translate-y-1/2 rounded-full border border-tech-cyan/10 shadow-[0_0_90px_rgba(6,182,212,.14)]" />
+          <div className="absolute -right-24 top-8 h-64 w-64 rounded-full border border-tech-sky/10 shadow-[0_0_90px_rgba(14,165,233,.12)]" />
+          <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-tech-cyan/60 to-transparent" />
+        </div>
+
         {/* 顶部渐变线 */}
         <motion.div
           className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-tech-cyan to-transparent"
