@@ -94,29 +94,52 @@ const weeklyActivityData = [
   { day: '周日', visitors: 128, engagement: 60 }
 ]
 
-function ArticleCard({ article, delayClass }: { article: Article; delayClass: string }) {
+const categoryDistributionData = [
+  { category: '前端开发', count: 45, percentage: 35 },
+  { category: '后端开发', count: 32, percentage: 25 },
+  { category: 'DevOps', count: 20, percentage: 16 },
+  { category: '设计', count: 18, percentage: 14 },
+  { category: '其他', count: 12, percentage: 10 }
+]
+
+function ArticleCard({ article, index }: { article: Article; index: number }) {
   const [imageError, setImageError] = useState(false)
 
   return (
-    <article role="article" aria-label={article.title} tabIndex={0} className="group">
+    <motion.article 
+      role="article" 
+      aria-label={article.title} 
+      tabIndex={0} 
+      className="group"
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-50px' }}
+      transition={{ duration: 0.5, delay: index * 0.1 }}
+    >
       <Card
         key={article.id}
-        className={`glass-card backdrop-blur-xl bg-card/40 hover:bg-card/60 hover:shadow-[0_0_40px_var(--shadow-tech-cyan),0_8px_32px_rgba(0,0,0,0.12)] border-glass-border hover:border-tech-cyan/30 transition-all duration-300 hover:scale-[1.02] animate-fade-in-up ${delayClass} overflow-hidden cursor-pointer`}
+        className="glass-card backdrop-blur-xl bg-card/40 hover:bg-card/60 hover:shadow-[0_0_40px_var(--shadow-tech-cyan),0_8px_32px_rgba(0,0,0,0.12)] border-glass-border hover:border-tech-cyan/30 transition-all duration-300 hover:scale-[1.02] overflow-hidden cursor-pointer"
       >
         <CardContent className="p-0">
           <div className="flex flex-col sm:flex-row">
             <div className="w-full sm:w-48 h-48 sm:h-auto flex-shrink-0 overflow-hidden">
-              <img
+              <motion.img
                 src={imageError ? '/assets/avatar.jpg' : (article.image || '/assets/avatar.jpg')}
                 alt={article.title}
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-125"
+                className="w-full h-full object-cover"
                 onError={() => setImageError(true)}
+                whileHover={{ scale: 1.15 }}
+                transition={{ duration: 0.5 }}
               />
             </div>
 
             <div className="flex-1 p-4 sm:p-6 flex flex-col">
               <div className="flex items-start justify-between gap-4 flex-1">
-                <div className="flex-1 transition-transform duration-300 group-hover:translate-x-2">
+                <motion.div 
+                  className="flex-1"
+                  whileHover={{ x: 8 }}
+                  transition={{ duration: 0.3 }}
+                >
                   <h3 className="text-lg sm:text-xl font-bold mb-2 text-foreground group-hover:text-tech-cyan transition-colors">
                     {article.title}
                   </h3>
@@ -142,14 +165,19 @@ function ArticleCard({ article, delayClass }: { article: Article; delayClass: st
                       {article.category}
                     </span>
                   </div>
-                </div>
+                </motion.div>
 
                 <div className="flex-shrink-0">
                   <div
                     className="w-10 h-10 rounded-full bg-tech-cyan/20 flex items-center justify-center group-hover:bg-tech-cyan transition-colors"
                     aria-label="查看文章详情"
                   >
-                    <ArrowRight className="w-5 h-5 text-tech-cyan group-hover:text-white transition-transform group-hover:translate-x-1" />
+                    <motion.div
+                      whileHover={{ x: 4 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <ArrowRight className="w-5 h-5 text-tech-cyan group-hover:text-white transition-transform" />
+                    </motion.div>
                   </div>
                 </div>
               </div>
@@ -157,17 +185,21 @@ function ArticleCard({ article, delayClass }: { article: Article; delayClass: st
           </div>
         </CardContent>
       </Card>
-    </article>
+    </motion.article>
   )
 }
 
 function ArticleList({ articles, loading, error, onRetry }: { articles: Article[]; loading: boolean; error: string | null; onRetry: () => void }) {
-  const delayClasses = ['animate-delay-50', 'animate-delay-100', 'animate-delay-150']
-
   if (loading) {
     return (
-      <div className="space-y-6">
-        <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-4 sm:mb-6 animate-fade-in-up">
+      <motion.div 
+        className="space-y-6"
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.4 }}
+      >
+        <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-4 sm:mb-6">
           最新文章
         </h2>
         <div className="space-y-4 sm:space-y-6">
@@ -175,14 +207,20 @@ function ArticleList({ articles, loading, error, onRetry }: { articles: Article[
             <ArticleCardSkeleton key={i} />
           ))}
         </div>
-      </div>
+      </motion.div>
     )
   }
 
   if (error) {
     return (
-      <div className="space-y-6">
-        <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-4 sm:mb-6 animate-fade-in-up">
+      <motion.div 
+        className="space-y-6"
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.4 }}
+      >
+        <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-4 sm:mb-6">
           最新文章
         </h2>
         <Card className="p-6 sm:p-8 text-center">
@@ -194,19 +232,25 @@ function ArticleList({ articles, loading, error, onRetry }: { articles: Article[
             重新加载
           </Button>
         </Card>
-      </div>
+      </motion.div>
     )
   }
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-4 sm:mb-6 animate-fade-in-up">
+    <motion.div 
+      className="space-y-6"
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.4 }}
+    >
+      <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-4 sm:mb-6">
         最新文章
       </h2>
 
       <div className="space-y-4 sm:space-y-6">
         {articles.map((article, index) => (
-          <ArticleCard key={article.id} article={article} delayClass={delayClasses[index % delayClasses.length]} />
+          <ArticleCard key={article.id} article={article} index={index} />
         ))}
       </div>
 
@@ -220,7 +264,7 @@ function ArticleList({ articles, loading, error, onRetry }: { articles: Article[
           <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
         </Button>
       </div>
-    </div>
+    </motion.div>
   )
 }
 
@@ -573,14 +617,26 @@ export default function StatsPanel() {
   }
 
   return (
-    <section className="relative overflow-hidden py-8 sm:py-10 md:py-12 lg:py-16">
+    <motion.section 
+      className="relative overflow-hidden py-8 sm:py-10 md:py-12 lg:py-16"
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-100px' }}
+      transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
+    >
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
         <div className="absolute inset-x-8 top-8 h-px bg-gradient-to-r from-transparent via-tech-cyan/25 to-transparent" />
         <div className="absolute inset-0 opacity-[0.04] [background-image:linear-gradient(rgba(6,182,212,.45)_1px,transparent_1px),linear-gradient(90deg,rgba(6,182,212,.45)_1px,transparent_1px)] [background-size:56px_56px]" />
         <div className="absolute right-[8%] top-16 h-44 w-44 rounded-full border border-tech-cyan/10 shadow-[0_0_80px_rgba(6,182,212,.1)]" />
       </div>
       <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+        <motion.div 
+          className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.5 }}
+        >
           <div className="lg:col-span-4 flex flex-col gap-6">
             <ProfileCard />
             <FriendLinks links={mockFriendLinks} />
@@ -589,12 +645,18 @@ export default function StatsPanel() {
           <div className="lg:col-span-8">
             <ArticleList articles={articles} loading={loading} error={error} onRetry={handleRetry} />
           </div>
-        </div>
+        </motion.div>
 
-        <div className="mt-6 lg:mt-8">
+        <motion.div 
+          className="mt-6 lg:mt-8"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+        >
           <StatsCharts />
-        </div>
+        </motion.div>
       </div>
-    </section>
+    </motion.section>
   )
 }

@@ -1,4 +1,7 @@
-FROM node:18-alpine AS base
+FROM node:20-alpine AS base
+
+# Clear injected proxy env vars (host 127.0.0.1:7890 unreachable from container)
+ENV HTTP_PROXY="" HTTPS_PROXY="" http_proxy="" https_proxy=""
 
 # Install dependencies only when needed
 FROM base AS deps
@@ -8,7 +11,9 @@ WORKDIR /app
 
 # Install dependencies based on the preferred package manager
 COPY package.json package-lock.json* ./
-RUN npm ci --legacy-peer-deps
+# Use Chinese npm mirror for faster downloads, skip postinstall (scripts not copied yet)
+RUN npm config set registry https://registry.npmmirror.com && \
+    npm ci --legacy-peer-deps --ignore-scripts
 
 
 # Rebuild the source code only when needed

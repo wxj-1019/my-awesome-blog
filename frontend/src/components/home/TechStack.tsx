@@ -1,5 +1,6 @@
 'use client'
 
+import { motion } from 'framer-motion'
 import { Code2, Database, Server, Cpu, Layout, Cloud, Shield, Zap } from 'lucide-react'
 import LogoLoop, { type LogoItem } from '@/components/ui/LogoLoop'
 
@@ -45,19 +46,37 @@ const logoLoopItems: LogoItem[] = techItems.map((item) => ({
 
 export default function TechStack() {
   return (
-    <section className="py-6 sm:py-8 md:py-10 lg:py-12">
+    <motion.section 
+      className="py-6 sm:py-8 md:py-10 lg:py-12"
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-100px' }}
+      transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
+    >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-3 mb-5 sm:mb-6">
-          <div className="w-1 h-6 sm:h-8 bg-gradient-to-b from-tech-cyan to-tech-sky rounded-full animate-fade-in-up" />
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground animate-fade-in-up">
+        <motion.div 
+          className="flex items-center gap-3 mb-5 sm:mb-6"
+          initial={{ opacity: 0, x: -20 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="w-1 h-6 sm:h-8 bg-gradient-to-b from-tech-cyan to-tech-sky rounded-full" />
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">
             技术栈
           </h2>
-          <span className="text-xs sm:text-sm text-muted-foreground animate-fade-in-up delay-100">
+          <span className="text-xs sm:text-sm text-muted-foreground">
             Technologies & Tools
           </span>
-        </div>
+        </motion.div>
 
-        <div className="relative bg-glass/20 backdrop-blur-xl border border-glass-border rounded-lg p-4 sm:p-6 md:p-8 overflow-hidden">
+        <motion.div 
+          className="relative bg-glass/20 backdrop-blur-xl border border-glass-border rounded-lg p-4 sm:p-6 md:p-8 overflow-hidden"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
           <div data-testid="tech-orbital-layer" className="absolute inset-0 pointer-events-none" aria-hidden="true">
             <div className="absolute left-1/2 top-1/2 h-48 w-48 -translate-x-1/2 -translate-y-1/2 rounded-full border border-tech-cyan/15 shadow-[0_0_60px_rgba(6,182,212,.12)]" />
             <div className="absolute left-1/2 top-1/2 h-28 w-28 -translate-x-1/2 -translate-y-1/2 rounded-full border border-tech-sky/20" />
@@ -86,10 +105,14 @@ export default function TechStack() {
 
           <div className="mt-5 sm:mt-6 grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-3">
             {techItems.slice(0, 8).map((item, index) => (
-              <div
+              <motion.div
                 key={item.name}
-                className="flex flex-col items-center p-2 sm:p-3 rounded-lg bg-glass/30 backdrop-blur-xl border border-glass-border hover:border-tech-cyan/30 hover:scale-105 transition-all duration-300 cursor-pointer group animate-fade-in-up"
-                style={{ animationDelay: `${index * 50}ms` }}
+                className="flex flex-col items-center p-2 sm:p-3 rounded-lg bg-glass/30 backdrop-blur-xl border border-glass-border hover:border-tech-cyan/30 hover:scale-105 transition-all duration-300 cursor-pointer group"
+                initial={{ opacity: 0, scale: 0.8 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true, margin: '-50px' }}
+                transition={{ duration: 0.3, delay: index * 0.05 }}
+                whileHover={{ y: -4, borderColor: 'rgba(6, 182, 212, 0.5)' }}
               >
                 <div
                   className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg bg-glass/50 flex items-center justify-center mb-1.5 sm:mb-2 group-hover:bg-tech-cyan/20 transition-colors"
@@ -102,13 +125,26 @@ export default function TechStack() {
                 <span className="text-[10px] sm:text-xs font-medium text-gray-300 group-hover:text-white transition-colors text-center truncate w-full">
                   {item.name}
                 </span>
-              </div>
+              </motion.div>
             ))}
           </div>
-        </div>
+        </motion.div>
 
-        <div className="mt-5 sm:mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-glass/30 backdrop-blur-xl border border-glass-border rounded-lg p-4 sm:p-5 hover:-translate-y-1 transition-transform duration-300 cursor-pointer group">
+        <motion.div 
+          className="mt-5 sm:mt-6 grid grid-cols-1 md:grid-cols-3 gap-4"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          <motion.div 
+            className="bg-glass/30 backdrop-blur-xl border border-glass-border rounded-lg p-4 sm:p-5 hover:-translate-y-1 transition-transform duration-300 cursor-pointer group"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-60px' }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+            whileHover={{ y: -8, boxShadow: '0 20px 40px rgba(6, 182, 212, 0.15)' }}
+          >
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-gradient-to-br from-tech-cyan to-tech-sky flex items-center justify-center mb-3">
               <Code2 className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
@@ -118,9 +154,16 @@ export default function TechStack() {
             <p className="text-xs sm:text-sm text-muted-foreground">
               Next.js 14 + React + TypeScript，打造高性能、SEO友好的现代化Web应用
             </p>
-          </div>
+          </motion.div>
 
-          <div className="bg-glass/30 backdrop-blur-xl border border-glass-border rounded-lg p-4 sm:p-5 hover:-translate-y-1 transition-transform duration-300 cursor-pointer group delay-100">
+          <motion.div 
+            className="bg-glass/30 backdrop-blur-xl border border-glass-border rounded-lg p-4 sm:p-5 hover:-translate-y-1 transition-transform duration-300 cursor-pointer group"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-60px' }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+            whileHover={{ y: -8, boxShadow: '0 20px 40px rgba(168, 85, 247, 0.15)' }}
+          >
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center mb-3">
               <Server className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
@@ -130,9 +173,16 @@ export default function TechStack() {
             <p className="text-xs sm:text-sm text-muted-foreground">
               FastAPI + PostgreSQL + Redis，提供快速、可靠的API服务和数据存储
             </p>
-          </div>
+          </motion.div>
 
-          <div className="bg-glass/30 backdrop-blur-xl border border-glass-border rounded-lg p-4 sm:p-5 hover:-translate-y-1 transition-transform duration-300 cursor-pointer group delay-200">
+          <motion.div 
+            className="bg-glass/30 backdrop-blur-xl border border-glass-border rounded-lg p-4 sm:p-5 hover:-translate-y-1 transition-transform duration-300 cursor-pointer group"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-60px' }}
+            transition={{ duration: 0.4, delay: 0.3 }}
+            whileHover={{ y: -8, boxShadow: '0 20px 40px rgba(249, 115, 22, 0.15)' }}
+          >
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center mb-3">
               <Cloud className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
@@ -142,9 +192,9 @@ export default function TechStack() {
             <p className="text-xs sm:text-sm text-muted-foreground">
               Docker + Vercel，实现容器化部署和自动化CI/CD流程
             </p>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
-    </section>
+    </motion.section>
   )
 }

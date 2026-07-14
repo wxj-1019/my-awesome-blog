@@ -1,3 +1,130 @@
+#!/usr/bin/env python3
+"""最终部署脚本 - 后台构建 + 轮询，避免 SSH 超时"""
+from paramiko import SSHClient, AutoAddPolicy
+import time, io, tarfile, os, subprocess
+
+SERVER_IP = "192.168.100.12"
+DEPLOY_PATH = "/opt/my-awesome-blog"
+LOCAL = os.path.dirname(os.path.abspath(__file__))
+
+client = SSHClient()
+client.set_missing_host_key_policy(AutoAddPolicy())
+client.connect(SERVER_IP, username='root', password='rongqizhizao1.!', look_for_keys=False, allow_agent=False)
+
+def ssh_exec(cmd, timeout=10):
+    stdin, stdout, stderr = client.exec_command(cmd, timeout=timeout)
+    ec = stdout.channel.recv_exit_status()
+    out = stdout.read().decode('utf-8', errors='replace')
+    return ec, out
+
+def ssh_bg(cmd):
+    """发送后台命令，不等待结果"""
+    transport = client.get_transport()
+    channel = transport.open_session()
+    channel.exec_command(cmd)
+    # 不等待，立即返回
+    return channel
+
+def tail_log(path, lines=3):
+    ec, out = ssh_exec(f"tail -{lines} {path} 2>/dev/null")
+    return out.strip()
+
+# === Step 1: Upload files ===
+print("=== 上传文件 ===")
+buf = io.BytesIO()
+with tarfile.open(fileobj=buf, mode="w:gz") as tar:
+    for item in ["docker-compose.prod.yml", ".env.production", "frontend"]:
+        path = os.path.join(LOCAL, item)
+        if os.path.isdir(path):
+            for root, dirs, files in os.walk(path):
+                dirs[:] = [d for d in dirs if d not in ("node_modules", ".next", ".git", ".husky", "design-system")]
+                for f in files:
+                    if f in (".env.local",) or f.endswith(".log"):
+                        continue
+                    fp = os.path.join(root, f)
+                    rel = os.path.relpath(fp, LOCAL)
+                    tar.add(fp, arcname=rel)
+        elif os.path.isfile(path):
+            tar.add(path, arcname=item)
+print(f"  打包: {buf.tell()/1024/1024:.1f} MB")
+buf.seek(0)
+sftp = client.open_sftp()
+sftp.putfo(buf, f"{DEPLOY_PATH}/deploy.tar.gz")
+sftp.close()
+ssh_exec(f"cd {DEPLOY_PATH} && tar xzf deploy.tar.gz && rm deploy.tar.gz && cp .env.production .env")
+print("  上传完成")
+
+# === Step 2: Background build ===
+print("\n=== 后台构建前端镜像 ===")
+# Use nohup + & (don't wait for result)
+ssh_bg(f"cd {DEPLOY_PATH} && nohup docker build --network host -t my-awesome-blog-frontend ./frontend > /tmp/frontend_build.log 2>&1 &")
+time.sleep(2)
+print("  构建已在后台启动，监控日志...")
+
+# Poll until complete
+for i in range(120):  # max 20 minutes
+    time.sleep(10)
+    log_tail = tail_log("/tmp/frontend_build.log", 3)
+    
+    if "Successfully built" in log_tail or "Successfully tagged" in log_tail:
+        print(f"\n  [+{i*10}s] 前端构建成功!")
+        break
+    
+    # Show build progress (last meaningful line)
+    lines = [l for l in log_tail.split('\n') if l.strip() and not l.startswith('npm warn')]
+    if lines:
+        last = lines[-1][:120]
+        if 'Step' in last or 'Running' in last or 'Removed' in last or '--->' in last:
+            print(f"  [{i*10}s] {last}")
+    
+    # Check if still running
+    ec, out = ssh_exec("pgrep -f 'docker build.*frontend' | wc -l", 5)
+    if out.strip() == '0':
+        print(f"\n  构建进程已结束!")
+        break
+else:
+    print("\n  超时! 检查日志:")
+    ec, out = ssh_exec("tail -20 /tmp/frontend_build.log")
+    print(out)
+
+# Show final build result
+print("\n=== 构建结果 ===")
+ec, out = ssh_exec("tail -10 /tmp/frontend_build.log")
+print(out[-500:])
+
+# Check image
+ec, out = ssh_exec(f"docker images my-awesome-blog-frontend --format '{{{{.Repository}}}}:{{{{.Tag}}}} {{{{.Size}}}}'")
+print(f"\n  前端镜像: {out.strip()}")
+
+if "my-awesome-blog-frontend" not in out:
+    print("  前端镜像构建失败! 退出")
+    client.close()
+    exit(1)
+
+# === Step 3: Start services ===
+print("\n=== 启动服务 ===")
+ssh_exec(f"cd {DEPLOY_PATH} && docker compose -f docker-compose.prod.yml down 2>/dev/null; docker compose -f docker-compose.prod.yml up -d", timeout=60)
+print("  等待服务就绪 (15s)...")
+time.sleep(15)
+
+# DB migration
+print("\n=== 数据库迁移 ===")
+ec, out = ssh_exec(f"cd {DEPLOY_PATH} && docker compose -f docker-compose.prod.yml exec -T backend alembic upgrade head", timeout=60)
+print(out[:300])
+
+# === Step 4: Verify ===
+print("\n=== 验证 ===")
+ec, out = ssh_exec("curl -s -o /dev/null -w '%{http_code}' http://localhost/")
+print(f"  前端 HTTP: {out.strip()}")
+ec, out = ssh_exec("curl -s -o /dev/null -w '%{http_code}' http://localhost:8989/health")
+print(f"  后端健康: {out.strip()}")
+ec, out = ssh_exec(f"cd {DEPLOY_PATH} && docker compose -f docker-compose.prod.yml ps")
+print(f"\n  容器状态:\n{out[:500]}")
+
+print(f"\n=== 🎉 部署完成! ===")
+print(f"  前端: http://{SERVER_IP}")
+print(f"  API:  http://{SERVER_IP}/api/v1")
+client.close()
 import subprocess
 import sys
 import time
