@@ -94,7 +94,8 @@ Hero 文案 stagger（Phase 2）
 | **1 L1 收窄** | 首页 Featured / Tech / Timeline / Subscribe + MobileDrawer | **完成** |
 | **1.1** | Featured 真数据、Drawer 稳定 exit、Timeline cap 12 | **完成** |
 | **2 首页 L3** | Hero + Bridge 滚动旗舰；不做 Stats 深度联动 | **完成** |
-| **3 内容页** | 文章/相册 layoutId、轻量 ScrollFloat | 按需 |
+| **3 内容页（轻量）** | Stats 外层 FadeIn；文章/相册标题 BlurIn + 列表 FadeIn | **完成** |
+| **3+** | layoutId 共享元素、ScrollFloat 标题 | 按需 |
 
 ### Phase 1 验收（收窄）
 
@@ -167,7 +168,22 @@ Hero 文案 stagger（Phase 2）
 - Stats 图表与 scroll 联动  
 - pin 全屏区  
 - 全站清除裸 `motion`  
-- 文章/相册 layoutId（Phase 3）
+- 文章/相册 layoutId（Phase 3+）
+
+### Phase 3 验收（轻量内容页，2026-07-19）
+
+#### 功能
+
+- [x] StatsPanel 外层改为 `FadeIn`（去掉 section 级裸 whileInView）
+- [x] 文章页：标题 `BlurIn`，精选/CommandBar/列表容器 `FadeIn`
+- [x] 相册页：标题 `BlurIn`，网格 `FadeIn`（去掉 per-item stagger 超预算）
+- [x] 未做 layoutId / ScrollFloat（防范围蔓延）
+
+#### 工程闸门
+
+- [x] `npm run type-check` — 通过（2026-07-19）
+- [x] `npm test` — 25 passed / 8 suites
+- [x] `npm run lint` — 0 errors（6 既有 warnings）
 
 ### Phase 1 明确不做（历史）
 

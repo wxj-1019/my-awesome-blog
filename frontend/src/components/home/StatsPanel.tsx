@@ -10,6 +10,7 @@ import FriendLinks from './FriendLinks'
 import ProfileCard from './ProfileCard'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Area, Legend } from 'recharts'
 import { motion } from 'framer-motion'
+import { FadeIn } from '@/components/motion'
 import { getPopularArticles } from '@/services/articleService'
 import {
   getPublicStatistics,
@@ -683,46 +684,30 @@ export default function StatsPanel() {
   }
 
   return (
-    <motion.section 
-      className="relative overflow-hidden py-8 sm:py-10 md:py-12 lg:py-16"
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-100px' }}
-      transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
-    >
+    <section className="relative overflow-hidden py-8 sm:py-10 md:py-12 lg:py-16">
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
         <div className="absolute inset-x-8 top-8 h-px bg-gradient-to-r from-transparent via-tech-cyan/25 to-transparent" />
         <div className="absolute inset-0 opacity-[0.04] [background-image:linear-gradient(rgba(6,182,212,.45)_1px,transparent_1px),linear-gradient(90deg,rgba(6,182,212,.45)_1px,transparent_1px)] [background-size:56px_56px]" />
         <div className="absolute right-[8%] top-16 h-44 w-44 rounded-full border border-tech-cyan/10 shadow-[0_0_80px_rgba(6,182,212,.1)]" />
       </div>
       <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div 
-          className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true, margin: '-80px' }}
-          transition={{ duration: 0.5 }}
-        >
-          <div className="lg:col-span-4 flex flex-col gap-6">
-            <ProfileCard />
-            <FriendLinks links={mockFriendLinks} />
-          </div>
+        <FadeIn>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+            <div className="lg:col-span-4 flex flex-col gap-6">
+              <ProfileCard />
+              <FriendLinks links={mockFriendLinks} />
+            </div>
 
-          <div className="lg:col-span-8">
-            <ArticleList articles={articles} loading={loading} error={error} onRetry={handleRetry} />
+            <div className="lg:col-span-8">
+              <ArticleList articles={articles} loading={loading} error={error} onRetry={handleRetry} />
+            </div>
           </div>
-        </motion.div>
+        </FadeIn>
 
-        <motion.div 
-          className="mt-6 lg:mt-8"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-80px' }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-        >
+        <FadeIn className="mt-6 lg:mt-8" delay={0.1}>
           <StatsCharts stats={publicStats} />
-        </motion.div>
+        </FadeIn>
       </div>
-    </motion.section>
+    </section>
   )
 }

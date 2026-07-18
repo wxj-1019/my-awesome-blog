@@ -11,6 +11,7 @@ import ImageTrail from '@/components/ui/ImageTrail';
 import { useThemedClasses } from '@/hooks/useThemedClasses';
 import { Album } from '@/types';
 import { apiRequest } from '@/lib/api-client';
+import { BlurIn, FadeIn } from '@/components/motion';
 const AlbumsPageContent = () => {
   const [albums, setAlbums] = useState<Album[]>([]);
   const [, setSelectedAlbum] = useState<Album | null>(null);
@@ -243,9 +244,11 @@ const AlbumsPageContent = () => {
               >
                 <Camera className="w-6 h-6 text-tech-cyan" />
               </motion.div>
-              <h1 className="text-4xl sm:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-tech-cyan via-tech-sky via-purple-400 to-pink-500">
+              <BlurIn>
+                <h1 className="text-4xl sm:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-tech-cyan via-tech-sky via-purple-400 to-pink-500">
                 我的相册
               </h1>
+              </BlurIn>
               <div className="flex items-center justify-center gap-4 my-4">
                 <div className="h-px w-16 bg-gradient-to-r from-transparent to-tech-cyan/50" />
                 <div className="w-2 h-2 rounded-full bg-tech-cyan animate-pulse" />
@@ -347,34 +350,26 @@ const AlbumsPageContent = () => {
               />
             </motion.div>
           ) : (
-            <motion.div
-              key={viewMode}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-              className={cn(
-                'grid gap-6',
-                viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'
-              )}
-            >
-              {filteredAndSortedAlbums.map((album, index) => (
-                <motion.div
-                  key={album.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: index * 0.05 }}
-                >
-                  <AlbumCard
-                    album={album}
-                    onClick={handleImageClick}
-                    showOverlay={true}
-                    enableHoverEffect={true}
-                    enableMagneticEffect={true}
-                  />
-                </motion.div>
-              ))}
-            </motion.div>
+            <FadeIn key={viewMode}>
+              <div
+                className={cn(
+                  'grid gap-6',
+                  viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'
+                )}
+              >
+                {filteredAndSortedAlbums.map((album) => (
+                  <div key={album.id}>
+                    <AlbumCard
+                      album={album}
+                      onClick={handleImageClick}
+                      showOverlay={true}
+                      enableHoverEffect={true}
+                      enableMagneticEffect={true}
+                    />
+                  </div>
+                ))}
+              </div>
+            </FadeIn>
           )}
         </AnimatePresence>
         {filteredAndSortedAlbums.length === 0 && (

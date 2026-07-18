@@ -11,6 +11,7 @@ import Loader from '@/components/loading/Loader';
 import GlitchText from '@/components/ui/GlitchText';
 import { FocusCards } from '@/components/ui/FocusCards';
 import ArticleCardSkeleton from '@/components/articles/ArticleCardSkeleton';
+import { BlurIn, FadeIn } from '@/components/motion';
 import {  Article, Category, Tag } from '@/types';
 import logger from '@/utils/logger';
 import { mapArticlesToAlbums, getHotArticles } from '@/utils/articleHelpers';
@@ -110,51 +111,53 @@ function ArticlesPageContent() {
   return (
     <div className="min-h-screen bg-[#18181B] text-white font-sans selection:bg-[#EC4899] selection:text-white">
       <div className="relative">
-        <div className="pt-20 pb-10 text-center">
-          <GlitchText text="ARTICLES" size="lg" className="mb-4 font-display" />
-          <p className="text-gray-400 font-mono text-sm tracking-widest uppercase">
-            Explore digital frontier
-          </p>
-        </div>
-        {featuredArticleCount > 0 && (
-          <div className="mb-16">
-            <FocusCards cards={featuredAlbums} />
+        <BlurIn>
+          <div className="pt-20 pb-10 text-center">
+            <GlitchText text="ARTICLES" size="lg" className="mb-4 font-display" />
+            <p className="text-gray-400 font-mono text-sm tracking-widest uppercase">
+              Explore digital frontier
+            </p>
           </div>
+        </BlurIn>
+        {featuredArticleCount > 0 && (
+          <FadeIn className="mb-16">
+            <FocusCards cards={featuredAlbums} />
+          </FadeIn>
         )}
         <div className="container mx-auto px-4 py-8 pb-32">
-          <CommandBar
-            categories={categories}
-            tags={tags}
-            onCategoryChange={filters.handleCategoryChange}
-            onTagChange={filters.handleTagChange}
-            onSearchChange={filters.handleSearchChange}
-            onViewToggle={handleViewToggle}
-            currentView={viewMode}
-            onOpenDrawer={() => setDrawerOpen(true)}
-          />
+          <FadeIn delay={0.05}>
+            <CommandBar
+              categories={categories}
+              tags={tags}
+              onCategoryChange={filters.handleCategoryChange}
+              onTagChange={filters.handleTagChange}
+              onSearchChange={filters.handleSearchChange}
+              onViewToggle={handleViewToggle}
+              currentView={viewMode}
+              onOpenDrawer={() => setDrawerOpen(true)}
+            />
+          </FadeIn>
           <div className="mt-8">
             {error ? (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-center py-20"
-              >
-                <div className={`text-4xl font-bold mb-4 ${getThemeClass('text-red-500', 'text-red-600')}`}>
-                  加载失败
+              <FadeIn>
+                <div className="text-center py-20">
+                  <div className={`text-4xl font-bold mb-4 ${getThemeClass('text-red-500', 'text-red-600')}`}>
+                    加载失败
+                  </div>
+                  <p className={`text-lg mb-6 ${getThemeClass('text-gray-400', 'text-gray-600')}`}>
+                    {error}
+                  </p>
+                  <button
+                    onClick={() => fetchInitialData()}
+                    className={`px-6 py-3 rounded-lg font-medium ${getThemeClass(
+                      'bg-tech-cyan text-white hover:bg-tech-lightcyan',
+                      'bg-blue-600 text-white hover:bg-blue-700'
+                    )}`}
+                  >
+                    重新加载
+                  </button>
                 </div>
-                <p className={`text-lg mb-6 ${getThemeClass('text-gray-400', 'text-gray-600')}`}>
-                  {error}
-                </p>
-                <button
-                  onClick={() => fetchInitialData()}
-                  className={`px-6 py-3 rounded-lg font-medium ${getThemeClass(
-                    'bg-tech-cyan text-white hover:bg-tech-lightcyan',
-                    'bg-blue-600 text-white hover:bg-blue-700'
-                  )}`}
-                >
-                  重新加载
-                </button>
-              </motion.div>
+              </FadeIn>
             ) : loading ? (
               <div className={viewMode === 'grid'
                 ? 'columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6'
@@ -167,34 +170,34 @@ function ArticlesPageContent() {
               </div>
             ) : articles.length > 0 ? (
               <>
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className={viewMode === 'grid'
-                    ? 'columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6'
-                    : 'space-y-6'
-                  }
-                >
-                  <AnimatePresence mode="popLayout">
-                    {articles.map((article, _index) => (
-                      <motion.div
-                        key={article.id}
-                        layout
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.9 }}
-                        transition={{ duration: 0.3 }}
-                        className="break-inside-avoid mb-6"
-                      >
-                        <HoloCard
-                          article={article}
-                          isFeatured={false}
-                          className="w-full"
-                        />
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
-                </motion.div>
+                <FadeIn>
+                  <div
+                    className={viewMode === 'grid'
+                      ? 'columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6'
+                      : 'space-y-6'
+                    }
+                  >
+                    <AnimatePresence mode="popLayout">
+                      {articles.map((article) => (
+                        <motion.div
+                          key={article.id}
+                          layout
+                          initial={{ opacity: 0, scale: 0.96 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.96 }}
+                          transition={{ duration: 0.25 }}
+                          className="break-inside-avoid mb-6"
+                        >
+                          <HoloCard
+                            article={article}
+                            isFeatured={false}
+                            className="w-full"
+                          />
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
+                  </div>
+                </FadeIn>
                 {hasMore && (
                   <div ref={observerTargetRef} className="py-8 text-center">
                     {loadingMore ? (
