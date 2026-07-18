@@ -386,6 +386,8 @@ export default function Timeline() {
   const [events, setEvents] = useState<TimelineEvent[]>([])
   const [loading, setLoading] = useState(true)
   const shouldReduceMotion = useReducedMotion()
+  /** 方案 E：列表 stagger 桌面 ≤12，避免全量入场过重 */
+  const TIMELINE_STAGGER_CAP = 12
 
   useEffect(() => {
     const loadEvents = async () => {
@@ -402,6 +404,8 @@ export default function Timeline() {
 
     loadEvents()
   }, [])
+
+  const visibleEvents = events.slice(0, TIMELINE_STAGGER_CAP)
 
   return (
     <section className="py-12 sm:py-14 md:py-16 lg:py-20 relative overflow-hidden">
@@ -440,7 +444,7 @@ export default function Timeline() {
             {/* 发光效果背景 */}
             <div className="absolute left-6 sm:left-8 top-0 h-full w-32 sm:w-40 -ml-16 sm:-ml-20 bg-gradient-to-r from-transparent via-tech-cyan/10 to-transparent opacity-30 pointer-events-none" />
 
-            {events.map((event, index) => (
+            {visibleEvents.map((event, index) => (
               <TimelineEventItem key={event.id} event={event} index={index} />
             ))}
           </div>

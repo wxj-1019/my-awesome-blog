@@ -103,6 +103,38 @@ Hero 文案 stagger（Phase 2）
 - [x] `prefers-reduced-motion` 下组件回退（FadeIn/BlurIn/Stagger/HoverLift）
 - [x] type-check 通过
 
+### Phase 1.1 验收（可见收益 + 结构稳定）
+
+#### 功能
+
+- [x] Featured 优先 `getFeaturedArticles(6)`，空则 `getPopularArticles(6)`
+- [x] Featured 有数据时渲染 `featured-hero-card` + `featured-satellite-card`
+- [x] Featured 无数据时保留「暂无精选文章」
+- [x] MobileDrawer：`AnimatePresence` 下 **overlay / panel 分两个树**（稳定 exit，避免 fragment 问题）
+- [x] Timeline 标题 `BlurIn`；事件列表渲染上限 **12**（stagger 预算）
+
+#### 工程闸门（必须全部绿）
+
+- [x] `npm run type-check` — 通过（2026-07-19）
+- [x] `npm test` — 25 passed（FeaturedHighlights 3 cases）
+- [x] `npm run lint` — 0 errors（仅既有 warnings）
+- [x] 首页相关 API / 页面 HTTP 抽检 — featured/popular/stats/health + `/` `/articles` 均为 200
+
+#### 人工 / 行为清单（审查用）
+
+1. 桌面打开首页：精选区有真实卡片或明确空态，无控制台 `ENOTFOUND backend`
+2. 滚动 Tech / Timeline / Subscribe：标题入场来自 motion 入口
+3. 窄屏打开/关闭 MobileDrawer：开合动画完整，关闭后无残留遮罩
+4. 系统开启「减少动态效果」：无大位移/缩放入场（允许极短 opacity）
+5. 网络断开精选 API：应降级 popular 或空态，不白屏崩溃
+
+#### 明确未做（防范围蔓延）
+
+- Hero L3 / pin / 视频 zoom（Phase 2）
+- StatsPanel 深度动效与拆分
+- 全站清除裸 `framer-motion`
+- `@/components/gsap` 业务接入（待 Phase 2 Hero/Bridge）
+
 ### Phase 1 明确不做
 
 - Hero L3 / pin / 视频 zoom  

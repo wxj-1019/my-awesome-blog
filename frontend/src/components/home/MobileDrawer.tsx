@@ -95,7 +95,6 @@ export default function MobileDrawer() {
 
       <AnimatePresence>
         {isOpen && (
-        <>
           <motion.div
             key="mobile-drawer-overlay"
             ref={overlayRef}
@@ -107,7 +106,11 @@ export default function MobileDrawer() {
             exit={{ opacity: 0 }}
             transition={{ duration: shouldReduceMotion ? 0.1 : 0.25 }}
           />
+        )}
+      </AnimatePresence>
 
+      <AnimatePresence>
+        {isOpen && (
           <motion.aside
             key="mobile-drawer-panel"
             ref={drawerRef}
@@ -298,7 +301,6 @@ export default function MobileDrawer() {
               </div>
             </div>
           </motion.aside>
-        </>
         )}
       </AnimatePresence>
     </>
