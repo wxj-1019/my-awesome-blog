@@ -1,7 +1,6 @@
 import { MOCK_WEATHER } from '@/mock/weather';
-
-const API_BASE_URL = ''; // 使用相对路径，走 Next.js rewrite 代理
-const API_PATH = '/api/v1/weather';
+import { apiRequest } from '@/lib/api-client';
+import logger from '@/utils/logger';
 
 export interface WeatherAQI {
   air: string;
@@ -75,89 +74,86 @@ export interface BackendWeatherData {
   updateTime: string;
 }
 
+function mapWeatherData(data: BackendWeatherCurrent): BackendWeatherData {
+  return {
+    city: data.city,
+    province: data.province,
+    country: '',
+    weather: data.weather,
+    temperature: data.temp.toString(),
+    tempMin: data.min_temp.toString(),
+    tempMax: data.max_temp.toString(),
+    windDirection: data.wind,
+    windSpeed: data.wind_speed,
+    humidity: data.humidity,
+    visibility: data.visibility,
+    pressure: data.pressure,
+    airQuality: data.air,
+    isDaytime: backendWeatherService.isDaytime(data.update_time),
+    updateTime: data.update_time,
+  };
+}
+
 export const backendWeatherService = {
   async getCurrentWeather(city: string = '杭州'): Promise<BackendWeatherData> {
     try {
-      const url = `${API_BASE_URL}${API_PATH}/current?city=${encodeURIComponent(city)}`;
-      const response = await fetch(url);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const result: BackendWeatherResponse = await response.json();
-      
+      const result = await apiRequest<BackendWeatherResponse>(
+        `/weather/current?city=${encodeURIComponent(city)}`
+      );
+
       if (!result.success || !result.data) {
         throw new Error(result.message || '获取天气数据失败');
       }
-      
-      const data = result.data;
-      return {
-        city: data.city,
-        province: data.province,
-        country: '',
-        weather: data.weather,
-        temperature: data.temp.toString(),
-        tempMin: data.min_temp.toString(),
-        tempMax: data.max_temp.toString(),
-        windDirection: data.wind,
-        windSpeed: data.wind_speed,
-        humidity: data.humidity,
-        visibility: data.visibility,
-        pressure: data.pressure,
-        airQuality: data.air,
-        isDaytime: this.isDaytime(data.update_time),
-        updateTime: data.update_time,
-      };
+
+      return mapWeatherData(result.data);
     } catch (error) {
-      console.error('Failed to fetch weather from backend:', error);
-      return { ...MOCK_WEATHER, updateTime: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }) };
+      logger.error('Failed to fetch weather from backend:', error);
+      return {
+        ...MOCK_WEATHER,
+        updateTime: new Date().toLocaleTimeString('zh-CN', {
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+      };
     }
   },
 
   async getForecast(city: string = '杭州'): Promise<BackendWeatherData> {
     try {
-      const url = `${API_BASE_URL}${API_PATH}/forecast?city=${encodeURIComponent(city)}`;
-      const response = await fetch(url);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const result: BackendWeatherResponse = await response.json();
-      
+      const result = await apiRequest<BackendWeatherResponse>(
+        `/weather/forecast?city=${encodeURIComponent(city)}`
+      );
+
       if (!result.success || !result.data) {
         throw new Error(result.message || '获取天气预报失败');
       }
-      
-      const data = result.data;
-      return {
-        city: data.city,
-        province: data.province,
-        country: '',
-        weather: data.weather,
-        temperature: data.temp.toString(),
-        tempMin: data.min_temp.toString(),
-        tempMax: data.max_temp.toString(),
-        windDirection: data.wind,
-        windSpeed: data.wind_speed,
-        humidity: data.humidity,
-        visibility: data.visibility,
-        pressure: data.pressure,
-        airQuality: data.air,
-        isDaytime: this.isDaytime(data.update_time),
-        updateTime: data.update_time,
-      };
+
+      return mapWeatherData(result.data);
     } catch (error) {
-      console.error('Failed to fetch forecast from backend:', error);
-      return { ...MOCK_WEATHER, updateTime: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }) };
+      logger.error('Failed to fetch forecast from backend:', error);
+      return {
+        ...MOCK_WEATHER,
+        updateTime: new Date().toLocaleTimeString('zh-CN', {
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+      };
     }
   },
 
   isDaytime(updateTime: string): boolean {
-    if (!updateTime) {return true;}
+    if (!updateTime) {
+      return true;
+    }
     try {
-      const hour = parseInt(updateTime.split(':')[0]);
+      // 支持 "HH:mm" 或 "YYYY-MM-DD HH:mm:ss"
+      const timePart = updateTime.includes(' ')
+        ? updateTime.trim().split(/\s+/)[1] || ''
+        : updateTime;
+      const hour = parseInt(timePart.split(':')[0], 10);
+      if (Number.isNaN(hour)) {
+        return true;
+      }
       return hour >= 6 && hour < 18;
     } catch {
       return true;

@@ -9,7 +9,7 @@ import type {
   PaginatedResponse,
 } from '@/types';
 
-const API_BASE = '/api/v1/tenants';
+const API_BASE = '/tenants';
 
 export const tenantService = {
   async getTenants(params?: {

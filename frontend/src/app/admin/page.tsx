@@ -76,12 +76,12 @@ export default function AdminDashboard() {
         tagsRes,
         recentArticlesRes
       ] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/v1/articles/?skip=0&limit=1`, { headers }),
-        fetch(`${API_BASE_URL}/api/v1/users/?skip=0&limit=1`, { headers }),
-        fetch(`${API_BASE_URL}/api/v1/subscriptions/?skip=0&limit=1`, { headers }),
-        fetch(`${API_BASE_URL}/api/v1/categories/`, { headers }),
-        fetch(`${API_BASE_URL}/api/v1/tags/`, { headers }),
-        fetch(`${API_BASE_URL}/api/v1/articles/?skip=0&limit=5&sort=-created_at`, { headers })
+        fetch(`${API_BASE_URL}/articles/?skip=0&limit=1`, { headers }),
+        fetch(`${API_BASE_URL}/users/?skip=0&limit=1`, { headers }),
+        fetch(`${API_BASE_URL}/subscriptions/?skip=0&limit=1`, { headers }),
+        fetch(`${API_BASE_URL}/categories/`, { headers }),
+        fetch(`${API_BASE_URL}/tags/`, { headers }),
+        fetch(`${API_BASE_URL}/articles/?skip=0&limit=5&sort=-created_at`, { headers })
       ])
 
       const articlesData = await articlesRes.json()

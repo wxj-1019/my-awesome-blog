@@ -11,7 +11,9 @@ import type {
   PaginatedResponse,
 } from '@/types';
 
-const API_BASE = '/api/v1/conversations';
+import { API_BASE_URL, TOKEN_KEY } from '@/lib/api-client';
+
+const API_BASE = '/conversations';
 
 export const conversationService = {
   async getConversations(params?: {
@@ -81,8 +83,8 @@ export const conversationService = {
     onComplete?: () => void,
     onError?: (error: string) => void
   ): Promise<void> {
-    const token = localStorage.getItem('auth_token');
-    const url = `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8989'}${API_BASE}/${id}/chat/stream`;
+    const token = typeof window !== 'undefined' ? localStorage.getItem(TOKEN_KEY) : null;
+    const url = `${API_BASE_URL}${API_BASE}/${id}/chat/stream`;
     
     try {
       const response = await fetch(url, {

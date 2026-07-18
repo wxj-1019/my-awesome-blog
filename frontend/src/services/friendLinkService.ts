@@ -47,7 +47,7 @@ export const friendLinkService = {
     if (params?.skip !== undefined) {queryString.append('skip', params.skip.toString());}
     if (params?.limit !== undefined) {queryString.append('limit', params.limit.toString());}
 
-    return apiRequest(`${API_URL}?${queryString.toString()}`);
+    return apiRequest(`${API_URL}/?${queryString.toString()}`);
   },
 
   async getFriendLinkById(linkId: string): Promise<FriendLink> {
@@ -55,7 +55,7 @@ export const friendLinkService = {
   },
 
   async createFriendLink(linkData: FriendLinkCreate): Promise<FriendLink> {
-    return apiRequest(API_URL, {
+    return apiRequest(`${API_URL}/`, {
       method: 'POST',
       body: linkData,
     });

@@ -9,7 +9,7 @@ export async function GET(
   try {
     const { id } = await params;
     
-    const response = await fetch(`${API_BASE_URL}/api/v1/messages/${id}/replies`, {
+    const response = await fetch(`${API_BASE_URL}/messages/${id}/replies`, {
       headers: {
         'Content-Type': 'application/json',
       },

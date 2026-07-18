@@ -48,12 +48,17 @@ const nextConfig = {
     ];
   },
   async rewrites() {
+    // 本地开发默认代理到本机后端；Docker 内设置 INTERNAL_API_URL=http://backend:8989
+    const internalApi =
+      process.env.INTERNAL_API_URL ||
+      process.env.NEXT_PUBLIC_API_ORIGIN ||
+      'http://127.0.0.1:8989';
     return [
       {
         source: '/api/v1/:path*',
-        destination: `${process.env.INTERNAL_API_URL || 'http://backend:8989'}/api/v1/:path*`, // 后端服务地址
+        destination: `${internalApi.replace(/\/$/, '')}/api/v1/:path*`,
       },
-    ]
+    ];
   },
   webpack: (config, { isServer }) => {
     if (!isServer) {

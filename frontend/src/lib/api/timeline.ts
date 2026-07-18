@@ -19,7 +19,7 @@ export async function fetchTimelineEvents(
 ): Promise<TimelineItem[]> {
   try {
     const response = await apiFetch(
-      `/api/v1/timeline-events/?skip=${skip}&limit=${limit}&is_active=${isActive}`,
+      `/timeline-events/?skip=${skip}&limit=${limit}&is_active=${isActive}`,
       {
         method: 'GET',
         headers: {
@@ -55,7 +55,7 @@ export async function fetchTimelineEventById(
 ): Promise<BackendTimelineEvent> {
   try {
     const response = await apiFetch(
-      `/api/v1/timeline-events/${eventId}`,
+      `/timeline-events/${eventId}`,
       {
         method: 'GET',
         headers: {

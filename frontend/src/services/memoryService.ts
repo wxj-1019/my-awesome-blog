@@ -8,7 +8,7 @@ import type {
   PaginatedResponse,
 } from '@/types';
 
-const API_BASE = '/api/v1/memories';
+const API_BASE = '/memories';
 
 export const memoryService = {
   async getMemories(params?: {

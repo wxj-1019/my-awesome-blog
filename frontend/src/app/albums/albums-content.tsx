@@ -10,6 +10,7 @@ import MasonryGallery, { MasonryImage } from '@/components/ui/MasonryGallery';
 import ImageTrail from '@/components/ui/ImageTrail';
 import { useThemedClasses } from '@/hooks/useThemedClasses';
 import { Album } from '@/types';
+import { apiRequest } from '@/lib/api-client';
 const AlbumsPageContent = () => {
   const [albums, setAlbums] = useState<Album[]>([]);
   const [, setSelectedAlbum] = useState<Album | null>(null);
@@ -25,16 +26,8 @@ const AlbumsPageContent = () => {
   useEffect(() => {
     const fetchAlbums = async () => {
       try {
-        const response = await fetch('/api/v1/albums/');
-        const text = await response.text();
-        let result: unknown;
-        try {
-          result = JSON.parse(text);
-        } catch {
-          console.error('相册接口返回非JSON:', text.slice(0, 200));
-          throw new Error('服务器返回格式错误');
-        }
-        
+        const result = await apiRequest<unknown>('/albums/');
+
         if (Array.isArray(result)) {
           setAlbums(result as Album[]);
         } else if (result && typeof result === 'object' && 'data' in result && Array.isArray((result as { data: unknown }).data)) {

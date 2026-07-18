@@ -1,4 +1,5 @@
-// API utilities for the blog
+// 兼容旧服务层：统一走 api-client（含 base URL、token、重试）
+import { apiRequest as coreRequest, API_BASE_URL } from '@/lib/api-client';
 
 interface ApiRequestOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
@@ -6,33 +7,40 @@ interface ApiRequestOptions {
   headers?: Record<string, string>;
 }
 
+/**
+ * 将历史代码中的绝对/相对路径规范为 api-client 可用的 endpoint。
+ * - `/api/v1/xxx` → `/xxx`（base 已含 /api/v1）
+ * - `http(s)://host/api/v1/xxx` → `/xxx`
+ * - `/xxx` 保持不变
+ */
+function normalizeEndpoint(endpoint: string): string {
+  if (endpoint.startsWith('http://') || endpoint.startsWith('https://')) {
+    try {
+      const url = new URL(endpoint);
+      const path = url.pathname + url.search;
+      if (path.startsWith('/api/v1')) {
+        return path.slice('/api/v1'.length) || '/';
+      }
+      return path;
+    } catch {
+      return endpoint;
+    }
+  }
+
+  if (endpoint.startsWith('/api/v1')) {
+    return endpoint.slice('/api/v1'.length) || '/';
+  }
+
+  return endpoint;
+}
+
 export async function apiRequest<T>(endpoint: string, options: ApiRequestOptions = {}): Promise<T> {
   const { method = 'GET', body, headers = {} } = options;
-
-  const config: RequestInit = {
+  return coreRequest<T>(normalizeEndpoint(endpoint), {
     method,
-    headers: {
-      'Content-Type': 'application/json',
-      ...headers,
-    },
-  };
-
-  if (body) {
-    config.body = JSON.stringify(body);
-  }
-
-  const response = await fetch(endpoint, config);
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ detail: 'Request failed' }));
-    throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
-  }
-
-  if (response.status === 204) {
-    return undefined as T;
-  }
-
-  return response.json();
+    body,
+    headers,
+  });
 }
 
 export interface TypewriterContent {
@@ -46,18 +54,14 @@ export interface TypewriterContent {
 
 /**
  * 获取活动的打字机内容
- * @returns Promise<TypewriterContent[]>
  */
 export async function getActiveTypewriterContents(): Promise<TypewriterContent[]> {
   try {
-    const response = await fetch('/api/v1/typewriter-contents/active');
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const data = await response.json();
-    return data;
+    return await apiRequest<TypewriterContent[]>('/typewriter-contents/active');
   } catch (error) {
     console.error('Failed to fetch typewriter contents:', error);
     return [];
   }
 }
+
+export { API_BASE_URL };

@@ -9,8 +9,8 @@ export async function GET(request: NextRequest) {
     
     // 构建后端API URL
     const endpoint = danmakuOnly 
-      ? `${API_BASE_URL}/api/v1/messages/danmaku`
-      : `${API_BASE_URL}/api/v1/messages/`;
+      ? `${API_BASE_URL}/messages/danmaku`
+      : `${API_BASE_URL}/messages/`;
     
     const response = await fetch(endpoint, {
       headers: {
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     // 从请求头中获取认证令牌
     const authHeader = request.headers.get('Authorization');
     
-    const response = await fetch(`${API_BASE_URL}/api/v1/messages/`, {
+    const response = await fetch(`${API_BASE_URL}/messages/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

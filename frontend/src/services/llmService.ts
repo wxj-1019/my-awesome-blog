@@ -1,4 +1,5 @@
 import { apiRequest } from '@/lib/api';
+import { API_BASE_URL, TOKEN_KEY } from '@/lib/api-client';
 import type {
   LLMChatRequest,
   LLMChatResponse,
@@ -7,7 +8,7 @@ import type {
   LLMModel,
 } from '@/types';
 
-const API_BASE = '/api/v1/llm';
+const API_BASE = '/llm';
 
 export const llmService = {
   async chat(request: LLMChatRequest): Promise<LLMChatResponse> {
@@ -27,8 +28,8 @@ export const llmService = {
     onComplete?: (fullContent: string) => void,
     onError?: (error: string) => void
   ): Promise<void> {
-    const token = localStorage.getItem('auth_token');
-    const url = `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8989'}${API_BASE}/chat/stream`;
+    const token = typeof window !== 'undefined' ? localStorage.getItem(TOKEN_KEY) : null;
+    const url = `${API_BASE_URL}${API_BASE}/chat/stream`;
     
     try {
       const response = await fetch(url, {

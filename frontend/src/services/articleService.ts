@@ -27,7 +27,8 @@ export const getArticles = async (filters?: {
   if (skip !== undefined) {params.append('skip', String(Math.max(skip, 0)));}
 
   const queryString = params.toString();
-  const endpoint = `/articles/${queryString ? `?${queryString}` : ''}`;
+  // FastAPI 路由为 /articles/，无尾斜杠会 307
+  const endpoint = queryString ? `/articles/?${queryString}` : '/articles/';
 
   return apiRequest(endpoint);
 };

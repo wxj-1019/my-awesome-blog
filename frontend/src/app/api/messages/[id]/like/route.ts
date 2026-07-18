@@ -12,7 +12,7 @@ export async function POST(
     // 从请求头中获取认证令牌
     const authHeader = request.headers.get('Authorization');
     
-    const response = await fetch(`${API_BASE_URL}/api/v1/messages/${id}/like`, {
+    const response = await fetch(`${API_BASE_URL}/messages/${id}/like`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

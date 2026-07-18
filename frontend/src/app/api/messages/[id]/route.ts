@@ -12,7 +12,7 @@ export async function DELETE(
     // 从请求头中获取认证令牌
     const authHeader = request.headers.get('Authorization');
     
-    const response = await fetch(`${API_BASE_URL}/api/v1/messages/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/messages/${id}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
@@ -51,7 +51,7 @@ export async function GET(
   try {
     const { id } = await params;
     
-    const response = await fetch(`${API_BASE_URL}/api/v1/messages/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/messages/${id}`, {
       headers: {
         'Content-Type': 'application/json',
       },
