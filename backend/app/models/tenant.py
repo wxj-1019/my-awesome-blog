@@ -3,11 +3,12 @@ Tenant Model
 多租户数据模型
 """
 
-from sqlalchemy import Column, String, Boolean, DateTime, UUID, Integer, Index
+from sqlalchemy import Column, String, Boolean, DateTime, Integer, Index
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 import uuid
 from app.core.database import Base
+from app.core.types import UUIDType
 
 
 class Tenant(Base):
@@ -23,7 +24,7 @@ class Tenant(Base):
         Index('idx_tenant_created', 'created_at'),
     )
     
-    id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
+    id = Column(UUIDType, primary_key=True, index=True, default=uuid.uuid4)
     name = Column(String(100), nullable=False, index=True, unique=True)
     slug = Column(String(50), nullable=False, index=True, unique=True)
     description = Column(String(500))

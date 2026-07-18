@@ -1,16 +1,17 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, UUID, ForeignKey
+from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, ForeignKey
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 import uuid
 from app.core.database import Base
+from app.core.types import UUIDType
 
 
 class PortfolioImage(Base):
     __tablename__ = "portfolio_images"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
-    portfolio_id = Column(UUID(as_uuid=True), ForeignKey("portfolios.id"), nullable=False)
-    image_id = Column(UUID(as_uuid=True), ForeignKey("images.id"), nullable=False)
+    id = Column(UUIDType, primary_key=True, index=True, default=uuid.uuid4)
+    portfolio_id = Column(UUIDType, ForeignKey("portfolios.id"), nullable=False)
+    image_id = Column(UUIDType, ForeignKey("images.id"), nullable=False)
     sort_order = Column(Integer, default=0)  # 用于排序
     is_cover = Column(Boolean, default=False)  # 标记是否为封面图
     created_at = Column(DateTime(timezone=True), server_default=func.now())

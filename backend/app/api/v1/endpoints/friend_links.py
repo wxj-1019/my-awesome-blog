@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.core.database import get_db
@@ -14,7 +14,7 @@ router = APIRouter()
 def read_friend_links(
     skip: int = 0,
     limit: int = 100,
-    is_active: bool = True,
+    is_active: Optional[bool] = None,
     db: Session = Depends(get_db)
 ) -> Any:
     """
@@ -154,15 +154,12 @@ def track_friend_link_click(
             detail="Invalid friend link ID format",
         )
     
-    friend_link = crud.get_friend_link(db, friend_link_id=friend_link_uuid)
-    if not friend_link:
+    success = crud.increment_click_count(db, friend_link_id=friend_link_uuid)
+    if not success:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Friend link not found",
         )
     
-    # Increment click count
-    friend_link.click_count = (friend_link.click_count or 0) + 1
-    db.commit()
-    
-    return {"message": "Click tracked successfully", "click_count": friend_link.click_count}
+    friend_link = crud.get_friend_link(db, friend_link_id=friend_link_uuid)
+    return {"message": "Click tracked successfully", "click_count": friend_link.click_count if friend_link else 0}

@@ -152,7 +152,7 @@ class StatisticsService:
         """
         获取作者统计
         """
-        from app.crud.relations import get_authors_with_article_count
+        from app.crud.user import get_authors_with_article_count
         
         authors = get_authors_with_article_count(db)
         
@@ -306,4 +306,129 @@ class StatisticsService:
                     "count": row.count
                 } for row in monthly_stats
             ]
+        }
+    @staticmethod
+    def get_general_statistics(db: Session) -> Dict:
+        """
+        获取通用网站统计（与测试期望格式一致）
+        """
+        total_articles = db.query(func.count(Article.id)).scalar()
+        total_comments = db.query(func.count(Comment.id)).scalar()
+        total_categories = db.query(func.count(Category.id)).scalar()
+        total_tags = db.query(func.count(Tag.id)).scalar()
+        total_users = db.query(func.count(User.id)).scalar()
+        total_views = db.query(func.sum(Article.view_count)).scalar() or 0
+        total_friend_links = db.query(func.count(FriendLink.id)).scalar()
+
+        recent_signups = db.query(User).order_by(User.created_at.desc()).limit(5).all()
+        recent_articles = db.query(Article).order_by(Article.created_at.desc()).limit(5).all()
+
+        return {
+            "total_users": total_users,
+            "total_articles": total_articles,
+            "total_comments": total_comments,
+            "total_categories": total_categories,
+            "total_tags": total_tags,
+            "total_views": int(total_views),
+            "total_friend_links": total_friend_links,
+            "recent_signups": [
+                {"id": str(u.id), "username": u.username, "created_at": u.created_at.isoformat() if u.created_at else None}
+                for u in recent_signups
+            ],
+            "recent_articles": [
+                {"id": str(a.id), "title": a.title, "created_at": a.created_at.isoformat() if a.created_at else None}
+                for a in recent_articles
+            ],
+        }
+
+    @staticmethod
+    def get_article_statistics(db: Session) -> Dict:
+        """
+        获取文章统计（与测试期望格式一致）
+        """
+        total_articles = db.query(func.count(Article.id)).scalar()
+        published_articles = db.query(func.count(Article.id)).filter(
+            Article.is_published == True
+        ).scalar()
+        draft_articles = total_articles - published_articles
+
+        top_viewed = db.query(Article).filter(
+            Article.is_published == True
+        ).order_by(Article.view_count.desc()).limit(5).all()
+
+        recent = db.query(Article).order_by(Article.created_at.desc()).limit(5).all()
+
+        categories = get_categories_with_article_count(db)
+        articles_by_category = [
+            {
+                "id": str(c.id),
+                "name": c.name,
+                "article_count": getattr(c, "article_count", 0)
+            }
+            for c in categories
+        ]
+
+        monthly = db.query(
+            func.extract('year', Article.created_at).label('year'),
+            func.extract('month', Article.created_at).label('month'),
+            func.count(Article.id).label('count')
+        ).group_by(
+            func.extract('year', Article.created_at),
+            func.extract('month', Article.created_at)
+        ).order_by(
+            func.extract('year', Article.created_at).desc(),
+            func.extract('month', Article.created_at).desc()
+        ).all()
+
+        return {
+            "total_articles": total_articles,
+            "published_articles": published_articles,
+            "draft_articles": draft_articles,
+            "top_viewed_articles": [
+                {"id": str(a.id), "title": a.title, "view_count": a.view_count}
+                for a in top_viewed
+            ],
+            "recent_articles": [
+                {"id": str(a.id), "title": a.title, "created_at": a.created_at.isoformat() if a.created_at else None}
+                for a in recent
+            ],
+            "articles_by_category": articles_by_category,
+            "monthly_article_counts": [
+                {"year": int(row.year), "month": int(row.month), "count": row.count}
+                for row in monthly
+            ],
+        }
+
+    @staticmethod
+    def get_user_statistics(db: Session) -> Dict:
+        """
+        获取用户统计（与测试期望格式一致）
+        """
+        total_users = db.query(func.count(User.id)).scalar()
+        active_users = db.query(func.count(User.id)).filter(
+            User.is_active == True
+        ).scalar()
+
+        recent_registrations = db.query(User).order_by(User.created_at.desc()).limit(5).all()
+
+        # 最近 30 天每日新增用户
+        start_date = datetime.now(timezone.utc) - timedelta(days=30)
+        daily_users = db.query(
+            func.date(User.created_at).label('date'),
+            func.count(User.id).label('count')
+        ).filter(
+            User.created_at >= start_date
+        ).group_by(func.date(User.created_at)).order_by(func.date(User.created_at)).all()
+
+        return {
+            "total_users": total_users,
+            "active_users": active_users,
+            "recent_registrations": [
+                {"id": str(u.id), "username": u.username, "created_at": u.created_at.isoformat() if u.created_at else None}
+                for u in recent_registrations
+            ],
+            "user_growth": [
+                {"date": str(row.date), "count": row.count}
+                for row in daily_users
+            ],
         }

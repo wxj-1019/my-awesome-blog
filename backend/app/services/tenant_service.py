@@ -7,7 +7,9 @@ from app.crud.memory import get_memories
 from app.crud.conversation import get_conversations
 from app.schemas.tenant import TenantCreate, TenantUpdate
 from app.models.tenant import Tenant
-from app.models.conversation import Conversation
+from app.models.conversation import Conversation, ConversationMessage
+from app.models.prompt import Prompt
+from app.models.memory import Memory
 from app.utils.logger import app_logger
 
 
@@ -79,24 +81,21 @@ class TenantService:
         
         app_logger.info(f"Calculating usage stats for tenant: {tenant_id}")
         
-        prompt_count = self.db.query(func.count()).select_from(
-            get_prompts(db=self.db, tenant_id=tenant_id, skip=0, limit=1)
+        prompt_count = self.db.query(func.count(Prompt.id)).filter(
+            Prompt.tenant_id == tenant_id
         ).scalar() or 0
-        
-        memory_count = self.db.query(func.count()).select_from(
-            get_memories(db=self.db, tenant_id=tenant_id, skip=0, limit=1)
+
+        memory_count = self.db.query(func.count(Memory.id)).filter(
+            Memory.tenant_id == tenant_id
         ).scalar() or 0
-        
+
         conversation_count = self.db.query(func.count(Conversation.id)).filter(
             Conversation.tenant_id == tenant_id
         ).scalar() or 0
-        
-        message_count = self.db.query(func.count()).filter(
-            and_(
-                Conversation.tenant_id == tenant_id,
-                Conversation.id.isnot(None)
-            )
-        ).scalar() or 0
+
+        message_count = self.db.query(func.count(ConversationMessage.id)).join(
+            Conversation, ConversationMessage.conversation_id == Conversation.id
+        ).filter(Conversation.tenant_id == tenant_id).scalar() or 0
         
         storage_used_mb = 0.0
         if tenant.max_storage_mb > 0:

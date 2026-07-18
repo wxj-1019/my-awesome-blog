@@ -1,5 +1,6 @@
 import pytest
 import time
+import uuid
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 import requests
@@ -72,33 +73,50 @@ def test_multiple_requests_performance(client, test_session):
     assert total_duration < 5.0, f"Total time {total_duration:.3f}s is too slow for {num_requests} requests"
 
 
-def test_concurrent_requests_performance():
+def test_concurrent_requests_performance(test_engine, test_session):
     """Test performance under concurrent load"""
-    # Create a fresh client for this test to avoid session conflicts
-    with TestClient(app) as test_client:
-        def make_request():
-            response = test_client.get("/api/v1/categories/")
-            return response.status_code == 200
-        
-        num_concurrent = 10
-        start_time = time.time()
-        
-        with ThreadPoolExecutor(max_workers=5) as executor:
-            results = list(executor.map(make_request, range(num_concurrent)))
-        
-        total_duration = time.time() - start_time
-        
-        # All requests should succeed
-        assert all(results), "Not all concurrent requests succeeded"
-        
-        # Total time should be reasonable (less than 10 seconds for 10 concurrent requests)
-        assert total_duration < 10.0, f"Concurrent requests took {total_duration:.3f}s"
+    from sqlalchemy.orm import sessionmaker
+    from app.core.database import get_db
+
+    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
+
+    def override_get_db():
+        session = TestingSessionLocal()
+        try:
+            yield session
+        finally:
+            session.close()
+
+    # 每个线程使用独立的 TestClient 和数据库会话，避免共享 Session 导致的并发问题
+    def make_request(_):
+        app.dependency_overrides[get_db] = override_get_db
+        try:
+            with TestClient(app) as test_client:
+                response = test_client.get("/api/v1/categories/")
+                return response.status_code == 200
+        finally:
+            app.dependency_overrides.pop(get_db, None)
+
+    num_concurrent = 10
+    start_time = time.time()
+
+    with ThreadPoolExecutor(max_workers=5) as executor:
+        results = list(executor.map(make_request, range(num_concurrent)))
+
+    total_duration = time.time() - start_time
+
+    # All requests should succeed
+    assert all(results), "Not all concurrent requests succeeded"
+
+    # Total time should be reasonable (less than 10 seconds for 10 concurrent requests)
+    assert total_duration < 10.0, f"Concurrent requests took {total_duration:.3f}s"
 
 
 def test_article_creation_performance(client, test_session):
     """Test performance of article creation with associated data"""
     # Create a user
     user = User(
+        tenant_id=uuid.uuid4(),
         username="perf_test_user",
         email="perf_test@example.com",
         hashed_password="hashed_password",
@@ -140,6 +158,7 @@ def test_search_performance(client, test_session):
     """Test performance of search functionality with various data sizes"""
     # Create a user
     user = User(
+        tenant_id=uuid.uuid4(),
         username="search_perf_user",
         email="search_perf@example.com",
         hashed_password="hashed_password",
@@ -155,8 +174,7 @@ def test_search_performance(client, test_session):
             "slug": f"search-perf-article-{i}",
             "content": f"This is article {i} for search performance testing. It contains searchable content like Python, JavaScript, programming, development, and other relevant terms.",
             "excerpt": f"Excerpt for article {i}",
-            "is_published": True,
-            "author_id": user.id
+            "is_published": True
         }
         client.post("/api/v1/articles/", json=article_data)
     
@@ -169,30 +187,28 @@ def test_search_performance(client, test_session):
     assert search_duration < 1.0, f"Search operation took {search_duration:.3f}s for 20 articles"
 
 
-def test_memory_usage_during_operations():
+def test_memory_usage_during_operations(client, test_session):
     """Test memory usage during operations"""
     # Start tracing memory
     tracemalloc.start()
-    
-    # Perform some operations
-    with TestClient(app) as test_client:
-        # Create a category
-        category_data = {
-            "name": "Memory Test Category",
-            "slug": "memory-test",
-            "description": "Category for memory usage testing"
-        }
-        response = test_client.post("/api/v1/categories/", json=category_data)
-        assert response.status_code == 200
-        
-        # Retrieve categories
-        response = test_client.get("/api/v1/categories/")
-        assert response.status_code == 200
-    
+
+    # Create a category
+    category_data = {
+        "name": "Memory Test Category",
+        "slug": "memory-test",
+        "description": "Category for memory usage testing"
+    }
+    response = client.post("/api/v1/categories/", json=category_data)
+    assert response.status_code == 200
+
+    # Retrieve categories
+    response = client.get("/api/v1/categories/")
+    assert response.status_code == 200
+
     # Take a snapshot
     current, peak = tracemalloc.get_traced_memory()
     tracemalloc.stop()
-    
+
     # Memory usage should be reasonable (less than 100MB peak)
     assert peak < 100 * 1024 * 1024, f"Peak memory usage {peak / 1024 / 1024:.2f}MB is too high"
 
@@ -201,6 +217,7 @@ def test_pagination_performance(client, test_session):
     """Test performance of paginated results"""
     # Create a user
     user = User(
+        tenant_id=uuid.uuid4(),
         username="pagination_user",
         email="pagination@example.com",
         hashed_password="hashed_password",
@@ -216,8 +233,7 @@ def test_pagination_performance(client, test_session):
             "slug": f"paged-article-{i}",
             "content": f"Content for paged article {i}",
             "excerpt": f"Excerpt {i}",
-            "is_published": True,
-            "author_id": user.id
+            "is_published": True
         }
         client.post("/api/v1/articles/", json=article_data)
     
@@ -264,6 +280,7 @@ def test_large_payload_handling(client, test_session):
     """Test how the system handles larger payloads"""
     # Create a user
     user = User(
+        tenant_id=uuid.uuid4(),
         username="large_payload_user",
         email="large.payload@example.com",
         hashed_password="hashed_password",
@@ -281,8 +298,7 @@ def test_large_payload_handling(client, test_session):
         "slug": "large-payload-article",
         "content": large_content,
         "excerpt": "Article with large content payload",
-        "is_published": True,
-        "author_id": user.id
+        "is_published": True
     }
     response = client.post("/api/v1/articles/", json=article_data)
     large_payload_duration = time.time() - start_time

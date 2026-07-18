@@ -1,7 +1,8 @@
-from pydantic import BaseModel, field_serializer
+from pydantic import BaseModel, field_serializer, field_validator
 from typing import Optional, List
 from datetime import date, datetime
 from uuid import UUID
+import json
 
 
 # PortfolioItem 相关的类定义（保持向后兼容）
@@ -19,6 +20,14 @@ class PortfolioItemBase(BaseModel):
     status: Optional[str] = 'completed'  # completed, in_progress, planned
     is_featured: Optional[bool] = False
     sort_order: Optional[int] = 0
+
+    @field_validator('technologies', mode='before')
+    @classmethod
+    def parse_technologies(cls, v):
+        # 数据库中技术栈以JSON字符串存储，读取时自动反序列化
+        if isinstance(v, str):
+            return json.loads(v) if v else []
+        return v if v is not None else []
 
 
 class PortfolioItemCreate(PortfolioItemBase):

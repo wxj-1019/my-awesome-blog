@@ -99,23 +99,23 @@ def get_dashboard_summary(
     获取仪表板摘要信息
     """
     # 获取各种统计数据
-    total_articles = db.query(crud.Article).filter(crud.Article.is_published == True).count()
-    total_users = db.query(crud.User).count()
-    total_comments = db.query(crud.Comment).count()
-    total_views = db.query(func.sum(crud.Article.view_count)).scalar() or 0
+    total_articles = db.query(Article).filter(Article.is_published == True).count()
+    total_users = db.query(User).count()
+    total_comments = db.query(Comment).count()
+    total_views = db.query(func.sum(Article.view_count)).scalar() or 0
     
     # 获取最近一周的数据
     last_week = datetime.utcnow() - timedelta(days=7)
-    new_articles = db.query(crud.Article).filter(crud.Article.created_at >= last_week).count()
-    new_users = db.query(crud.User).filter(crud.User.created_at >= last_week).count()
-    new_comments = db.query(crud.Comment).filter(crud.Comment.created_at >= last_week).count()
+    new_articles = db.query(Article).filter(Article.created_at >= last_week).count()
+    new_users = db.query(User).filter(User.created_at >= last_week).count()
+    new_comments = db.query(Comment).filter(Comment.created_at >= last_week).count()
     
     # 获取热门文章
     from sqlalchemy import desc
-    top_articles = db.query(crud.Article).filter(
-        crud.Article.is_published == True
+    top_articles = db.query(Article).filter(
+        Article.is_published == True
     ).order_by(
-        desc(crud.Article.view_count)
+        desc(Article.view_count)
     ).limit(5).all()
     
     summary = {

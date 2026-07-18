@@ -1,14 +1,15 @@
-from sqlalchemy import Column, Integer, String, Text, Boolean, BigInteger, DateTime, ForeignKey, UUID
+from sqlalchemy import Column, Integer, String, Text, Boolean, BigInteger, DateTime, ForeignKey
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 import uuid
 from app.core.database import Base
+from app.core.types import UUIDType
 
 
 class Image(Base):
     __tablename__ = "images"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
+    id = Column(UUIDType, primary_key=True, index=True, default=uuid.uuid4)
     original_filename = Column(String(255), nullable=False)
     file_path = Column(String(500), nullable=False)
     file_size = Column(BigInteger, nullable=False)  # 字节
@@ -28,8 +29,8 @@ class Image(Base):
 class ImageVariant(Base):
     __tablename__ = "image_variants"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
-    image_id = Column(UUID(as_uuid=True), ForeignKey("images.id"), nullable=False)
+    id = Column(UUIDType, primary_key=True, index=True, default=uuid.uuid4)
+    image_id = Column(UUIDType, ForeignKey("images.id"), nullable=False)
     variant_name = Column(String(50), nullable=False)  # thumbnail, small, medium, large, hero
     file_path = Column(String(500), nullable=False)
     width = Column(Integer, nullable=False)

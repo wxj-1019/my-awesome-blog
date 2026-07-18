@@ -78,4 +78,3 @@ async def get_weather_forecast(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="获取天气预报失败，请稍后重试"
         )
-

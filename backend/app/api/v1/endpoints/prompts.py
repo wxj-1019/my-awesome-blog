@@ -7,7 +7,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, status, Query
 from sqlalchemy.orm import Session
 from app.core.database import get_db
-from app.core.dependencies import get_current_active_user
+from app.core.dependencies import get_current_active_user, get_current_superuser
 from app.schemas.prompt import (
     PromptCreate,
     PromptUpdate,
@@ -29,7 +29,7 @@ def create_prompt(
     *,
     db: Session = Depends(get_db),
     prompt_in: PromptCreate,
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(get_current_superuser),
 ) -> Prompt:
     """
     创建新 Prompt
@@ -124,7 +124,7 @@ def create_folder(
     *,
     db: Session = Depends(get_db),
     folder_in: dict,
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(get_current_superuser),
 ) -> dict:
     """
     创建提示词文件夹
@@ -155,7 +155,7 @@ def update_folder(
     db: Session = Depends(get_db),
     folder_id: str,
     folder_in: dict,
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(get_current_superuser),
 ) -> dict:
     """
     更新提示词文件夹
@@ -193,7 +193,7 @@ def delete_folder(
     db: Session = Depends(get_db),
     folder_id: str,
     move_to: Optional[str] = Query(None),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(get_current_superuser),
 ):
     """
     删除提示词文件夹
@@ -266,7 +266,7 @@ def import_prompts(
     *,
     db: Session = Depends(get_db),
     data: dict,
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(get_current_superuser),
 ) -> dict:
     """
     导入提示词
@@ -360,7 +360,7 @@ def record_ab_test_result(
     db: Session = Depends(get_db),
     group: str,
     winner: str,
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(get_current_superuser),
 ):
     """
     记录 A/B 测试结果
@@ -419,7 +419,7 @@ def update_prompt(
     db: Session = Depends(get_db),
     prompt_id: str,
     prompt_in: PromptUpdate,
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(get_current_superuser),
 ) -> Prompt:
     """
     更新 Prompt
@@ -458,7 +458,7 @@ def delete_prompt(
     *,
     db: Session = Depends(get_db),
     prompt_id: str,
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(get_current_superuser),
 ):
     """
     删除 Prompt
@@ -545,7 +545,7 @@ def duplicate_prompt(
     *,
     db: Session = Depends(get_db),
     prompt_id: str,
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(get_current_superuser),
 ) -> Prompt:
     """
     复制 Prompt
@@ -586,7 +586,7 @@ def set_default_prompt(
     *,
     db: Session = Depends(get_db),
     prompt_id: str,
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(get_current_superuser),
 ) -> Prompt:
     """
     设置默认提示词
@@ -614,7 +614,7 @@ def increment_prompt_usage(
     *,
     db: Session = Depends(get_db),
     prompt_id: str,
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(get_current_superuser),
 ):
     """
     增加提示词使用次数

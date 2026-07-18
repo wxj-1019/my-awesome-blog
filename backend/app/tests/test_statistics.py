@@ -1,3 +1,5 @@
+import uuid
+
 import pytest
 from fastapi import status
 from sqlalchemy.orm import Session
@@ -91,16 +93,19 @@ def test_get_general_stats_with_data(client, test_session):
         username="user1",
         email="user1@example.com",
         hashed_password="hashed_password",
-        is_active=True
+        is_active=True,
+        tenant_id=uuid.uuid4()
     )
     user2 = User(
-        username="user2", 
+        username="user2",
         email="user2@example.com",
         hashed_password="hashed_password",
-        is_active=True
+        is_active=True,
+        tenant_id=uuid.uuid4()
     )
     test_session.add(user1)
     test_session.add(user2)
+    test_session.commit()
     
     # Create some categories
     category1 = Category(name="Tech", slug="tech", description="Technology")
@@ -121,7 +126,7 @@ def test_get_general_stats_with_data(client, test_session):
         content="Content of article 1",
         excerpt="Excerpt 1",
         is_published=True,
-        views=100,
+        view_count=100,
         author_id=user1.id
     )
     article2 = Article(
@@ -130,11 +135,12 @@ def test_get_general_stats_with_data(client, test_session):
         content="Content of article 2",
         excerpt="Excerpt 2",
         is_published=True,
-        views=50,
+        view_count=50,
         author_id=user1.id
     )
     test_session.add(article1)
     test_session.add(article2)
+    test_session.commit()
     
     # Create some comments
     comment1 = Comment(content="Great article!", article_id=article1.id, author_id=user2.id)
@@ -168,7 +174,8 @@ def test_get_article_stats_with_data(client, test_session):
         username="author",
         email="author@example.com",
         hashed_password="hashed_password",
-        is_active=True
+        is_active=True,
+        tenant_id=uuid.uuid4()
     )
     test_session.add(user)
     
@@ -187,7 +194,7 @@ def test_get_article_stats_with_data(client, test_session):
         content="Very popular content",
         excerpt="Popular excerpt",
         is_published=True,
-        views=500,
+        view_count=500,
         author_id=user.id
     )
     article2 = Article(
@@ -196,7 +203,7 @@ def test_get_article_stats_with_data(client, test_session):
         content="Brand new content",
         excerpt="New excerpt",
         is_published=True,
-        views=10,
+        view_count=10,
         author_id=user.id,
         created_at=datetime.now() - timedelta(days=1)  # Recent article
     )
@@ -206,7 +213,7 @@ def test_get_article_stats_with_data(client, test_session):
         content="Draft content",
         excerpt="Draft excerpt",
         is_published=False,  # Draft
-        views=0,
+        view_count=0,
         author_id=user.id
     )
     test_session.add(article1)
@@ -244,20 +251,23 @@ def test_get_user_stats_with_data(client, test_session):
         email="user1@example.com",
         hashed_password="hashed_password",
         is_active=True,
-        created_at=now - timedelta(days=10)
+        created_at=now - timedelta(days=10),
+        tenant_id=uuid.uuid4()
     )
     user2 = User(
         username="user2",
-        email="user2@example.com", 
+        email="user2@example.com",
         hashed_password="hashed_password",
         is_active=True,
-        created_at=now - timedelta(days=1)
+        created_at=now - timedelta(days=1),
+        tenant_id=uuid.uuid4()
     )
     user3 = User(
         username="user3",
         email="user3@example.com",
-        hashed_password="hashed_password", 
-        is_active=False  # Inactive user
+        hashed_password="hashed_password",
+        is_active=False,  # Inactive user
+        tenant_id=uuid.uuid4()
     )
     test_session.add(user1)
     test_session.add(user2)
@@ -298,11 +308,13 @@ def test_stats_endpoints_return_consistent_data_types(client):
         # Verify that all responses are dictionaries
         assert isinstance(data, dict)
         
-        # Verify that numeric values are actually numbers
+        # Verify that numeric values are actually numbers (lists like monthly_article_counts are excluded)
         for key, value in data.items():
             if isinstance(key, str) and ("count" in key.lower() or 
                                        "total" in key.lower() or 
                                        "number" in key.lower()):
+                if isinstance(value, list):
+                    continue
                 assert isinstance(value, int) or isinstance(value, float), \
                     f"Field {key} should be numeric, got {type(value)}"
 
@@ -315,9 +327,11 @@ def test_get_general_stats_recent_filters(client, test_session):
         email="recent@example.com",
         hashed_password="hashed_password",
         is_active=True,
+        tenant_id=uuid.uuid4(),
         created_at=datetime.now() - timedelta(hours=12)
     )
     test_session.add(recent_user)
+    test_session.commit()
     
     # Create a recent article
     recent_article = Article(
@@ -326,7 +340,7 @@ def test_get_general_stats_recent_filters(client, test_session):
         content="Recent content",
         excerpt="Recent excerpt",
         is_published=True,
-        views=10,
+        view_count=10,
         author_id=recent_user.id,
         created_at=datetime.now() - timedelta(hours=6)
     )

@@ -3,6 +3,7 @@ Context Summarizer
 上下文摘要器，负责对话内容的自动摘要
 """
 
+import asyncio
 from typing import List, Optional, Dict, Any
 from sqlalchemy.orm import Session
 from app.models.conversation import ConversationMessage
@@ -219,30 +220,35 @@ class ContextSummarizer:
         Returns:
             ContextHistory: 更新后的摘要
         """
-        summary = db.query(ContextHistory).filter(
-            ContextHistory.id == summary_id
-        ).first()
-        
-        if not summary:
-            return None
-        
         messages_text = self._format_messages(messages)
         new_summary = await self._generate_summary(messages_text)
         new_key_points = await self._extract_key_points(messages_text)
         
-        summary.message_count += len(messages)
-        summary.total_tokens += sum(msg.tokens for msg in messages)
-        summary.summary = f"{summary.summary}\n\n{new_summary}"
-        if summary.key_points:
-            summary.key_points = f"{summary.key_points}; {'; '.join(new_key_points)}"
-        else:
-            summary.key_points = "; ".join(new_key_points)
+        def _update_db():
+            summary = db.query(ContextHistory).filter(
+                ContextHistory.id == summary_id
+            ).with_for_update().first()
+            
+            if not summary:
+                return None
+            
+            summary.message_count += len(messages)
+            summary.total_tokens += sum(msg.tokens for msg in messages)
+            summary.summary = f"{summary.summary}\n\n{new_summary}"
+            if summary.key_points:
+                summary.key_points = f"{summary.key_points}; {'; '.join(new_key_points)}"
+            else:
+                summary.key_points = "; ".join(new_key_points)
+            
+            db.add(summary)
+            db.commit()
+            db.refresh(summary)
+            return summary
         
-        db.add(summary)
-        db.commit()
-        db.refresh(summary)
+        summary = await asyncio.to_thread(_update_db)
         
-        app_logger.info(f"Updated summary {summary_id}")
+        if summary:
+            app_logger.info(f"Updated summary {summary_id}")
         
         return summary
     

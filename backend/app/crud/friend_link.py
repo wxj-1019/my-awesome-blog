@@ -87,13 +87,11 @@ def delete_friend_link(db: Session, friend_link_id: UUID) -> bool:
 
 def increment_click_count(db: Session, friend_link_id: UUID) -> bool:
     """增加友情链接点击次数"""
-    db_friend_link = get_friend_link(db, friend_link_id)
-    if db_friend_link:
-        db_friend_link.click_count += 1
-        db.commit()
-        db.refresh(db_friend_link)
-        return True
-    return False
+    count = db.query(FriendLink).filter(FriendLink.id == friend_link_id).update(
+        {FriendLink.click_count: FriendLink.click_count + 1}
+    )
+    db.commit()
+    return count > 0
 
 
 def batch_create_friend_links(db: Session, friend_links: List[FriendLinkCreate]) -> List[FriendLink]:

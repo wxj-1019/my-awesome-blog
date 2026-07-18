@@ -82,6 +82,27 @@ def read_category_by_id(
     return category
 
 
+@router.get("/name/{name}", response_model=CategoryWithArticleCount)
+def read_category_by_name(
+    name: str,
+    db: Session = Depends(get_db)
+) -> Any:
+    """
+    Get a specific category by name
+    """
+    category = crud.get_category_by_name(db, name=name)
+    if not category:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Category not found",
+        )
+
+    article_count = len(category.articles)
+    category.article_count = article_count
+
+    return category
+
+
 @router.put("/{category_id}", response_model=Category)
 def update_category(
     *,

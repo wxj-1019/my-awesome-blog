@@ -238,7 +238,8 @@ def delete_message(
 @router.post("/{message_id}/like", response_model=Message)
 def like_message(
     message_id: str,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
 ) -> Any:
     """
     Like a message

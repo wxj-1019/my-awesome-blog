@@ -23,7 +23,10 @@ def get_memory(db: Session, memory_id: str) -> Optional[Memory]:
     Returns:
         Memory: 记忆对象或 None
     """
-    return db.query(Memory).filter(Memory.id == memory_id).first()
+    return db.query(Memory).filter(
+        Memory.id == memory_id,
+        Memory.is_deleted == False
+    ).first()
 
 
 def get_memories(
@@ -54,6 +57,7 @@ def get_memories(
         and_(
             Memory.tenant_id == tenant_id,
             Memory.user_id == user_id,
+            Memory.is_deleted == False,
         )
     )
     
@@ -98,6 +102,7 @@ def search_memories(
         and_(
             Memory.tenant_id == tenant_id,
             Memory.user_id == user_id,
+            Memory.is_deleted == False,
         )
     )
     
@@ -133,6 +138,7 @@ def get_expired_memories(db: Session, tenant_id: str) -> List[Memory]:
             and_(
                 Memory.tenant_id == tenant_id,
                 Memory.expires_at < now,
+                Memory.is_deleted == False,
             )
         )
         .all()
@@ -262,12 +268,11 @@ def increment_memory_access(db: Session, memory_id: str) -> Optional[Memory]:
     Returns:
         Memory: 更新后的记忆对象或 None
     """
-    memory = get_memory(db, memory_id)
-    if memory:
-        memory.access_count += 1
-        db.commit()
-        db.refresh(memory)
-    return memory
+    db.query(Memory).filter(Memory.id == memory_id).update(
+        {Memory.access_count: Memory.access_count + 1}
+    )
+    db.commit()
+    return get_memory(db, memory_id)
 
 
 def count_memories(

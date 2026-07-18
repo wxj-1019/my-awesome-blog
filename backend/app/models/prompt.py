@@ -3,11 +3,12 @@ Prompt Model
 Prompt 模板管理模型，支持版本控制和 A/B 测试
 """
 
-from sqlalchemy import Column, String, Text, Boolean, DateTime, UUID, Integer, JSON, Index, ForeignKey
+from sqlalchemy import Column, String, Text, Boolean, DateTime, Integer, JSON, Index, ForeignKey
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 import uuid
 from app.core.database import Base
+from app.core.types import UUIDType
 
 
 class Prompt(Base):
@@ -27,8 +28,8 @@ class Prompt(Base):
         Index('idx_prompt_created', 'created_at'),
     )
     
-    id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
-    tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True)
+    id = Column(UUIDType, primary_key=True, index=True, default=uuid.uuid4)
+    tenant_id = Column(UUIDType, ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True)
     name = Column(String(100), nullable=False, index=True)
     version = Column(String(20), nullable=False, index=True)
     content = Column(Text, nullable=False)

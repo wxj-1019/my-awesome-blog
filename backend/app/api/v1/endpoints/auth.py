@@ -29,7 +29,7 @@ async def login(
     """
     OAuth2 compatible token login, get an access token for future requests
     """
-    user = crud.authenticate_user(db, form_data.username, form_data.password)
+    user = await crud.authenticate_user(db, form_data.username, form_data.password)
     if not user:
         app_logger.warning(f"Failed login attempt for username: {form_data.username} from IP: {request.client.host if request.client else 'unknown'}")
         raise HTTPException(
@@ -64,7 +64,7 @@ async def login_json(
     """
     JSON login endpoint (alternative to OAuth2 form)
     """
-    user = crud.authenticate_user(db, login_data.username, login_data.password)
+    user = await crud.authenticate_user(db, login_data.username, login_data.password)
     if not user:
         app_logger.warning(f"Failed login attempt for username: {login_data.username} from IP: {request.client.host if request.client else 'unknown'}")
         raise HTTPException(
@@ -114,8 +114,9 @@ async def register(
             detail="A user with this email already exists",
         )
 
-    # Create user
-    user = crud.create_user(db, user_in)
+    # Create user with default tenant
+    DEFAULT_TENANT_ID = "00000000-0000-0000-0000-000000000001"
+    user = await crud.create_user(db, user_in, tenant_id=DEFAULT_TENANT_ID)
     app_logger.info(f"New user registered: {user.username} (ID: {user.id}) from IP: {request.client.host if request.client else 'unknown'}")
 
     return {"message": "User created successfully", "user_id": str(user.id)}

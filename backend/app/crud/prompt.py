@@ -249,13 +249,20 @@ def increment_prompt_usage(db: Session, prompt_id: str) -> Optional[Prompt]:
     Returns:
         Prompt: 更新后的 Prompt 对象
     """
-    prompt = get_prompt(db, prompt_id)
-    if prompt:
-        prompt.usage_count += 1
-        prompt.total_interactions += 1
-        db.commit()
-        db.refresh(prompt)
-    return prompt
+    from uuid import UUID
+    try:
+        prompt_uuid = UUID(prompt_id) if isinstance(prompt_id, str) else prompt_id
+    except ValueError:
+        return None
+
+    db.query(Prompt).filter(Prompt.id == prompt_uuid).update(
+        {
+            Prompt.usage_count: Prompt.usage_count + 1,
+            Prompt.total_interactions: Prompt.total_interactions + 1,
+        }
+    )
+    db.commit()
+    return get_prompt(db, prompt_id)
 
 
 def update_prompt_success_rate(db: Session, prompt_id: str, success: bool) -> Optional[Prompt]:
@@ -272,8 +279,14 @@ def update_prompt_success_rate(db: Session, prompt_id: str, success: bool) -> Op
     """
     prompt = get_prompt(db, prompt_id)
     if prompt:
+        # 从现有 success_rate 和 total_interactions 反推成功次数
+        total = (prompt.total_interactions or 0)
+        success_count = round((prompt.success_rate or 0) * total / 100) if total > 0 else 0
         if success:
-            prompt.success_rate += 1
+            success_count += 1
+        total += 1
+        prompt.total_interactions = total
+        prompt.success_rate = round(success_count / total * 100, 2) if total > 0 else 0
         db.commit()
         db.refresh(prompt)
     return prompt

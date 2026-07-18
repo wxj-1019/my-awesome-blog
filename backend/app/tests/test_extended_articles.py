@@ -1,3 +1,4 @@
+import uuid
 import pytest
 from fastapi import status
 from sqlalchemy.orm import Session
@@ -42,13 +43,14 @@ def test_get_popular_articles(client, test_session):
     for article in data:
         assert "id" in article
         assert "title" in article
-        assert "views" in article  # Popular articles should show view count
+        assert "view_count" in article  # Popular articles should show view count
 
 
 def test_get_recommended_articles(client, test_session):
     """Test getting recommended articles"""
     # Create some articles with categories and tags for recommendations
     user = User(
+        tenant_id=uuid.uuid4(),
         username="test_author",
         email="test@example.com",
         hashed_password="hashed_password",
@@ -71,7 +73,7 @@ def test_get_recommended_articles(client, test_session):
         content="Content about technology",
         excerpt="Tech excerpt",
         is_published=True,
-        views=1000,
+        view_count=1000,
         author_id=user.id
     )
     article2 = Article(
@@ -80,7 +82,7 @@ def test_get_recommended_articles(client, test_session):
         content="Recent tech content",
         excerpt="Recent tech excerpt",
         is_published=True,
-        views=50,
+        view_count=50,
         author_id=user.id,
         created_at=datetime.now() - timedelta(days=1)
     )
@@ -101,6 +103,7 @@ def test_search_articles(client, test_session):
     """Test searching for articles"""
     # Create some test articles
     user = User(
+        tenant_id=uuid.uuid4(),
         username="search_author",
         email="search@example.com",
         hashed_password="hashed_password",
@@ -115,7 +118,7 @@ def test_search_articles(client, test_session):
         content="Learn Python programming language basics",
         excerpt="Beginner Python tutorial",
         is_published=True,
-        views=100,
+        view_count=100,
         author_id=user.id
     )
     article2 = Article(
@@ -124,7 +127,7 @@ def test_search_articles(client, test_session):
         content="Learn JavaScript for web development",
         excerpt="Web development with JavaScript",
         is_published=True,
-        views=200,
+        view_count=200,
         author_id=user.id
     )
     test_session.add(article1)
@@ -141,7 +144,7 @@ def test_search_articles(client, test_session):
     assert isinstance(data, list)
     
     # If Python exists in our articles, it should be in the results
-    if any("Python" in article["title"] or "Python" in article["content"] for article in [article1, article2]):
+    if any("Python" in article.title or "Python" in article.content for article in [article1, article2]):
         assert len(data) >= 1
         python_articles = [article for article in data if "Python" in article["title"] or "Python" in article["content"]]
         assert len(python_articles) >= 1
@@ -163,6 +166,7 @@ def test_get_related_articles(client, test_session):
     """Test getting related articles"""
     # Create test data with categories and tags
     user = User(
+        tenant_id=uuid.uuid4(),
         username="related_author",
         email="related@example.com",
         hashed_password="hashed_password",
@@ -183,7 +187,7 @@ def test_get_related_articles(client, test_session):
         content="Python basics content",
         excerpt="Basics of Python",
         is_published=True,
-        views=150,
+        view_count=150,
         author_id=user.id
     )
     article2 = Article(
@@ -192,7 +196,7 @@ def test_get_related_articles(client, test_session):
         content="Advanced Python content",
         excerpt="Advanced Python topics",
         is_published=True,
-        views=200,
+        view_count=200,
         author_id=user.id
     )
     article3 = Article(
@@ -201,7 +205,7 @@ def test_get_related_articles(client, test_session):
         content="JavaScript basics content",
         excerpt="Basics of JavaScript",
         is_published=True,
-        views=100,
+        view_count=100,
         author_id=user.id
     )
     test_session.add(article1)
@@ -221,6 +225,7 @@ def test_get_featured_articles_with_data(client, test_session):
     """Test getting featured articles with actual data"""
     # Create test data
     user = User(
+        tenant_id=uuid.uuid4(),
         username="feature_author",
         email="feature@example.com",
         hashed_password="hashed_password",
@@ -236,7 +241,7 @@ def test_get_featured_articles_with_data(client, test_session):
         content="Featured content 1",
         excerpt="Featured excerpt 1",
         is_published=True,
-        views=500,
+        view_count=500,
         author_id=user.id
     )
     article2 = Article(
@@ -245,7 +250,7 @@ def test_get_featured_articles_with_data(client, test_session):
         content="Featured content 2", 
         excerpt="Featured excerpt 2",
         is_published=True,
-        views=300,
+        view_count=300,
         author_id=user.id
     )
     test_session.add(article1)
@@ -270,6 +275,7 @@ def test_get_popular_articles_with_data(client, test_session):
     """Test getting popular articles with actual data"""
     # Create test data
     user = User(
+        tenant_id=uuid.uuid4(),
         username="popular_author",
         email="popular@example.com",
         hashed_password="hashed_password",
@@ -285,7 +291,7 @@ def test_get_popular_articles_with_data(client, test_session):
         content="Most popular content",
         excerpt="Most popular excerpt",
         is_published=True,
-        views=1000,
+        view_count=1000,
         author_id=user.id
     )
     article2 = Article(
@@ -294,7 +300,7 @@ def test_get_popular_articles_with_data(client, test_session):
         content="Medium popular content",
         excerpt="Medium popular excerpt",
         is_published=True,
-        views=500,
+        view_count=500,
         author_id=user.id
     )
     article3 = Article(
@@ -303,7 +309,7 @@ def test_get_popular_articles_with_data(client, test_session):
         content="Least popular content",
         excerpt="Least popular excerpt", 
         is_published=True,
-        views=100,
+        view_count=100,
         author_id=user.id
     )
     test_session.add(article1)
@@ -320,7 +326,7 @@ def test_get_popular_articles_with_data(client, test_session):
     
     # If we have articles, verify they're sorted by views (descending)
     if len(data) > 1:
-        view_counts = [article["views"] for article in data]
+        view_counts = [article["view_count"] for article in data]
         assert view_counts == sorted(view_counts, reverse=True), "Articles should be sorted by views in descending order"
 
 
@@ -328,6 +334,7 @@ def test_search_articles_with_limit_and_skip(client, test_session):
     """Test searching articles with pagination parameters"""
     # Create multiple articles to search
     user = User(
+        tenant_id=uuid.uuid4(),
         username="search_auth",
         email="search_auth@example.com",
         hashed_password="hashed_password",
@@ -343,7 +350,7 @@ def test_search_articles_with_limit_and_skip(client, test_session):
             content=f"This article is about topic {i} which is interesting",
             excerpt=f"Excerpt for topic {i}",
             is_published=True,
-            views=i * 10,
+            view_count=i * 10,
             author_id=user.id
         )
         test_session.add(article)
@@ -364,6 +371,7 @@ def test_search_articles_with_limit_and_skip(client, test_session):
 def test_search_articles_filter_by_published_only(client, test_session):
     """Test that search only returns published articles by default"""
     user = User(
+        tenant_id=uuid.uuid4(),
         username="pub_search_author",
         email="pub_search@example.com",
         hashed_password="hashed_password",
@@ -379,7 +387,7 @@ def test_search_articles_filter_by_published_only(client, test_session):
         content="This is published",
         excerpt="Published excerpt",
         is_published=True,
-        views=50,
+        view_count=50,
         author_id=user.id
     )
     unpublished_article = Article(
@@ -388,7 +396,7 @@ def test_search_articles_filter_by_published_only(client, test_session):
         content="This is not published",
         excerpt="Unpublished excerpt",
         is_published=False,
-        views=30,
+        view_count=30,
         author_id=user.id
     )
     test_session.add(published_article)
@@ -411,6 +419,7 @@ def test_search_articles_filter_by_published_only(client, test_session):
 def test_get_popular_articles_with_time_range(client, test_session):
     """Test getting popular articles with time range filtering"""
     user = User(
+        tenant_id=uuid.uuid4(),
         username="time_range_author",
         email="time_range@example.com",
         hashed_password="hashed_password",
@@ -427,7 +436,7 @@ def test_get_popular_articles_with_time_range(client, test_session):
         content="Old but popular",
         excerpt="Old popular",
         is_published=True,
-        views=1000,
+        view_count=1000,
         author_id=user.id,
         created_at=now - timedelta(days=30)  # Old article
     )
@@ -437,7 +446,7 @@ def test_get_popular_articles_with_time_range(client, test_session):
         content="New and popular",
         excerpt="New popular",
         is_published=True,
-        views=800,
+        view_count=800,
         author_id=user.id,
         created_at=now - timedelta(days=1)  # Recent article
     )
@@ -455,12 +464,13 @@ def test_get_popular_articles_with_time_range(client, test_session):
     
     # The old but more popular article should be first
     if len(data) >= 2:
-        assert data[0]["views"] >= data[1]["views"]
+        assert data[0]["view_count"] >= data[1]["view_count"]
 
 
 def test_search_articles_exact_phrase(client, test_session):
     """Test searching for exact phrases"""
     user = User(
+        tenant_id=uuid.uuid4(),
         username="phrase_author",
         email="phrase@example.com",
         hashed_password="hashed_password",
@@ -476,7 +486,7 @@ def test_search_articles_exact_phrase(client, test_session):
         content="Comparing Python and JavaScript programming languages",
         excerpt="Python versus JavaScript",
         is_published=True,
-        views=100,
+        view_count=100,
         author_id=user.id
     )
     article2 = Article(
@@ -485,7 +495,7 @@ def test_search_articles_exact_phrase(client, test_session):
         content="Learning Python programming basics",
         excerpt="Python basics tutorial",
         is_published=True,
-        views=150,
+        view_count=150,
         author_id=user.id
     )
     test_session.add(article1)

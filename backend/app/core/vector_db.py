@@ -3,10 +3,17 @@
 提供向量存储和相似度搜索功能
 """
 from typing import List, Optional, Tuple, Any
+import re
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database_async import AsyncSessionLocal
 from app.utils.logger import app_logger
+
+_SAFE_IDENTIFIER = re.compile(r'^[a-zA-Z_][a-zA-Z0-9_]*$')
+
+def _validate_identifier(name: str):
+    if not _SAFE_IDENTIFIER.match(name):
+        raise ValueError(f"Invalid SQL identifier: {name}")
 
 
 class VectorDBError(Exception):
@@ -124,6 +131,12 @@ class VectorDB:
         """
         if metric not in self.DISTANCE_METRICS:
             raise ValueError(f"Unsupported metric: {metric}. Use one of {list(self.DISTANCE_METRICS.keys())}")
+        
+        _validate_identifier(table_name)
+        _validate_identifier(vector_column)
+        if return_fields:
+            for field in return_fields:
+                _validate_identifier(field)
         
         operator = self.DISTANCE_METRICS[metric]
         vector_str = self.format_vector(query_vector)
@@ -253,6 +266,10 @@ class VectorDB:
         """
         if index_name is None:
             index_name = f"idx_{table_name}_{column_name}_vector"
+        
+        _validate_identifier(table_name)
+        _validate_identifier(column_name)
+        _validate_identifier(index_name)
         
         try:
             if index_type == 'ivfflat':

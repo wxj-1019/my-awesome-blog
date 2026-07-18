@@ -23,7 +23,10 @@ def get_conversation(db: Session, conversation_id: str) -> Optional[Conversation
     Returns:
         Conversation: 对话对象或 None
     """
-    return db.query(Conversation).filter(Conversation.id == conversation_id).first()
+    return db.query(Conversation).filter(
+        Conversation.id == conversation_id,
+        Conversation.is_deleted == False
+    ).first()
 
 
 def get_conversations(
@@ -52,6 +55,7 @@ def get_conversations(
         and_(
             Conversation.tenant_id == tenant_id,
             Conversation.user_id == user_id,
+            Conversation.is_deleted == False,
         )
     )
     

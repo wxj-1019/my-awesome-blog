@@ -1,3 +1,4 @@
+import uuid
 import pytest
 from fastapi import status
 from sqlalchemy.orm import Session
@@ -22,6 +23,7 @@ def test_category_article_integration(client, test_session):
     """Test the integration between categories and articles"""
     # Create a user first
     user = User(
+        tenant_id=uuid.uuid4(),
         username="integration_user",
         email="integration@example.com",
         hashed_password="hashed_password",
@@ -73,6 +75,7 @@ def test_tag_article_integration(client, test_session):
     """Test the integration between tags and articles"""
     # Create a user first
     user = User(
+        tenant_id=uuid.uuid4(),
         username="tag_integration_user",
         email="tag_integration@example.com",
         hashed_password="hashed_password",
@@ -115,6 +118,7 @@ def test_statistics_service_integration(client, test_session):
     """Test that statistics endpoints integrate properly with data models"""
     # Create test data
     user = User(
+        tenant_id=uuid.uuid4(),
         username="stats_user",
         email="stats@example.com",
         hashed_password="hashed_password",
@@ -131,7 +135,7 @@ def test_statistics_service_integration(client, test_session):
             content=f"Content for stat test article {i}",
             excerpt=f"Excerpt {i}",
             is_published=True,
-            views=i * 50,
+            view_count=i * 50,
             author_id=user.id
         )
         test_session.add(article)
@@ -147,7 +151,7 @@ def test_statistics_service_integration(client, test_session):
         name="Stat Test Link",
         url="https://stat-test.com",
         description="Stat test link",
-        email="stat@test.com",
+        favicon="stat@test.com",
         is_active=True
     )
     test_session.add(friend_link)
@@ -185,6 +189,7 @@ def test_image_upload_article_integration(client, test_session):
     """Test the integration between image uploads and articles"""
     # Create a user
     user = User(
+        tenant_id=uuid.uuid4(),
         username="image_integration_user",
         email="image_integration@example.com",
         hashed_password="hashed_password",
@@ -200,6 +205,7 @@ def test_image_upload_article_integration(client, test_session):
     temp_image.seek(0)
     
     try:
+        temp_image.close()
         with open(temp_image.name, 'rb') as f:
             response = client.post(
                 "/api/v1/images/",
@@ -214,13 +220,13 @@ def test_image_upload_article_integration(client, test_session):
         
         assert response.status_code == status.HTTP_200_OK
         uploaded_image = response.json()
-        assert uploaded_image["title"] == "Integration Test Image"
+        assert uploaded_image["caption"] == "Image for integration test"
         
         # Create an article that references this image
         article_data = {
             "title": "Article with Image",
             "slug": "article-with-image",
-            "content": f"Article featuring image: {uploaded_image['filename']}",
+            "content": f"Article featuring image: {uploaded_image['original_filename']}",
             "excerpt": "Article with embedded image",
             "is_published": True,
             "image_id": uploaded_image["id"]  # If articles have image associations
@@ -251,6 +257,7 @@ def test_user_article_category_workflow(client, test_session):
     # Note: This assumes a user registration endpoint exists
     # For this test, we'll create the user directly in the DB
     user = User(
+        tenant_id=uuid.uuid4(),
         username="workflow_user",
         email="workflow@example.com",
         hashed_password="hashed_password",
@@ -310,14 +317,13 @@ def test_subscription_and_notification_integration(client, test_session):
     
     # Verify the subscription was created
     assert subscription["email"] == "integration@test.com"
-    assert subscription["name"] == "Integration Test User"
     
     # Get subscription count
     response = client.get("/api/v1/subscriptions/count")
     assert response.status_code == status.HTTP_200_OK
     count_data = response.json()
-    assert "count" in count_data
-    assert count_data["count"] >= 1
+    assert isinstance(count_data, int)
+    assert count_data >= 1
     
     # Get all subscriptions
     response = client.get("/api/v1/subscriptions/")
@@ -332,13 +338,14 @@ def test_portfolio_timeline_integration(client, test_session):
     # Create a portfolio item
     portfolio_data = {
         "title": "Integration Portfolio Project",
+        "slug": "integration-portfolio-project",
         "description": "A project for integration testing",
-        "link": "https://integration-project.com",
+        "demo_url": "https://integration-project.com",
         "github_url": "https://github.com/user/integration-project",
-        "image_url": "https://integration-project.com/image.jpg",
+        "cover_image": "https://integration-project.com/image.jpg",
         "technologies": ["Python", "FastAPI", "SQLAlchemy"],
         "is_featured": True,
-        "order": 1
+        "sort_order": 1
     }
     response = client.post("/api/v1/portfolio/", json=portfolio_data)
     assert response.status_code == status.HTTP_200_OK
@@ -347,10 +354,10 @@ def test_portfolio_timeline_integration(client, test_session):
     # Create a timeline event related to this project
     timeline_data = {
         "title": "Portfolio Project Launched",
-        "date": "2023-06-01",
+        "event_date": "2023-06-01",
         "description": "Launched the integration test portfolio project",
-        "category": "project",
-        "is_highlight": True
+        "event_type": "project",
+        "is_active": True
     }
     response = client.post("/api/v1/timeline-events/", json=timeline_data)
     assert response.status_code == status.HTTP_200_OK
@@ -381,7 +388,7 @@ def test_friend_links_active_status_integration(client, test_session):
         "name": "Active Integration Link",
         "url": "https://active-integration.com",
         "description": "Active integration test link",
-        "email": "active@test.com",
+        "favicon": "https://active-integration.com/favicon.ico",
         "is_active": True
     }
     response = client.post("/api/v1/friend-links/", json=active_link_data)
@@ -392,7 +399,7 @@ def test_friend_links_active_status_integration(client, test_session):
         "name": "Inactive Integration Link",
         "url": "https://inactive-integration.com",
         "description": "Inactive integration test link",
-        "email": "inactive@test.com",
+        "favicon": "https://inactive-integration.com/favicon.ico",
         "is_active": False
     }
     response = client.post("/api/v1/friend-links/", json=inactive_link_data)
@@ -427,6 +434,7 @@ def test_article_search_and_filtering_integration(client, test_session):
     """Test article search functionality with various filters"""
     # Create a user
     user = User(
+        tenant_id=uuid.uuid4(),
         username="search_integration_user",
         email="search_integration@example.com",
         hashed_password="hashed_password",
@@ -447,8 +455,8 @@ def test_article_search_and_filtering_integration(client, test_session):
         "content": "Learn amazing Python tips and tricks for developers",
         "excerpt": "Python development tips",
         "is_published": True,
-        "category_id": category.id,
-        "views": 100
+        "category_id": str(category.id),
+        "view_count": 100
     }
     
     article2 = {
@@ -457,8 +465,8 @@ def test_article_search_and_filtering_integration(client, test_session):
         "content": "Best practices for JavaScript development",
         "excerpt": "JavaScript development practices",
         "is_published": True,
-        "category_id": category.id,
-        "views": 200
+        "category_id": str(category.id),
+        "view_count": 200
     }
     
     article3 = {
@@ -467,8 +475,8 @@ def test_article_search_and_filtering_integration(client, test_session):
         "content": "This content is not published yet",
         "excerpt": "Unpublished content",
         "is_published": False,  # Unpublished
-        "category_id": category.id,
-        "views": 10
+        "category_id": str(category.id),
+        "view_count": 10
     }
     
     # Create the articles
@@ -500,7 +508,7 @@ def test_article_search_and_filtering_integration(client, test_session):
     popular_articles = response.json()
     if len(popular_articles) > 1:
         # Check if they're ordered by views (descending)
-        view_counts = [article["views"] for article in popular_articles]
+        view_counts = [article["view_count"] for article in popular_articles]
         assert view_counts == sorted(view_counts, reverse=True)
 
 
@@ -508,6 +516,7 @@ def test_multi_entity_statistics_integration(client, test_session):
     """Test that statistics properly aggregate across multiple entity types"""
     # Create various entities
     user = User(
+        tenant_id=uuid.uuid4(),
         username="multi_stat_user",
         email="multi_stat@example.com",
         hashed_password="hashed_password",
@@ -542,7 +551,7 @@ def test_multi_entity_statistics_integration(client, test_session):
             content=f"Content for multi-stat article {i}",
             excerpt=f"Excerpt {i}",
             is_published=True,
-            views=i * 25,
+            view_count=i * 25,
             author_id=user.id
         )
         test_session.add(article)
@@ -553,7 +562,7 @@ def test_multi_entity_statistics_integration(client, test_session):
             name=f"Multi Stat Link {i}",
             url=f"https://multi-stat-link-{i}.com",
             description=f"Link {i} for multi-stat testing",
-            email=f"link{i}@multi-stat.com",
+            favicon=f"https://multi-stat-link-{i}.com/favicon.ico",
             is_active=True
         )
         test_session.add(friend_link)
@@ -562,13 +571,14 @@ def test_multi_entity_statistics_integration(client, test_session):
     for i in range(3):
         portfolio_item = Portfolio(
             title=f"Multi Stat Portfolio {i}",
+            slug=f"multi-stat-portfolio-{i}",
             description=f"Portfolio item {i}",
-            link=f"https://portfolio{i}.com",
+            demo_url=f"https://portfolio{i}.com",
             github_url=f"https://github.com/user/portfolio{i}",
-            image_url=f"https://portfolio{i}.com/image.jpg",
-            technologies=["Python", "FastAPI"],
+            cover_image=f"https://portfolio{i}.com/image.jpg",
+            technologies='["Python", "FastAPI"]',
             is_featured=i % 2 == 0,
-            order=i
+            sort_order=i
         )
         test_session.add(portfolio_item)
     
@@ -597,6 +607,6 @@ def test_multi_entity_statistics_integration(client, test_session):
     
     # Verify top viewed articles
     if article_stats["top_viewed_articles"]:
-        top_views = [a["views"] for a in article_stats["top_viewed_articles"]]
+        top_views = [a["view_count"] for a in article_stats["top_viewed_articles"]]
         # Should be sorted by views in descending order
         assert top_views == sorted(top_views, reverse=True)

@@ -26,7 +26,7 @@ except ImportError:
 router = APIRouter()
 
 
-@router.get("/admin", response_model=User)
+@router.get("/admin")
 def get_admin_user(
     db: Session = Depends(get_db),
 ) -> Any:
@@ -35,8 +35,6 @@ def get_admin_user(
     Returns the first superuser found
     Public endpoint - no authentication required
     """
-    from sqlalchemy.orm import Session
-
     app_logger.info("Admin endpoint called")
     admin = db.query(UserModel).filter(UserModel.is_superuser == True).first()
     if not admin:
@@ -45,7 +43,13 @@ def get_admin_user(
             detail="Admin user not found"
         )
     app_logger.info(f"Admin user found: {admin.username}")
-    return admin
+    return {
+        "id": str(admin.id),
+        "username": admin.username,
+        "avatar": admin.avatar,
+        "bio": admin.bio,
+        "full_name": admin.full_name,
+    }
 
 
 @router.get("/public-info")
@@ -71,7 +75,7 @@ def read_users(
 
 
 @router.post("/", response_model=User)
-def create_user(
+async def create_user(
     *,
     db: Session = Depends(get_db),
     user_in: UserCreate,
@@ -95,7 +99,8 @@ def create_user(
             detail="A user with this email already exists",
         )
 
-    user = crud.create_user(db, user=user_in)
+    DEFAULT_TENANT_ID = "00000000-0000-0000-0000-000000000001"
+    user = await crud.create_user(db, user=user_in, tenant_id=DEFAULT_TENANT_ID)
     app_logger.info(f"Admin created new user: {user.username} (ID: {user.id})")
     return user
 
@@ -114,7 +119,7 @@ def read_current_user(
 
 
 @router.put("/me", response_model=User)
-def update_current_user(
+async def update_current_user(
     *,
     db: Session = Depends(get_db),
     user_in: UserUpdate,
@@ -123,7 +128,7 @@ def update_current_user(
     """
     Update current user's profile
     """
-    user = crud.update_user(db, user_id=current_user.id, user_update=user_in)
+    user = await crud.update_user(db, user_id=current_user.id, user_update=user_in)
     app_logger.info(f"User updated profile: {current_user.username} (ID: {current_user.id})")
     return user
 
@@ -170,6 +175,11 @@ async def upload_current_user_avatar(
         app_logger.info(f"Image info: {image_info}")
         
         # Upload avatar to OSS
+        if oss_service is None:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Cloud storage service is currently unavailable. Please contact administrator."
+            )
         with open(temp_file_path, "rb") as f:
             file_data = f.read()
         avatar_url = oss_service.upload_file(file_data, file.filename, f"avatars/user_{current_user.id}")
@@ -182,7 +192,7 @@ async def upload_current_user_avatar(
             )
 
         # Update user's avatar in database
-        updated_user = crud.update_user(db, user_id=current_user.id, user_update=UserUpdate(avatar=avatar_url))
+        updated_user = await crud.update_user(db, user_id=current_user.id, user_update=UserUpdate(avatar=avatar_url))
         
         if not updated_user:
             app_logger.error(f"Failed to update user avatar in database for user {current_user.id}")
@@ -237,7 +247,7 @@ def read_current_user_stats(
 
 
 @router.put("/me/password", response_model=dict)
-def update_password(
+async def update_password(
     *,
     db: Session = Depends(get_db),
     password_data: PasswordUpdate,
@@ -248,7 +258,7 @@ def update_password(
     """
     from app.crud.user import update_user_password
     
-    result = update_user_password(
+    result = await update_user_password(
         db, 
         user_id=current_user.id, 
         old_password=password_data.old_password,
@@ -287,7 +297,7 @@ def read_user_by_id(
 
 
 @router.put("/{user_id}", response_model=User)
-def update_user(
+async def update_user(
     *,
     db: Session = Depends(get_db),
     user_id: str,
@@ -306,7 +316,7 @@ def update_user(
             detail="User not found",
         )
 
-    user = crud.update_user(db, user_id=user_uuid, user_update=user_in)
+    user = await crud.update_user(db, user_id=user_uuid, user_update=user_in)
     app_logger.info(f"Admin updated user: {user.username} (ID: {user.id})")
     return user
 

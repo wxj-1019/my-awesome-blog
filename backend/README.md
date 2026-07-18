@@ -224,10 +224,10 @@ alembic upgrade head
 
 7. Start the development server:
 ```bash
-uvicorn app.main:app --reload --port 8000
+uvicorn app.main:app --reload --port 8989
 ```
 
-8. Open API documentation: http://localhost:8000/docs
+8. Open API documentation: http://localhost:8989/docs
 
 ### Using Docker Compose
 
@@ -239,15 +239,15 @@ docker-compose up
 
 This will start:
 - PostgreSQL on port 5432
-- FastAPI backend on port 8000
+- FastAPI backend on port 8989
 
 ## API Documentation
 
 Once the server is running, you can access:
 
-- **Swagger UI**: http://localhost:8000/docs
-- **ReDoc**: http://localhost:8000/redoc
-- **OpenAPI JSON**: http://localhost:8000/api/v1/openapi.json
+- **Swagger UI**: http://localhost:8989/docs
+- **ReDoc**: http://localhost:8989/redoc
+- **OpenAPI JSON**: http://localhost:8989/api/v1/openapi.json
 
 ## Database Migrations
 
@@ -289,7 +289,7 @@ pytest --cov=app --cov-report=html
 | `ALGORITHM` | JWT algorithm | `HS256` |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | Token expiration time | `30` |
 | `DEBUG` | Debug mode | `True` |
-| `BACKEND_CORS_ORIGINS` | Allowed CORS origins | `["http://localhost:3000", "http://localhost:8000"]` |
+| `BACKEND_CORS_ORIGINS` | Allowed CORS origins | `["http://localhost:3000", "http://localhost:8989"]` |
 
 ## Deployment
 
@@ -302,7 +302,7 @@ docker build -t my-awesome-blog-backend .
 
 2. Run the container:
 ```bash
-docker run -p 8000:8000 --env-file .env my-awesome-blog-backend
+docker run -p 8989:8989 --env-file .env my-awesome-blog-backend
 ```
 
 ### Production Considerations

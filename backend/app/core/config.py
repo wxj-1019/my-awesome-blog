@@ -21,6 +21,9 @@ WEAK_PASSWORDS = ['123456', 'password', '12345678', 'qwerty', '123456789', 'letm
 
 
 class Settings(BaseSettings):
+    # Application
+    DEBUG: bool = Field(default=True, description="调试模式")
+
     # Database
     DATABASE_URL: str = Field(..., description="数据库连接URL（必填）")
     DATABASE_POOL_SIZE: int = Field(default=20, description="数据库连接池大小")
@@ -31,13 +34,12 @@ class Settings(BaseSettings):
     # Application
     APP_NAME: str = Field(default="My Awesome Blog", description="应用名称")
     APP_VERSION: str = Field(default="1.0.0", description="应用版本")
-    DEBUG: bool = Field(default=True, description="调试模式")
     LOG_DIR: str = Field(default="logs", description="日志目录")
     STATIC_FILES_DIR: str = Field(default="static", description="静态文件目录")
     MAX_CONTENT_LENGTH: int = Field(default=10 * 1024 * 1024, description="最大上传文件大小（字节）")  # 10MB
 
     # Security
-    SECRET_KEY: str = Field(default_factory=generate_secret_key, description="JWT密钥，生产环境中必须设置")
+    SECRET_KEY: str = Field(default="", description="JWT密钥，生产环境中必须设置")
     ALGORITHM: str = Field(default="HS256", description="JWT算法")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=30, description="访问令牌过期时间（分钟）")
     REFRESH_TOKEN_EXPIRE_DAYS: int = Field(default=7, description="刷新令牌过期时间（天）")
@@ -191,6 +193,18 @@ class Settings(BaseSettings):
     @classmethod
     def validate_secret_key(cls, v: str, info) -> str:
         """验证SECRET_KEY强度"""
+        # 获取 DEBUG 模式 - 需要处理字符串和布尔值
+        data = info.data
+        debug_raw = data.get('DEBUG', True)
+        debug = debug_raw if isinstance(debug_raw, bool) else str(debug_raw).lower() in ('true', '1', 'yes')
+
+        # 如果未设置，生产环境必须显式设置，调试环境自动生成
+        if not v:
+            if not debug:
+                raise ValueError("SECRET_KEY 必须显式设置在环境变量中，生产环境不允许自动生成")
+            v = generate_secret_key()
+            print(f"WARNING: SECRET_KEY 未设置，已自动生成用于调试")
+
         weak_keys = [
             'your-super-secret-key',
             'change-this',
@@ -198,11 +212,6 @@ class Settings(BaseSettings):
             '00000000000000000000000000000000',
             '11111111111111111111111111111111'
         ]
-
-        # 获取 DEBUG 模式 - 需要处理字符串和布尔值
-        data = info.data
-        debug_raw = data.get('DEBUG', True)
-        debug = debug_raw if isinstance(debug_raw, bool) else str(debug_raw).lower() in ('true', '1', 'yes')
 
         # 检查是否使用了弱密钥
         for weak in weak_keys:

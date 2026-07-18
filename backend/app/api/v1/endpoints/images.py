@@ -1,7 +1,9 @@
 from typing import Any, List
-from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile, Form
 from sqlalchemy.orm import Session
 import os
+import uuid
+from pathlib import Path
 from app.core.database import get_db
 from app.core.dependencies import get_current_active_user, get_current_superuser
 from app import crud
@@ -36,10 +38,10 @@ def read_images(
 def upload_image(
     *,
     file: UploadFile = File(...),
-    title: str = None,
-    description: str = None,
-    alt_text: str = None,
-    is_featured: bool = False,
+    title: str = Form(None),
+    description: str = Form(None),
+    alt_text: str = Form(None),
+    is_featured: bool = Form(False),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
 ) -> Any:
@@ -58,8 +60,8 @@ def upload_image(
     # Use ImageService to process the image
     image_service = ImageService()
     
-    # Save uploaded file temporarily
-    temp_file_path = f"temp_{file.filename}"
+    # Save uploaded file temporarily with safe filename
+    temp_file_path = f"temp_{uuid.uuid4().hex}{Path(file.filename).suffix}"
     with open(temp_file_path, "wb") as buffer:
         buffer.write(file.file.read())
     
@@ -204,8 +206,8 @@ def delete_image(
         )
     
     # Delete the file from OSS
-    if image.filepath:
-        oss_service.delete_file(image.filepath)
+    if image.file_path:
+        oss_service.delete_file(image.file_path)
     
     deleted = crud.delete_image(db, image_id=image_uuid)
     if not deleted:

@@ -3,11 +3,12 @@ Conversation Model
 对话管理模型
 """
 
-from sqlalchemy import Column, String, Text, DateTime, UUID, Index, ForeignKey, Integer
+from sqlalchemy import Column, String, Text, DateTime, Index, ForeignKey, Integer
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 import uuid
 from app.core.database import Base
+from app.core.types import UUIDType
 from app.core.soft_delete import SoftDeleteMixinSync
 
 
@@ -26,12 +27,12 @@ class Conversation(Base, SoftDeleteMixinSync):
         Index('idx_conversation_created', 'created_at'),
     )
     
-    id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
-    tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    id = Column(UUIDType, primary_key=True, index=True, default=uuid.uuid4)
+    tenant_id = Column(UUIDType, ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(UUIDType, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     title = Column(String(200), nullable=False)
     status = Column(String(20), nullable=False, default="active", index=True)
-    prompt_id = Column(UUID(as_uuid=True), ForeignKey("prompts.id", ondelete="SET NULL"), nullable=True)
+    prompt_id = Column(UUIDType, ForeignKey("prompts.id", ondelete="SET NULL"), nullable=True)
     model = Column(String(100), nullable=False)
     total_messages = Column(Integer, default=0)
     total_tokens = Column(Integer, default=0)
@@ -58,8 +59,8 @@ class ConversationMessage(Base):
         Index('idx_conv_msg_created', 'created_at'),
     )
     
-    id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
-    conversation_id = Column(UUID(as_uuid=True), ForeignKey("conversations.id", ondelete="CASCADE"), nullable=False, index=True)
+    id = Column(UUIDType, primary_key=True, index=True, default=uuid.uuid4)
+    conversation_id = Column(UUIDType, ForeignKey("conversations.id", ondelete="CASCADE"), nullable=False, index=True)
     role = Column(String(20), nullable=False)
     content = Column(Text, nullable=False)
     tokens = Column(Integer, default=0)

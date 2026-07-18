@@ -39,7 +39,7 @@ def create_timeline_event(
     """
     Create new timeline event
     """
-    timeline_event = crud.create_timeline_event(db, timeline_event=timeline_event_in)
+    timeline_event = crud.create_timeline_event(db, event=timeline_event_in)
     return timeline_event
 
 
@@ -60,7 +60,7 @@ def read_timeline_event_by_id(
             detail="Invalid timeline event ID format",
         )
     
-    timeline_event = crud.get_timeline_event(db, timeline_event_id=event_uuid)
+    timeline_event = crud.get_timeline_event(db, event_id=event_uuid)
     if not timeline_event:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -90,7 +90,7 @@ def update_timeline_event(
             detail="Invalid timeline event ID format",
         )
     
-    timeline_event = crud.get_timeline_event(db, timeline_event_id=event_uuid)
+    timeline_event = crud.get_timeline_event(db, event_id=event_uuid)
     if not timeline_event:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -99,8 +99,8 @@ def update_timeline_event(
     
     timeline_event = crud.update_timeline_event(
         db, 
-        timeline_event_id=event_uuid, 
-        timeline_event_update=timeline_event_in
+        event_id=event_uuid, 
+        event_update=timeline_event_in
     )
     return timeline_event
 
@@ -124,14 +124,14 @@ def delete_timeline_event(
             detail="Invalid timeline event ID format",
         )
     
-    timeline_event = crud.get_timeline_event(db, timeline_event_id=event_uuid)
+    timeline_event = crud.get_timeline_event(db, event_id=event_uuid)
     if not timeline_event:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Timeline event not found",
         )
     
-    deleted = crud.delete_timeline_event(db, timeline_event_id=event_uuid)
+    deleted = crud.delete_timeline_event(db, event_id=event_uuid)
     if not deleted:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

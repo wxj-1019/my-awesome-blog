@@ -1,8 +1,9 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, UUID, Index, ForeignKey
+from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, Index, ForeignKey
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 import uuid
 from app.core.database import Base
+from app.core.types import UUIDType
 
 
 class User(Base):
@@ -15,8 +16,8 @@ class User(Base):
         Index('idx_user_tenant', 'tenant_id'),                   # 租户查询
     )
 
-    id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
-    tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True)
+    id = Column(UUIDType, primary_key=True, index=True, default=uuid.uuid4)
+    tenant_id = Column(UUIDType, ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True)
     username = Column(String(50), unique=True, index=True, nullable=False)
     email = Column(String(100), unique=True, index=True, nullable=False)
     hashed_password = Column(String(255), nullable=False)

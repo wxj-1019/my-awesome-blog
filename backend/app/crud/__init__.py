@@ -9,12 +9,13 @@ from app.crud.article import (
     get_article_async, get_article_by_slug, get_articles,
     create_article, update_article, delete_article,
     increment_view_count, get_featured_articles, get_related_articles,
-    get_articles_with_categories_and_tags, get_popular_articles
+    get_articles_with_categories_and_tags, get_popular_articles,
+    get_articles_with_cursor_pagination, search_articles_fulltext
 )
 
 from app.crud.comment import (
     get_comment, get_comments_by_article, get_comments_by_author,
-    get_replies, create_comment, update_comment, delete_comment,
+    get_replies as get_comment_replies, create_comment, update_comment, delete_comment,
     approve_comment
 )
 
@@ -57,6 +58,11 @@ from app.crud.image import (
     update_image, delete_image
 )
 
+from app.crud.audit_log import (
+    create_audit_log, get_audit_log, get_audit_logs,
+    get_audit_logs_by_user, get_audit_logs_by_action
+)
+
 from app.crud.typewriter_content import (
     get_typewriter_content,
     get_typewriter_contents,
@@ -72,7 +78,7 @@ from app.crud.message import (
     get_messages,
     get_messages_by_author,
     get_danmaku_messages,
-    get_replies,
+    get_replies as get_message_replies,
     create_message,
     update_message,
     delete_message,

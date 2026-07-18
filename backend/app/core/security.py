@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 from jose import JWTError, jwt
@@ -29,23 +30,31 @@ def verify_token(token: str) -> Optional[dict]:
         return None
 
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
+def _verify_password_sync(plain_password: str, hashed_password: str) -> bool:
+    return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
+
+
+async def verify_password(plain_password: str, hashed_password: str) -> bool:
     """
-    验证密码
-    注意：bcrypt 自动处理72字节限制，无需手动截断
+    验证密码（异步，在线程池中执行 bcrypt 以避免阻塞事件循环）
     """
     try:
-        return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
+        return await asyncio.get_event_loop().run_in_executor(
+            None, _verify_password_sync, plain_password, hashed_password
+        )
     except ValueError as e:
-        # 如果验证失败，记录错误并返回False
         app_logger.error(f"Password verification error: {str(e)}")
         return False
 
 
-def get_password_hash(password: str) -> str:
-    """
-    生成密码哈希
-    注意：bcrypt 自动处理72字节限制，无需手动截断
-    密码长度限制应在 schema 层验证（见 user.py schema 的 PasswordStr）
-    """
+def _get_password_hash_sync(password: str) -> str:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+
+async def get_password_hash(password: str) -> str:
+    """
+    生成密码哈希（异步，在线程池中执行 bcrypt 以避免阻塞事件循环）
+    """
+    return await asyncio.get_event_loop().run_in_executor(
+        None, _get_password_hash_sync, password
+    )

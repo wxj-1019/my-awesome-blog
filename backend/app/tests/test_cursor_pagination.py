@@ -9,13 +9,6 @@ from app.utils.pagination import CursorPaginationParams
 from uuid import uuid4
 
 
-@pytest.fixture
-def client():
-    """创建测试客户端"""
-    with TestClient(app) as test_client:
-        yield test_client
-
-
 def test_cursor_pagination_basic(superuser_token_headers, client: TestClient, db: Session):
     """测试基本游标分页功能"""
     # 创建多个测试文章

@@ -1,3 +1,4 @@
+import asyncio
 from typing import Any, List, Optional
 from fastapi import APIRouter, Depends, status, Query, Request, HTTPException
 from app.exceptions import (
@@ -11,6 +12,7 @@ from app.core.database import get_db
 from app.core.dependencies import get_current_active_user, get_current_superuser
 from app import crud
 from app.schemas.article import Article, ArticleCreate, ArticleUpdate, ArticleWithAuthor
+from app.models.article import Article as ArticleModel
 from app.models.user import User
 from uuid import UUID
 from app.services.cache_service import cache_service
@@ -144,6 +146,26 @@ def read_popular_articles(
         )
 
 
+@router.get("/recommended", response_model=List[ArticleWithAuthor])
+@article_read_rate_limit
+def read_recommended_articles(
+    request: Request,
+    limit: int = Query(10, ge=1, le=50, description="Number of recommended articles to return"),
+    db: Session = Depends(get_db)
+) -> Any:
+    """
+    Get recommended articles (published articles sorted by view count)
+    """
+    articles = (
+        db.query(ArticleModel)
+        .filter(ArticleModel.is_published == True)
+        .order_by(ArticleModel.view_count.desc())
+        .limit(limit)
+        .all()
+    )
+    return articles
+
+
 @router.get("/search", response_model=List[ArticleWithAuthor])
 @article_read_rate_limit
 def search_articles(
@@ -211,7 +233,7 @@ async def read_article_by_slug(
     if not article:
         raise NotFoundException(
             resource="Article",
-            identifier=article_id
+            identifier=slug
         )
 
     # Increment view count
@@ -239,6 +261,62 @@ async def read_related_articles(
 
     related_articles = crud.get_related_articles(db, article_id=article_uuid, limit=limit)
     return related_articles
+
+
+@router.get("/cursor-paginated", response_model=dict)
+async def read_articles_cursor_paginated(
+    cursor: Optional[str] = Query(None, description="Cursor for pagination"),
+    limit: int = Query(20, ge=1, le=100, description="Number of items per page"),
+    published_only: bool = Query(True, description="Only return published articles"),
+    author_id: Optional[str] = Query(None, description="Filter by author ID"),
+    search: Optional[str] = Query(None, description="Search in title and content"),
+    db: Session = Depends(get_db)
+) -> Any:
+    """
+    Retrieve articles with cursor-based pagination
+    """
+    from uuid import UUID
+    
+    # Parse parameters
+    cursor_params = CursorPaginationParams(cursor=cursor, limit=limit)
+    author_uuid = UUID(author_id) if author_id else None
+    
+    # Perform cursor-based pagination
+    result = await crud.get_articles_with_cursor_pagination(
+        db=db,
+        cursor_params=cursor_params,
+        published_only=published_only,
+        author_id=author_uuid,
+        search=search
+    )
+    
+    return {
+        "items": [ArticleWithAuthor.model_validate(item) for item in result.items],
+        "next_cursor": result.next_cursor,
+        "has_more": result.has_more
+    }
+
+
+@router.get("/search-fulltext", response_model=List[ArticleWithAuthor])
+async def search_articles_fulltext(
+    search_query: str = Query(..., min_length=1, max_length=100, description="Fulltext search query"),
+    published_only: bool = Query(True, description="Only return published articles"),
+    skip: int = 0,
+    limit: int = Query(100, le=100, description="Max limit is 100"),
+    db: Session = Depends(get_db)
+) -> Any:
+    """
+    Search articles using PostgreSQL fulltext search
+    """
+    articles = crud.search_articles_fulltext(
+        db=db,
+        search_query=search_query,
+        published_only=published_only,
+        skip=skip,
+        limit=limit
+    )
+
+    return articles
 
 
 @router.get("/{article_id}", response_model=ArticleWithAuthor)
@@ -311,62 +389,6 @@ async def delete_article(
     return {"message": "Article deleted successfully"}
 
 
-@router.get("/cursor-paginated", response_model=dict)
-async def read_articles_cursor_paginated(
-    cursor: Optional[str] = Query(None, description="Cursor for pagination"),
-    limit: int = Query(20, ge=1, le=100, description="Number of items per page"),
-    published_only: bool = Query(True, description="Only return published articles"),
-    author_id: Optional[str] = Query(None, description="Filter by author ID"),
-    search: Optional[str] = Query(None, description="Search in title and content"),
-    db: Session = Depends(get_db)
-) -> Any:
-    """
-    Retrieve articles with cursor-based pagination
-    """
-    from uuid import UUID
-    
-    # Parse parameters
-    cursor_params = CursorPaginationParams(cursor=cursor, limit=limit)
-    author_uuid = UUID(author_id) if author_id else None
-    
-    # Perform cursor-based pagination
-    result = await crud.get_articles_with_cursor_pagination(
-        db=db,
-        cursor_params=cursor_params,
-        published_only=published_only,
-        author_id=author_uuid,
-        search=search
-    )
-    
-    return {
-        "items": result.items,
-        "next_cursor": result.next_cursor,
-        "has_more": result.has_more
-    }
-
-
-@router.get("/search-fulltext", response_model=List[ArticleWithAuthor])
-async def search_articles_fulltext(
-    search_query: str = Query(..., min_length=1, max_length=100, description="Fulltext search query"),
-    published_only: bool = Query(True, description="Only return published articles"),
-    skip: int = 0,
-    limit: int = Query(100, le=100, description="Max limit is 100"),
-    db: Session = Depends(get_db)
-) -> Any:
-    """
-    Search articles using PostgreSQL fulltext search
-    """
-    articles = crud.search_articles_fulltext(
-        db=db,
-        search_query=search_query,
-        published_only=published_only,
-        skip=skip,
-        limit=limit
-    )
-
-    return articles
-
-
 @router.post("/batch/delete", response_model=dict)
 async def batch_delete_articles(
     article_ids: list[str],
@@ -386,33 +408,37 @@ async def batch_delete_articles(
 
     app_logger.info(f"批量删除文章: {len(article_uuids)} 篇, 操作者: {current_user.username}")
 
-    # 查询要删除的文章以获取slug用于缓存清除
-    articles = db.query(Article).filter(
-        Article.id.in_(article_uuids)
-    ).all()
+    def _delete_articles_sync():
+        articles = db.query(ArticleModel).filter(
+            ArticleModel.id.in_(article_uuids)
+        ).all()
 
-    if not articles:
+        if not articles:
+            return None, [], []
+
+        slugs = [article.slug for article in articles if article.slug]
+        deleted_ids = [str(article.id) for article in articles]
+
+        deleted_count = db.query(ArticleModel).filter(
+            ArticleModel.id.in_(article_uuids)
+        ).delete(synchronize_session=False)
+
+        db.commit()
+        return deleted_count, slugs, deleted_ids
+
+    deleted_count, slugs, deleted_ids = await asyncio.to_thread(_delete_articles_sync)
+
+    if deleted_count is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="未找到任何文章"
         )
 
-    # 收集所有slug用于批量清除缓存
-    slugs = [article.slug for article in articles if article.slug]
-    deleted_ids = [str(article.id) for article in articles]
-
-    # 批量删除文章
-    deleted_count = db.query(Article).filter(
-        Article.id.in_(article_uuids)
-    ).delete(synchronize_session=False)
-
-    db.commit()
-
     # 批量清除缓存
     if deleted_ids:
-        # 批量删除文章ID缓存
-        await cache_service.delete_pattern("article:*")
-        # 批量删除slug缓存
+        # 精确删除每篇文章的缓存，避免使用通配符误伤其他缓存
+        for article_id in deleted_ids:
+            await cache_service.delete(f"article:{article_id}")
         for slug in slugs:
             await cache_service.delete(f"article:slug:{slug}")
 
@@ -447,52 +473,55 @@ async def batch_publish_articles(
 
     app_logger.info(f"批量{'发布' if publish else '取消发布'}文章: {len(article_uuids)} 篇, 操作者: {current_user.username}")
 
-    # 构建查询条件（普通用户只能操作自己的文章）
-    if current_user.is_superuser:
-        query = db.query(Article).filter(Article.id.in_(article_uuids))
-    else:
-        query = db.query(Article).filter(
-            Article.id.in_(article_uuids),
-            Article.author_id == current_user.id  # type: ignore
-        )
+    def _publish_articles_sync():
+        if current_user.is_superuser:
+            query = db.query(Article).filter(Article.id.in_(article_uuids))
+        else:
+            query = db.query(Article).filter(
+                Article.id.in_(article_uuids),
+                Article.author_id == current_user.id  # type: ignore
+            )
 
-    articles = query.all()
+        articles = query.all()
 
-    if not articles:
+        if not articles:
+            return None, [], []
+
+        updated_count = 0
+        updated_ids = []
+        slugs = []
+        current_time = datetime.now(timezone.utc)
+
+        for article in articles:
+            old_status = article.is_published  # type: ignore
+
+            if publish:
+                if not old_status:
+                    article.is_published = True  # type: ignore
+                    article.published_at = current_time  # type: ignore
+                    updated_count += 1
+                    updated_ids.append(str(article.id))
+                    if article.slug:
+                        slugs.append(article.slug)
+            else:
+                if old_status:
+                    article.is_published = False  # type: ignore
+                    article.published_at = None  # type: ignore
+                    updated_count += 1
+                    updated_ids.append(str(article.id))
+                    if article.slug:
+                        slugs.append(article.slug)
+
+        db.commit()
+        return updated_count, updated_ids, slugs
+
+    result = await asyncio.to_thread(_publish_articles_sync)
+    if result is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="未找到任何文章或没有权限操作这些文章"
         )
-
-    # 批量更新文章发布状态
-    updated_count = 0
-    updated_ids = []
-    slugs = []
-    current_time = datetime.now(timezone.utc)
-
-    for article in articles:
-        old_status = article.is_published  # type: ignore
-
-        if publish:
-            # 发布文章
-            if not old_status:
-                article.is_published = True  # type: ignore
-                article.published_at = current_time  # type: ignore
-                updated_count += 1
-                updated_ids.append(str(article.id))
-                if article.slug:
-                    slugs.append(article.slug)
-        else:
-            # 取消发布
-            if old_status:
-                article.is_published = False  # type: ignore
-                article.published_at = None  # type: ignore
-                updated_count += 1
-                updated_ids.append(str(article.id))
-                if article.slug:
-                    slugs.append(article.slug)
-
-    db.commit()
+    updated_count, updated_ids, slugs = result
 
     # 批量清除缓存
     if updated_ids:
@@ -529,30 +558,34 @@ async def batch_set_featured_articles(
 
     app_logger.info(f"批量{'设置精选' if featured else '取消精选'}文章: {len(article_uuids)} 篇, 操作者: {current_user.username}")
 
-    # 查询文章
-    articles = db.query(Article).filter(
-        Article.id.in_(article_uuids)
-    ).all()
+    def _feature_articles_sync():
+        articles = db.query(Article).filter(
+            Article.id.in_(article_uuids)
+        ).all()
 
-    if not articles:
+        if not articles:
+            return None, []
+
+        updated_ids = [str(article.id) for article in articles]
+        slugs = [article.slug for article in articles if article.slug]
+
+        db.query(Article).filter(
+            Article.id.in_(article_uuids)
+        ).update(
+            {"is_featured": featured},
+            synchronize_session=False
+        )
+
+        db.commit()
+        return updated_ids, slugs
+
+    result = await asyncio.to_thread(_feature_articles_sync)
+    if result is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="未找到任何文章"
         )
-
-    # 批量更新精选状态
-    updated_ids = [str(article.id) for article in articles]
-    slugs = [article.slug for article in articles if article.slug]
-
-    # 使用批量更新
-    db.query(Article).filter(
-        Article.id.in_(article_uuids)
-    ).update(
-        {"is_featured": featured},
-        synchronize_session=False
-    )
-
-    db.commit()
+    updated_ids, slugs = result
 
     # 批量清除缓存
     if updated_ids:

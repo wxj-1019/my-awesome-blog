@@ -285,7 +285,20 @@ async def delete_conversation_messages(
     
     - **conversation_id**: 对话 ID
     """
-    from app.crud.conversation import delete_conversation_messages
+    from app.crud.conversation import delete_conversation_messages, get_conversation
+    
+    conversation = get_conversation(db, conversation_id)
+    if not conversation:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Conversation not found",
+        )
+    
+    if str(conversation.user_id) != str(current_user.id) and not current_user.is_superuser:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to delete messages from this conversation",
+        )
     
     delete_conversation_messages(db, conversation_id)
     

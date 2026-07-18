@@ -1,4 +1,5 @@
 import pytest
+import uuid
 from fastapi import status
 from sqlalchemy.orm import Session
 
@@ -67,14 +68,14 @@ def test_get_tag(client, test_session):
     
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
-    assert data["id"] == tag.id
+    assert data["id"] == str(tag.id)
     assert data["name"] == "JavaScript"
     assert data["slug"] == "javascript"
 
 
 def test_get_nonexistent_tag(client):
     """Test getting a tag that doesn't exist"""
-    response = client.get("/api/v1/tags/99999")
+    response = client.get(f"/api/v1/tags/{uuid.uuid4()}")
     
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -202,7 +203,7 @@ def test_get_tag_by_name(client, test_session):
     
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
-    assert data["id"] == tag.id
+    assert data["id"] == str(tag.id)
     assert data["name"] == "FastAPI"
     assert data["slug"] == "fastapi"
 

@@ -121,24 +121,18 @@ class CacheService:
 
     async def mset(self, mapping: Dict[str, Any], expire: Optional[int] = 3600) -> bool:
         """
-        批量设置多个缓存值
+        批量设置多个缓存值（原子设置键值和过期时间）
         :param mapping: 键值对映射
         :param expire: 过期时间（秒）
         :return: 是否设置成功
         """
         try:
-            serialized_mapping = {}
+            pipe = self.redis.pipeline()
             for key, value in mapping.items():
-                serialized_mapping[key] = self._serialize(value)
-
-            # 先执行批量设置
-            result = await self.redis.mset(serialized_mapping)
-
-            # 然后为每个键单独设置过期时间
-            for key in mapping.keys():
-                await self.redis.expire(key, expire)
-
-            return result is not None
+                serialized = self._serialize(value)
+                pipe.set(key, serialized, ex=expire)
+            results = await pipe.execute()
+            return all(results)
         except Exception as e:
             app_logger.error(f"Failed to set multiple cache values: {e}")
             return False
@@ -451,46 +445,56 @@ class CacheService:
             return 0
 
     # 分布式锁
-    async def acquire_lock(self, lock_name: str, timeout: int = 10, blocking: bool = True, blocking_timeout: int = 10) -> bool:
+    async def acquire_lock(self, lock_name: str, timeout: int = 10, blocking: bool = True, blocking_timeout: int = 10) -> Optional[str]:
         """
         获取分布式锁
         :param lock_name: 锁名称
         :param timeout: 锁超时时间（秒）
         :param blocking: 是否阻塞等待
         :param blocking_timeout: 阻塞超时时间（秒）
-        :return: 是否获取成功
+        :return: 锁ID（获取成功）或None（获取失败）
         """
         try:
             import uuid
+            import asyncio
             lock_id = str(uuid.uuid4())
             lock_key = f"lock:{lock_name}"
             
             if blocking:
-                import asyncio
                 start_time = asyncio.get_event_loop().time()
                 while True:
                     # NX = only if not exists, EX = expire time
                     result = await self.redis.set(lock_key, lock_id, nx=True, ex=timeout)
                     if result:
-                        return True
+                        return lock_id
                     if asyncio.get_event_loop().time() - start_time > blocking_timeout:
-                        return False
+                        return None
                     await asyncio.sleep(0.1)
             else:
-                return await self.redis.set(lock_key, lock_id, nx=True, ex=timeout)
+                result = await self.redis.set(lock_key, lock_id, nx=True, ex=timeout)
+                return lock_id if result else None
         except Exception as e:
             app_logger.error(f"Failed to acquire lock: {e}")
-            return False
+            return None
 
-    async def release_lock(self, lock_name: str) -> bool:
+    async def release_lock(self, lock_name: str, lock_id: str) -> bool:
         """
-        释放分布式锁
+        安全释放分布式锁（仅当锁属于当前持有者时才释放）
         :param lock_name: 锁名称
+        :param lock_id: 锁ID（由acquire_lock返回）
         :return: 是否释放成功
         """
         try:
             lock_key = f"lock:{lock_name}"
-            return await self.redis.delete(lock_key) > 0
+            lua_script = """
+            if redis.call("get", KEYS[1]) == ARGV[1] then
+                return redis.call("del", KEYS[1])
+            else
+                return 0
+            end
+            """
+            result = await self.redis.eval(lua_script, 1, lock_key, lock_id)
+            return result > 0
         except Exception as e:
             app_logger.error(f"Failed to release lock: {e}")
             return False
@@ -506,17 +510,17 @@ class CacheService:
         """
         import asyncio
         
-        acquired = await self.acquire_lock(lock_name, timeout=timeout)
-        if not acquired:
+        lock_id = await self.acquire_lock(lock_name, timeout=timeout)
+        if not lock_id:
             raise Exception(f"Could not acquire lock: {lock_name}")
         
         try:
             if asyncio.iscoroutinefunction(func):
                 return await func(*args, **kwargs)
             else:
-                return func(*args, **kwargs)
+                return await asyncio.to_thread(func, *args, **kwargs)
         finally:
-            await self.release_lock(lock_name)
+            await self.release_lock(lock_name, lock_id)
 
 
 # 全局缓存服务实例
@@ -532,7 +536,7 @@ async def cache_get_or_set(
     **kwargs
 ) -> Any:
     """
-    获取缓存值，如果不存在则调用fetch_func获取并存储到缓存
+    获取缓存值，如果不存在则调用fetch_func获取并存储到缓存（带缓存击穿保护）
     :param key: 缓存键
     :param fetch_func: 获取数据的函数
     :param expire: 过期时间（秒）
@@ -540,22 +544,45 @@ async def cache_get_or_set(
     :param kwargs: 传递给fetch_func的关键字参数
     :return: 数据
     """
+    import asyncio
+
     # 尝试从缓存获取
     cached_value = await cache_service.get(key)
     if cached_value is not None:
         return cached_value
 
-    # 如果缓存不存在，调用fetch_func获取数据
-    import asyncio
-    if asyncio.iscoroutinefunction(fetch_func):
-        value = await fetch_func(*args, **kwargs)
-    else:
-        value = fetch_func(*args, **kwargs)
+    # 使用分布式锁防止缓存击穿
+    lock_name = f"cache:{key}"
+    lock_id = await cache_service.acquire_lock(lock_name, timeout=10, blocking=True, blocking_timeout=5)
 
-    # 存储到缓存
-    await cache_service.set(key, value, expire)
+    if not lock_id:
+        # 未获取到锁，尝试再次读取缓存
+        cached_value = await cache_service.get(key)
+        if cached_value is not None:
+            return cached_value
+        # 降级：直接执行fetch_func
+        if asyncio.iscoroutinefunction(fetch_func):
+            value = await fetch_func(*args, **kwargs)
+        else:
+            value = await asyncio.to_thread(fetch_func, *args, **kwargs)
+        await cache_service.set(key, value, expire)
+        return value
 
-    return value
+    try:
+        # 获取锁后再次检查缓存（double-check）
+        cached_value = await cache_service.get(key)
+        if cached_value is not None:
+            return cached_value
+
+        if asyncio.iscoroutinefunction(fetch_func):
+            value = await fetch_func(*args, **kwargs)
+        else:
+            value = await asyncio.to_thread(fetch_func, *args, **kwargs)
+
+        await cache_service.set(key, value, expire)
+        return value
+    finally:
+        await cache_service.release_lock(lock_name, lock_id)
 
 
 async def cache_get_or_set_compressed(
@@ -566,7 +593,7 @@ async def cache_get_or_set_compressed(
     **kwargs
 ) -> Any:
     """
-    获取缓存值，如果不存在则调用fetch_func获取并存储到缓存（带压缩）
+    获取缓存值，如果不存在则调用fetch_func获取并存储到缓存（带压缩，带缓存击穿保护）
     :param key: 缓存键
     :param fetch_func: 获取数据的函数
     :param expire: 过期时间（秒）
@@ -574,22 +601,42 @@ async def cache_get_or_set_compressed(
     :param kwargs: 传递给fetch_func的关键字参数
     :return: 数据
     """
+    import asyncio
+
     # 尝试从缓存获取
     cached_value = await cache_service.get_with_decompression(key)
     if cached_value is not None:
         return cached_value
 
-    # 如果缓存不存在，调用fetch_func获取数据
-    import asyncio
-    if asyncio.iscoroutinefunction(fetch_func):
-        value = await fetch_func(*args, **kwargs)
-    else:
-        value = fetch_func(*args, **kwargs)
+    # 使用分布式锁防止缓存击穿
+    lock_name = f"cache:{key}"
+    lock_id = await cache_service.acquire_lock(lock_name, timeout=10, blocking=True, blocking_timeout=5)
 
-    # 存储到缓存（带压缩）
-    await cache_service.set_with_compression(key, value, expire)
+    if not lock_id:
+        cached_value = await cache_service.get_with_decompression(key)
+        if cached_value is not None:
+            return cached_value
+        if asyncio.iscoroutinefunction(fetch_func):
+            value = await fetch_func(*args, **kwargs)
+        else:
+            value = await asyncio.to_thread(fetch_func, *args, **kwargs)
+        await cache_service.set_with_compression(key, value, expire)
+        return value
 
-    return value
+    try:
+        cached_value = await cache_service.get_with_decompression(key)
+        if cached_value is not None:
+            return cached_value
+
+        if asyncio.iscoroutinefunction(fetch_func):
+            value = await fetch_func(*args, **kwargs)
+        else:
+            value = await asyncio.to_thread(fetch_func, *args, **kwargs)
+
+        await cache_service.set_with_compression(key, value, expire)
+        return value
+    finally:
+        await cache_service.release_lock(lock_name, lock_id)
 
 
 # 缓存装饰器

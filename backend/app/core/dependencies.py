@@ -1,3 +1,4 @@
+import asyncio
 from typing import Optional
 from uuid import UUID
 from fastapi import Depends, HTTPException, status
@@ -46,7 +47,9 @@ async def get_current_user_optional(
         return None
     
     try:
-        user = crud.get_user(db, user_id=UUID(user_id))
+        user = await asyncio.get_event_loop().run_in_executor(
+            None, crud.get_user, db, UUID(user_id)
+        )
         return user
     except Exception as e:
         app_logger.debug(f"Failed to fetch user in optional auth: {e}")
@@ -66,13 +69,13 @@ async def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
     
-    app_logger.debug(f"Authentication attempt with token: {token[:20]}...")
+    app_logger.debug(f"Authentication attempt with token prefix: {token[:8]}...")
     
     # 检查令牌是否在黑名单中
     try:
         is_blacklisted = await cache_service.exists(f"blacklist:token:{token}")
         if is_blacklisted:
-            app_logger.warning(f"Attempt to use blacklisted token: {token[:20]}...")
+            app_logger.warning(f"Attempt to use blacklisted token prefix: {token[:8]}...")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Token has been revoked",
@@ -96,7 +99,7 @@ async def get_current_user(
         
         app_logger.debug(f"Token verified successfully, user_id: {user_id}")
     except JWTError as e:
-        app_logger.error(f"JWT decode error: {e}, token: {token[:20]}...")
+        app_logger.error(f"JWT decode error: {e}, token prefix: {token[:8]}...")
         raise credentials_exception
     except Exception as e:
         app_logger.error(f"Unexpected error during token verification: {e}")
@@ -107,7 +110,9 @@ async def get_current_user(
     
     try:
         app_logger.debug(f"Fetching user from database: {user_id}")
-        user = crud.get_user(db, user_id=UUID(user_id))
+        user = await asyncio.get_event_loop().run_in_executor(
+            None, crud.get_user, db, UUID(user_id)
+        )
         if user is None:
             app_logger.warning(f"User not found for ID: {user_id}")
             raise credentials_exception

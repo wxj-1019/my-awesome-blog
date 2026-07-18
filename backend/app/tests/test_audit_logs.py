@@ -10,13 +10,6 @@ from uuid import UUID
 import json
 
 
-@pytest.fixture
-def client():
-    """创建测试客户端"""
-    with TestClient(app) as test_client:
-        yield test_client
-
-
 def test_create_audit_log(superuser_token_headers, db: Session):
     """测试创建审计日志"""
     # 准备测试数据
@@ -51,7 +44,7 @@ def test_create_audit_log(superuser_token_headers, db: Session):
     assert audit_log.action == audit_log_data["action"]
     assert audit_log.resource_type == audit_log_data["resource_type"]
     assert audit_log.resource_id == audit_log_data["resource_id"]
-    assert UUID(audit_log.user_id) == user.id
+    assert audit_log.user_id == user.id
 
 
 def test_get_audit_log(superuser_token_headers, client: TestClient, db: Session):

@@ -4,9 +4,11 @@ import asyncio
 import time
 import psutil
 from typing import Dict, Any
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from app.core.config import settings
+from app.core.dependencies import get_current_superuser
+from app.models.user import User
 from app.services.cache_service import cache_service
 from app.utils.logger import app_logger
 from datetime import datetime
@@ -88,10 +90,12 @@ async def health_check():
 
 
 @router.get("/metrics", response_model=SystemMetrics)
-async def get_system_metrics():
+async def get_system_metrics(
+    current_user: User = Depends(get_current_superuser)
+):
     """获取系统指标"""
     # CPU使用率
-    cpu_percent = psutil.cpu_percent(interval=1)
+    cpu_percent = await asyncio.to_thread(psutil.cpu_percent, interval=1)
     
     # 内存使用率
     memory = psutil.virtual_memory()
@@ -134,20 +138,15 @@ async def get_system_metrics():
 
 
 @router.get("/monitoring/status")
-async def get_monitoring_status():
+async def get_monitoring_status(
+    current_user: User = Depends(get_current_superuser)
+):
     """获取监控状态"""
     uptime = time.time() - start_time
     
     # 获取系统信息
-    cpu_percent = psutil.cpu_percent(interval=1)
-    memory = psutil.virtual_memory()
-    
-    # 检查服务依赖
-    dependencies = {
-        "database": "connected",
-        "redis": "connected" if cache_service.redis else "disconnected",
-        "oss": "configured" if settings.ALIBABA_CLOUD_ACCESS_KEY_ID else "not configured"
-    }
+    cpu_percent = await asyncio.to_thread(psutil.cpu_percent, interval=1)
+    memory = await asyncio.to_thread(psutil.virtual_memory)
     
     return {
         "status": "running",
@@ -156,20 +155,19 @@ async def get_monitoring_status():
         "system_info": {
             "cpu_percent": cpu_percent,
             "memory_percent": memory.percent,
-            "total_memory_gb": round(memory.total / (1024**3), 2),
-            "available_memory_gb": round(memory.available / (1024**3), 2)
         },
-        "dependencies": dependencies,
         "app_info": {
             "name": settings.APP_NAME,
             "version": settings.APP_VERSION,
-            "debug": settings.DEBUG
         }
     }
 
 
 @router.get("/monitoring/logs")
-async def get_recent_logs(count: int = 10):
+async def get_recent_logs(
+    count: int = 10,
+    current_user: User = Depends(get_current_superuser)
+):
     """获取最近的日志条目"""
     # 这是一个示例实现，实际应用中需要从日志文件或日志服务中读取
     # 由于loguru的日志写入到文件，这里无法直接读取
@@ -183,7 +181,9 @@ async def get_recent_logs(count: int = 10):
 
 
 @router.get("/monitoring/analytics")
-async def get_analytics():
+async def get_analytics(
+    current_user: User = Depends(get_current_superuser)
+):
     """获取应用分析数据"""
     # 这里会返回各种应用分析数据
     # 实际实现中会从数据库或缓存中获取统计信息

@@ -3,11 +3,12 @@ Memory Model
 记忆管理模型，支持向量存储和语义检索
 """
 
-from sqlalchemy import Column, String, Text, DateTime, UUID, Index, ForeignKey, Float, Integer
+from sqlalchemy import Column, String, Text, DateTime, Index, ForeignKey, Float, Integer
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 import uuid
 from app.core.database import Base
+from app.core.types import UUIDType
 from app.core.soft_delete import SoftDeleteMixinSync
 
 
@@ -27,9 +28,9 @@ class Memory(Base, SoftDeleteMixinSync):
         Index('idx_memory_expires', 'expires_at'),
     )
     
-    id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
-    tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    id = Column(UUIDType, primary_key=True, index=True, default=uuid.uuid4)
+    tenant_id = Column(UUIDType, ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(UUIDType, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     memory_type = Column(String(50), nullable=False, index=True)
     content = Column(Text, nullable=False)
     embedding = Column(Text, nullable=True)

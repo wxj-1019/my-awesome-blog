@@ -3,9 +3,10 @@ Exception Handlers
 全局异常处理器 - 将自定义异常转换为 FastAPI 响应
 """
 
-from fastapi import Request, status
+from fastapi import Request, status, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError, NoResultFound
 from redis.exceptions import RedisError
 import httpx
@@ -226,6 +227,53 @@ async def value_error_handler(
     )
 
 
+async def http_exception_handler(
+    request: Request, exc: HTTPException
+) -> JSONResponse:
+    """
+    处理 FastAPI HTTPException
+    """
+    app_logger.warning(
+        f"HTTPException: {exc.status_code} - {exc.detail}",
+        extra={"path": request.url.path, "method": request.method},
+    )
+    
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "error": {
+                "code": f"HTTP_{exc.status_code}",
+                "message": exc.detail,
+                "status_code": exc.status_code,
+            }
+        },
+        headers=getattr(exc, "headers", None) or {},
+    )
+
+
+async def starlette_http_exception_handler(
+    request: Request, exc: StarletteHTTPException
+) -> JSONResponse:
+    """
+    处理 Starlette HTTPException
+    """
+    app_logger.warning(
+        f"StarletteHTTPException: {exc.status_code} - {exc.detail}",
+        extra={"path": request.url.path, "method": request.method},
+    )
+    
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "error": {
+                "code": f"HTTP_{exc.status_code}",
+                "message": exc.detail,
+                "status_code": exc.status_code,
+            }
+        },
+    )
+
+
 def register_exception_handlers(app):
     """
     注册所有异常处理器到 FastAPI 应用
@@ -237,6 +285,12 @@ def register_exception_handlers(app):
         app = FastAPI()
         register_exception_handlers(app)
     """
+    # FastAPI HTTPException
+    app.add_exception_handler(HTTPException, http_exception_handler)
+    
+    # Starlette HTTPException
+    app.add_exception_handler(StarletteHTTPException, starlette_http_exception_handler)
+    
     # 自定义异常
     app.add_exception_handler(AppException, app_exception_handler)
     

@@ -10,7 +10,6 @@ from app.api.v1.router import api_router
 from app.core.config import settings
 from app.utils.logger import app_logger
 from app.utils.middleware import RequestLoggingMiddleware
-from app.core.exception_handler import add_exception_handlers
 from app.services.cache_service import cache_service
 from app.utils.rate_limit import add_rate_limit_middleware
 from app.utils.perf_monitor import PerformanceMonitoringMiddleware
@@ -96,8 +95,7 @@ if settings.BACKEND_CORS_ORIGINS:
 app.include_router(api_router, prefix="/api/v1")
 
 # Add exception handlers
-add_exception_handlers(app)
-register_exception_handlers(app)  # 注册新的统一异常处理器
+register_exception_handlers(app)
 
 
 

@@ -59,6 +59,27 @@ def create_tag(
     return tag
 
 
+@router.get("/name/{tag_name}", response_model=TagWithArticleCount)
+def read_tag_by_name(
+    tag_name: str,
+    db: Session = Depends(get_db)
+) -> Any:
+    """
+    Get a specific tag by name
+    """
+    tag = crud.get_tag_by_name(db, name=tag_name)
+    if not tag:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Tag not found",
+        )
+
+    article_count = len(tag.articles)
+    tag.article_count = article_count
+
+    return tag
+
+
 @router.get("/{tag_id}", response_model=TagWithArticleCount)
 def read_tag_by_id(
     tag_id: UUID,

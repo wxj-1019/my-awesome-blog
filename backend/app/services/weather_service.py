@@ -23,6 +23,15 @@ class WeatherService:
         expiration_time = updated_at + timedelta(minutes=self.CACHE_DURATION_MINUTES)
         return datetime.now(timezone.utc) > expiration_time
 
+    @staticmethod
+    def _safe_float(val) -> float:
+        if not val:
+            return 0
+        try:
+            return float(val)
+        except (ValueError, TypeError):
+            return 0
+
     def _weather_to_response(self, db_weather) -> WeatherResponse:
         """将数据库天气记录转换为 WeatherResponse"""
         import uuid
@@ -42,9 +51,9 @@ class WeatherService:
                 "update_time": db_weather.updated_at.strftime("%Y-%m-%d %H:%M:%S") if db_weather.updated_at else "",
                 "weather": db_weather.weather,
                 "weather_code": "",
-                "temp": float(db_weather.temperature) if db_weather.temperature and db_weather.temperature.replace('.', '').isdigit() else 0,
-                "min_temp": float(db_weather.temp_min) if db_weather.temp_min and db_weather.temp_min.replace('.', '').isdigit() else 0,
-                "max_temp": float(db_weather.temp_max) if db_weather.temp_max and db_weather.temp_max.replace('.', '').isdigit() else 0,
+                "temp": self._safe_float(db_weather.temperature),
+                "min_temp": self._safe_float(db_weather.temp_min),
+                "max_temp": self._safe_float(db_weather.temp_max),
                 "wind": db_weather.wind_direction or "",
                 "wind_speed": db_weather.wind_speed or "",
                 "wind_power": db_weather.wind_meter or "",

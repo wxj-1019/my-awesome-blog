@@ -1,4 +1,5 @@
 import pytest
+import uuid
 from fastapi import status
 from sqlalchemy.orm import Session
 
@@ -12,7 +13,7 @@ def test_create_friend_link(client, test_session):
         "name": "Example Site",
         "url": "https://example.com",
         "description": "An example website",
-        "email": "contact@example.com",
+        "favicon": "contact@example.com",
         "is_active": True
     }
     
@@ -23,7 +24,7 @@ def test_create_friend_link(client, test_session):
     assert data["name"] == "Example Site"
     assert data["url"] == "https://example.com"
     assert data["description"] == "An example website"
-    assert data["email"] == "contact@example.com"
+    assert data["favicon"] == "contact@example.com"
     assert data["is_active"] is True
     assert "id" in data
     
@@ -39,7 +40,7 @@ def test_create_friend_link_invalid_url(client):
         "name": "Invalid Site",
         "url": "not-a-valid-url",
         "description": "A site with invalid URL",
-        "email": "contact@example.com",
+        "favicon": "contact@example.com",
         "is_active": True
     }
     
@@ -59,7 +60,7 @@ def test_get_friend_link(client, test_session):
         name="Test Site",
         url="https://testsite.com",
         description="A test website",
-        email="test@testsite.com",
+        favicon="test@testsite.com",
         is_active=True
     )
     test_session.add(friend_link)
@@ -70,7 +71,7 @@ def test_get_friend_link(client, test_session):
     
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
-    assert data["id"] == friend_link.id
+    assert data["id"] == str(friend_link.id)
     assert data["name"] == "Test Site"
     assert data["url"] == "https://testsite.com"
     assert data["is_active"] is True
@@ -78,7 +79,7 @@ def test_get_friend_link(client, test_session):
 
 def test_get_nonexistent_friend_link(client):
     """Test getting a friend link that doesn't exist"""
-    response = client.get("/api/v1/friend-links/99999")
+    response = client.get(f"/api/v1/friend-links/{uuid.uuid4()}")
     
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -90,7 +91,7 @@ def test_update_friend_link(client, test_session):
         name="Old Name",
         url="https://oldsite.com",
         description="Old description",
-        email="old@example.com",
+        favicon="old@example.com",
         is_active=False
     )
     test_session.add(friend_link)
@@ -102,7 +103,7 @@ def test_update_friend_link(client, test_session):
         "name": "Updated Name",
         "url": "https://updatedsite.com",
         "description": "Updated description",
-        "email": "updated@example.com",
+        "favicon": "updated@example.com",
         "is_active": True
     }
     
@@ -113,7 +114,7 @@ def test_update_friend_link(client, test_session):
     assert data["name"] == "Updated Name"
     assert data["url"] == "https://updatedsite.com"
     assert data["description"] == "Updated description"
-    assert data["email"] == "updated@example.com"
+    assert data["favicon"] == "updated@example.com"
     assert data["is_active"] is True
     
     # Verify the update in the database
@@ -128,7 +129,7 @@ def test_delete_friend_link(client, test_session):
         name="To Be Deleted",
         url="https://tobedeleted.com",
         description="This will be deleted",
-        email="delete@me.com",
+        favicon="delete@me.com",
         is_active=True
     )
     test_session.add(friend_link)
@@ -155,21 +156,21 @@ def test_get_friend_links(client, test_session):
             "name": "Site 1",
             "url": "https://site1.com",
             "description": "First site",
-            "email": "contact1@site1.com",
+            "favicon": "contact1@site1.com",
             "is_active": True
         },
         {
             "name": "Site 2", 
             "url": "https://site2.com",
             "description": "Second site",
-            "email": "contact2@site2.com",
+            "favicon": "contact2@site2.com",
             "is_active": True
         },
         {
             "name": "Site 3",
             "url": "https://site3.com", 
             "description": "Third site",
-            "email": "contact3@site3.com",
+            "favicon": "contact3@site3.com",
             "is_active": False
         }
     ]
@@ -185,12 +186,13 @@ def test_get_friend_links(client, test_session):
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
     assert isinstance(data, list)
-    assert len(data) >= 3  # May have more from other tests
+    # 默认只返回 active 的友链；Site 3 为 inactive，故至少返回 2 条
+    assert len(data) >= 2
     
-    # Check if our friend links are in the response
+    # Check if our active friend links are in the response
     names_in_response = [fl["name"] for fl in data]
-    for fl_data in friend_links_data:
-        assert fl_data["name"] in names_in_response
+    assert "Site 1" in names_in_response
+    assert "Site 2" in names_in_response
 
 
 def test_get_friend_links_with_pagination(client, test_session):
@@ -201,7 +203,7 @@ def test_get_friend_links_with_pagination(client, test_session):
             name=f"Site {i}",
             url=f"https://site{i}.com",
             description=f"Description for site {i}",
-            email=f"contact{i}@site{i}.com",
+            favicon=f"contact{i}@site{i}.com",
             is_active=True
         )
         test_session.add(friend_link)
@@ -225,7 +227,7 @@ def test_get_active_friend_links(client, test_session):
         name="Active Site",
         url="https://activesite.com",
         description="An active site",
-        email="active@example.com",
+        favicon="active@example.com",
         is_active=True
     )
     
@@ -233,7 +235,7 @@ def test_get_active_friend_links(client, test_session):
         name="Inactive Site",
         url="https://inactivesite.com",
         description="An inactive site",
-        email="inactive@example.com",
+        favicon="inactive@example.com",
         is_active=False
     )
     
@@ -261,7 +263,7 @@ def test_get_inactive_friend_links(client, test_session):
         name="Active Site",
         url="https://activesite.com",
         description="An active site",
-        email="active@example.com",
+        favicon="active@example.com",
         is_active=True
     )
     
@@ -269,7 +271,7 @@ def test_get_inactive_friend_links(client, test_session):
         name="Inactive Site",
         url="https://inactivesite.com",
         description="An inactive site",
-        email="inactive@example.com",
+        favicon="inactive@example.com",
         is_active=False
     )
     

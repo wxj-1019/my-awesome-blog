@@ -118,6 +118,14 @@ def create_comment(
     """
     Create new comment
     """
+    from uuid import UUID
+    from app.crud.article import get_article
+    article = get_article(db, UUID(comment_in.article_id))
+    if not article:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Article not found",
+        )
     comment = crud.create_comment(db, comment=comment_in, author_id=current_user.id)  # type: ignore
     return comment
 

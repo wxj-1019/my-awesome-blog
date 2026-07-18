@@ -212,22 +212,18 @@ class SoftDeleteMixin:
         Returns:
             int: 清理的记录数量
         """
+        from sqlalchemy import delete
+        
         cutoff_date = datetime.utcnow() - __import__('datetime').timedelta(days=days)
         
         result = await session.execute(
-            select(cls).where(
-                (cls.is_deleted == True) &
-                (cls.deleted_at < cutoff_date)
+            delete(cls).where(
+                cls.is_deleted == True,
+                cls.deleted_at < cutoff_date
             )
         )
         
-        records = result.scalars().all()
-        count = 0
-        
-        for record in records:
-            await session.delete(record)
-            count += 1
-        
+        count = result.rowcount
         await session.commit()
         
         if count > 0:

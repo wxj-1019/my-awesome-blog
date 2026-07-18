@@ -1,7 +1,8 @@
 import uuid
-from sqlalchemy import Column, Integer, String, Float, DateTime, Boolean, UUID, Index
+from sqlalchemy import Column, Integer, String, Float, DateTime, Boolean, Index
 from sqlalchemy.sql import func
 from app.core.database import Base
+from app.core.types import UUIDType
 
 
 class Weather(Base):
@@ -13,7 +14,7 @@ class Weather(Base):
         Index('idx_weather_city_updated', 'city', 'updated_at'),
     )
 
-    id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
+    id = Column(UUIDType, primary_key=True, index=True, default=uuid.uuid4)
     city = Column(String(100), nullable=False, index=True)
     province = Column(String(100), nullable=True)
     country = Column(String(100), nullable=True)

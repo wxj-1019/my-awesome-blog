@@ -14,6 +14,8 @@ from app.schemas.llm import (
 )
 from app.utils.logger import app_logger
 from app.utils.rate_limit import llm_chat_rate_limit
+from app.core.dependencies import get_current_active_user
+from app.models.user import User
 
 router = APIRouter()
 
@@ -24,6 +26,7 @@ async def chat(
     request: Request,
     *,
     chat_request: LLMChatRequest,
+    current_user: User = Depends(get_current_active_user),
 ) -> LLMChatResponse:
     """
     LLM 聊天接口
@@ -46,6 +49,7 @@ async def stream_chat(
     request: Request,
     *,
     chat_request: LLMChatRequest,
+    current_user: User = Depends(get_current_active_user),
 ):
     """
     LLM 流式聊天接口

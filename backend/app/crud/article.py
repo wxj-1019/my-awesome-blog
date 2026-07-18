@@ -2,11 +2,11 @@ from datetime import datetime, timezone
 from typing import Optional
 from uuid import UUID
 from sqlalchemy.orm import Session
-from sqlalchemy import or_, and_
+from sqlalchemy import or_, and_, func
 from app.models.article import Article
-from app.schemas.article import ArticleCreate, ArticleUpdate
+from app.schemas.article import ArticleCreate, ArticleUpdate, ArticleWithAuthor
 from app.services.cache_service import cache_service, cache_get_or_set
-from app.utils.pagination import CursorPaginationParams, CursorPaginationResult, paginate_with_cursor
+from app.utils.pagination import CursorPaginationParams, CursorPaginationResult
 from app.utils.cache_keys import CacheKeys, CacheTTL
 from sqlalchemy import text
 
@@ -41,8 +41,7 @@ async def get_article_async(db: Session, article_id: UUID) -> Optional[Article]:
         await cache_service.set(cache_key, article, expire=CacheTTL.ARTICLE)
     else:
         # 缓存空值,防止缓存穿透(使用False标记,60秒过期)
-        null_cache_key = CacheKeys.article_null(article_id)
-        await cache_service.set(null_cache_key, False, expire=CacheTTL.VERY_SHORT)
+        await cache_service.set(cache_key, False, expire=CacheTTL.VERY_SHORT)
 
     return article
 
@@ -100,8 +99,7 @@ async def get_article_by_slug_with_relationships_async(db: Session, slug: str) -
         await cache_service.set(cache_key, article, expire=CacheTTL.ARTICLE)
     else:
         # 缓存空值,防止缓存穿透
-        null_cache_key = CacheKeys.article_slug_null(slug)
-        await cache_service.set(null_cache_key, False, expire=CacheTTL.VERY_SHORT)
+        await cache_service.set(cache_key, False, expire=CacheTTL.VERY_SHORT)
 
     return article
 
@@ -278,12 +276,25 @@ async def increment_view_count(db: Session, article_id: UUID) -> Optional[Articl
     if not db_article:
         return None
 
-    db_article.view_count = db_article.view_count + 1  # type: ignore
+    db.query(Article).filter(Article.id == article_id).update(
+        {Article.view_count: Article.view_count + 1}
+    )
     db.commit()
 
+    # 重新加载文章以返回最新数据
+    db_article = (
+        db.query(Article)
+        .options(joinedload(Article.author))
+        .options(joinedload(Article.categories))
+        .options(joinedload(Article.tags))
+        .filter(Article.id == article_id)
+        .first()
+    )
+
     # 使用统一的缓存键更新缓存
-    cache_key = CacheKeys.article(article_id)
-    await cache_service.set(cache_key, db_article, expire=CacheTTL.ARTICLE)
+    if db_article:
+        cache_key = CacheKeys.article(article_id)
+        await cache_service.set(cache_key, db_article, expire=CacheTTL.ARTICLE)
 
     return db_article
 
@@ -439,25 +450,27 @@ async def get_articles_with_cursor_pagination(
     tag_id: Optional[UUID] = None,
 ) -> CursorPaginationResult[Article]:
     """
-    使用游标分页获取文章
+    使用游标分页获取文章（按 created_at 降序、id 降序）
     """
     from sqlalchemy import desc
     from sqlalchemy.orm import joinedload
-    
+    from app.utils.pagination import encode_cursor, decode_cursor
+
+
     # 构建基础查询
     query = db.query(Article).options(
         joinedload(Article.author),
         joinedload(Article.categories),
         joinedload(Article.tags)
     )
-    
+
     # 应用过滤条件
     if published_only:
         query = query.filter(Article.is_published == True)
-    
+
     if author_id is not None:
         query = query.filter(Article.author_id == author_id)
-    
+
     if search:
         search_filter = or_(
             Article.title.ilike(f"%{search}%"),
@@ -465,28 +478,67 @@ async def get_articles_with_cursor_pagination(
             Article.excerpt.ilike(f"%{search}%"),
         )
         query = query.filter(search_filter)
-    
+
     # Filter by category if provided
     if category_id is not None:
         from app.models.article_category import ArticleCategory
         query = query.join(ArticleCategory).filter(ArticleCategory.category_id == category_id)
-    
+
     # Filter by tag if provided
     if tag_id is not None:
         from app.models.article_tag import ArticleTag
         query = query.join(ArticleTag).filter(ArticleTag.tag_id == tag_id)
-    
-    # 按创建时间倒序排列
-    query = query.order_by(desc(Article.created_at))
-    
-    # 使用游标分页函数
-    result = paginate_with_cursor(
-        query=query,
-        cursor_params=cursor_params,
-        sort_field=Article.created_at,
-    )
-    
-    return result
+
+    # 应用游标条件（必须在 limit 之前）
+    if cursor_params.cursor:
+        cursor_data = decode_cursor(cursor_params.cursor)
+        created_at_val = cursor_data.get("created_at")
+        id_val = cursor_data.get("id")
+        if created_at_val and id_val:
+            from app.core.config import settings
+            from sqlalchemy import func
+
+            created_at_dt = datetime.fromisoformat(created_at_val.replace("Z", "+00:00"))
+            cursor_id = str(UUID(id_val))
+
+            if settings.DATABASE_URL.startswith("sqlite"):
+                # SQLite 中 datetime 以字符串存储且 server_default 精度为秒，
+                # 使用 strftime 统一格式后再比较，避免 Python datetime 绑定带 .000000
+                created_at_str = created_at_dt.strftime("%Y-%m-%d %H:%M:%S")
+                db_created_at = func.strftime("%Y-%m-%d %H:%M:%S", Article.created_at)
+                query = query.filter(
+                    or_(
+                        db_created_at < created_at_str,
+                        and_(db_created_at == created_at_str, Article.id < cursor_id),
+                    )
+                )
+            else:
+                query = query.filter(
+                    or_(
+                        Article.created_at < created_at_dt,
+                        and_(Article.created_at == created_at_dt, Article.id < cursor_id),
+                    )
+                )
+
+    # 按创建时间倒序排列，并以 id 作为第二排序字段保证稳定
+    query = query.order_by(desc(Article.created_at), desc(Article.id))
+    query = query.limit(cursor_params.limit + 1)
+
+    results = query.all()
+
+    has_more = len(results) > cursor_params.limit
+    if has_more:
+        results = results[:-1]
+
+    next_cursor = None
+    if results and has_more:
+        last = results[-1]
+        next_cursor = encode_cursor({
+            "created_at": last.created_at.isoformat() if last.created_at else None,
+            "id": str(last.id),
+        })
+
+    return CursorPaginationResult(items=results, next_cursor=next_cursor, has_more=has_more)
 
 
 def search_articles_fulltext(

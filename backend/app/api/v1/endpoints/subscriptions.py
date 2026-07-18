@@ -5,6 +5,7 @@ from app.core.database import get_db
 from app.core.dependencies import get_current_active_user, get_current_superuser
 from app import crud
 from app.schemas.subscription import Subscription, SubscriptionCreate, SubscriptionUpdate
+from app.models.subscription import Subscription as SubscriptionModel
 from app.models.user import User
 
 router = APIRouter()
@@ -15,7 +16,8 @@ def read_subscriptions(
     skip: int = 0,
     limit: int = 100,
     is_active: bool = True,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_superuser)
 ) -> Any:
     """
     Retrieve subscriptions
@@ -33,21 +35,19 @@ def read_subscriptions(
 def create_subscription(
     *,
     db: Session = Depends(get_db),
-    subscription_in: SubscriptionCreate,
-    current_user: User = Depends(get_current_active_user)
+    subscription_in: SubscriptionCreate
 ) -> Any:
     """
     Create new subscription
     """
+    from app.models.subscription import Subscription as SubscriptionModel
     # Check if user is already subscribed with the same email
-    existing_subscription = db.query(crud.Subscription).filter(
-        crud.Subscription.email == subscription_in.email
+    existing_subscription = db.query(SubscriptionModel).filter(
+        SubscriptionModel.email == subscription_in.email
     ).first()
     if existing_subscription:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email is already subscribed",
-        )
+        # 统一返回成功响应，防止邮件枚举
+        return existing_subscription
     
     subscription = crud.create_subscription(db, subscription=subscription_in)
     return subscription
@@ -61,8 +61,8 @@ def unsubscribe(
     """
     Unsubscribe by email
     """
-    subscription = db.query(crud.Subscription).filter(
-        crud.Subscription.email == email
+    subscription = db.query(SubscriptionModel).filter(
+        SubscriptionModel.email == email
     ).first()
     
     if not subscription:
@@ -79,7 +79,8 @@ def unsubscribe(
 
 @router.get("/count", response_model=int)
 def get_subscribers_count(
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_superuser)
 ) -> Any:
     """
     Get total number of subscribers
@@ -91,7 +92,8 @@ def get_subscribers_count(
 @router.get("/{subscription_id}", response_model=Subscription)
 def read_subscription_by_id(
     subscription_id: str,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_superuser)
 ) -> Any:
     """
     Get a specific subscription by id
@@ -145,7 +147,7 @@ def update_subscription(
     subscription = crud.update_subscription(
         db, 
         subscription_id=subscription_uuid, 
-        subscription_update=subscription_in
+        **subscription_in.model_dump(exclude_unset=True)
     )
     return subscription
 

@@ -1,15 +1,16 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, UUID
+from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 import uuid
 from app.core.database import Base
+from app.core.types import UUIDType
 
 
 class AuditLog(Base):
     __tablename__ = "audit_logs"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)  # Nullable for system actions
+    id = Column(UUIDType, primary_key=True, index=True, default=uuid.uuid4)
+    user_id = Column(UUIDType, ForeignKey("users.id"), nullable=True)  # Nullable for system actions
     action = Column(String(100), nullable=False)  # e.g., "CREATE_ARTICLE", "UPDATE_USER", "DELETE_COMMENT"
     resource_type = Column(String(50), nullable=False)  # e.g., "article", "user", "comment"
     resource_id = Column(String(100), nullable=True)  # ID of the resource affected

@@ -33,8 +33,8 @@ def get_users(db: Session, skip: int = 0, limit: int = 100):
     return db.query(User).offset(skip).limit(limit).all()
 
 
-def create_user(db: Session, user: UserCreate) -> User:
-    hashed_password = get_password_hash(user.password)
+async def create_user(db: Session, user: UserCreate, tenant_id: Optional[str] = None) -> User:
+    hashed_password = await get_password_hash(user.password)
     db_user = User(
         username=user.username,
         email=user.email,
@@ -46,6 +46,7 @@ def create_user(db: Session, user: UserCreate) -> User:
         twitter=user.twitter,
         github=user.github,
         linkedin=user.linkedin,
+        tenant_id=tenant_id,
     )
     db.add(db_user)
     db.commit()
@@ -53,7 +54,7 @@ def create_user(db: Session, user: UserCreate) -> User:
     return db_user
 
 
-def update_user(db: Session, user_id: UUID, user_update: UserUpdate) -> Optional[User]:
+async def update_user(db: Session, user_id: UUID, user_update: UserUpdate) -> Optional[User]:
     db_user = get_user(db, user_id)
     if not db_user:
         return None
@@ -62,7 +63,7 @@ def update_user(db: Session, user_id: UUID, user_update: UserUpdate) -> Optional
     
     # Handle password update
     if "password" in update_data:
-        update_data["hashed_password"] = get_password_hash(update_data.pop("password"))
+        update_data["hashed_password"] = await get_password_hash(update_data.pop("password"))
     
     for field, value in update_data.items():
         setattr(db_user, field, value)
@@ -84,11 +85,11 @@ def delete_user(db: Session, user_id: UUID) -> bool:
 
 from app.core.security import verify_password
 
-def authenticate_user(db: Session, username: str, password: str) -> Optional[User]:
+async def authenticate_user(db: Session, username: str, password: str) -> Optional[User]:
     user = get_user_by_username(db, username)
     if not user:
         return None
-    if not verify_password(password, str(user.hashed_password)):
+    if not await verify_password(password, str(user.hashed_password)):
         return None
     return user
 
@@ -100,14 +101,15 @@ def get_authors_with_article_count(db: Session):
     from sqlalchemy import func
     from app.models.article import Article
     
+    from sqlalchemy import and_
     # 查询每个作者及其发布的文章数量
+    # 将 is_published 过滤条件放在 ON 子句中，保留没有发布文章的用户
     result = (
         db.query(
             User,
             func.count(Article.id).label('article_count')
         )
-        .outerjoin(Article, User.id == Article.author_id)
-        .filter(Article.is_published == True)
+        .outerjoin(Article, and_(User.id == Article.author_id, Article.is_published == True))
         .group_by(User.id)
         .all()
     )
@@ -156,7 +158,7 @@ def get_user_stats(db: Session, user_id: UUID):
     )
 
 
-def update_user_password(db: Session, user_id: UUID, old_password: str, new_password: str) -> bool:
+async def update_user_password(db: Session, user_id: UUID, old_password: str, new_password: str) -> bool:
     """
     更新用户密码
     验证旧密码后更新为新密码
@@ -166,10 +168,10 @@ def update_user_password(db: Session, user_id: UUID, old_password: str, new_pass
         return False
     
     # 验证旧密码
-    if not verify_password(old_password, str(user.hashed_password)):
+    if not await verify_password(old_password, str(user.hashed_password)):
         return False
     
     # 更新为新密码
-    user.hashed_password = get_password_hash(new_password)
+    user.hashed_password = await get_password_hash(new_password)
     db.commit()
     return True

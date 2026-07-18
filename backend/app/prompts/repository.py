@@ -241,39 +241,45 @@ class PromptRepository:
             return True
         return False
     
-    def increment_usage(self, prompt_id: str) -> Optional[PromptModel]:
+    def increment_usage(self, prompt_id: str) -> bool:
         """
-        增加使用计数
+        原子增加使用计数
         
         Args:
             prompt_id: Prompt ID
         
         Returns:
-            PromptModel: 更新后的 Prompt 对象或 None
+            bool: 是否更新成功
         """
-        prompt = self.get_by_id(prompt_id, prompt_id)
-        if prompt:
-            prompt.usage_count += 1
-            prompt.total_interactions += 1
-            self.db.commit()
-            self.db.refresh(prompt)
-        return prompt
+        from app.models.prompt import Prompt
+        result = self.db.query(Prompt).filter(Prompt.id == prompt_id).update(
+            {
+                Prompt.usage_count: Prompt.usage_count + 1,
+                Prompt.total_interactions: Prompt.total_interactions + 1,
+            },
+            synchronize_session=False,
+        )
+        self.db.commit()
+        return result > 0
     
-    def update_success_rate(self, prompt_id: str, success: bool) -> Optional[PromptModel]:
+    def update_success_rate(self, prompt_id: str, success: bool) -> bool:
         """
-        更新成功率
+        原子更新成功率计数
         
         Args:
             prompt_id: Prompt ID
             success: 是否成功
         
         Returns:
-            PromptModel: 更新后的 Prompt 对象或 None
+            bool: 是否更新成功
         """
-        prompt = self.get_by_id(prompt_id, prompt_id)
-        if prompt:
-            if success:
-                prompt.success_rate += 1
-            self.db.commit()
-            self.db.refresh(prompt)
-        return prompt
+        from app.models.prompt import Prompt
+        updates = {Prompt.total_interactions: Prompt.total_interactions + 1}
+        if success:
+            updates[Prompt.success_rate] = Prompt.success_rate + 1
+        result = self.db.query(Prompt).filter(Prompt.id == prompt_id).update(
+            updates,
+            synchronize_session=False,
+        )
+        self.db.commit()
+        return result > 0

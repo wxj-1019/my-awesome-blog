@@ -141,26 +141,22 @@ def hard_delete_message(db: Session, message_id: UUID) -> bool:
 
 
 def like_message(db: Session, message_id: UUID) -> Optional[Message]:
-    db_message = get_message(db, message_id)
-    if not db_message:
-        return None
-    
-    db_message.likes += 1
+    db.query(Message).filter(Message.id == message_id).update(
+        {Message.likes: Message.likes + 1}
+    )
     db.commit()
-    db.refresh(db_message)
-    return db_message
+    return get_message(db, message_id)
 
 
 def unlike_message(db: Session, message_id: UUID) -> Optional[Message]:
-    db_message = get_message(db, message_id)
-    if not db_message:
-        return None
-    
-    if db_message.likes > 0:
-        db_message.likes -= 1
+    db.query(Message).filter(
+        Message.id == message_id,
+        Message.likes > 0
+    ).update(
+        {Message.likes: Message.likes - 1}
+    )
     db.commit()
-    db.refresh(db_message)
-    return db_message
+    return get_message(db, message_id)
 
 
 def get_trending_messages(

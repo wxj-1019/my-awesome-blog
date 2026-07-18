@@ -3,10 +3,11 @@ Context History Model
 上下文历史记录模型
 """
 
-from sqlalchemy import Column, String, Text, DateTime, UUID, Index, ForeignKey, Integer
+from sqlalchemy import Column, String, Text, DateTime, Index, ForeignKey, Integer
 from sqlalchemy.sql import func
 import uuid
 from app.core.database import Base
+from app.core.types import UUIDType
 
 
 class ContextHistory(Base):
@@ -22,8 +23,8 @@ class ContextHistory(Base):
         Index('idx_ctx_created', 'created_at'),
     )
     
-    id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
-    conversation_id = Column(UUID(as_uuid=True), ForeignKey("conversations.id", ondelete="CASCADE"), nullable=False, index=True)
+    id = Column(UUIDType, primary_key=True, index=True, default=uuid.uuid4)
+    conversation_id = Column(UUIDType, ForeignKey("conversations.id", ondelete="CASCADE"), nullable=False, index=True)
     message_count = Column(Integer, default=0)
     total_tokens = Column(Integer, default=0)
     summary = Column(Text)

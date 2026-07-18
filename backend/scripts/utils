@@ -23,7 +23,9 @@ class ArticleCoverUploader:
         self.token = None
         self.headers = {}
 
-    def login(self, username: str = "admin", password: str = "admin123") -> bool:
+    def login(self, username: str = None, password: str = None) -> bool:
+        username = username or os.environ.get("BLOG_ADMIN_USERNAME", "admin")
+        password = password or os.environ.get("BLOG_ADMIN_PASSWORD", "")
         """登录获取 token"""
         print("=" * 60)
         print("登录中...")
@@ -40,7 +42,7 @@ class ArticleCoverUploader:
             data = response.json()
             self.token = data.get("access_token")
             self.headers = {"Authorization": f"Bearer {self.token}"}
-            print(f"✓ 登录成功，Token: {self.token[:30]}...")
+            print(f"✓ 登录成功，Token: {self.token[:8]}...")
             return True
         else:
             print(f"✗ 登录失败: {response.text}")

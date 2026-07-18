@@ -1,3 +1,5 @@
+import uuid
+
 import pytest
 from fastapi import status
 from sqlalchemy.orm import Session
@@ -67,14 +69,14 @@ def test_get_category(client, test_session):
     
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
-    assert data["id"] == category.id
+    assert data["id"] == str(category.id)
     assert data["name"] == "Sports"
     assert data["slug"] == "sports"
 
 
 def test_get_nonexistent_category(client):
     """Test getting a category that doesn't exist"""
-    response = client.get("/api/v1/categories/99999")
+    response = client.get(f"/api/v1/categories/{uuid.uuid4()}")
     
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -202,7 +204,7 @@ def test_get_category_by_name(client, test_session):
     
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
-    assert data["id"] == category.id
+    assert data["id"] == str(category.id)
     assert data["name"] == "Programming"
     assert data["slug"] == "programming"
 
