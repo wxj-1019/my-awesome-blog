@@ -38,6 +38,11 @@ export const TRANSITION: Record<string, Transition> = {
     duration: 0.8,
     ease: EASE.SMOOTH,
   },
+  /** 微交互（按钮/菜单） */
+  MICRO: {
+    duration: 0.2,
+    ease: EASE.SNAPPY,
+  },
   SPRING: {
     type: 'spring',
     stiffness: 300,
@@ -51,6 +56,20 @@ export const TRANSITION: Record<string, Transition> = {
 }
 
 // ============================================
+// 交错节奏（对齐 veloce / yacht 体感，单位秒）
+// ============================================
+export const STAGGER = {
+  /** 卡片网格 */
+  DEFAULT: 0.08,
+  /** 标题字级 */
+  TIGHT: 0.05,
+  /** 大区块 */
+  LOOSE: 0.12,
+  /** 列表项硬上限对应的最大延迟 */
+  MAX_DELAY: 0.5,
+} as const
+
+// ============================================
 // 入场动画变体
 // ============================================
 export const fadeIn: Variants = {
@@ -61,6 +80,22 @@ export const fadeIn: Variants = {
   },
   exit: {
     opacity: 0,
+    transition: TRANSITION.FAST,
+  },
+}
+
+/** BlurIn 变体（filter 仅用于 Motion 层，勿与 GSAP 同节点） */
+export const blurIn: Variants = {
+  hidden: { opacity: 0, filter: 'blur(8px)', y: 12 },
+  visible: {
+    opacity: 1,
+    filter: 'blur(0px)',
+    y: 0,
+    transition: TRANSITION.DEFAULT,
+  },
+  exit: {
+    opacity: 0,
+    filter: 'blur(4px)',
     transition: TRANSITION.FAST,
   },
 }
