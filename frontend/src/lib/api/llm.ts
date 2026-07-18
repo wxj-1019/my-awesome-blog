@@ -1,5 +1,4 @@
-import { env } from '@/lib/env';
-const API_BASE_URL = env.NEXT_PUBLIC_API_URL || 'http://localhost:8989/api/v1';
+import { apiFetch } from '@/lib/api-client';
 export interface LLMMessage {
   role: 'system' | 'user' | 'assistant';
   content: string;
@@ -40,7 +39,7 @@ export const chat = async (
 ): Promise<LLMChatResponse> => {
   const token =
     typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
-  const response = await fetch(`${API_BASE_URL}/llm/chat`, {
+  const response = await apiFetch(`/llm/chat`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -57,7 +56,7 @@ export const chat = async (
 export const getModels = async (): Promise<LLMModelsResponse> => {
   const token =
     typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
-  const response = await fetch(`${API_BASE_URL}/llm/models`, {
+  const response = await apiFetch(`/llm/models`, {
     headers: {
       'Content-Type': 'application/json',
       ...(token && { Authorization: `Bearer ${token}` }),
@@ -78,7 +77,7 @@ export const streamChat = async (
   const token =
     typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
   try {
-    const response = await fetch(`${API_BASE_URL}/llm/chat/stream`, {
+    const response = await apiFetch(`/llm/chat/stream`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

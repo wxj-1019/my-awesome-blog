@@ -1,7 +1,4 @@
-import { env } from '@/lib/env';
-
-const API_BASE_URL = env.NEXT_PUBLIC_API_URL || 'http://localhost:8989/api/v1';
-
+import { apiFetch } from '@/lib/api-client';
 export interface Category {
   id: string;
   name: string;
@@ -39,7 +36,7 @@ export const getCategories = async (params?: {
   if (params?.limit !== undefined) {queryParams.append('limit', params.limit.toString());}
   if (params?.is_active !== undefined) {queryParams.append('is_active', params.is_active.toString());}
 
-  const response = await fetch(`${API_BASE_URL}/categories/?${queryParams.toString()}`, {
+  const response = await apiFetch(`/categories/?${queryParams.toString()}`, {
     headers: {
       'Content-Type': 'application/json',
     },
@@ -54,7 +51,7 @@ export const getCategories = async (params?: {
 };
 
 export const getCategoryById = async (id: string): Promise<Category> => {
-  const response = await fetch(`${API_BASE_URL}/categories/${id}`, {
+  const response = await apiFetch(`/categories/${id}`, {
     headers: {
       'Content-Type': 'application/json',
     },
@@ -74,7 +71,7 @@ export const getCategoryById = async (id: string): Promise<Category> => {
 export const createCategory = async (category: CategoryCreate): Promise<Category> => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-  const response = await fetch(`${API_BASE_URL}/categories/`, {
+  const response = await apiFetch(`/categories/`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -94,7 +91,7 @@ export const createCategory = async (category: CategoryCreate): Promise<Category
 export const updateCategory = async (id: string, category: CategoryUpdate): Promise<Category> => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-  const response = await fetch(`${API_BASE_URL}/categories/${id}`, {
+  const response = await apiFetch(`/categories/${id}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -114,7 +111,7 @@ export const updateCategory = async (id: string, category: CategoryUpdate): Prom
 export const deleteCategory = async (id: string): Promise<void> => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-  const response = await fetch(`${API_BASE_URL}/categories/${id}`, {
+  const response = await apiFetch(`/categories/${id}`, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',

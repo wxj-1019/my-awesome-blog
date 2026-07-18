@@ -8,6 +8,35 @@ interface ApiClientOptions extends Omit<RequestInit, 'body'> {
   body?: unknown;
 }
 
+export async function apiFetch(
+  input: string,
+  options: RequestInit = {},
+  retries = 1
+): Promise<Response> {
+  const token = typeof window !== 'undefined' ? localStorage.getItem(TOKEN_KEY) : null;
+  const url = input.startsWith('http') ? input : `${API_BASE_URL}${input}`;
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+    ...(token && { Authorization: `Bearer ${token}` }),
+    ...options.headers,
+  };
+
+  try {
+    const response = await fetch(url, { ...options, headers });
+    if (response.status === 401 && typeof window !== 'undefined') {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
+    }
+    return response;
+  } catch (error) {
+    if (retries > 0) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      return apiFetch(input, options, retries - 1);
+    }
+    throw error;
+  }
+}
+
 export async function apiRequest<T = unknown>(
   endpoint: string,
   options: ApiClientOptions = {},

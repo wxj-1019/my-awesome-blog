@@ -1,7 +1,4 @@
-import { env } from '@/lib/env';
-
-const API_BASE_URL = env.NEXT_PUBLIC_API_URL || 'http://localhost:8989/api/v1';
-
+import { apiFetch } from '@/lib/api-client';
 export interface Tag {
   id: string;
   name: string;
@@ -32,7 +29,7 @@ export const getTags = async (params?: {
   if (params?.skip !== undefined) {queryParams.append('skip', params.skip.toString());}
   if (params?.limit !== undefined) {queryParams.append('limit', params.limit.toString());}
 
-  const response = await fetch(`${API_BASE_URL}/tags/?${queryParams.toString()}`, {
+  const response = await apiFetch(`/tags/?${queryParams.toString()}`, {
     headers: {
       'Content-Type': 'application/json',
     },
@@ -47,7 +44,7 @@ export const getTags = async (params?: {
 };
 
 export const getTagById = async (id: string): Promise<Tag> => {
-  const response = await fetch(`${API_BASE_URL}/tags/${id}`, {
+  const response = await apiFetch(`/tags/${id}`, {
     headers: {
       'Content-Type': 'application/json',
     },
@@ -67,7 +64,7 @@ export const getTagById = async (id: string): Promise<Tag> => {
 export const createTag = async (tag: TagCreate): Promise<Tag> => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-  const response = await fetch(`${API_BASE_URL}/tags/`, {
+  const response = await apiFetch(`/tags/`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -87,7 +84,7 @@ export const createTag = async (tag: TagCreate): Promise<Tag> => {
 export const updateTag = async (id: string, tag: TagUpdate): Promise<Tag> => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-  const response = await fetch(`${API_BASE_URL}/tags/${id}`, {
+  const response = await apiFetch(`/tags/${id}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -107,7 +104,7 @@ export const updateTag = async (id: string, tag: TagUpdate): Promise<Tag> => {
 export const deleteTag = async (id: string): Promise<void> => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-  const response = await fetch(`${API_BASE_URL}/tags/${id}`, {
+  const response = await apiFetch(`/tags/${id}`, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',

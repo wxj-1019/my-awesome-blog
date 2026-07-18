@@ -1,6 +1,6 @@
+import { apiFetch } from '@/lib/api-client';
 import { UserProfile } from '@/types';
 import { getToken } from '../auth-utils';
-import { API_BASE_URL } from '@/config/api';
 export interface UserStats {
   article_count: number;
   comment_count: number;
@@ -10,7 +10,7 @@ export interface UserStats {
 // 获取当前用户信息
 export const fetchCurrentUserProfile = async (): Promise<UserProfile> => {
   const token = getToken();
-  const response = await fetch(`${API_BASE_URL}/users/me`, {
+  const response = await apiFetch(`/users/me`, {
     headers: {
       'Authorization': `Bearer ${token}`
     }
@@ -37,7 +37,7 @@ export const updateUserProfile = async (profileData: Partial<UserProfile>): Prom
     ...(profileData.github !== undefined && { github: profileData.github }),
     ...(profileData.linkedin !== undefined && { linkedin: profileData.linkedin })
   };
-  const response = await fetch(`${API_BASE_URL}/users/me`, {
+  const response = await apiFetch(`/users/me`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -65,8 +65,7 @@ export const updateUserProfile = async (profileData: Partial<UserProfile>): Prom
 // 获取用户统计信息
 export const fetchCurrentUserStats = async (): Promise<UserStats> => {
   const token = getToken();
-  const url = `${API_BASE_URL}/users/me/stats`;
-  const response = await fetch(url, {
+  const response = await apiFetch('/users/me/stats', {
     headers: {
       'Authorization': `Bearer ${token}`
     }
@@ -95,7 +94,7 @@ export const uploadAvatar = async (file: File): Promise<{ avatar_url: string }> 
   }
   const formData = new FormData();
   formData.append('file', file);
-  const response = await fetch(`${API_BASE_URL}/users/me/avatar`, {
+  const response = await apiFetch(`/users/me/avatar`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`

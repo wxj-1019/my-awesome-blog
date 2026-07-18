@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '@/config/api';
+import { apiFetch } from '@/lib/api-client';
 import { TimelineItem, BackendTimelineEvent } from '@/types';
 
 /**
@@ -18,8 +18,8 @@ export async function fetchTimelineEvents(
   isActive = true
 ): Promise<TimelineItem[]> {
   try {
-    const response = await fetch(
-      `${API_BASE_URL}/api/v1/timeline-events/?skip=${skip}&limit=${limit}&is_active=${isActive}`,
+    const response = await apiFetch(
+      `/api/v1/timeline-events/?skip=${skip}&limit=${limit}&is_active=${isActive}`,
       {
         method: 'GET',
         headers: {
@@ -54,8 +54,8 @@ export async function fetchTimelineEventById(
   eventId: string
 ): Promise<BackendTimelineEvent> {
   try {
-    const response = await fetch(
-      `${API_BASE_URL}/api/v1/timeline-events/${eventId}`,
+    const response = await apiFetch(
+      `/api/v1/timeline-events/${eventId}`,
       {
         method: 'GET',
         headers: {

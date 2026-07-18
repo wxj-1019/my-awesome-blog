@@ -1,7 +1,4 @@
-import { env } from '@/lib/env';
-
-const API_BASE_URL = env.NEXT_PUBLIC_API_URL || 'http://localhost:8989/api/v1';
-
+import { apiFetch } from '@/lib/api-client';
 export interface User {
   id: string;
   username: string;
@@ -49,7 +46,7 @@ export const getUsers = async (params?: {
   if (params?.skip !== undefined) {queryParams.append('skip', params.skip.toString());}
   if (params?.limit !== undefined) {queryParams.append('limit', params.limit.toString());}
 
-  const response = await fetch(`${API_BASE_URL}/users/?${queryParams.toString()}`, {
+  const response = await apiFetch(`/users/?${queryParams.toString()}`, {
     headers: {
       'Content-Type': 'application/json',
     },
@@ -66,7 +63,7 @@ export const getUsers = async (params?: {
 export const getCurrentUser = async (): Promise<User> => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-  const response = await fetch(`${API_BASE_URL}/users/me`, {
+  const response = await apiFetch(`/users/me`, {
     headers: {
       'Content-Type': 'application/json',
       ...(token && { 'Authorization': `Bearer ${token}` }),
@@ -82,7 +79,7 @@ export const getCurrentUser = async (): Promise<User> => {
 };
 
 export const getUserById = async (id: string): Promise<User> => {
-  const response = await fetch(`${API_BASE_URL}/users/${id}`, {
+  const response = await apiFetch(`/users/${id}`, {
     headers: {
       'Content-Type': 'application/json',
     },
@@ -100,7 +97,7 @@ export const getUserById = async (id: string): Promise<User> => {
 };
 
 export const createUser = async (user: UserCreate): Promise<User> => {
-  const response = await fetch(`${API_BASE_URL}/users/`, {
+  const response = await apiFetch(`/users/`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -119,7 +116,7 @@ export const createUser = async (user: UserCreate): Promise<User> => {
 export const updateUser = async (id: string, user: UserUpdate): Promise<User> => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-  const response = await fetch(`${API_BASE_URL}/users/${id}`, {
+  const response = await apiFetch(`/users/${id}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -139,7 +136,7 @@ export const updateUser = async (id: string, user: UserUpdate): Promise<User> =>
 export const updatePassword = async (passwordUpdate: PasswordUpdate): Promise<void> => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-  const response = await fetch(`${API_BASE_URL}/users/me/password`, {
+  const response = await apiFetch(`/users/me/password`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -155,7 +152,7 @@ export const updatePassword = async (passwordUpdate: PasswordUpdate): Promise<vo
 };
 
 export const getUserStats = async (userId: string): Promise<UserStats> => {
-  const response = await fetch(`${API_BASE_URL}/users/${userId}/stats`, {
+  const response = await apiFetch(`/users/${userId}/stats`, {
     headers: {
       'Content-Type': 'application/json',
     },
@@ -172,7 +169,7 @@ export const getUserStats = async (userId: string): Promise<UserStats> => {
 export const deleteUser = async (id: string): Promise<void> => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-  const response = await fetch(`${API_BASE_URL}/users/${id}`, {
+  const response = await apiFetch(`/users/${id}`, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',

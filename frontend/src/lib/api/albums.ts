@@ -1,7 +1,4 @@
-import { env } from '@/lib/env';
-
-const API_BASE_URL = env.NEXT_PUBLIC_API_URL || 'http://localhost:8989/api/v1';
-
+import { apiFetch } from '@/lib/api-client';
 export interface Album {
   id: string;
   title: string;
@@ -21,7 +18,7 @@ export const getAlbums = async (params?: {
   if (params?.skip !== undefined) {queryParams.append('skip', params.skip.toString());}
   if (params?.limit !== undefined) {queryParams.append('limit', params.limit.toString());}
 
-  const response = await fetch(`${API_BASE_URL}/albums/?${queryParams.toString()}`, {
+  const response = await apiFetch(`/albums/?${queryParams.toString()}`, {
     headers: {
       'Content-Type': 'application/json',
     },
@@ -36,7 +33,7 @@ export const getAlbums = async (params?: {
 };
 
 export const getAlbumById = async (id: string): Promise<Album> => {
-  const response = await fetch(`${API_BASE_URL}/albums/${id}`, {
+  const response = await apiFetch(`/albums/${id}`, {
     headers: {
       'Content-Type': 'application/json',
     },

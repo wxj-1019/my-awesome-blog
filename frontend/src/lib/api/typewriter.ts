@@ -1,7 +1,4 @@
-import { env } from '@/lib/env';
-
-const API_BASE_URL = env.NEXT_PUBLIC_API_URL || 'http://localhost:8989/api/v1';
-
+import { apiFetch } from '@/lib/api-client';
 export interface TypewriterContent {
   id: string;
   text: string;
@@ -24,7 +21,7 @@ export const getTypewriterContents = async (params: TypewriterContentsParams = {
   if (params.limit !== undefined) {queryParams.append('limit', params.limit.toString());}
   if (params.active_only !== undefined) {queryParams.append('active_only', params.active_only.toString());}
 
-  const response = await fetch(`${API_BASE_URL}/typewriter-contents/?${queryParams.toString()}`, {
+  const response = await apiFetch(`/typewriter-contents/?${queryParams.toString()}`, {
     headers: {
       'Content-Type': 'application/json',
     },
@@ -39,7 +36,7 @@ export const getTypewriterContents = async (params: TypewriterContentsParams = {
 };
 
 export const getActiveTypewriterContents = async (): Promise<TypewriterContent[]> => {
-  const response = await fetch(`${API_BASE_URL}/typewriter-contents/active`, {
+  const response = await apiFetch(`/typewriter-contents/active`, {
     headers: {
       'Content-Type': 'application/json',
     },
@@ -54,7 +51,7 @@ export const getActiveTypewriterContents = async (): Promise<TypewriterContent[]
 };
 
 export const getTypewriterContentById = async (id: string): Promise<TypewriterContent> => {
-  const response = await fetch(`${API_BASE_URL}/typewriter-contents/${id}`, {
+  const response = await apiFetch(`/typewriter-contents/${id}`, {
     headers: {
       'Content-Type': 'application/json',
     },

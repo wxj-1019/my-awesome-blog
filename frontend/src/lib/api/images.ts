@@ -1,7 +1,4 @@
-import { env } from '@/lib/env';
-
-const API_BASE_URL = env.NEXT_PUBLIC_API_URL || 'http://localhost:8989/api/v1';
-
+import { apiFetch } from '@/lib/api-client';
 export interface Image {
   id: string;
   title?: string;
@@ -39,7 +36,7 @@ export const getImages = async (params?: {
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-  const response = await fetch(`${API_BASE_URL}/images/?${queryParams.toString()}`, {
+  const response = await apiFetch(`/images/?${queryParams.toString()}`, {
     headers: {
       'Content-Type': 'application/json',
       ...(token && { 'Authorization': `Bearer ${token}` }),
@@ -57,7 +54,7 @@ export const getImages = async (params?: {
 export const getImageById = async (id: string): Promise<Image> => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-  const response = await fetch(`${API_BASE_URL}/images/${id}`, {
+  const response = await apiFetch(`/images/${id}`, {
     headers: {
       'Content-Type': 'application/json',
       ...(token && { 'Authorization': `Bearer ${token}` }),
@@ -78,7 +75,7 @@ export const getImageById = async (id: string): Promise<Image> => {
 export const uploadImage = async (formData: FormData): Promise<Image> => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-  const response = await fetch(`${API_BASE_URL}/images/`, {
+  const response = await apiFetch(`/images/`, {
     method: 'POST',
     headers: {
       ...(token && { 'Authorization': `Bearer ${token}` }),
@@ -97,7 +94,7 @@ export const uploadImage = async (formData: FormData): Promise<Image> => {
 export const updateImage = async (id: string, image: ImageUpdate): Promise<Image> => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-  const response = await fetch(`${API_BASE_URL}/images/${id}`, {
+  const response = await apiFetch(`/images/${id}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -117,7 +114,7 @@ export const updateImage = async (id: string, image: ImageUpdate): Promise<Image
 export const deleteImage = async (id: string): Promise<void> => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-  const response = await fetch(`${API_BASE_URL}/images/${id}`, {
+  const response = await apiFetch(`/images/${id}`, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',

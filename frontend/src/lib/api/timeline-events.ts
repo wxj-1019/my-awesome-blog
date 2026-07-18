@@ -1,7 +1,4 @@
-import { env } from '@/lib/env';
-
-const API_BASE_URL = env.NEXT_PUBLIC_API_URL || 'http://localhost:8989/api/v1';
-
+import { apiFetch } from '@/lib/api-client';
 export interface TimelineEvent {
   id: string;
   title: string;
@@ -42,7 +39,7 @@ export const getTimelineEvents = async (params?: {
   if (params?.limit !== undefined) {queryParams.append('limit', params.limit.toString());}
   if (params?.is_active !== undefined) {queryParams.append('is_active', params.is_active.toString());}
 
-  const response = await fetch(`${API_BASE_URL}/timeline-events/?${queryParams.toString()}`, {
+  const response = await apiFetch(`/timeline-events/?${queryParams.toString()}`, {
     headers: {
       'Content-Type': 'application/json',
     },
@@ -57,7 +54,7 @@ export const getTimelineEvents = async (params?: {
 };
 
 export const getTimelineEventById = async (id: string): Promise<TimelineEvent> => {
-  const response = await fetch(`${API_BASE_URL}/timeline-events/${id}`, {
+  const response = await apiFetch(`/timeline-events/${id}`, {
     headers: {
       'Content-Type': 'application/json',
     },
@@ -77,7 +74,7 @@ export const getTimelineEventById = async (id: string): Promise<TimelineEvent> =
 export const createTimelineEvent = async (event: TimelineEventCreate): Promise<TimelineEvent> => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-  const response = await fetch(`${API_BASE_URL}/timeline-events/`, {
+  const response = await apiFetch(`/timeline-events/`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -97,7 +94,7 @@ export const createTimelineEvent = async (event: TimelineEventCreate): Promise<T
 export const updateTimelineEvent = async (id: string, event: TimelineEventUpdate): Promise<TimelineEvent> => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-  const response = await fetch(`${API_BASE_URL}/timeline-events/${id}`, {
+  const response = await apiFetch(`/timeline-events/${id}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -117,7 +114,7 @@ export const updateTimelineEvent = async (id: string, event: TimelineEventUpdate
 export const deleteTimelineEvent = async (id: string): Promise<void> => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-  const response = await fetch(`${API_BASE_URL}/timeline-events/${id}`, {
+  const response = await apiFetch(`/timeline-events/${id}`, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',

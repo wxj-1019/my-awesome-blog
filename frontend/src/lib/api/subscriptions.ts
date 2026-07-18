@@ -1,7 +1,4 @@
-import { env } from '@/lib/env';
-
-const API_BASE_URL = env.NEXT_PUBLIC_API_URL || 'http://localhost:8989/api/v1';
-
+import { apiFetch } from '@/lib/api-client';
 export interface Subscription {
   id: string;
   email: string;
@@ -31,7 +28,7 @@ export const getSubscriptions = async (params?: {
   if (params?.limit !== undefined) {queryParams.append('limit', params.limit.toString());}
   if (params?.is_active !== undefined) {queryParams.append('is_active', params.is_active.toString());}
 
-  const response = await fetch(`${API_BASE_URL}/subscriptions/?${queryParams.toString()}`, {
+  const response = await apiFetch(`/subscriptions/?${queryParams.toString()}`, {
     headers: {
       'Content-Type': 'application/json',
     },
@@ -46,7 +43,7 @@ export const getSubscriptions = async (params?: {
 };
 
 export const getSubscriptionById = async (id: string): Promise<Subscription> => {
-  const response = await fetch(`${API_BASE_URL}/subscriptions/${id}`, {
+  const response = await apiFetch(`/subscriptions/${id}`, {
     headers: {
       'Content-Type': 'application/json',
     },
@@ -66,7 +63,7 @@ export const getSubscriptionById = async (id: string): Promise<Subscription> => 
 export const createSubscription = async (subscription: SubscriptionCreate): Promise<Subscription> => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-  const response = await fetch(`${API_BASE_URL}/subscriptions/`, {
+  const response = await apiFetch(`/subscriptions/`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -86,7 +83,7 @@ export const createSubscription = async (subscription: SubscriptionCreate): Prom
 export const updateSubscription = async (id: string, subscription: SubscriptionUpdate): Promise<Subscription> => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-  const response = await fetch(`${API_BASE_URL}/subscriptions/${id}`, {
+  const response = await apiFetch(`/subscriptions/${id}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -106,7 +103,7 @@ export const updateSubscription = async (id: string, subscription: SubscriptionU
 export const deleteSubscription = async (id: string): Promise<void> => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-  const response = await fetch(`${API_BASE_URL}/subscriptions/${id}`, {
+  const response = await apiFetch(`/subscriptions/${id}`, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',

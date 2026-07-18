@@ -1,6 +1,6 @@
+import { apiFetch } from '@/lib/api-client';
 import { UserProfile } from '@/types';
 import { setToken, removeToken, getToken, isAuthenticated as isAuth } from '@/lib/auth-utils';
-import { API_BASE_URL } from '@/config/api';
 export interface AuthResponse {
   token: string;
   user: UserProfile;
@@ -17,7 +17,7 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
     ...(token && { 'Authorization': `Bearer ${token}` }),
     ...options.headers,
   };
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+  const response = await apiFetch(`${endpoint}`, {
     ...options,
     headers,
   });
@@ -32,9 +32,9 @@ export const loginApi = async (username: string, password: string): Promise<Auth
   const params = new URLSearchParams();
   params.append('username', username);
   params.append('password', password);
-  const url = `${API_BASE_URL}/auth/login`;
+  const url = '/auth/login';
   try {
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',

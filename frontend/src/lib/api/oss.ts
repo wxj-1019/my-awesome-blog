@@ -1,7 +1,4 @@
-import { env } from '@/lib/env';
-
-const API_BASE_URL = env.NEXT_PUBLIC_API_URL || 'http://localhost:8989/api/v1';
-
+import { apiFetch } from '@/lib/api-client';
 export interface OSSUploadResponse {
   file_url: string;
   file_name: string;
@@ -16,7 +13,7 @@ export const uploadFile = async (file: File): Promise<OSSUploadResponse> => {
   const formData = new FormData();
   formData.append('file', file);
 
-  const response = await fetch(`${API_BASE_URL}/oss/upload`, {
+  const response = await apiFetch(`/oss/upload`, {
     method: 'POST',
     headers: {
       ...(token && { 'Authorization': `Bearer ${token}` }),
@@ -35,7 +32,7 @@ export const uploadFile = async (file: File): Promise<OSSUploadResponse> => {
 export const deleteFile = async (fileUrl: string): Promise<void> => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-  const response = await fetch(`${API_BASE_URL}/oss/delete`, {
+  const response = await apiFetch(`/oss/delete`, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',
@@ -53,7 +50,7 @@ export const deleteFile = async (fileUrl: string): Promise<void> => {
 export const getFileUrl = async (fileName: string): Promise<string> => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-  const response = await fetch(`${API_BASE_URL}/oss/url?file_name=${encodeURIComponent(fileName)}`, {
+  const response = await apiFetch(`/oss/url?file_name=${encodeURIComponent(fileName)}`, {
     headers: {
       'Content-Type': 'application/json',
       ...(token && { 'Authorization': `Bearer ${token}` }),

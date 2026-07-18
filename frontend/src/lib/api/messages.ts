@@ -1,7 +1,4 @@
-import { env } from '@/lib/env';
-
-const API_BASE_URL = env.NEXT_PUBLIC_API_URL || 'http://localhost:8989/api/v1';
-
+import { apiFetch } from '@/lib/api-client';
 export interface Message {
   id: string;
   content: string;
@@ -61,7 +58,7 @@ export const getMessages = async (params?: {
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-  const response = await fetch(`${API_BASE_URL}/messages/?${queryParams.toString()}`, {
+  const response = await apiFetch(`/messages/?${queryParams.toString()}`, {
     headers: {
       'Content-Type': 'application/json',
       ...(token && { 'Authorization': `Bearer ${token}` }),
@@ -79,7 +76,7 @@ export const getMessages = async (params?: {
 export const getMessageById = async (id: string): Promise<MessageWithUser> => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-  const response = await fetch(`${API_BASE_URL}/messages/${id}`, {
+  const response = await apiFetch(`/messages/${id}`, {
     headers: {
       'Content-Type': 'application/json',
       ...(token && { 'Authorization': `Bearer ${token}` }),
@@ -100,7 +97,7 @@ export const getMessageById = async (id: string): Promise<MessageWithUser> => {
 export const createMessage = async (message: MessageCreate): Promise<Message> => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-  const response = await fetch(`${API_BASE_URL}/messages/`, {
+  const response = await apiFetch(`/messages/`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -120,7 +117,7 @@ export const createMessage = async (message: MessageCreate): Promise<Message> =>
 export const updateMessage = async (id: string, message: MessageUpdate): Promise<Message> => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-  const response = await fetch(`${API_BASE_URL}/messages/${id}`, {
+  const response = await apiFetch(`/messages/${id}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -140,7 +137,7 @@ export const updateMessage = async (id: string, message: MessageUpdate): Promise
 export const deleteMessage = async (id: string): Promise<void> => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-  const response = await fetch(`${API_BASE_URL}/messages/${id}`, {
+  const response = await apiFetch(`/messages/${id}`, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',
@@ -157,7 +154,7 @@ export const deleteMessage = async (id: string): Promise<void> => {
 export const markAsRead = async (id: string): Promise<Message> => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-  const response = await fetch(`${API_BASE_URL}/messages/${id}/read`, {
+  const response = await apiFetch(`/messages/${id}/read`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -183,7 +180,7 @@ export const getUnreadMessages = async (params?: {
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-  const response = await fetch(`${API_BASE_URL}/messages/unread?${queryParams.toString()}`, {
+  const response = await apiFetch(`/messages/unread?${queryParams.toString()}`, {
     headers: {
       'Content-Type': 'application/json',
       ...(token && { 'Authorization': `Bearer ${token}` }),
@@ -201,7 +198,7 @@ export const getUnreadMessages = async (params?: {
 export const markAllAsRead = async (): Promise<void> => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-  const response = await fetch(`${API_BASE_URL}/messages/read-all`, {
+  const response = await apiFetch(`/messages/read-all`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',

@@ -1,7 +1,4 @@
-import { env } from '@/lib/env';
-
-const API_BASE_URL = env.NEXT_PUBLIC_API_URL || 'http://localhost:8989/api/v1';
-
+import { apiFetch } from '@/lib/api-client';
 export interface PortfolioItem {
   id: string;
   title: string;
@@ -52,7 +49,7 @@ export const getPortfolioItems = async (params?: {
   if (params?.limit !== undefined) {queryParams.append('limit', params.limit.toString());}
   if (params?.is_active !== undefined) {queryParams.append('is_active', params.is_active.toString());}
 
-  const response = await fetch(`${API_BASE_URL}/portfolio/?${queryParams.toString()}`, {
+  const response = await apiFetch(`/portfolio/?${queryParams.toString()}`, {
     headers: {
       'Content-Type': 'application/json',
     },
@@ -67,7 +64,7 @@ export const getPortfolioItems = async (params?: {
 };
 
 export const getPortfolioItemById = async (id: string): Promise<PortfolioItem> => {
-  const response = await fetch(`${API_BASE_URL}/portfolio/${id}`, {
+  const response = await apiFetch(`/portfolio/${id}`, {
     headers: {
       'Content-Type': 'application/json',
     },
@@ -87,7 +84,7 @@ export const getPortfolioItemById = async (id: string): Promise<PortfolioItem> =
 export const createPortfolioItem = async (portfolioItem: PortfolioItemCreate): Promise<PortfolioItem> => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-  const response = await fetch(`${API_BASE_URL}/portfolio/`, {
+  const response = await apiFetch(`/portfolio/`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -107,7 +104,7 @@ export const createPortfolioItem = async (portfolioItem: PortfolioItemCreate): P
 export const updatePortfolioItem = async (id: string, portfolioItem: PortfolioItemUpdate): Promise<PortfolioItem> => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-  const response = await fetch(`${API_BASE_URL}/portfolio/${id}`, {
+  const response = await apiFetch(`/portfolio/${id}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -127,7 +124,7 @@ export const updatePortfolioItem = async (id: string, portfolioItem: PortfolioIt
 export const deletePortfolioItem = async (id: string): Promise<void> => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-  const response = await fetch(`${API_BASE_URL}/portfolio/${id}`, {
+  const response = await apiFetch(`/portfolio/${id}`, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',

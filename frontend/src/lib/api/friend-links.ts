@@ -1,7 +1,4 @@
-import { env } from '@/lib/env';
-
-const API_BASE_URL = env.NEXT_PUBLIC_API_URL || 'http://localhost:8989/api/v1';
-
+import { apiFetch } from '@/lib/api-client';
 export interface FriendLink {
   id: string;
   name: string;
@@ -41,7 +38,7 @@ export const getFriendLinks = async (params?: {
   if (params?.limit !== undefined) {queryParams.append('limit', params.limit.toString());}
   if (params?.is_active !== undefined) {queryParams.append('is_active', params.is_active.toString());}
 
-  const response = await fetch(`${API_BASE_URL}/friend-links/?${queryParams.toString()}`, {
+  const response = await apiFetch(`/friend-links/?${queryParams.toString()}`, {
     headers: {
       'Content-Type': 'application/json',
     },
@@ -56,7 +53,7 @@ export const getFriendLinks = async (params?: {
 };
 
 export const getFriendLinkById = async (id: string): Promise<FriendLink> => {
-  const response = await fetch(`${API_BASE_URL}/friend-links/${id}`, {
+  const response = await apiFetch(`/friend-links/${id}`, {
     headers: {
       'Content-Type': 'application/json',
     },
@@ -76,7 +73,7 @@ export const getFriendLinkById = async (id: string): Promise<FriendLink> => {
 export const createFriendLink = async (friendLink: FriendLinkCreate): Promise<FriendLink> => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-  const response = await fetch(`${API_BASE_URL}/friend-links/`, {
+  const response = await apiFetch(`/friend-links/`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -96,7 +93,7 @@ export const createFriendLink = async (friendLink: FriendLinkCreate): Promise<Fr
 export const updateFriendLink = async (id: string, friendLink: FriendLinkUpdate): Promise<FriendLink> => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-  const response = await fetch(`${API_BASE_URL}/friend-links/${id}`, {
+  const response = await apiFetch(`/friend-links/${id}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -116,7 +113,7 @@ export const updateFriendLink = async (id: string, friendLink: FriendLinkUpdate)
 export const deleteFriendLink = async (id: string): Promise<void> => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-  const response = await fetch(`${API_BASE_URL}/friend-links/${id}`, {
+  const response = await apiFetch(`/friend-links/${id}`, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',

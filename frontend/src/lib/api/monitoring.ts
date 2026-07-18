@@ -1,7 +1,4 @@
-import { env } from '@/lib/env';
-
-const API_BASE_URL = env.NEXT_PUBLIC_API_URL || 'http://localhost:8989/api/v1';
-
+import { apiFetch } from '@/lib/api-client';
 export interface HealthStatus {
   status: 'healthy' | 'degraded' | 'unhealthy';
   timestamp: string;
@@ -20,7 +17,7 @@ export interface SystemMetrics {
 }
 
 export const getHealthStatus = async (): Promise<HealthStatus> => {
-  const response = await fetch(`${API_BASE_URL}/monitoring/health`, {
+  const response = await apiFetch(`/monitoring/health`, {
     headers: {
       'Content-Type': 'application/json',
     },
@@ -40,7 +37,7 @@ export const getSystemMetrics = async (params?: {
   const queryParams = new URLSearchParams();
   if (params?.period) {queryParams.append('period', params.period);}
 
-  const response = await fetch(`${API_BASE_URL}/monitoring/metrics?${queryParams.toString()}`, {
+  const response = await apiFetch(`/monitoring/metrics?${queryParams.toString()}`, {
     headers: {
       'Content-Type': 'application/json',
     },

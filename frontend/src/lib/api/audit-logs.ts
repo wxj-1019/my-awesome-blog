@@ -1,7 +1,4 @@
-import { env } from '@/lib/env';
-
-const API_BASE_URL = env.NEXT_PUBLIC_API_URL || 'http://localhost:8989/api/v1';
-
+import { apiFetch } from '@/lib/api-client';
 export interface AuditLog {
   id: string;
   user_id: string;
@@ -41,7 +38,7 @@ export const getAuditLogs = async (params?: {
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-  const response = await fetch(`${API_BASE_URL}/audit-logs/?${queryParams.toString()}`, {
+  const response = await apiFetch(`/audit-logs/?${queryParams.toString()}`, {
     headers: {
       'Content-Type': 'application/json',
       ...(token && { 'Authorization': `Bearer ${token}` }),
@@ -67,7 +64,7 @@ export const getAuditLogsByUser = async (userId: string, params?: {
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-  const response = await fetch(`${API_BASE_URL}/audit-logs/?${queryParams.toString()}`, {
+  const response = await apiFetch(`/audit-logs/?${queryParams.toString()}`, {
     headers: {
       'Content-Type': 'application/json',
       ...(token && { 'Authorization': `Bearer ${token}` }),

@@ -1,7 +1,4 @@
-import { env } from '@/lib/env';
-
-const API_BASE_URL = env.NEXT_PUBLIC_API_URL || 'http://localhost:8989/api/v1';
-
+import { apiFetch } from '@/lib/api-client';
 export interface Comment {
   id: string;
   content: string;
@@ -50,7 +47,7 @@ export const getComments = async (params?: {
   if (params?.author_id) {queryParams.append('author_id', params.author_id);}
   if (params?.approved_only !== undefined) {queryParams.append('approved_only', params.approved_only.toString());}
 
-  const response = await fetch(`${API_BASE_URL}/comments/?${queryParams.toString()}`, {
+  const response = await apiFetch(`/comments/?${queryParams.toString()}`, {
     headers: {
       'Content-Type': 'application/json',
     },
@@ -74,7 +71,7 @@ export const getCommentsByArticle = async (articleId: string, params?: {
   if (params?.limit !== undefined) {queryParams.append('limit', params.limit.toString());}
   if (params?.approved_only !== undefined) {queryParams.append('approved_only', params.approved_only.toString());}
 
-  const response = await fetch(`${API_BASE_URL}/comments/?article_id=${articleId}&${queryParams.toString()}`, {
+  const response = await apiFetch(`/comments/?article_id=${articleId}&${queryParams.toString()}`, {
     headers: {
       'Content-Type': 'application/json',
     },
@@ -89,7 +86,7 @@ export const getCommentsByArticle = async (articleId: string, params?: {
 };
 
 export const getCommentById = async (id: string): Promise<CommentWithAuthor> => {
-  const response = await fetch(`${API_BASE_URL}/comments/${id}`, {
+  const response = await apiFetch(`/comments/${id}`, {
     headers: {
       'Content-Type': 'application/json',
     },
@@ -109,7 +106,7 @@ export const getCommentById = async (id: string): Promise<CommentWithAuthor> => 
 export const createComment = async (comment: CommentCreate): Promise<Comment> => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-  const response = await fetch(`${API_BASE_URL}/comments/`, {
+  const response = await apiFetch(`/comments/`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -129,7 +126,7 @@ export const createComment = async (comment: CommentCreate): Promise<Comment> =>
 export const updateComment = async (id: string, comment: CommentUpdate): Promise<Comment> => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-  const response = await fetch(`${API_BASE_URL}/comments/${id}`, {
+  const response = await apiFetch(`/comments/${id}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -149,7 +146,7 @@ export const updateComment = async (id: string, comment: CommentUpdate): Promise
 export const deleteComment = async (id: string): Promise<void> => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-  const response = await fetch(`${API_BASE_URL}/comments/${id}`, {
+  const response = await apiFetch(`/comments/${id}`, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',
@@ -166,7 +163,7 @@ export const deleteComment = async (id: string): Promise<void> => {
 export const approveComment = async (id: string): Promise<Comment> => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-  const response = await fetch(`${API_BASE_URL}/comments/${id}/approve`, {
+  const response = await apiFetch(`/comments/${id}/approve`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -185,7 +182,7 @@ export const approveComment = async (id: string): Promise<Comment> => {
 export const rejectComment = async (id: string): Promise<Comment> => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-  const response = await fetch(`${API_BASE_URL}/comments/${id}/reject`, {
+  const response = await apiFetch(`/comments/${id}/reject`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',

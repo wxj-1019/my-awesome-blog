@@ -1,7 +1,4 @@
-import { env } from '@/lib/env';
-
-const API_BASE_URL = env.NEXT_PUBLIC_API_URL || 'http://localhost:8989/api/v1';
-
+import { apiFetch } from '@/lib/api-client';
 export interface WebsiteStatistics {
   total_users: number;
   total_articles: number;
@@ -30,7 +27,7 @@ export interface GrowthStatistics {
 export const getWebsiteStats = async (): Promise<WebsiteStatistics> => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-  const response = await fetch(`${API_BASE_URL}/stats/website`, {
+  const response = await apiFetch(`/stats/website`, {
     headers: {
       'Content-Type': 'application/json',
       ...(token && { 'Authorization': `Bearer ${token}` }),
@@ -48,7 +45,7 @@ export const getWebsiteStats = async (): Promise<WebsiteStatistics> => {
 export const getPopularArticlesStats = async (limit: number = 10): Promise<ArticleStatistics[]> => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-  const response = await fetch(`${API_BASE_URL}/stats/articles/popular?limit=${limit}`, {
+  const response = await apiFetch(`/stats/articles/popular?limit=${limit}`, {
     headers: {
       'Content-Type': 'application/json',
       ...(token && { 'Authorization': `Bearer ${token}` }),
@@ -73,7 +70,7 @@ export const getGrowthStats = async (params?: {
   if (params?.days) {queryParams.append('days', params.days.toString());}
   if (params?.period) {queryParams.append('period', params.period);}
 
-  const response = await fetch(`${API_BASE_URL}/stats/growth?${queryParams.toString()}`, {
+  const response = await apiFetch(`/stats/growth?${queryParams.toString()}`, {
     headers: {
       'Content-Type': 'application/json',
       ...(token && { 'Authorization': `Bearer ${token}` }),
