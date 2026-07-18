@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/framer-motion';
 import { Search, X, Sparkles } from 'lucide-react';
 import type { MemorySearchResult } from '@/types';
 

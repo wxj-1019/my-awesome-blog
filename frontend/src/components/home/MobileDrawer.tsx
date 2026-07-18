@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence, motion } from '@/lib/framer-motion'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { X, Search, Menu, Folder, Archive, Tag, Filter, ChevronRight, Home, User, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'

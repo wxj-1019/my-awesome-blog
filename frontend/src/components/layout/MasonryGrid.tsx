@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef, ReactNode } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from '@/lib/framer-motion';
 import { cn } from '@/lib/utils';
 export interface MasonryItem {
   id: string | number;

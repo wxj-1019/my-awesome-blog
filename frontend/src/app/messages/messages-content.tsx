@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/framer-motion';
 import { Send, Pause, Play, MessageSquare, Sparkles } from 'lucide-react';
 import { getMessages, createMessage, getDanmakuMessages, DANMAKU_COLORS, validateMessage } from '@/services/messageService';
 import { getCurrentUserApi } from '@/lib/api/auth';

@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/framer-motion';
 import type { ReactNode } from 'react';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { hover } from '@/lib/animation-utils';

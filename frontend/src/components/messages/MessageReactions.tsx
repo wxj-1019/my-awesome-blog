@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, memo, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from '@/lib/framer-motion';
 import { Flame, Rocket, Sparkles, Heart, ThumbsUp, ThumbsDown, Laugh } from 'lucide-react';
 import { cn } from '@/lib/utils';
 

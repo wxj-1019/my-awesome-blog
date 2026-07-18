@@ -3,7 +3,7 @@ import { useState, useCallback, memo } from 'react';
 import { Reply as ReplyIcon } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from '@/lib/framer-motion';
 import { LazyAvatar } from '@/components/ui/LazyImage';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';

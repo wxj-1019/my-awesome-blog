@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from '@/lib/framer-motion';
 import { LayoutGrid, X, Search, Command } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useThemedClasses } from '@/hooks/useThemedClasses';

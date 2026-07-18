@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from '@/lib/framer-motion';
 import { Camera, Loader2, Image as ImageIcon, FolderOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import AlbumCard from '@/components/albums/AlbumCard';

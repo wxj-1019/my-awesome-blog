@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, memo } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/framer-motion';
 import {
   Users, MessageSquare, TrendingUp, Activity, Zap, Globe,
   BarChart2, Clock, Flame, Heart, Tag, Trophy,

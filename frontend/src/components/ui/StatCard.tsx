@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Link, { LinkProps } from 'next/link';
-import { motion, useSpring, useMotionValue, useTransform } from 'framer-motion';
+import { motion, useSpring, useMotionValue, useTransform } from '@/lib/framer-motion';
 import { cn } from '@/lib/utils';
 
 export interface StatCardProps {

@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/framer-motion';
 import { Star, Clock } from 'lucide-react';
 import type { Game } from '@/types/game';
 

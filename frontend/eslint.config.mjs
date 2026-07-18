@@ -27,6 +27,26 @@ export default defineConfig([
       'react-hooks/immutability': 'off',
       'react-hooks/preserve-manual-memoization': 'off',
       'react-hooks/incompatible-library': 'off',
+      // 全站禁止裸 import framer-motion（唯一出口：src/lib/framer-motion.ts）
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: 'framer-motion',
+              message:
+                "禁止裸 import 'framer-motion'。请使用 `@/lib/framer-motion`，或优先 `@/components/motion`。",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  // 唯一允许直接依赖 framer-motion 的文件
+  {
+    files: ['src/lib/framer-motion.ts'],
+    rules: {
+      'no-restricted-imports': 'off',
     },
   },
   globalIgnores([

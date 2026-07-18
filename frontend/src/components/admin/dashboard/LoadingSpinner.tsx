@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/framer-motion';
 import { Sparkles } from 'lucide-react';
 
 export default function LoadingSpinner() {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, memo, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from '@/lib/framer-motion';
 import Link from 'next/link';
 import { Eye, Heart, Clock, ArrowRight } from 'lucide-react';
 import Image from 'next/image';

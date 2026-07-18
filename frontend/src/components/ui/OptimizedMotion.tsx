@@ -1,6 +1,6 @@
 'use client';
 
-import { motion, Variants, Transition, TargetAndTransition, VariantLabels } from 'framer-motion';
+import { motion, Variants, Transition, TargetAndTransition, VariantLabels } from '@/lib/framer-motion';
 import { useReducedMotion, useAnimationConfig } from '@/hooks/useReducedMotion';
 import { cn } from '@/lib/utils';
 import { ReactNode } from 'react';

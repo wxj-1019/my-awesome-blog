@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { motion, useSpring, useMotionValue } from 'framer-motion'
+import { motion, useSpring, useMotionValue } from '@/lib/framer-motion'
 
 interface CursorGlowProps {
   className?: string

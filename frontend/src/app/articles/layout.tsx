@@ -1,6 +1,6 @@
 'use client';
 
-import { LayoutGroup } from 'framer-motion';
+import { LayoutGroup } from '@/lib/framer-motion';
 import type { ReactNode } from 'react';
 
 /**

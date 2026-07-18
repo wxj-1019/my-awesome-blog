@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, Suspense, useCallback, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from '@/lib/framer-motion';
 import { useThemedClasses } from '@/hooks/useThemedClasses';
 import { getArticles, getCategories, getTags, getFeaturedArticles } from '@/services/articleService';
 import { useLoading } from '@/context/loading-context';

@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/framer-motion';
 import { Code2, Users, Star, TrendingUp, Quote, ThumbsUp } from 'lucide-react';
 
 interface StatItem {

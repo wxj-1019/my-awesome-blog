@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/framer-motion';
 import Link from 'next/link';
 import TextType from './TextType';
 import GlassCard from '../ui/GlassCard';

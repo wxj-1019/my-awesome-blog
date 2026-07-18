@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, DragEvent } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from '@/lib/framer-motion';
 import NextImage from 'next/image';
 import { Upload, X, File, Image, FileText, Film, Music, FileCode, Check, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';

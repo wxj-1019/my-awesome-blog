@@ -1,5 +1,5 @@
 'use client';
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/framer-motion';
 import { Mail, Github, Twitter, Linkedin, MapPin, Clock, ArrowRight } from 'lucide-react';
 interface ContactCard {
   id: string;

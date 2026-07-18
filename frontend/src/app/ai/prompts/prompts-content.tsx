@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from '@/lib/framer-motion';
 import { usePathname } from 'next/navigation';
 import { Plus, Search, Filter } from 'lucide-react';
 import AILayout from '@/components/ai/AILayout';

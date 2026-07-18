@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from '@/lib/framer-motion';
 import { usePathname } from 'next/navigation';
 import AILayout from '@/components/ai/AILayout';
 import ChatSidebar from '@/components/ai/chat/ChatSidebar';

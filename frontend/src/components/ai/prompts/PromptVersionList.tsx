@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/framer-motion';
 import { GitBranch, RotateCcw, Check } from 'lucide-react';
 import type { PromptVersion } from '@/types';
 import { promptService } from '@/services/promptService';

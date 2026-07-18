@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from '@/lib/framer-motion';
 import { Search, Plus, Trash2, MessageSquare, Archive } from 'lucide-react';
 import type { Conversation } from '@/types';
 

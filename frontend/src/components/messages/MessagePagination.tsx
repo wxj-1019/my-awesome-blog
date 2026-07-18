@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { useThemedClasses } from '@/hooks/useThemedClasses';
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/framer-motion';
 
 interface MessagePaginationProps {
   currentPage?: number;

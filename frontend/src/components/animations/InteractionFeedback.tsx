@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from '@/lib/framer-motion';
 import { Check, X, Info, AlertTriangle, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 

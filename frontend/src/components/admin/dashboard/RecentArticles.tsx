@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/framer-motion';
 import Link from 'next/link';
 import { Clock, FileText, Eye, ArrowUpRight } from 'lucide-react';
 import GlassCardAdmin from '@/components/ui/GlassCardAdmin';

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion } from '@/lib/framer-motion'
 import StatCard from '@/components/ui/StatCard'
 import { API_BASE_URL } from '@/config/api'
 import { validateArrayData, getTotalCount } from '@/utils/data-validation'

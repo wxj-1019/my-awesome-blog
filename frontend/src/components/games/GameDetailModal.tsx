@@ -1,6 +1,6 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from '@/lib/framer-motion';
 import { X, Calendar, Building2, Trophy, Clock, Star } from 'lucide-react';
 import type { Game } from '@/types/game';
 

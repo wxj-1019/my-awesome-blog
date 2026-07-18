@@ -4,7 +4,7 @@
  * 使用 Framer Motion 语法，支持入场/出场/悬停等动画效果
  */
 
-import { Variants, Transition } from 'framer-motion'
+import { Variants, Transition } from '@/lib/framer-motion'
 
 // ============================================
 // 缓动函数预设

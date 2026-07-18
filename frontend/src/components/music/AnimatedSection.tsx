@@ -1,6 +1,6 @@
 'use client';
 
-import { motion, useInView, Variants } from 'framer-motion';
+import { motion, useInView, Variants } from '@/lib/framer-motion';
 import { useRef, ReactNode } from 'react';
 
 interface AnimatedSectionProps {

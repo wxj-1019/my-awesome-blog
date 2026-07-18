@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, memo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from '@/lib/framer-motion';
 import { Calendar, TrendingUp, Users, X, Clock } from 'lucide-react';
 import Link from 'next/link';
 import { useThemedClasses } from '@/hooks/useThemedClasses';

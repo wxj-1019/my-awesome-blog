@@ -1,5 +1,5 @@
 'use client';
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/framer-motion';
 import { Mail, Github, Twitter, Linkedin, MapPin, Clock, Globe } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
 export default function HeroSection() {

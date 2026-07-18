@@ -1,6 +1,6 @@
 'use client';
 import { useState, useRef, useEffect, ReactNode } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from '@/lib/framer-motion';
 import { GripVertical, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Maximize2, Minimize2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 export interface SplitPaneProps {

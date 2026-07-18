@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/framer-motion';
 import { cn } from '@/lib/utils';
 import { ChevronLeft, ChevronRight, Play } from 'lucide-react';
 import type { Banner } from '@/types/music';

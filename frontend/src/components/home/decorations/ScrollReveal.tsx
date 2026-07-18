@@ -6,7 +6,7 @@
  */
 
 import { ReactNode } from 'react'
-import { motion, Variants, useReducedMotion } from 'framer-motion'
+import { motion, Variants, useReducedMotion } from '@/lib/framer-motion'
 import {
   fadeIn,
   slideUp,

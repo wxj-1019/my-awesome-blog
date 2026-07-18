@@ -1,6 +1,6 @@
 'use client';
 import { useState, useCallback, useEffect, memo } from 'react';
-import {  motion } from 'framer-motion';
+import {  motion } from '@/lib/framer-motion';
 import { Heart, Reply, Trash2, Flame, Flag, Edit2, Check, Pin, Star, Settings, MoreHorizontal } from 'lucide-react';
 import { LazyAvatar } from '@/components/ui/LazyImage';
 import { cn } from '@/lib/utils';

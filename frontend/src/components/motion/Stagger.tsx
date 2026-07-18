@@ -1,6 +1,6 @@
 'use client';
 
-import { motion, type Variants } from 'framer-motion';
+import { motion, type Variants } from '@/lib/framer-motion';
 import type { ReactNode } from 'react';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { EASE, STAGGER, staggerContainer, staggerItem } from '@/lib/animation-utils';

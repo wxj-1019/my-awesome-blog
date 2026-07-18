@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState, useCallback, useEffect } from 'react'
-import { motion, AnimatePresence, useInView, useReducedMotion } from 'framer-motion'
+import { motion, AnimatePresence, useInView, useReducedMotion } from '@/lib/framer-motion'
 import { Mail, CheckCircle, Loader2, Sparkles, ArrowRight, Bell } from 'lucide-react'
 import { subscriptionService } from '@/services/subscriptionService'
 import { useToast } from '@/components/ui/use-toast'

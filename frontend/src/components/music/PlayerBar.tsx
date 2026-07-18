@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/framer-motion';
 import { cn } from '@/lib/utils';
 import type { Song, PlayMode } from '@/types/music';
 import { 

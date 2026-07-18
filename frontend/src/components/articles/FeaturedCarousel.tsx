@@ -1,6 +1,6 @@
 'use client';
 import { useState, useCallback, memo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from '@/lib/framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useThemedClasses } from '@/hooks/useThemedClasses';

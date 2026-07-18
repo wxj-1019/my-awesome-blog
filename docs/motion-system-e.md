@@ -246,3 +246,36 @@ import { EASE, TRANSITION, STAGGER } from '@/lib/animation-utils';
 | prefers-reduced-motion | `l3Active = MOTION_L3 && !reducedMotion` | 需确认 |
 | `NEXT_PUBLIC_MOTION_L3=0` | 常量读取 env | 需确认重启 dev |
 
+### 全站清零裸 `framer-motion` import（2026-07-19）
+
+#### 定义（成功标准）
+
+业务与组件代码中 **不得** 出现：
+
+```ts
+import { ... } from 'framer-motion'
+```
+
+**唯一例外：** `frontend/src/lib/framer-motion.ts`（官方 re-export 桶）。
+
+推荐：
+- 原语 / hooks / 类型 → `import { motion, AnimatePresence, ... } from '@/lib/framer-motion'`
+- 方案 E 入场/交错等 → `import { FadeIn, BlurIn, ... } from '@/components/motion'`
+
+#### 已完成
+
+- [x] 新增 `src/lib/framer-motion.ts` 统一导出 runtime + 类型
+- [x] 批量改写 **150** 个文件的模块路径 → `@/lib/framer-motion`
+- [x] ESLint `no-restricted-imports` 禁止裸 `framer-motion`（桶文件关闭限制）
+- [x] `npm run type-check` 通过
+- [x] `npm run lint` 0 errors
+- [x] `npm test` 通过
+
+#### 抽检命令
+
+```bash
+# 除桶文件外应为 0 条 import 行
+rg -n "^import .* from ['\"]framer-motion['\"]" frontend/src
+# 应仅命中 src/lib/framer-motion.ts
+```
+

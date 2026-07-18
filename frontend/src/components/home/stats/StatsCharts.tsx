@@ -3,7 +3,7 @@
 import { TrendingUp, Activity, FileText, Eye, ArrowUp, ArrowDown, Users } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Area, Legend } from 'recharts'
-import { motion } from 'framer-motion'
+import { motion } from '@/lib/framer-motion'
 import { FadeIn } from '@/components/motion'
 import type { PublicStatisticsOverview } from './types'
 

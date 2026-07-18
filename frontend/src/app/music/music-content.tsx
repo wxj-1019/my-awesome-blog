@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/framer-motion';
 import MusicSidebar from '@/components/music/MusicSidebar';
 import HeroBanner from '@/components/music/HeroBanner';
 import PlaylistScroll from '@/components/music/PlaylistScroll';

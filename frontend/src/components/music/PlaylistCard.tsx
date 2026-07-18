@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/framer-motion';
 import { cn } from '@/lib/utils';
 import { Play, Headphones } from 'lucide-react';
 import type { Playlist } from '@/types/music';

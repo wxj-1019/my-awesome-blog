@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/framer-motion';
 import { User, Bot } from 'lucide-react';
 import type { ConversationMessage } from '@/types';
 

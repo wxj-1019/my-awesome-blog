@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, forwardRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/framer-motion';
 import { Star, StarHalf } from 'lucide-react';
 import { cn } from '@/lib/utils';
 

@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import dynamic from 'next/dynamic';
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/framer-motion';
 import { cn } from '@/lib/utils';
 import {
   Bold,

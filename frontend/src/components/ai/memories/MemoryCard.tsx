@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/framer-motion';
 import { Edit, Trash2, Clock, BarChart2 } from 'lucide-react';
 import type { Memory } from '@/types';
 

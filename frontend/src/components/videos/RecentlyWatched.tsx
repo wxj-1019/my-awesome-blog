@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/framer-motion';
 import { ChevronLeft, ChevronRight, Play, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import GlassCard from '@/components/ui/GlassCard';

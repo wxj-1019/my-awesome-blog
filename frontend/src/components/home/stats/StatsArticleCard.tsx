@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Heart, MessageCircle, Calendar, ArrowRight } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
-import { motion } from 'framer-motion'
+import { motion } from '@/lib/framer-motion'
 import type { StatsArticle } from './types'
 
 export function StatsArticleCard({ article, index }: { article: StatsArticle; index: number }) {

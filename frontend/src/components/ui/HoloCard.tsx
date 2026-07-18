@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { motion, useMotionValue, useSpring } from 'framer-motion';
+import { motion, useMotionValue, useSpring } from '@/lib/framer-motion';
 import { cn } from '@/lib/utils';
 
 interface HoloCardProps {

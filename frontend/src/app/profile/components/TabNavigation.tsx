@@ -1,5 +1,5 @@
 'use client';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from '@/lib/framer-motion';
 import { User, Settings, Activity, Lock, Bell, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
 interface TabNavigationProps {

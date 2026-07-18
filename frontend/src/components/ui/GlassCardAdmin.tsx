@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { motion, MotionProps } from 'framer-motion'
+import { motion, MotionProps } from '@/lib/framer-motion'
 import { cn } from '@/lib/utils'
 
 export interface GlassCardAdminProps extends React.HTMLAttributes<HTMLDivElement> {

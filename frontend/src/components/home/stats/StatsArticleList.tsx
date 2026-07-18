@@ -3,7 +3,7 @@
 import { ArrowRight, AlertCircle, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/card'
-import { motion } from 'framer-motion'
+import { motion } from '@/lib/framer-motion'
 import ArticleCardSkeleton from '../ArticleCardSkeleton'
 import { StatsArticleCard } from './StatsArticleCard'
 import type { StatsArticle } from './types'

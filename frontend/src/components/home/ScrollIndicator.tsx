@@ -1,6 +1,6 @@
 'use client';
 
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion, useReducedMotion } from '@/lib/framer-motion';
 import { ChevronDown } from 'lucide-react';
 
 export default function ScrollIndicator() {

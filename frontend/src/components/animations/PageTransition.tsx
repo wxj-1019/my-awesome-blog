@@ -1,6 +1,6 @@
 'use client';
 
-import { motion, Variants } from 'framer-motion';
+import { motion, Variants } from '@/lib/framer-motion';
 import { ReactNode, isValidElement } from 'react';
 
 export type TransitionType = 'fade' | 'slide' | 'scale' | 'flip' | 'none';

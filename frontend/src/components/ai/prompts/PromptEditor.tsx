@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/framer-motion';
 import { Save, X, Play, Plus, Trash2 } from 'lucide-react';
 import type { Prompt, PromptCreate } from '@/types';
 interface PromptEditorProps {

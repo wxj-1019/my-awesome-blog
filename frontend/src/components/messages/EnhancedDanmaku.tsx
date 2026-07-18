@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from '@/lib/framer-motion';
 import { Play, Pause, Rainbow, Layers, Zap, Copy, Flag, Info, MessageSquare, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Message } from '@/types';
