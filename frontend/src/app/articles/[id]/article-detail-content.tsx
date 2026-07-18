@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/Button';
 import GlassCard from '@/components/ui/GlassCard';
 import { Badge } from '@/components/ui/Badge';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { Tag, Eye, Share2, Clock, ThumbsUp, MessageSquare, TrendingUp, Award, Users } from 'lucide-react';
+import { Tag, Eye, Share2, ThumbsUp, MessageSquare, TrendingUp, Award, Users } from 'lucide-react';
 import { useThemedClasses } from '@/hooks/useThemedClasses';
 import { useCodeBlockEnhancement } from '@/hooks/useCodeBlockEnhancement';
 import { getArticleById, getRelatedArticles } from '@/services/articleService';
@@ -27,44 +27,6 @@ import { useReadingProgress } from '@/hooks/useReadingProgress';
 import { useActiveHeading } from '@/hooks/useActiveHeading';
 import { HoverLift } from '@/components/motion';
 import { Comment } from '@/types';
-// 将 RelatedArticle 转换为 Article 类型的辅助函数
-const convertToArticle = (related: RelatedArticle): Article => {
-  return {
-    id: related.id,
-    title: related.title,
-    content: '',
-    excerpt: related.excerpt,
-    is_published: true,
-    view_count: related.view_count,
-    created_at: related.published_at,
-    updated_at: related.published_at,
-    published_at: related.published_at,
-    author_id: '1',
-    category_id: undefined,
-    cover_image: undefined,
-    read_time: 0,
-    likes_count: 0,
-    comments_count: 0,
-    shares_count: 0,
-    author: {
-      id: '1',
-      username: '作者',
-      email: 'author@example.com',
-      avatar: undefined,
-      bio: undefined,
-      reputation: 100,
-      followers_count: 500,
-    },
-    category: {
-      id: '1',
-      name: related.category?.name || '未分类',
-      slug: 'category',
-      description: '',
-    },
-    tags: [],
-  };
-};
-
 /**
  * 将新评论插入到评论树的指定父评论下
  */
@@ -343,14 +305,20 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
               </aside>
               {/* 主内容 */}
               <div className="flex-1 min-w-0 order-2">
-                <GlassCard ref={contentRef} className={`mb-8 p-6 md:p-8 ${cardBgClass}`}>
-                  <ArticleBodyReveal contentRef={contentRef} enabled>
-                    <div
-                      className={`prose max-w-none ${getThemeClass('prose-invert', '')} ${textClass}`}
-                    >
-                      <MarkdownRenderer content={article.content} />
-                    </div>
-                  </ArticleBodyReveal>
+                {/* padding=none 避免与默认 md 内边距叠加；ref 绑在正文根 */}
+                <GlassCard
+                  padding="none"
+                  className={`mb-8 p-6 md:p-8 ${cardBgClass}`}
+                >
+                  <div ref={contentRef}>
+                    <ArticleBodyReveal enabled>
+                      <div
+                        className={`prose max-w-none ${getThemeClass('prose-invert', '')} ${textClass}`}
+                      >
+                        <MarkdownRenderer content={article.content} />
+                      </div>
+                    </ArticleBodyReveal>
+                  </div>
                 </GlassCard>
                 <div className="mb-8">
                   <h3 className={`text-lg font-semibold mb-3 ${textClass}`}>标签</h3>
@@ -378,7 +346,7 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
                     { icon: Eye, label: '阅读量', value: article.view_count },
                   ].map(({ icon: Icon, label, value }) => (
                     <HoverLift key={label}>
-                      <GlassCard className={`p-4 text-center ${cardBgClass}`}>
+                      <GlassCard padding="none" className={`p-4 text-center ${cardBgClass}`}>
                         <div className="flex items-center justify-center">
                           <Icon className="h-6 w-6 mr-2 text-tech-cyan" />
                           <span className="text-2xl font-bold">{value}</span>
@@ -388,7 +356,7 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
                     </HoverLift>
                   ))}
                 </div>
-                <GlassCard className={`mb-8 p-6 ${cardBgClass}`}>
+                <GlassCard padding="none" className={`mb-8 p-6 ${cardBgClass}`}>
                   <div className="flex flex-col md:flex-row items-start">
                     <div className="mr-4 mb-4 md:mb-0">
                       <div className="bg-gray-200 border-2 border-dashed rounded-xl w-16 h-16" />
@@ -439,7 +407,7 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
                     </div>
                   </div>
                 </GlassCard>
-                <GlassCard className={`p-6 ${cardBgClass}`}>
+                <GlassCard padding="none" className={`p-6 ${cardBgClass}`}>
                   <div className="flex items-center justify-between mb-6">
                     <h3 className={`text-xl font-semibold ${textClass}`}>
                       评论 ({commentsLoading ? '...' : comments.length})
@@ -487,32 +455,39 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
               {/* 右轨：相关文章 */}
               <aside className="lg:w-1/4 xl:w-1/5 space-y-6 order-3">
                 {relatedArticles.length > 0 && (
-                  <GlassCard className={`p-6 sticky top-24 ${cardBgClass}`}>
-                    <h3 className={`text-lg font-semibold mb-4 ${textClass}`}>相关文章</h3>
+                  <GlassCard
+                    padding="none"
+                    className={`p-6 sticky top-24 ${cardBgClass}`}
+                  >
+                    <h3 className={`text-lg font-semibold mb-4 ${textClass}`}>
+                      相关文章
+                    </h3>
                     <div className="space-y-3">
-                      {relatedArticles.map((relatedArticle) => {
-                        const articleForCard = convertToArticle(relatedArticle);
-                        return (
-                          <HoverLift key={relatedArticle.id}>
-                            <Link href={`/articles/${relatedArticle.id}`}>
-                              <div
-                                className={`p-3 rounded-lg transition-colors ${getThemeClass(
-                                  'bg-glass/20 hover:bg-glass/30',
-                                  'bg-gray-100 hover:bg-gray-200'
-                                )}`}
+                      {relatedArticles.map((relatedArticle) => (
+                        <HoverLift key={relatedArticle.id}>
+                          <Link href={`/articles/${relatedArticle.id}`}>
+                            <div
+                              className={`p-3 rounded-lg transition-colors ${getThemeClass(
+                                'bg-glass/20 hover:bg-glass/30',
+                                'bg-gray-100 hover:bg-gray-200'
+                              )}`}
+                            >
+                              <h4
+                                className={`font-medium line-clamp-2 ${textClass}`}
                               >
-                                <h4 className={`font-medium line-clamp-2 ${textClass}`}>
-                                  {relatedArticle.title}
-                                </h4>
-                                <div className="flex items-center text-xs mt-2 text-muted-foreground">
-                                  <Clock className="h-3 w-3 mr-1" />
-                                  <span>{articleForCard.read_time} 分钟阅读</span>
-                                </div>
+                                {relatedArticle.title}
+                              </h4>
+                              <div className="flex items-center text-xs mt-2 text-muted-foreground gap-2">
+                                {relatedArticle.category?.name ? (
+                                  <span>{relatedArticle.category.name}</span>
+                                ) : null}
+                                <Eye className="h-3 w-3" />
+                                <span>{relatedArticle.view_count} 阅读</span>
                               </div>
-                            </Link>
-                          </HoverLift>
-                        );
-                      })}
+                            </div>
+                          </Link>
+                        </HoverLift>
+                      ))}
                     </div>
                   </GlassCard>
                 )}

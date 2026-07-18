@@ -38,3 +38,15 @@
 ## 验收
 
 见实施 PR 自测：双轨、TOC、进度一致、降级、type-check/lint
+
+## 审查迭代（2026-07-19）
+
+已修复：
+
+1. 阅读进度改用 `getBoundingClientRect` + 启动延迟测量  
+2. TOC / BodyReveal 在 Markdown 挂载后重试绑定  
+3. `GlassCard padding="none"` 避免与外层 `p-6` 双倍内边距  
+4. 正文 `ref` 绑在内容根，而非整张卡  
+5. 相关文章去掉假 `read_time` 转换，展示分类 + 阅读量  
+6. 标题字体 `font-display`（映射 Syne）  
+7. 全站裸 `framer-motion` 仍仅 `lib/framer-motion.ts` 一处
