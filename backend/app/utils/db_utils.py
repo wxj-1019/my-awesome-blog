@@ -162,6 +162,7 @@ def get_articles_by_multiple_filters(
     author_ids: Optional[List[str]] = None,
     category_ids: Optional[List[str]] = None, 
     tag_ids: Optional[List[str]] = None,
+    search: Optional[str] = None,
     published_only: bool = True,
     limit: int = 100,
     offset: int = 0
@@ -194,6 +195,16 @@ def get_articles_by_multiple_filters(
         tag_uuids = [UUID(id) for id in tag_ids]
         query = query.join(ArticleTag).filter(ArticleTag.tag_id.in_(tag_uuids))
     
+    if search:
+        search_pattern = f"%{search.strip()}%"
+        conditions.append(
+            or_(
+                Article.title.ilike(search_pattern),
+                Article.content.ilike(search_pattern),
+                Article.excerpt.ilike(search_pattern),
+            )
+        )
+
     if conditions:
         query = query.filter(and_(*conditions))
     

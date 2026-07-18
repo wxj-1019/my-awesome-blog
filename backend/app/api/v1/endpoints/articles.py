@@ -29,8 +29,8 @@ router = APIRouter()
 @article_read_rate_limit
 def read_articles(
     request: Request,
-    skip: int = 0,
-    limit: int = 100,
+    skip: int = Query(0, ge=0, description="Number of items to skip"),
+    limit: int = Query(100, ge=1, le=100, description="Maximum 100 items per request"),
     published_only: bool = Query(True, description="Only return published articles"),
     author_id: Optional[str] = Query(None, description="Filter by author ID"),
     category_id: Optional[str] = Query(None, description="Filter by category ID"),
@@ -54,6 +54,7 @@ def read_articles(
         author_ids=author_ids,
         category_ids=category_ids,
         tag_ids=tag_ids,
+        search=search,
         published_only=published_only,
         limit=limit,
         offset=skip
@@ -175,8 +176,8 @@ def search_articles(
     tag_slug: Optional[str] = Query(None, description="Filter by tag slug"),
     author_id: Optional[str] = Query(None, description="Filter by author ID"),
     published_only: bool = Query(True, description="Only return published articles"),
-    skip: int = 0,
-    limit: int = 100,
+    skip: int = Query(0, ge=0, description="Number of items to skip"),
+    limit: int = Query(100, ge=1, le=100, description="Maximum 100 items per request"),
     db: Session = Depends(get_db)
 ) -> Any:
     """

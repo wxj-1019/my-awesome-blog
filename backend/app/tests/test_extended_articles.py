@@ -99,6 +99,48 @@ def test_get_recommended_articles(client, test_session):
     assert isinstance(data, list)
 
 
+def test_read_articles_search_and_limit_validation(client, test_session):
+    """列表接口应应用 search，并拒绝超过 100 条的请求。"""
+    user = User(
+        tenant_id=uuid.uuid4(),
+        username="list_search_author",
+        email="list-search@example.com",
+        hashed_password="hashed_password",
+        is_active=True,
+    )
+    test_session.add(user)
+    test_session.commit()
+
+    matching = Article(
+        title="Unique List Search Title",
+        slug="unique-list-search-title",
+        content="ordinary content",
+        excerpt="searchable excerpt",
+        is_published=True,
+        author_id=user.id,
+    )
+    other = Article(
+        title="Other Article",
+        slug="other-list-search-article",
+        content="does not match",
+        excerpt="different excerpt",
+        is_published=True,
+        author_id=user.id,
+    )
+    test_session.add_all([matching, other])
+    test_session.commit()
+
+    response = client.get(
+        "/api/v1/articles/",
+        params={"search": "Unique List Search"},
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert [article["id"] for article in response.json()] == [str(matching.id)]
+
+    response = client.get("/api/v1/articles/", params={"limit": 101})
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+
 def test_search_articles(client, test_session):
     """Test searching for articles"""
     # Create some test articles
