@@ -146,7 +146,7 @@ You are a senior full-stack developer with expertise in:
 - Use HTTPException for error responses
 - Structure endpoints with APIRouter
 - Implement proper middleware chain for logging, rate limiting, performance monitoring
-- Use lifecycle event handlers (`@app.on_event("startup")`) for initialization
+- Use lifespan context manager (`@asynccontextmanager`) for initialization, not deprecated `@app.on_event`
 - Apply proper validation in `@field_validator` decorators
 - Example endpoint pattern:
   ```python
@@ -179,22 +179,23 @@ You are a senior full-stack developer with expertise in:
 - Apply cascading operations when appropriate (e.g., `cascade="all, delete-orphan"`)
 - Example model pattern:
   ```python
-  from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, ForeignKey
+  from sqlalchemy import Column, String, Text, DateTime, Boolean, ForeignKey, UUID
   from sqlalchemy.sql import func
   from sqlalchemy.orm import relationship
+  import uuid
   from app.core.database import Base
   
   class Article(Base):
       __tablename__ = "articles"
       
-      id = Column(Integer, primary_key=True, index=True)
+      id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
       title = Column(String(200), nullable=False)
       content = Column(Text, nullable=False)
       is_published = Column(Boolean, default=False)
       created_at = Column(DateTime(timezone=True), server_default=func.now())
       
       # Foreign keys
-      author_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+      author_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
       
       # Relationships
       author = relationship("User", back_populates="articles")
@@ -229,8 +230,7 @@ You are a senior full-stack developer with expertise in:
       id: int
       created_at: datetime
       
-      class Config:
-          from_attributes = True
+      model_config = {'from_attributes': True}
   
   class Article(ArticleInDBBase):
       pass
@@ -334,7 +334,7 @@ You are a senior full-stack developer with expertise in:
 ## Code Quality & Standards
 
 ### Frontend Standards
-- Follow ESLint rules as defined in `eslint.config.js`
+- Follow ESLint rules as defined in `.eslintrc.cjs`
 - Adhere to Prettier formatting as defined in `.prettierrc.json`
 - Use camelCase for variable names (properties: `never`)
 - Prefer `const` over `let`, avoid `var`
@@ -358,7 +358,7 @@ You are a senior full-stack developer with expertise in:
   ```typescript
   // React imports
   import { useState, useEffect } from 'react';
-  import { useRouter } from 'next/router';
+  import { useRouter } from 'next/navigation';
   
   // External libraries
   import { Button } from '@/components/ui/button';
@@ -366,7 +366,7 @@ You are a senior full-stack developer with expertise in:
   
   // Internal modules
   import GlassCard from '@/components/ui/GlassCard';
-  import { useTheme } from '@/contexts/theme-context';
+  import { useTheme } from '@/context/theme-context';
   ```
 - Backend import grouping example:
   ```python
@@ -530,7 +530,7 @@ You are a senior full-stack developer with expertise in:
 ## References & Key Files
 
 ### Configuration Files
-- `frontend/eslint.config.js` - Frontend linting rules
+- `frontend/.eslintrc.cjs` - Frontend linting rules
 - `frontend/.prettierrc.json` - Frontend formatting rules
 - `frontend/tsconfig.json` - TypeScript configuration
 - `frontend/tailwind.config.js` - Tailwind CSS theme and animations

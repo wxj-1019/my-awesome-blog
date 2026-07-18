@@ -6,8 +6,8 @@ My Awesome Blog is a modern, enterprise-grade personal blog built with a monorep
 
 ## Architecture
 
-### Frontend (Next.js 14)
-- **Framework**: Next.js 14 with App Router
+### Frontend (Next.js 16)
+- **Framework**: Next.js 16 with App Router
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS with Tailwind CSS Animate
 - **UI Components**: Radix UI primitives, Lucide React icons
@@ -33,7 +33,7 @@ My Awesome Blog is a modern, enterprise-grade personal blog built with a monorep
 ├── __tests__/             # Shared test utilities
 ├── docker-compose.yml     # Multi-service Docker orchestration
 ├── README.md              # Main project documentation
-└── package.json           # Root dependencies (minimal)
+└── AGENTS.md              # AI agent guidelines and project rules
 ```
 
 ## Key Features
@@ -71,12 +71,12 @@ My Awesome Blog is a modern, enterprise-grade personal blog built with a monorep
 4. Install dependencies: `pip install -r requirements.txt`
 5. Set up environment: `cp .env.example .env` (then edit)
 6. Run migrations: `alembic upgrade head`
-7. Start server: `uvicorn app.main:app --reload --port 8000`
-8. Access API at [http://localhost:8000](http://localhost:8000) with docs at [http://localhost:8000/docs](http://localhost:8000/docs)
+7. Start server: `uvicorn app.main:app --reload --port 8989`
+8. Access API at [http://localhost:8989](http://localhost:8989) with docs at [http://localhost:8989/docs](http://localhost:8989/docs)
 
 ### Docker Compose Setup (All-in-One)
 1. From project root: `docker-compose up`
-2. Starts PostgreSQL on port 5432 and FastAPI backend on port 8000
+2. Starts PostgreSQL on port 5432 and FastAPI backend on port 8989
 
 ## API Endpoints
 
@@ -166,7 +166,7 @@ For development with SQLite, update `DATABASE_URL` in `.env` file.
 ## Key Dependencies
 
 ### Frontend
-- Next.js 14 with App Router
+- Next.js 16 with App Router
 - React 18 with TypeScript
 - Tailwind CSS for styling
 - Radix UI for accessible components
@@ -193,7 +193,7 @@ For development with SQLite, update `DATABASE_URL` in `.env` file.
 ## Common Commands
 
 - **Start frontend**: `cd frontend && npm run dev`
-- **Start backend**: `cd backend && uvicorn app.main:app --reload --port 8000`
+- **Start backend**: `cd backend && uvicorn app.main:app --reload --port 8989`
 - **Run all services**: `docker-compose up`
 - **Run backend tests**: `cd backend && pytest`
 - **Run frontend tests**: `cd frontend && npm test`

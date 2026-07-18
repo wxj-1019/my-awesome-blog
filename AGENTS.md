@@ -1,428 +1,169 @@
-# AGENTS.md - My Awesome Blog
+<!-- From: E:/A_Project/my-awesome-blog/AGENTS.md -->
+# AGENTS.md - My Awesome Blog 框架规则
 
-> This file contains essential information for AI coding agents working on this project.
-> Last updated: 2026-03-22
+> 本文档是 AI Agent 在本项目中的最高级别规则入口。修改代码前请先阅读本文件，并按模块规则执行。
+> 最后更新：2026-07-12
 
-## Project Overview
+## 1. 项目定位与架构
 
-My Awesome Blog is a modern, enterprise-grade personal blog platform built with a full-stack architecture:
+My Awesome Blog 是一个企业级全栈个人博客平台：
 
-- **Frontend**: Next.js 16 + TypeScript + Tailwind CSS
-- **Backend**: FastAPI (Python 3.12+) + PostgreSQL + Redis
-- **AI Features**: Multi-LLM support (DeepSeek, GLM, Qwen) with memory and conversation management
-- **Deployment**: Docker Compose with Nginx reverse proxy
+- **前端**：Next.js 16 + TypeScript + Tailwind CSS（端口 3000）
+- **后端**：FastAPI + Python 3.12+ + SQLAlchemy 2.0 + Pydantic v2（端口 8989）
+- **数据库**：PostgreSQL 15（生产）/ SQLite（仅测试）
+- **缓存**：Redis 7
+- **部署**：Docker Compose + Nginx 反向代理
 
-### Project Structure
+### 1.1 目录结构
 
 ```
 my-awesome-blog/
-├── frontend/              # Next.js frontend application
-├── backend/               # FastAPI backend application
-├── docs/                  # Documentation
-├── nginx/                 # Nginx configuration
-├── .github/workflows/     # CI/CD pipelines
-├── docker-compose.yml     # Development environment
-├── docker-compose.prod.yml # Production environment
-└── deploy.ps1            # Deployment script
+├── frontend/              # Next.js 前端应用
+├── backend/               # FastAPI 后端应用
+├── docs/                  # 文档与规则
+│   └── rules/             # 各模块框架规则
+├── nginx/                 # Nginx 配置
+├── docker-compose.yml     # 开发环境
+├── docker-compose.prod.yml # 生产环境
+└── AGENTS.md              # 本文件：规则总入口
 ```
 
-## Technology Stack
+## 2. 必读：模块框架规则
 
-### Frontend
+本项目采用**模块化规则体系**。任何改动都必须遵循对应模块的规则：
 
-| Category | Technology | Version |
-|----------|------------|---------|
-| Framework | Next.js | ^16.1.6 |
-| Language | TypeScript | ^5.0.0 |
-| Styling | Tailwind CSS | ^3.3.0 |
-| UI Components | Radix UI | Latest |
-| Animation | Framer Motion, GSAP | ^12.34.0, ^3.14.2 |
-| State Management | React Context | Built-in |
-| Authentication | next-auth | ^4.24.13 |
-| Testing | Jest + Testing Library | ^29.7.0 |
+| 规则文件 | 适用范围 | 必须阅读时机 |
+|---------|---------|-------------|
+| [docs/rules/frontend-rules.md](./docs/rules/frontend-rules.md) | 前端页面、组件、Hooks、Services | 修改 `frontend/src/` 任何文件 |
+| [docs/rules/backend-rules.md](./docs/rules/backend-rules.md) | API 端点、CRUD、Services、Models | 修改 `backend/app/` 任何文件 |
+| [docs/rules/database-rules.md](./docs/rules/database-rules.md) | 数据库模型、迁移、查询优化 | 修改 Model 或创建 migration |
+| [docs/rules/ai-rules.md](./docs/rules/ai-rules.md) | LLM、对话、记忆、提示词 | 修改 AI 相关模块 |
+| [docs/rules/ui-design-rules.md](./docs/rules/ui-design-rules.md) | UI 组件、样式、动画、主题 | 修改组件或样式 |
+| [docs/rules/.cursorrules](./docs/rules/.cursorrules) | 通用编码风格与约定 | 任何编码任务 |
 
-### Backend
+## 3. 全局铁律
 
-| Category | Technology | Version |
-|----------|------------|---------|
-| Framework | FastAPI | 0.115.6 |
-| Server | Uvicorn | 0.36.0 |
-| Database | PostgreSQL + SQLAlchemy 2.0 | 15-alpine |
-| Migrations | Alembic | 1.13.1 |
-| Validation | Pydantic v2 | 2.12.5 |
-| Auth | python-jose + passlib | 3.3.0 |
-| Cache | Redis | 7-alpine |
-| Storage | Alibaba Cloud OSS | Optional |
-| LLM | DeepSeek, GLM, Qwen | Multi-provider |
+以下规则适用于所有模块，优先级高于模块规则：
 
-## Build and Development Commands
+### 3.1 最小改动原则
+- 只修改与任务相关的文件和行。
+- 不借机重构无关代码、不清理未涉及的注释、不升级依赖。
+- 保持 diff 最小化，便于 code review。
 
-### Frontend
+### 3.2 先读后写
+- 修改前先查看同目录下 2-3 个已有文件，确认命名、结构和风格。
+- 新增 API 前先查看 `backend/app/api/v1/endpoints/articles.py`。
+- 新增组件前先查看 `frontend/src/components/ui/GlassCard.tsx`。
 
+### 3.3 类型安全
+- **前端**：TypeScript `strict` 已开启，禁止使用 `any`，优先用 `unknown` 或精确类型。
+- **后端**：所有函数必须带类型注解，Pydantic 模型验证输入输出。
+
+### 3.4 安全红线
+- 禁止在代码中硬编码密钥、密码、API Key。
+- 生产环境必须配置 `SECRET_KEY`、`DATABASE_URL`、CORS。
+- 上传文件必须校验类型和大小。
+- 删除操作必须校验权限。
+
+### 3.5 性能红线
+- 数据库查询禁止 N+1。
+- 列表接口必须分页（offset/limit 或 cursor）。
+- 批量操作限制单次最多 100 条。
+- 慢查询必须加索引。
+
+### 3.6 注释与文档
+- 代码注释优先使用**中文**（与现有代码保持一致）。
+- 新增公共函数、复杂业务逻辑必须写 docstring/注释。
+- 修改行为后必须同步更新相关注释和文档。
+
+## 4. 常用命令速查
+
+### 前端
 ```bash
 cd frontend
-
-# Install dependencies
 npm install
-
-# Development server
-npm run dev
-
-# Build for production
-npm run build
-
-# Run linter
-npm run lint
-
-# Format code
-npm run format
-
-# Run tests
-npm test
-npm run test:watch
+npm run dev          # 开发服务器
+npm run build        # 生产构建
+npm run lint         # ESLint
+npm run format       # Prettier
+npm test             # Jest 测试
+npm run type-check   # TypeScript 检查
 ```
 
-### Backend
-
+### 后端
 ```bash
 cd backend
-
-# Create virtual environment
-python -m venv .venv
-.venv\Scripts\activate  # Windows
-source .venv/bin/activate  # Linux/Mac
-
-# Install dependencies
 pip install -r requirements.txt
-
-# Run development server
-uvicorn app.main:app --reload --port 8989
-
-# Database migrations
-alembic upgrade head
-alembic revision --autogenerate -m "Description"
-
-# Run tests
-pytest
-pytest --cov=app --cov-report=html
+uvicorn app.main:app --reload --port 8989  # 开发服务器
+alembic upgrade head                         # 执行迁移
+alembic revision --autogenerate -m "描述"     # 生成迁移
+pytest                                       # 运行测试
 ```
 
-### Docker Compose (All-in-one)
-
+### Docker
 ```bash
-# Development
+# 开发
 docker-compose up
 
-# Production
+# 生产
 docker-compose -f docker-compose.prod.yml up -d
 ```
 
-## Code Style Guidelines
-
-### TypeScript/JavaScript (Frontend)
-
-- **Linter**: ESLint with Next.js recommended rules
-- **Formatter**: Prettier (2-space tabs, single quotes, trailing commas)
-- **Key Rules**:
-  - `no-console`: warn
-  - `no-debugger`: error
-  - `prefer-const`: error
-  - `no-var`: error
-  - `eqeqeq`: error (strict equality)
-  - `camelcase`: error
-
-### Python (Backend)
-
-- Follow PEP 8 style guidelines
-- Use type hints throughout
-- Maximum line length: 100 characters
-- Use `async/await` for async operations
-
-### Git Workflow
-
-- **Pre-commit hooks**: Husky + lint-staged
-- **Commit convention**: Conventional commits
-- **CI triggers**: Push/PR to `main` branch
-
-## Testing Instructions
-
-### Frontend Testing
-
-```bash
-cd frontend
-npm test
-```
-
-- **Framework**: Jest with jsdom environment
-- **Coverage threshold**: 50% (branches, functions, lines, statements)
-- **Test files**: `**/__tests__/**/*.{ts,tsx}`, `**/?(*.)+(spec|test).{ts,tsx}`
-
-### Backend Testing
-
-```bash
-cd backend
-pytest
-```
-
-- **Configuration**: `pytest.ini`
-- **Test location**: `app/tests/`
-- **Coverage**: Use `--cov=app` flag
-- **Database**: Tests use PostgreSQL service in CI
-
-## API Architecture
-
-### Base URL
-
-- Development: `http://localhost:8989/api/v1`
-- Production: `http://49.234.190.85/api/v1`
-
-### Main Endpoints
-
-| Resource | Endpoints |
-|----------|-----------|
-| Auth | `/auth/register`, `/auth/login`, `/auth/login-json` |
-| Users | `/users/`, `/users/{id}` |
-| Articles | `/articles/`, `/articles/{id}`, `/articles/slug/{slug}` |
-| Comments | `/comments/`, `/comments/{id}/approve` |
-| Categories | `/categories/`, `/categories/{id}` |
-| Tags | `/tags/`, `/tags/{id}` |
-| AI/LLM | `/llm/chat`, `/conversations/`, `/memories/` |
-| Monitoring | `/monitoring/`, `/statistics/` |
-
-### API Documentation
-
-- Swagger UI: `/docs`
-- ReDoc: `/redoc`
-- OpenAPI JSON: `/api/v1/openapi.json`
-
-## Database Architecture
-
-### Models (SQLAlchemy)
-
-- **User**: Authentication, roles (admin/user)
-- **Article**: Blog posts with slug, status (draft/published)
-- **Comment**: Threaded comments with moderation
-- **Category**: Article categorization
-- **Tag**: Article tagging
-- **Conversation**: AI chat sessions
-- **Memory**: Long-term AI memory storage
-- **Portfolio**: Project showcases
-- **TimelineEvent**: Life events tracking
-
-### Migration Workflow
-
-```bash
-# Create migration
-alembic revision --autogenerate -m "Description"
-
-# Apply migrations
-alembic upgrade head
-
-# Rollback
-alembic downgrade -1
-```
-
-## Environment Configuration
-
-### Required Environment Variables
-
-#### Backend (.env)
-
-```env
-# Database (REQUIRED)
-DATABASE_URL=postgresql://postgres:PASSWORD@localhost:5432/my_awesome_blog
-
-# Security (REQUIRED)
-SECRET_KEY=your-super-secret-key-min-32-bytes
-
-# Redis
-REDIS_HOST=localhost
-REDIS_PORT=6379
-
-# LLM Providers (Optional)
-DEEPSEEK_API_KEY=your_key
-GLM_API_KEY=your_key
-QWEN_API_KEY=your_key
-
-# Aliyun OSS (Optional)
-ALIBABA_CLOUD_ACCESS_KEY_ID=your_key
-ALIBABA_CLOUD_ACCESS_KEY_SECRET=your_secret
-```
-
-#### Frontend (.env.local)
-
-```env
-NEXT_PUBLIC_API_BASE_URL=http://localhost:8989/api/v1
-NEXT_PUBLIC_SITE_URL=http://localhost:3000
-```
-
-### Port Configuration
-
-| Service | Port | Purpose |
-|---------|------|---------|
-| Frontend | 3000 | Next.js dev server |
-| Backend | 8989 | FastAPI (project standard) |
-| PostgreSQL | 5432 | Database |
-| Redis | 6379 | Cache |
-| Nginx | 80/443 | Production proxy |
-
-## Security Considerations
-
-### Authentication
-
-- JWT tokens with configurable expiration
-- OAuth2 password flow
-- Role-based access control (RBAC)
-
-### Security Features
-
-- **Rate Limiting**: Configurable per endpoint (slowapi)
-- **CORS**: Restricted origins in production
-- **Password Policy**: Minimum 8 chars, requires numbers, uppercase, lowercase
-- **Request Size Limit**: 10MB default
-- **Password Validation**: Rejects weak passwords (123456, password, etc.)
-
-### Production Checklist
-
-- [ ] Set `DEBUG=false`
-- [ ] Use strong `SECRET_KEY` (32+ bytes)
-- [ ] Configure proper `BACKEND_CORS_ORIGINS`
-- [ ] Use PostgreSQL (not SQLite)
-- [ ] Enable Redis for caching
-- [ ] Set up SSL/TLS certificates
-- [ ] Configure rate limiting
-- [ ] Remove localhost from CORS
-
-## Deployment Process
-
-### Production Deployment (PowerShell)
-
-```powershell
-# Run deployment script
-./deploy.ps1
-```
-
-This script will:
-1. Check local environment
-2. Validate `.env.production`
-3. Test SSH connection
-4. Sync files to server (49.234.190.85)
-5. Build and start Docker containers
-6. Run database migrations
-
-### Manual Deployment Steps
-
-```bash
-# 1. Copy .env.production
-cp .env.production.example .env.production
-# Edit with production values
-
-# 2. Deploy via Docker Compose
-ssh root@49.234.190.85
-cd /opt/my-awesome-blog
-docker-compose -f docker-compose.prod.yml up -d
-```
-
-### CI/CD Pipelines
-
-| Workflow | Trigger | Purpose |
-|----------|---------|---------|
-| `frontend-ci.yml` | Push to `frontend/**` | Lint, test, build frontend |
-| `backend-ci.yml` | Push to `backend/**` | Test backend with PostgreSQL |
-| `deploy.yml` | Push to `main` | Deploy to production |
-
-## AI/LLM Integration
-
-### Supported Providers
-
-1. **DeepSeek** (default): `deepseek-chat`
-2. **GLM (智谱)**: `glm-4-plus`
-3. **Qwen (通义千问)**: `qwen-plus`
-
-### Features
-
-- **Streaming responses**: Real-time chat
-- **Context management**: Sliding window with summarization
-- **Memory system**: Short-term (Redis) + Long-term (PGVector)
-- **Prompt management**: Version control and A/B testing
-- **Multi-tenancy**: Isolated contexts per tenant
-
-### Configuration
-
-```env
-LLM_DEFAULT_MODEL=deepseek-chat
-LLM_TIMEOUT=120
-LLM_MAX_RETRIES=3
-LLM_STREAM_ENABLED=true
-```
-
-## Troubleshooting
-
-### Database Issues (Windows)
-
-```bash
-cd backend
-
-# Diagnose connection
-python scripts/diagnose_db.py
-
-# Fix issues automatically
-python scripts/fix_db_connection.py
-```
-
-### Common Errors
-
-| Error | Solution |
-|-------|----------|
-| `DATABASE_URL` not set | Copy `.env.example` to `.env` |
-| Weak password error | Use stronger password or set `DEBUG=true` |
-| CORS error | Check `BACKEND_CORS_ORIGINS` includes frontend URL |
-| Port 8989 in use | Kill process or change port |
-| Migration failed | Run `alembic upgrade head` |
-
-## File Structure Conventions
-
-### Frontend
-
-```
-frontend/src/
-├── app/              # Next.js App Router pages
-├── components/       # React components
-│   ├── admin/       # Admin panel components
-│   ├── ui/          # Reusable UI components
-│   └── [feature]/   # Feature-specific components
-├── lib/             # Utility functions, API clients
-├── hooks/           # Custom React hooks
-├── types/           # TypeScript type definitions
-├── styles/          # Global styles, Tailwind extensions
-└── services/        # Business logic services
-```
-
-### Backend
-
-```
-backend/app/
-├── api/v1/endpoints/  # API route handlers
-├── core/              # Config, database, security
-├── models/            # SQLAlchemy ORM models
-├── schemas/           # Pydantic validation models
-├── crud/              # Database CRUD operations
-├── services/          # Business logic
-├── utils/             # Utility functions
-└── tests/             # Test suite
-```
-
-## Important Notes for Agents
-
-1. **Always check `.env` files exist** before running servers
-2. **Database migrations** must be run after model changes
-3. **Port 8989** is the standard backend port (not 8000)
-4. **Use async/await** for all database operations in backend
-5. **TypeScript strict mode** is enabled - ensure type safety
-6. **Test on both Node 18 and 20** (CI requirement)
-7. **Python 3.12+** is required for backend
-8. **Chinese comments** are common in this codebase - maintain consistency
-
-## License
-
-MIT License - See LICENSE file for details
+## 5. 关键配置与参考文件
+
+### 前端
+- `frontend/package.json` - 依赖与脚本
+- `frontend/tsconfig.json` - TypeScript 路径别名 `@/*`
+- `frontend/tailwind.config.js` - 主题、颜色、动画
+- `frontend/next.config.mjs` - Next.js 配置
+- `frontend/src/lib/utils.ts` - `cn()` 工具函数
+- `frontend/src/app/layout.tsx` - 根布局（主题、字体、Provider）
+
+### 后端
+- `backend/requirements.txt` - Python 依赖
+- `backend/app/main.py` - FastAPI 入口与中间件链
+- `backend/app/api/v1/router.py` - API 路由注册
+- `backend/app/core/config.py` - 配置与校验
+- `backend/app/core/database.py` - 数据库引擎与 Session
+- `backend/app/exceptions/__init__.py` - 统一异常体系
+
+## 6. 问题与修改记录
+
+| 日期 | 问题 | 状态 |
+|------|------|------|
+| 2026-07-11 | README 中后端端口写为 8000，实际使用 8989 | 已修复（README.md / backend/README.md / QWEN.md） |
+| 2026-07-11 | README 写 Next.js 14，实际为 16.1.6 | 已修复（README.md / QWEN.md） |
+| 2026-07-11 | 根目录 package.json 与 frontend/package.json 有重复依赖 | 已修复（删除根目录 package.json，同步更新 QWEN.md） |
+| 2026-07-11 | `frontend/src/app/layout.tsx` 中 Live2DWidget 被注释 | 已记录原因：缺少 public/wanko/runtime 模型资源，启用会加载失败 |
+| 2026-07-12 | 后端测试大量 401 失败 | 已修复：在 `backend/app/tests/conftest.py` 添加全局认证绕过 fixture |
+| 2026-07-12 | 后端测试缺少 `db` / `superuser_token_headers` fixture | 已修复：在 conftest.py 补充别名与兼容 fixture |
+| 2026-07-12 | `User` 模型测试数据缺少 `tenant_id` 导致非空约束失败 | 已修复：测试用 User 均提供 `tenant_id=uuid.uuid4()` |
+| 2026-07-12 | `/api/v1/categories/name/{name}` 端点缺失 | 已补充，使用 `crud.get_category_by_name` |
+| 2026-07-12 | `/api/v1/tags/name/{name}` 端点缺失 | 已补充，使用 `crud.get_tag_by_name` |
+| 2026-07-12 | Next.js 16 构建警告 `experimental.typedRoutes` 已迁移 | 已修复：将 `typedRoutes` 移出 `experimental` |
+| 2026-07-12 | 根目录遗留 stale `package-lock.json` | 已删除（根目录 package.json 已移除） |
+| 2026-07-12 | `frontend/src/utils/dateUtils.ts` ESLint 错误 | 已修复：interface 改 type、补充 if 花括号 |
+| 2026-07-12 | `frontend/src/services/websocketService.ts` 未使用参数 | 已修复：将 `event` 重命名为 `_event` |
+| 2026-07-12 | `docs/rules/frontend-rules.md` 未反映近期前端改造 | 已更新：api-client、Article 类型、拆分样式、ArticleCard、mock 数据等规范 |
+| 2026-07-12 | `docs/rules/.cursorrules` 存在过时示例 | 已更新： lifespan、UUID 主键、Pydantic v2、App Router 导入路径、ESLint 配置名 |
+| 2026-07-12 | `backend/app/utils/pagination.py` 中 `CursorPaginationResult` 缺少构造函数 | 已修复：改为 `@dataclass`，支持关键字参数实例化 |
+| 2026-07-12 | SQLite 下游标分页 `created_at` 绑定带 `.000000` 导致游标条件失效 | 已修复：`backend/app/crud/article.py` 使用 `func.strftime` 统一秒级字符串比较 |
+| 2026-07-12 | 后端测试 `test_cursor_pagination.py` 全部失败 | 已修复：4 项全部通过 |
+| 2026-07-12 | 后端完整测试套件 | 已通过：`134 passed, 4 skipped`（4 skipped 为 PostgreSQL 全文搜索） |
+| 2026-07-12 | 前端子代理批量修复 ESLint 时引入多处语法错误 | 已修复：`Button.tsx`、`ErrorBoundary.tsx`、`use-toast.ts`、`auth.ts`、`PromptCard.tsx` 等 10+ 文件恢复合法语法 |
+| 2026-07-12 | 前端 ESLint 大量 error（unused vars、类型、hooks、解析错误等） | 已修复：`npm run lint` 从 60 errors 降至 0 errors，剩余 181 warnings（主要为 `any` 与 hook deps） |
+| 2026-07-12 | 前端 TypeScript 类型检查报 `_prop` 不存在、重复标识符等 | 已修复：`npm run type-check` 通过 |
+| 2026-07-12 | 前端完整审查迭代 | 已通过：`npm test`、`npm run lint`（0 errors）、`npm run type-check`、`npm run build` |
+| 2026-07-12 | 前端无障碍合规（accesslint 技能） | 已修复：搜索框 aria-label、头像 alt 文本、标题层级、跳过链接与主内容区标识；`npm test` 通过 |
+| 2026-07-12 | 前端图片未使用 next/image | 已修复：受控来源头像、封面、轮播图等迁移至 `next/image`；外部不可控来源保留 `<img>` 并加注释 |
+| 2026-07-12 | 前端列表大量使用 `index` 作为 React key | 已修复：数据列表改用稳定 ID/label/slug；静态骨架屏保留 index 并加注释 |
+| 2026-07-12 | 客户端页面缺少独立 metadata | 已修复：公开路由拆分为 Server `page.tsx`（导出 metadata）+ Client `*-content.tsx`；`npm run build` 通过 |
+| 2026-07-12 | `docs/rules/frontend-rules.md` 未涵盖 Image/key/metadata/a11y 规范 | 已更新：新增/完善页面 metadata、Next.js Image、列表 key、可访问性章节 |
+
+---
+
+> **Agent 工作前必做**：
+> 1. 确认本次任务涉及哪些模块。
+> 2. 阅读对应模块规则文件。
+> 3. 查看同目录现有代码样例。
+> 4. 按规则实现，完成后验证相关测试/构建。

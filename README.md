@@ -18,7 +18,7 @@ This project follows a monorepo structure:
 
 The frontend is located in the `frontend/` directory and includes:
 
-- Next.js 14 application with App Router
+- Next.js 16 application with App Router
 - TypeScript
 - Tailwind CSS
 - ESLint and Prettier
@@ -106,10 +106,10 @@ alembic upgrade head
 
 6. Start the development server:
 ```bash
-uvicorn app.main:app --reload --port 8000
+uvicorn app.main:app --reload --port 8989
 ```
 
-The API will be available at [http://localhost:8000](http://localhost:8000) with documentation at [http://localhost:8000/docs](http://localhost:8000/docs).
+The API will be available at [http://localhost:8989](http://localhost:8989) with documentation at [http://localhost:8989/docs](http://localhost:8989/docs).
 
 #### Option 2: Docker Compose (All-in-one)
 
@@ -120,9 +120,9 @@ docker-compose up
 
 This will start:
 - PostgreSQL database on port 5432
-- FastAPI backend on port 8000
+- FastAPI backend on port 8989
 
-2. Access the API at [http://localhost:8000](http://localhost:8000)
+2. Access the API at [http://localhost:8989](http://localhost:8989)
 
 ## API Endpoints
 
