@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Lock, User, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useLoading } from '@/context/loading-context';
+import { loginApi } from '@/lib/api/auth';
 import '@/styles/components/login-form.css';
 export default function LoginPageContent() {
   const [username, setUsername] = useState('');
@@ -20,34 +21,33 @@ export default function LoginPageContent() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    
+
     if (!username || !password) {
       setError('请填写所有必填字段');
       return;
     }
-    
+
     if (username.length < 3) {
       setError('用户名长度至少为3位');
       return;
     }
-    
+
     if (password.length < 6) {
       setError('密码长度至少为6位');
       return;
     }
-    
+
     showLoading();
     try {
+      // loginApi 内部 setToken：localStorage + auth_token cookie
+      await loginApi(username, password);
+
       const redirectParam = searchParams.get('redirect');
       const redirectPath = redirectParam ? decodeURIComponent(redirectParam) : '/profile';
       if (redirectPath.startsWith('/') && !redirectPath.startsWith('//')) {
-        setTimeout(() => {
-          router.push(redirectPath as '/profile');
-        }, 500);
+        router.push(redirectPath as '/profile');
       } else {
-        setTimeout(() => {
-          router.push('/profile');
-        }, 500);
+        router.push('/profile');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : '登录失败，请重试');

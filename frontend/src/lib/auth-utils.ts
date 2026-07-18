@@ -5,6 +5,15 @@ const USER_KEY = 'auth_user';
 const AUTH_COOKIE = 'auth_token';
 const COOKIE_MAX_AGE_SEC = 60 * 60 * 24 * 7; // 7 天，对齐常见 refresh 周期
 
+function hasAuthCookie(): boolean {
+  if (typeof document === 'undefined') {
+    return false;
+  }
+  return document.cookie
+    .split(';')
+    .some((c) => c.trim().startsWith(`${AUTH_COOKIE}=`));
+}
+
 function setAuthCookie(token: string): void {
   if (typeof document === 'undefined') {
     return;
@@ -28,16 +37,30 @@ export const getToken = (): string | null => {
   if (typeof window === 'undefined') {
     return null;
   }
-  const token = localStorage.getItem(TOKEN_KEY);
-  // 已登录用户升级后补齐 middleware 用 cookie（仅缺 cookie 时写入）
-  if (
-    token &&
-    typeof document !== 'undefined' &&
-    !document.cookie.split(';').some((c) => c.trim().startsWith(`${AUTH_COOKIE}=`))
-  ) {
-    setAuthCookie(token);
+  return localStorage.getItem(TOKEN_KEY);
+};
+
+/**
+ * 将 localStorage 中的 token 同步到 auth_token cookie。
+ * 应用启动时调用一次，避免「已登录但无 cookie → middleware 踢回登录」。
+ * @returns 是否完成写入（已有 cookie 或无 token 时返回 false）
+ */
+export const syncAuthCookie = (): boolean => {
+  if (typeof window === 'undefined') {
+    return false;
   }
-  return token;
+  const token = localStorage.getItem(TOKEN_KEY);
+  if (!token) {
+    if (hasAuthCookie()) {
+      clearAuthCookie();
+    }
+    return false;
+  }
+  if (hasAuthCookie()) {
+    return false;
+  }
+  setAuthCookie(token);
+  return true;
 };
 
 export const setToken = (token: string): void => {

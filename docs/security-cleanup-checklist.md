@@ -30,11 +30,13 @@
 对照本地仍存在的 `.env.production` / `backend/.env`（勿再提交），逐项轮换：
 
 - [ ] `POSTGRES_PASSWORD` + 更新 `DATABASE_URL`
-- [ ] `SECRET_KEY`（JWT，至少 32 字符随机串）
+- [x] `SECRET_KEY`（JWT，至少 32 字符随机串）— **本地**已于 2026-07-18 轮换；**生产服务器**仍须按 `docs/production-env-checklist.md` 同步并重启
 - [ ] `DEEPSEEK_API_KEY` / `GLM_API_KEY` / `QWEN_API_KEY`（若曾写入）
 - [ ] 阿里云 `ALIBABA_CLOUD_ACCESS_KEY_*`（若曾写入）
 - [ ] Redis 密码（若生产启用）
 - [ ] 其他第三方 Token
+
+完整生产核对步骤见：**[docs/production-env-checklist.md](./production-env-checklist.md)**
 
 ### 3. Git 历史（若曾 push 含密钥的提交）
 

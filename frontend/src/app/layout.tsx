@@ -9,6 +9,7 @@ import LoadingHandler from '@/components/loading/LoadingHandler';
 import { Toaster } from '@/components/ui/toaster';
 
 import { ErrorBoundaryProvider } from '@/components/error/ErrorBoundaryProvider';
+import AuthCookieSync from '@/components/auth/AuthCookieSync';
 import { env } from '@/lib/env';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
@@ -31,15 +32,16 @@ const ClientLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <LoadingProvider>
       <ThemeWrapper>
-<div className="flex flex-col min-h-screen bg-background overflow-hidden">
-  <Navbar />
-  <main id="main-content" className="flex-1" tabIndex={-1}>
-    <LoadingHandler>{children}</LoadingHandler>
-  </main>
-  <Footer />
-  <Toaster />
-</div>
-{/* <Live2DWidget /> 注释原因：缺少 public/wanko/runtime 模型资源，启用会导致加载失败 */}
+        <AuthCookieSync />
+        <div className="flex flex-col min-h-screen bg-background overflow-hidden">
+          <Navbar />
+          <main id="main-content" className="flex-1" tabIndex={-1}>
+            <LoadingHandler>{children}</LoadingHandler>
+          </main>
+          <Footer />
+          <Toaster />
+        </div>
+        {/* <Live2DWidget /> 注释原因：缺少 public/wanko/runtime 模型资源，启用会导致加载失败 */}
       </ThemeWrapper>
     </LoadingProvider>
   );
