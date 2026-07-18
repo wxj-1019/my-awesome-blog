@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { motion, useSpring, useMotionValue } from 'framer-motion'
 
 interface CursorGlowProps {
@@ -35,7 +35,7 @@ export default function CursorGlow({
     const handleMouseMove = (e: MouseEvent) => {
       cursorX.set(e.clientX - size / 2)
       cursorY.set(e.clientY - size / 2)
-      if (!isVisible) setIsVisible(true)
+      if (!isVisible) {setIsVisible(true)}
     }
 
     const handleMouseLeave = () => {
@@ -58,7 +58,7 @@ export default function CursorGlow({
   }, [cursorX, cursorY, isVisible, size])
 
   // 触摸设备不显示
-  if (isTouchDevice) return null
+  if (isTouchDevice) {return null}
 
   return (
     <motion.div

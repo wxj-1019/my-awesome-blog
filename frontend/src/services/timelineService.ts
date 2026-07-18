@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '@/config/api';
+import { apiRequest } from '@/lib/api-client';
 
 export interface TimelineEvent {
   id: string;
@@ -35,36 +35,14 @@ export interface TimelineEventUpdate {
   sort_order?: number;
 }
 
-const API_URL = `/timeline-events`;
-
-const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
-  
-  const headers = {
-    'Content-Type': 'application/json',
-    ...(token && { 'Authorization': `Bearer ${token}` }),
-    ...options.headers,
-  };
-
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    ...options,
-    headers,
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.detail || errorData.message || `请求失败: ${response.status}`);
-  }
-
-  return response.json();
-};
+const API_URL = '/timeline-events';
 
 export const timelineService = {
   async getTimelineEvents(params?: { is_active?: boolean; skip?: number; limit?: number }): Promise<TimelineEvent[]> {
     const queryString = new URLSearchParams();
-    if (params?.is_active !== undefined) queryString.append('is_active', params.is_active.toString());
-    if (params?.skip !== undefined) queryString.append('skip', params.skip.toString());
-    if (params?.limit !== undefined) queryString.append('limit', params.limit.toString());
+    if (params?.is_active !== undefined) {queryString.append('is_active', params.is_active.toString());}
+    if (params?.skip !== undefined) {queryString.append('skip', params.skip.toString());}
+    if (params?.limit !== undefined) {queryString.append('limit', params.limit.toString());}
 
     return apiRequest(`${API_URL}?${queryString.toString()}`);
   },
@@ -76,14 +54,14 @@ export const timelineService = {
   async createTimelineEvent(eventData: TimelineEventCreate): Promise<TimelineEvent> {
     return apiRequest(API_URL, {
       method: 'POST',
-      body: JSON.stringify(eventData),
+      body: eventData,
     });
   },
 
   async updateTimelineEvent(eventId: string, eventData: TimelineEventUpdate): Promise<TimelineEvent> {
     return apiRequest(`${API_URL}/${eventId}`, {
       method: 'PUT',
-      body: JSON.stringify(eventData),
+      body: eventData,
     });
   },
 

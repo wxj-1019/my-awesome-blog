@@ -1,7 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import { Camera, Mail, Globe, Twitter, Github, Linkedin, MapPin, Calendar, ExternalLink, Edit3, Save, X, UserRound } from 'lucide-react';
+import { Camera, Mail, Globe, Twitter, Github, Linkedin, MapPin, ExternalLink, Edit3, Save, X, UserRound } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/input';
@@ -23,7 +22,7 @@ interface ProfileViewProps {
 }
 
 export default function ProfileView({
-  profile,
+  profile: _profile,
   isEditing,
   setEditing,
   formData,
@@ -33,6 +32,7 @@ export default function ProfileView({
   onAvatarChange
 }: ProfileViewProps) {
   const { themedClasses, getThemeClass } = useThemedClasses();
+  void _profile;
   
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -45,11 +45,6 @@ export default function ProfileView({
   // 主题相关样式
   const cardBgClass = themedClasses.cardBgClass;
   const textClass = themedClasses.textClass;
-  const accentClass = getThemeClass(
-    'text-tech-cyan',
-    'text-blue-600'
-  );
-
   const mutedClass = themedClasses.mutedTextClass;
 
   return (

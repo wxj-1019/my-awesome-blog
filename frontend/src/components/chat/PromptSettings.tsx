@@ -10,7 +10,6 @@ import {
   Download,
   Upload,
   Star,
-  MoreHorizontal,
   Copy,
   Pencil,
   Trash2,
@@ -26,8 +25,9 @@ import {
   Clock,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { promptService, type PromptFolder, type PromptWithFolder, type PromptExportData } from '@/services/promptService';
-import type { Prompt, PromptCreate, PromptUpdate } from '@/types';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
+import { promptService, type PromptFolder, type PromptWithFolder } from '@/services/promptService';
+import type { Prompt } from '@/types';
 
 interface PromptSettingsProps {
   isOpen: boolean;
@@ -67,6 +67,17 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
   });
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    description: string;
+    onConfirm: () => void | Promise<void>;
+  }>({
+    isOpen: false,
+    title: '确认操作',
+    description: '',
+    onConfirm: () => {},
+  });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const showToast = useCallback((message: string, type: ToastType = 'info') => {
@@ -89,7 +100,7 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
       
       const defaultPrompt = await promptService.getDefaultPrompt();
       setDefaultPromptId(defaultPrompt?.id || null);
-    } catch (error) {
+    } catch {
       showToast('加载提示词失败', 'error');
     } finally {
       setLoading(false);
@@ -188,26 +199,31 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
 
       setViewMode('list');
       loadData();
-    } catch (error) {
+    } catch {
       showToast('保存失败，请重试', 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDeletePrompt = async (id: string) => {
-    if (!confirm('确定要删除此提示词吗？')) return;
-
-    setLoading(true);
-    try {
-      await promptService.deletePrompt(id);
-      showToast('提示词已删除', 'success');
-      loadData();
-    } catch (error) {
-      showToast('删除失败', 'error');
-    } finally {
-      setLoading(false);
-    }
+  const handleDeletePrompt = (id: string) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: '删除提示词',
+      description: '确定要删除此提示词吗？此操作不可恢复。',
+      onConfirm: async () => {
+        setLoading(true);
+        try {
+          await promptService.deletePrompt(id);
+          showToast('提示词已删除', 'success');
+          loadData();
+        } catch {
+          showToast('删除失败', 'error');
+        } finally {
+          setLoading(false);
+        }
+      },
+    });
   };
 
   const handleDuplicatePrompt = async (id: string) => {
@@ -216,7 +232,7 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
       await promptService.duplicatePrompt(id);
       showToast('提示词已复制', 'success');
       loadData();
-    } catch (error) {
+    } catch {
       showToast('复制失败', 'error');
     } finally {
       setLoading(false);
@@ -229,7 +245,7 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
       await promptService.setDefaultPrompt(id);
       setDefaultPromptId(id);
       showToast('已设为默认提示词', 'success');
-    } catch (error) {
+    } catch {
       showToast('设置失败', 'error');
     } finally {
       setLoading(false);
@@ -237,7 +253,7 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
   };
 
   const handleCreateFolder = async () => {
-    if (!newFolderName.trim()) return;
+    if (!newFolderName.trim()) {return;}
 
     setLoading(true);
     try {
@@ -249,26 +265,31 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
       setIsCreatingFolder(false);
       showToast('文件夹创建成功', 'success');
       loadData();
-    } catch (error) {
+    } catch {
       showToast('创建文件夹失败', 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDeleteFolder = async (id: string) => {
-    if (!confirm('确定要删除此文件夹吗？文件夹内的提示词将移至根目录。')) return;
-
-    setLoading(true);
-    try {
-      await promptService.deleteFolder(id);
-      showToast('文件夹已删除', 'success');
-      loadData();
-    } catch (error) {
-      showToast('删除失败', 'error');
-    } finally {
-      setLoading(false);
-    }
+  const handleDeleteFolder = (id: string) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: '删除文件夹',
+      description: '确定要删除此文件夹吗？文件夹内的提示词将移至根目录。',
+      onConfirm: async () => {
+        setLoading(true);
+        try {
+          await promptService.deleteFolder(id);
+          showToast('文件夹已删除', 'success');
+          loadData();
+        } catch {
+          showToast('删除失败', 'error');
+        } finally {
+          setLoading(false);
+        }
+      },
+    });
   };
 
   const handleExport = async (promptIds?: string[]) => {
@@ -277,7 +298,7 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
       const data = await promptService.exportPrompts(promptIds);
       promptService.downloadAsJson(data.prompts, data.folders);
       showToast('导出成功', 'success');
-    } catch (error) {
+    } catch {
       showToast('导出失败', 'error');
     } finally {
       setLoading(false);
@@ -286,7 +307,7 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
 
   const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (!file) {return;}
 
     setLoading(true);
     try {
@@ -295,7 +316,7 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
       showToast(`导入完成：成功 ${result.success}，失败 ${result.failed}`, 
         result.failed > 0 ? 'error' : 'success');
       loadData();
-    } catch (error) {
+    } catch {
       showToast('导入失败，请检查文件格式', 'error');
     } finally {
       setLoading(false);
@@ -361,8 +382,9 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
                 handleDeleteFolder(folder.id);
               }}
               className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-500/20 hover:text-red-400 rounded"
+              aria-label="删除文件夹"
             >
-              <Trash2 size={12} />
+              <Trash2 size={12} aria-hidden="true" />
             </button>
           </div>
           {isExpanded && (
@@ -532,8 +554,9 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
               }}
               className="p-1.5 hover:bg-white/10 rounded-lg text-zinc-400 hover:text-white transition-colors"
               title="编辑"
+              aria-label="编辑"
             >
-              <Pencil size={14} />
+              <Pencil size={14} aria-hidden="true" />
             </button>
             <button
               onClick={(e) => {
@@ -542,8 +565,9 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
               }}
               className="p-1.5 hover:bg-white/10 rounded-lg text-zinc-400 hover:text-white transition-colors"
               title="复制"
+              aria-label="复制"
             >
-              <Copy size={14} />
+              <Copy size={14} aria-hidden="true" />
             </button>
             <button
               onClick={(e) => {
@@ -552,8 +576,9 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
               }}
               className="p-1.5 hover:bg-red-500/20 rounded-lg text-zinc-400 hover:text-red-400 transition-colors"
               title="删除"
+              aria-label="删除"
             >
-              <Trash2 size={14} />
+              <Trash2 size={14} aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -601,8 +626,9 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
               <button
                 onClick={onClose}
                 className="p-2 hover:bg-white/10 rounded-lg text-zinc-400 hover:text-white transition-colors"
+                aria-label="关闭"
               >
-                <X size={20} />
+                <X size={20} aria-hidden="true" />
               </button>
             </div>
 
@@ -631,22 +657,25 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
                       onClick={() => setIsCreatingFolder(true)}
                       className="px-3 py-2.5 bg-white/5 hover:bg-white/10 text-zinc-300 rounded-xl transition-colors"
                       title="新建文件夹"
+                      aria-label="新建文件夹"
                     >
-                      <FolderPlus size={16} />
+                      <FolderPlus size={16} aria-hidden="true" />
                     </button>
                     <button
                       onClick={() => handleExport()}
                       className="px-3 py-2.5 bg-white/5 hover:bg-white/10 text-zinc-300 rounded-xl transition-colors"
                       title="导出"
+                      aria-label="导出"
                     >
-                      <Download size={16} />
+                      <Download size={16} aria-hidden="true" />
                     </button>
                     <button
                       onClick={() => fileInputRef.current?.click()}
                       className="px-3 py-2.5 bg-white/5 hover:bg-white/10 text-zinc-300 rounded-xl transition-colors"
                       title="导入"
+                      aria-label="导入"
                     >
-                      <Upload size={16} />
+                      <Upload size={16} aria-hidden="true" />
                     </button>
                     <input
                       ref={fileInputRef}
@@ -685,7 +714,7 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
                             value={newFolderName}
                             onChange={(e) => setNewFolderName(e.target.value)}
                             onKeyDown={(e) => {
-                              if (e.key === 'Enter') handleCreateFolder();
+                              if (e.key === 'Enter') {handleCreateFolder();}
                               if (e.key === 'Escape') {
                                 setIsCreatingFolder(false);
                                 setNewFolderName('');
@@ -698,8 +727,9 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
                           <button
                             onClick={handleCreateFolder}
                             className="p-1 hover:bg-white/10 rounded text-cyan-400"
+                            aria-label="确认"
                           >
-                            <Check size={12} />
+                            <Check size={12} aria-hidden="true" />
                           </button>
                         </div>
                       ) : null}
@@ -848,7 +878,7 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
                 <button
                   onClick={() => {
                     const prompt = prompts.find(p => p.id === contextMenu.promptId);
-                    if (prompt) handleEditPrompt(prompt);
+                    if (prompt) {handleEditPrompt(prompt);}
                     setContextMenu(null);
                   }}
                   className="w-full flex items-center gap-2 px-3 py-2 text-sm text-zinc-300 hover:bg-white/5 transition-colors"
@@ -900,6 +930,15 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
               </motion.div>
             )}
           </AnimatePresence>
+
+          <ConfirmDialog
+            isOpen={confirmDialog.isOpen}
+            onClose={() => setConfirmDialog(prev => ({ ...prev, isOpen: false }))}
+            onConfirm={confirmDialog.onConfirm}
+            title={confirmDialog.title}
+            description={confirmDialog.description}
+            variant="danger"
+          />
 
           <div className="fixed bottom-4 right-4 z-50 space-y-2">
             <AnimatePresence>

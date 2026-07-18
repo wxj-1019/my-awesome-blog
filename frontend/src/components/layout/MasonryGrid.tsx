@@ -1,15 +1,12 @@
 'use client';
-
 import { useState, useEffect, useRef, ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
-
 export interface MasonryItem {
   id: string | number;
   content: ReactNode;
   height?: number;
 }
-
 export interface MasonryGridProps {
   items: MasonryItem[];
   columns?: number;
@@ -19,7 +16,6 @@ export interface MasonryGridProps {
   itemClassName?: string;
   onLayoutComplete?: () => void;
 }
-
 export default function MasonryGrid({
   items,
   columns: propColumns,
@@ -30,58 +26,47 @@ export default function MasonryGrid({
   onLayoutComplete
 }: MasonryGridProps) {
   const [columns, setColumns] = useState(propColumns || 2);
-  const [columnHeights, setColumnHeights] = useState<number[]>([]);
+  const [, setColumnHeights] = useState<number[]>([]);
   const [itemPositions, setItemPositions] = useState<Record<string | number, { col: number; row: number }>>({});
   const containerRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<Record<string | number, HTMLDivElement>>({});
-
   useEffect(() => {
     if (propColumns) {
       setColumns(propColumns);
       return;
     }
-
     const calculateColumns = () => {
-      if (!containerRef.current) return;
+      if (!containerRef.current) {return;}
       const containerWidth = containerRef.current.offsetWidth;
       const newColumns = Math.max(1, Math.floor(containerWidth / minColumnWidth));
       setColumns(newColumns);
     };
-
     calculateColumns();
     window.addEventListener('resize', calculateColumns);
     return () => window.removeEventListener('resize', calculateColumns);
   }, [propColumns, minColumnWidth]);
-
   useEffect(() => {
     const heights = new Array(columns).fill(0);
     const positions: Record<string | number, { col: number; row: number }> = {};
-
     items.forEach((item) => {
       const minHeight = Math.min(...heights);
       const col = heights.indexOf(minHeight);
-
       if (item.height) {
         heights[col] += item.height + gap;
       } else {
         heights[col] += 200 + gap;
       }
-
       positions[item.id] = { col, row: heights[col] - (item.height || 200) };
     });
-
     setColumnHeights(heights);
     setItemPositions(positions);
-
     onLayoutComplete?.();
-  }, [items, columns, gap]);
-
+  }, [items, columns, gap, onLayoutComplete]);
   const renderColumn = (colIndex: number) => {
-    const columnItems = items.filter((item, index) => {
+    const columnItems = items.filter((item, _index) => {
       const pos = itemPositions[item.id];
       return pos?.col === colIndex;
     });
-
     return (
       <div
         key={colIndex}
@@ -91,8 +76,7 @@ export default function MasonryGrid({
         <AnimatePresence mode="popLayout">
           {columnItems.map((item) => {
             const pos = itemPositions[item.id];
-            if (!pos) return null;
-
+            if (!pos) {return null;}
             return (
               <motion.div
                 key={item.id}
@@ -116,7 +100,6 @@ export default function MasonryGrid({
       </div>
     );
   };
-
   return (
     <div
       ref={containerRef}

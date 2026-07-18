@@ -1,7 +1,7 @@
 'use client';
 
-import { motion, AnimatePresence, Variants } from 'framer-motion';
-import { ReactNode } from 'react';
+import { motion, Variants } from 'framer-motion';
+import { ReactNode, isValidElement } from 'react';
 
 export type TransitionType = 'fade' | 'slide' | 'scale' | 'flip' | 'none';
 
@@ -140,7 +140,10 @@ export function StaggeredChildren({
       className={className}
     >
       {Array.isArray(children) ? children.map((child, index) => (
-        <motion.div key={index} variants={itemVariants}>
+        <motion.div
+          key={isValidElement(child) ? child.key ?? index : index}
+          variants={itemVariants}
+        >
           {child}
         </motion.div>
       )) : (

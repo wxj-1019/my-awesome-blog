@@ -1,7 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, User, Building2, Trophy, Clock, Star } from 'lucide-react';
+import { X, Calendar, Building2, Trophy, Clock, Star } from 'lucide-react';
 import type { Game } from '@/types/game';
 
 interface GameDetailModalProps {
@@ -10,7 +10,7 @@ interface GameDetailModalProps {
 }
 
 export default function GameDetailModal({ game, onClose }: GameDetailModalProps) {
-  if (!game) return null;
+  if (!game) {return null;}
 
   return (
     <AnimatePresence>
@@ -33,12 +33,14 @@ export default function GameDetailModal({ game, onClose }: GameDetailModalProps)
             <button
               onClick={onClose}
               className="absolute top-4 right-4 z-10 p-2 bg-black/20 hover:bg-black/40 rounded-full text-white transition-colors"
+              aria-label="关闭"
             >
-              <X className="w-5 h-5" />
+              <X className="w-5 h-5" aria-hidden="true" />
             </button>
 
             {/* Left: Image */}
             <div className="w-full md:w-2/5 h-64 md:h-auto relative">
+              {/* 游戏封面可能来自外部平台，域名不可控，保留 <img> */}
               <img
                 src={game.coverImage}
                 alt={game.title}

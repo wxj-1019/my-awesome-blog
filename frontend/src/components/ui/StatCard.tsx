@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import Link from 'next/link';
+import Link, { LinkProps } from 'next/link';
 import { motion, useSpring, useMotionValue, useTransform } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
@@ -66,12 +66,12 @@ const StatCard = React.forwardRef<HTMLDivElement, StatCardProps>(
       y.set(0);
     }, [x, y]);
 
-    const TrendIcon = trend?.isPositive 
-      ? (props: any) => <svg {...props} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
-      : (props: any) => <svg {...props} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" /></svg>;
+    const TrendIcon = trend?.isPositive
+      ? (props: React.SVGProps<SVGSVGElement>) => <svg {...props} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+      : (props: React.SVGProps<SVGSVGElement>) => <svg {...props} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" /></svg>;
 
     const renderSparkline = () => {
-      if (!sparkline || sparkline.length < 2) return null;
+      if (!sparkline || sparkline.length < 2) {return null;}
       
       const max = Math.max(...sparkline);
       const min = Math.min(...sparkline);
@@ -262,7 +262,7 @@ const StatCard = React.forwardRef<HTMLDivElement, StatCardProps>(
     );
     
     return href ? (
-      <Link href={href as any} className="block focus:outline-none focus:ring-2 focus:ring-tech-cyan focus:ring-offset-2 rounded-2xl">
+      <Link href={href as unknown as LinkProps<string>['href']} className="block focus:outline-none focus:ring-2 focus:ring-tech-cyan focus:ring-offset-2 rounded-2xl">
         {content}
       </Link>
     ) : (

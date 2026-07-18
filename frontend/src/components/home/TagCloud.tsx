@@ -49,20 +49,20 @@ export default function TagCloud() {
       return matchesCategory && matchesSearch
     })
     .sort((a, b) => {
-      if (sortBy === 'count') return b.count - a.count
-      if (sortBy === 'trend') return b.trend - a.trend
+      if (sortBy === 'count') {return b.count - a.count}
+      if (sortBy === 'trend') {return b.trend - a.trend}
       return a.name.localeCompare(b.name)
     })
 
   const getTrendColor = (trend: number) => {
-    if (trend > 15) return 'text-green-500 dark:text-green-400'
-    if (trend > 8) return 'text-yellow-500 dark:text-yellow-400'
+    if (trend > 15) {return 'text-green-500 dark:text-green-400'}
+    if (trend > 8) {return 'text-yellow-500 dark:text-yellow-400'}
     return 'text-muted-foreground'
   }
 
   const getTrendIcon = (trend: number) => {
-    if (trend > 15) return '↑'
-    if (trend > 8) return '→'
+    if (trend > 15) {return '↑'}
+    if (trend > 8) {return '→'}
     return '↓'
   }
 

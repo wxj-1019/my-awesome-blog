@@ -1,23 +1,19 @@
 'use client';
-
 import { Component, ErrorInfo, ReactNode } from 'react';
 import { Button } from '@/components/ui/Button';
 import { RefreshCw, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
 interface ErrorBoundaryProps {
   children: ReactNode;
   fallback?: ReactNode;
   onError?: (error: Error, errorInfo: ErrorInfo) => void;
   showDetails?: boolean;
 }
-
 interface ErrorBoundaryState {
   hasError: boolean;
   error?: Error;
   errorInfo?: ErrorInfo;
 }
-
 class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
@@ -25,32 +21,23 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
       hasError: false 
     };
   }
-
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
     return { 
       hasError: true, 
       error 
     };
   }
-
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('Error caught by boundary:', error, errorInfo);
-    
-    this.setState({
-      error,
-      errorInfo
-    });
-
+    // 错误状态已由 getDerivedStateFromError 设置，此处不再重复 setState
     // 调用外部错误处理函数
     this.props.onError?.(error, errorInfo);
-
     // 生产环境可以发送错误报告到监控服务
     if (process.env.NODE_ENV === 'production') {
       // 这里可以集成错误监控服务如 Sentry
       this.reportError(error, errorInfo);
     }
   }
-
   private reportError(error: Error, errorInfo: ErrorInfo) {
     // 错误上报逻辑
     const errorReport = {
@@ -61,16 +48,15 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
       timestamp: new Date().toISOString(),
       userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : ''
     };
-
+    // 避免 unused 告警，同时保留上报数据结构
+    void errorReport;
     // 发送到错误监控服务
-    console.log('Reporting error:', errorReport);
     // fetch('/api/error-report', {
     //   method: 'POST',
     //   headers: { 'Content-Type': 'application/json' },
     //   body: JSON.stringify(errorReport)
     // }).catch(console.error);
   }
-
   private handleRetry = () => {
     this.setState({ 
       hasError: false,
@@ -78,14 +64,12 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
       errorInfo: undefined
     });
   };
-
   render() {
     if (this.state.hasError) {
       // 如果提供了自定义 fallback 组件
       if (this.props.fallback) {
         return this.props.fallback;
       }
-
       // 默认错误 UI
       return (
         <div 
@@ -111,7 +95,6 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
                 很抱歉，页面加载出现了意外错误。请尝试刷新页面或稍后重试。
               </p>
             </div>
-
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button
                 onClick={this.handleRetry}
@@ -131,7 +114,6 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
                 刷新页面
               </Button>
             </div>
-
             {this.props.showDetails && this.state.error && (
               <details className="mt-6 text-left">
                 <summary className="cursor-pointer text-sm font-medium text-foreground/70 hover:text-foreground">
@@ -149,7 +131,6 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
                 </div>
               </details>
             )}
-
             <div className="mt-6 text-xs text-foreground/50">
               错误ID: {this.state.error?.message.substring(0, 8) || 'unknown'}
             </div>
@@ -157,9 +138,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
         </div>
       );
     }
-
     return this.props.children;
   }
 }
-
 export default ErrorBoundary;

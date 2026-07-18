@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import Link from 'next/link'
+
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Plus, 
@@ -20,10 +20,10 @@ import { adminApi } from '@/lib/admin-api-client'
 import { validateArrayData } from '@/utils/data-validation'
 import Button from '@/components/admin/Button'
 import FormInput from '@/components/admin/FormInput'
-import ConfirmDialog from '@/components/admin/ConfirmDialog'
+import ConfirmDialog from '@/components/ui/ConfirmDialog'
 import { useToast } from '@/components/admin/Toast'
-import LoadingState from '@/components/admin/LoadingState'
-import EmptyState from '@/components/admin/EmptyState'
+import LoadingState from '@/components/ui/LoadingState'
+import EmptyState from '@/components/ui/EmptyState'
 import GlassCardAdmin from '@/components/ui/GlassCardAdmin'
 
 interface FriendLink {
@@ -60,7 +60,7 @@ export default function FriendLinksPage() {
   const fetchLinks = useCallback(async () => {
     try {
       setLoading(true)
-      const data: any = await adminApi.friendLinks.list()
+      const data = await adminApi.friendLinks.list()
       
       let filteredLinks = validateArrayData<FriendLink>(data)
       
@@ -116,7 +116,7 @@ export default function FriendLinksPage() {
   }
 
   const deleteLink = async () => {
-    if (!deleteDialog.link) return
+    if (!deleteDialog.link) {return}
     
     try {
       await adminApi.friendLinks.delete(deleteDialog.link.id)
@@ -145,7 +145,7 @@ export default function FriendLinksPage() {
     if (
       (direction === 'up' && index === 0) || 
       (direction === 'down' && index === links.length - 1)
-    ) return
+    ) {return}
 
     const newLinks = [...links]
     const targetIndex = direction === 'up' ? index - 1 : index + 1
@@ -318,7 +318,10 @@ export default function FriendLinksPage() {
                       transition={{ duration: 0.2 }}
                     >
                       {link.avatar ? (
-                        <img src={link.avatar} alt={link.name} className="w-full h-full object-cover" />
+                        <>
+                          {/* 友链头像由用户任意提供，域名不可控，因此保留 <img> */}
+                          <img src={link.avatar} alt={link.name} className="w-full h-full object-cover" />
+                        </>
                       ) : (
                         link.name.charAt(0).toUpperCase()
                       )}

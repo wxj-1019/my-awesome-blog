@@ -125,7 +125,7 @@ export default function EnhancedDanmaku({
 
   useEffect(() => {
     const container = containerRef.current;
-    if (!container) return;
+    if (!container) {return;}
 
     processedIndexRef.current = 0;
 
@@ -182,7 +182,7 @@ export default function EnhancedDanmaku({
       timersRef.current.forEach(clearTimeout);
       timersRef.current = [];
     };
-  }, [limitedMessages, getRandomPosition, getRandomLayer, getRandomSpeed, checkCollision]);
+  }, [limitedMessages, getRandomPosition, getRandomLayer, getRandomSpeed, checkCollision, maxDanmakuCount]);
 
   const handleMessageComplete = useCallback((id: string) => {
     setActiveMessages(prev => prev.filter(msg => msg.id !== id));

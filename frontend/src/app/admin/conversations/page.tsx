@@ -2,14 +2,15 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { MessageSquare, Trash2, Search, Filter, Eye, Clock, User, ChevronRight, X, Check, AlertCircle } from 'lucide-react'
+import { MessageSquare, Trash2, Search, Filter, Eye, Clock, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { adminApi } from '@/lib/admin-api-client'
+import { validateArrayData } from '@/utils/data-validation'
 import Button from '@/components/admin/Button'
-import ConfirmDialog from '@/components/admin/ConfirmDialog'
+import ConfirmDialog from '@/components/ui/ConfirmDialog'
 import { useToast } from '@/components/admin/Toast'
-import LoadingState from '@/components/admin/LoadingState'
-import EmptyState from '@/components/admin/EmptyState'
+import LoadingState from '@/components/ui/LoadingState'
+import EmptyState from '@/components/ui/EmptyState'
 import GlassCardAdmin from '@/components/ui/GlassCardAdmin'
 
 interface Message {
@@ -47,10 +48,13 @@ export default function ConversationsPage() {
   const fetchConversations = useCallback(async () => {
     try {
       setLoading(true)
-      const params: any = {}
-      if (statusFilter) params.status = statusFilter
-      const data = await adminApi.conversations.list(params) as any
-      setConversations(data?.items || Array.isArray(data) ? (data.items || data) : [])
+      const params: Record<string, string> = {}
+      if (statusFilter) {params.status = statusFilter}
+      const data = await adminApi.conversations.list(params)
+      const rawItems = data && typeof data === 'object' && !Array.isArray(data) && 'items' in data
+        ? (data as { items: unknown }).items
+        : data
+      setConversations(validateArrayData<Conversation>(rawItems))
     } catch (err) {
       console.error('Failed to fetch conversations:', err)
       error('加载对话列表失败')
@@ -66,8 +70,11 @@ export default function ConversationsPage() {
   const fetchMessages = async (conversationId: string) => {
     try {
       setMessagesLoading(true)
-      const data = await adminApi.conversations.getMessages(conversationId, { limit: 100 }) as any
-      setMessages(data?.messages || [])
+      const data = await adminApi.conversations.getMessages(conversationId, { limit: 100 })
+      const rawMessages = data && typeof data === 'object' && 'messages' in data
+        ? (data as { messages: unknown }).messages
+        : data
+      setMessages(validateArrayData<Message>(rawMessages))
     } catch (err) {
       console.error('Failed to fetch messages:', err)
       error('加载消息失败')
@@ -83,7 +90,7 @@ export default function ConversationsPage() {
   }
 
   const handleDelete = async () => {
-    if (!deleteDialog.conversation) return
+    if (!deleteDialog.conversation) {return}
     
     try {
       await adminApi.conversations.delete(deleteDialog.conversation.id)
@@ -98,7 +105,7 @@ export default function ConversationsPage() {
   }
 
   const handleDeleteMessages = async () => {
-    if (!selectedConversation) return
+    if (!selectedConversation) {return}
     
     try {
       await adminApi.conversations.deleteMessages(selectedConversation.id)

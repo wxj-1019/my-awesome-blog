@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import GlassCard from './GlassCard';
 
@@ -33,10 +34,14 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({
   const [isPlaying, setIsPlaying] = useState(autoPlay);
   const [showFullView, setShowFullView] = useState(false);
 
+  const goToNext = useCallback(() => {
+    setCurrentIndex((prev) => (prev + 1) % images.length);
+  }, [images.length]);
+
   // 自动播放逻辑
   useEffect(() => {
     let timer: NodeJS.Timeout;
-    
+
     if (isPlaying && images.length > 1) {
       timer = setInterval(() => {
         goToNext();
@@ -44,19 +49,13 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({
     }
 
     return () => {
-      if (timer) clearInterval(timer);
+      if (timer) {clearInterval(timer);}
     };
-  }, [isPlaying, currentIndex, images.length, interval]);
+  }, [isPlaying, currentIndex, images.length, interval, goToNext]);
 
   const goToPrevious = () => {
     const isFirstSlide = currentIndex === 0;
     const newIndex = isFirstSlide ? images.length - 1 : currentIndex - 1;
-    setCurrentIndex(newIndex);
-  };
-
-  const goToNext = () => {
-    const isLastSlide = currentIndex === images.length - 1;
-    const newIndex = isLastSlide ? 0 : currentIndex + 1;
     setCurrentIndex(newIndex);
   };
 
@@ -80,7 +79,7 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({
     setShowFullView(false);
   };
 
-  if (images.length === 0) return null;
+  if (images.length === 0) {return null;}
 
   return (
     <div className={cn("w-full", className)}>
@@ -88,16 +87,22 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({
       <GlassCard className="relative overflow-hidden group">
         <div className="relative aspect-video w-full">
           <AnimatePresence mode="wait">
-            <motion.img
+            <motion.div
               key={currentIndex}
-              src={images[currentIndex].src}
-              alt={images[currentIndex].alt}
-              className="w-full h-full object-cover"
+              className="absolute inset-0"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.5 }}
-            />
+            >
+              <Image
+                src={images[currentIndex].src}
+                alt={images[currentIndex].alt}
+                fill
+                sizes="100vw"
+                className="object-cover"
+              />
+            </motion.div>
           </AnimatePresence>
           
           {/* 渐变遮罩 */}
@@ -114,45 +119,49 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({
           <button
             className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity"
             onClick={goToPrevious}
+            aria-label="上一页"
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft className="w-5 h-5" aria-hidden="true" />
           </button>
           <button
             className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity"
             onClick={goToNext}
+            aria-label="下一页"
           >
-            <ChevronRight className="w-5 h-5" />
+            <ChevronRight className="w-5 h-5" aria-hidden="true" />
           </button>
-          
+
           {/* 全屏查看按钮 */}
           <button
             className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/50 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity"
             onClick={openFullView}
+            aria-label="全屏查看"
           >
-            <span className="text-xs">⛶</span>
+            <span className="text-xs" aria-hidden="true">⛶</span>
           </button>
-          
+
           {/* 播放/暂停按钮 */}
           {autoPlay && (
             <button
               className="absolute top-4 left-4 w-10 h-10 rounded-full bg-black/50 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity"
               onClick={toggleAutoPlay}
+              aria-label={isPlaying ? '暂停播放' : '开始播放'}
             >
-              {isPlaying ? '⏸️' : '▶️'}
+              <span aria-hidden="true">{isPlaying ? '⏸️' : '▶️'}</span>
             </button>
           )}
         </div>
         
         {/* 底部指示器 */}
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2">
-          {images.map((_, index) => (
+          {images.map((image, index) => (
             <button
-              key={index}
+              key={image.id}
               className={`w-3 h-3 rounded-full ${
                 index === currentIndex ? 'bg-tech-cyan' : 'bg-white/50'
               }`}
               onClick={() => handleDotClick(index)}
-              aria-label={`Go to slide ${index + 1}`}
+              aria-label={`切换到第 ${index + 1} 张`}
             />
           ))}
         </div>
@@ -170,9 +179,11 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({
               onClick={() => goToSlide(index)}
               aria-label={`Show slide ${index + 1}`}
             >
-              <img
+              <Image
                 src={image.src}
                 alt={image.alt}
+                width={80}
+                height={64}
                 className="w-full h-full object-cover"
               />
             </button>
@@ -193,28 +204,33 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({
             <button
               className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-black/50 flex items-center justify-center text-white hover:bg-black/70 transition-colors"
               onClick={closeFullView}
+              aria-label="关闭"
             >
-              <X className="w-5 h-5" />
+              <X className="w-5 h-5" aria-hidden="true" />
             </button>
-            
+
             <button
               className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-black/50 flex items-center justify-center text-white hover:bg-black/70 transition-colors"
               onClick={goToPrevious}
+              aria-label="上一页"
             >
-              <ChevronLeft className="w-5 h-5" />
+              <ChevronLeft className="w-5 h-5" aria-hidden="true" />
             </button>
             <button
               className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-black/50 flex items-center justify-center text-white hover:bg-black/70 transition-colors"
               onClick={goToNext}
+              aria-label="下一页"
             >
-              <ChevronRight className="w-5 h-5" />
+              <ChevronRight className="w-5 h-5" aria-hidden="true" />
             </button>
             
-            <div className="relative rounded-xl overflow-hidden">
-              <img
+            <div className="relative w-full h-[80vh] rounded-xl overflow-hidden">
+              <Image
                 src={images[currentIndex].src}
                 alt={images[currentIndex].alt}
-                className="w-full h-auto max-h-[80vh] object-contain"
+                fill
+                sizes="100vw"
+                className="object-contain"
               />
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
                 <h3 className="text-white text-xl font-bold">{images[currentIndex].title}</h3>

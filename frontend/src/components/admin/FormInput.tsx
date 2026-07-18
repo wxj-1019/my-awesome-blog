@@ -34,7 +34,7 @@ const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
     loading = false,
     showPasswordToggle = false,
     animationDelay = 0,
-    className,
+    className: _className,
     type = 'text',
     value,
     onChange,
@@ -230,8 +230,9 @@ const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
                 whileTap={{ scale: 0.9 }}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
+                aria-label="清除"
               >
-                <X className={currentSize.icon} />
+                <X className={currentSize.icon} aria-hidden="true" />
               </motion.button>
             )}
 
@@ -244,8 +245,9 @@ const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
                 whileTap={{ scale: 0.9 }}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
+                aria-label={showPassword ? '隐藏密码' : '显示密码'}
               >
-                <PasswordToggleIcon className={currentSize.icon} />
+                <PasswordToggleIcon className={currentSize.icon} aria-hidden="true" />
               </motion.button>
             )}
 
@@ -263,11 +265,12 @@ const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: animationDelay / 1000 + 0.2, duration: 0.2 }}
+                aria-label="操作"
               >
                 {React.isValidElement(RightIcon) 
                   ? RightIcon 
                   : typeof RightIcon === 'function' 
-                    ? <RightIcon className={currentSize.icon} /> 
+                    ? <RightIcon className={currentSize.icon} aria-hidden="true" /> 
                     : null}
               </motion.button>
             )}

@@ -13,7 +13,7 @@ interface CursorProps {
 export default function InteractiveCursor({
   cursorSize = 20,
   hoverScale = 1.5,
-  magneticDistance = 100,
+  magneticDistance: _magneticDistance = 100,
   trailLength = 5
 }: CursorProps) {
   const [isHovering, setIsHovering] = useState(false);
@@ -27,7 +27,7 @@ export default function InteractiveCursor({
   const cursorX = useSpring(mouseX, springConfig);
   const cursorY = useSpring(mouseY, springConfig);
 
-  const scale = useTransform(mouseX, (value) => isHovering ? hoverScale : 1);
+  const scale = useTransform(mouseX, (_value) => isHovering ? hoverScale : 1);
   const opacity = useTransform(mouseX, () => 1);
 
   useEffect(() => {
@@ -116,6 +116,7 @@ export default function InteractiveCursor({
         />
       </motion.div>
 
+      {/* 光标拖尾：数组长度固定，顺序不变，使用 index 作为 key */}
       {trail.map((point, index) => (
         <motion.div
           key={index}

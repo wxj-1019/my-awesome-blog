@@ -19,7 +19,7 @@ const HoloCard = ({
   tiltStrength = 5,
   glowIntensity = 0.3,
   scanline = true,
-  className
+  className: _className
 }: HoloCardProps) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
@@ -73,7 +73,7 @@ const HoloCard = ({
   const colors = variantColors[variant];
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!cardRef.current) return;
+    if (!cardRef.current) {return;}
 
     const rect = cardRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
@@ -87,6 +87,9 @@ const HoloCard = ({
 
     rotateX.set(rotateXVal);
     rotateY.set(rotateYVal);
+
+    cardRef.current.style.setProperty('--mouse-x', `${(x / rect.width) * 100}%`);
+    cardRef.current.style.setProperty('--mouse-y', `${(y / rect.height) * 100}%`);
   };
 
   const handleMouseLeave = () => {

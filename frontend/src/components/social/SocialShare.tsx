@@ -1,20 +1,16 @@
 'use client';
-
 import { useState } from 'react';
 import { Share2Icon, CopyIcon, CheckIcon } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { TwitterIcon, LinkedinIcon, MailIcon } from '../icons/SocialIcons';
-
 interface SocialShareProps {
   url: string;
   title: string;
   description?: string;
   className?: string;
 }
-
 export default function SocialShare({ url, title, description, className = '' }: SocialShareProps) {
   const [copied, setCopied] = useState(false);
-
   const shareOptions = [
     {
       name: 'Twitter',
@@ -32,7 +28,6 @@ export default function SocialShare({ url, title, description, className = '' }:
       url: `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(description || '')}%20${encodeURIComponent(url)}`
     }
   ];
-
   const copyToClipboard = async () => {
     try {
       await navigator.clipboard.writeText(url);
@@ -42,7 +37,6 @@ export default function SocialShare({ url, title, description, className = '' }:
       console.error('复制失败:', err);
     }
   };
-
   const handleShare = async () => {
     if (navigator.share) {
       try {
@@ -51,15 +45,13 @@ export default function SocialShare({ url, title, description, className = '' }:
           text: description,
           url
         });
-      } catch (error) {
-        console.log('分享被取消或不支持:', error);
+      } catch {
       }
     } else {
       // 降级到复制链接
       copyToClipboard();
     }
   };
-
   return (
     <div className={`flex flex-wrap items-center gap-2 ${className}`}>
       <Button
@@ -72,7 +64,6 @@ export default function SocialShare({ url, title, description, className = '' }:
         <Share2Icon size={16} />
         分享
       </Button>
-
       {shareOptions.map((option) => (
         <a
           key={option.name}
@@ -85,7 +76,6 @@ export default function SocialShare({ url, title, description, className = '' }:
           {option.icon}
         </a>
       ))}
-
       <Button
         variant="glass"
         size="sm"

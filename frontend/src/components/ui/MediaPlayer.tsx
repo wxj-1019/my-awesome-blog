@@ -41,7 +41,7 @@ export default function MediaPlayer({
       intervalRef.current = setInterval(() => {
         if (currentMedia.type === 'video' && videoRef.current) {
           // 如果是视频且正在播放，则不切换
-          if (!videoRef.current.paused) return;
+          if (!videoRef.current.paused) {return;}
         }
         
         setCurrentIndex(prev => {
@@ -136,17 +136,20 @@ export default function MediaPlayer({
               }}
             />
           ) : (
-            <img
-              src={currentMedia.src}
-              alt={currentMedia.alt || ''}
-              className={`w-full h-full object-${fitMode}`}
-              style={{
-                objectPosition: 'center',
-                transform: `rotate(${rotation}deg)`,
-                maxWidth: '100%',
-                maxHeight: '100%'
-              }}
-            />
+            <>
+              {/* MediaPlayer 接受任意媒体地址，图片源不可控，保留 <img> */}
+              <img
+                src={currentMedia.src}
+                alt={currentMedia.alt || ''}
+                className={`w-full h-full object-${fitMode}`}
+                style={{
+                  objectPosition: 'center',
+                  transform: `rotate(${rotation}deg)`,
+                  maxWidth: '100%',
+                  maxHeight: '100%'
+                }}
+              />
+            </>
           )}
         </div>
 
@@ -159,8 +162,9 @@ export default function MediaPlayer({
                 variant="secondary"
                 onClick={togglePlay}
                 className="rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30"
+                aria-label={isPlaying ? '暂停' : '播放'}
               >
-                {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                {isPlaying ? <Pause className="h-4 w-4" aria-hidden="true" /> : <Play className="h-4 w-4" aria-hidden="true" />}
               </Button>
               
               {currentMedia.type === 'video' && (
@@ -169,8 +173,9 @@ export default function MediaPlayer({
                   variant="secondary"
                   onClick={toggleMute}
                   className="rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30"
+                  aria-label={isMuted ? '取消静音' : '静音'}
                 >
-                  {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                  {isMuted ? <VolumeX className="h-4 w-4" aria-hidden="true" /> : <Volume2 className="h-4 w-4" aria-hidden="true" />}
                 </Button>
               )}
             </div>
@@ -181,16 +186,18 @@ export default function MediaPlayer({
                 variant="secondary"
                 onClick={rotateLeft}
                 className="rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30"
+                aria-label="向左旋转"
               >
-                <RotateCcw className="h-4 w-4" />
+                <RotateCcw className="h-4 w-4" aria-hidden="true" />
               </Button>
               <Button
                 size="sm"
                 variant="secondary"
                 onClick={rotateRight}
                 className="rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30"
+                aria-label="向右旋转"
               >
-                <RotateCw className="h-4 w-4" />
+                <RotateCw className="h-4 w-4" aria-hidden="true" />
               </Button>
             </div>
           </div>
@@ -199,9 +206,9 @@ export default function MediaPlayer({
         {/* 导航指示器 */}
         {mediaItems.length > 1 && (
           <div className="absolute bottom-4 left-0 right-0 flex justify-center space-x-2">
-            {mediaItems.map((_, index) => (
+            {mediaItems.map((item, index) => (
               <button
-                key={index}
+                key={item.src}
                 onClick={() => setCurrentIndex(index)}
                 className={`h-2 rounded-full transition-all ${
                   index === currentIndex ? 'w-6 bg-white' : 'w-3 bg-white/50'
@@ -217,16 +224,18 @@ export default function MediaPlayer({
             <button
               onClick={prevMedia}
               className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/30 backdrop-blur-sm text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+              aria-label="上一个"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
             <button
               onClick={nextMedia}
               className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/30 backdrop-blur-sm text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+              aria-label="下一个"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </button>

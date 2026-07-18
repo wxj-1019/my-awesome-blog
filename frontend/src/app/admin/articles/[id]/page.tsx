@@ -1,5 +1,4 @@
 'use client';
-
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -41,21 +40,18 @@ import Button from '@/components/admin/Button';
 import FormInput from '@/components/admin/FormInput';
 import { useToast, ToastContainer } from '@/components/admin/Toast';
 import GlassCardAdmin from '@/components/ui/GlassCardAdmin';
-
 interface Category {
   id: string;
   name: string;
   slug: string;
   color?: string;
 }
-
 interface Tag {
   id: string;
   name: string;
   slug: string;
   color?: string;
 }
-
 interface ArticleResponse {
   title: string;
   slug: string;
@@ -66,13 +62,9 @@ interface ArticleResponse {
   category_id?: string;
   tags?: { id: string }[];
 }
-
 type EditorMode = 'edit' | 'preview' | 'split';
-
-const AUTOSAVE_INTERVAL = 30000;
 const MIN_TITLE_LENGTH = 5;
 const MIN_CONTENT_LENGTH = 100;
-
 const MarkdownToolbar = ({ onInsert }: { onInsert: (text: string) => void }) => {
   const tools = [
     { icon: Heading1, title: '标题 1', insert: '# ' },
@@ -87,12 +79,11 @@ const MarkdownToolbar = ({ onInsert }: { onInsert: (text: string) => void }) => 
     { icon: ListOrdered, title: '有序列表', insert: '1. ' },
     { icon: Minus, title: '分割线', insert: '\n---\n' },
   ];
-
   return (
     <div className="flex items-center gap-0.5 p-1 bg-background/30 rounded-lg border border-border/30">
-      {tools.map((tool, index) => (
+      {tools.map((tool) => (
         <button
-          key={index}
+          key={tool.title}
           type="button"
           title={tool.title}
           onClick={() => onInsert(tool.insert)}
@@ -104,16 +95,13 @@ const MarkdownToolbar = ({ onInsert }: { onInsert: (text: string) => void }) => 
     </div>
   );
 };
-
 export default function EditArticlePage() {
   const router = useRouter();
   const params = useParams();
   const articleId = params.id as string;
   const { success, error, info, toasts, removeToast } = useToast();
-  const autosaveTimerRef = useRef<NodeJS.Timeout | null>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
   const contentTextareaRef = useRef<HTMLTextAreaElement>(null);
-
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isFetchingArticle, setIsFetchingArticle] = useState(true);
@@ -126,7 +114,6 @@ export default function EditArticlePage() {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showTagDropdown, setShowTagDropdown] = useState(false);
   const [touchedFields, setTouchedFields] = useState<Set<string>>(new Set());
-
   const [formData, setFormData] = useState({
     title: '',
     slug: '',
@@ -137,16 +124,13 @@ export default function EditArticlePage() {
     category_id: '',
     tags: [] as string[]
   });
-
   const [originalData, setOriginalData] = useState(formData);
-
   const stats = {
     charCount: formData.content.length,
     wordCount: formData.content.trim() ? formData.content.trim().split(/\s+/).length : 0,
     readingTime: Math.max(1, Math.ceil(formData.content.trim().split(/\s+/).length / 200)),
     titleLength: formData.title.length
   };
-
   const formProgress = {
     title: formData.title.length >= MIN_TITLE_LENGTH,
     content: formData.content.length >= MIN_CONTENT_LENGTH,
@@ -154,16 +138,13 @@ export default function EditArticlePage() {
     tags: formData.tags.length > 0,
     excerpt: formData.excerpt.length > 0
   };
-
   const progressPercentage = Math.round(
     (Object.values(formProgress).filter(Boolean).length / Object.keys(formProgress).length) * 100
   );
-
   const validationErrors = {
     title: touchedFields.has('title') && formData.title.length < MIN_TITLE_LENGTH,
     content: touchedFields.has('content') && formData.content.length < MIN_CONTENT_LENGTH
   };
-
   const loadArticle = useCallback(async () => {
     try {
       setIsFetchingArticle(true);
@@ -190,7 +171,6 @@ export default function EditArticlePage() {
       setIsFetchingArticle(false);
     }
   }, [articleId, error, router]);
-
   const loadCategoriesAndTags = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -207,18 +187,15 @@ export default function EditArticlePage() {
       setIsLoading(false);
     }
   }, [error]);
-
   useEffect(() => {
     loadArticle();
     loadCategoriesAndTags();
   }, [loadArticle, loadCategoriesAndTags]);
-
   useEffect(() => {
     if (!isLoading && !isFetchingArticle && formData !== originalData) {
       setHasUnsavedChanges(true);
     }
   }, [formData, originalData, isLoading, isFetchingArticle]);
-
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (hasUnsavedChanges) {
@@ -229,22 +206,6 @@ export default function EditArticlePage() {
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [hasUnsavedChanges]);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-        e.preventDefault();
-        handleSaveDraft();
-      }
-      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-        e.preventDefault();
-        handlePublish();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [formData]);
-
   const generateSlug = (title: string) => {
     return title
       .toLowerCase()
@@ -253,12 +214,10 @@ export default function EditArticlePage() {
       .replace(/-+/g, '-')
       .trim();
   };
-
   const generateExcerpt = (content: string) => {
     const plainText = content.replace(/[#*`_\[\]]/g, '').trim();
     return plainText.length > 150 ? plainText.substring(0, 150) + '...' : plainText;
   };
-
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const title = e.target.value;
     setTouchedFields(prev => new Set(prev).add('title'));
@@ -268,7 +227,6 @@ export default function EditArticlePage() {
       slug: prev.slug || generateSlug(title)
     }));
   };
-
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const content = e.target.value;
     setTouchedFields(prev => new Set(prev).add('content'));
@@ -277,7 +235,6 @@ export default function EditArticlePage() {
       content
     }));
   };
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setTouchedFields(prev => new Set(prev).add(name));
@@ -286,7 +243,6 @@ export default function EditArticlePage() {
       [name]: value
     }));
   };
-
   const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -294,7 +250,6 @@ export default function EditArticlePage() {
       [name]: value
     }));
   };
-
   const handleTagToggle = (tagId: string) => {
     setFormData(prev => {
       const newTags = prev.tags.includes(tagId)
@@ -303,16 +258,14 @@ export default function EditArticlePage() {
       return { ...prev, tags: newTags };
     });
   };
-
   const handleAutoExcerpt = () => {
     const excerpt = generateExcerpt(formData.content);
     setFormData(prev => ({ ...prev, excerpt }));
     info('已自动生成摘要');
   };
-
   const insertMarkdown = (text: string) => {
     const textarea = contentTextareaRef.current;
-    if (!textarea) return;
+    if (!textarea) {return;}
     
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
@@ -326,7 +279,6 @@ export default function EditArticlePage() {
       textarea.setSelectionRange(cursorPos, cursorPos);
     }, 0);
   };
-
   const handleSaveDraft = useCallback(async () => {
     if (!formData.title.trim()) {
       error('请输入文章标题');
@@ -336,7 +288,6 @@ export default function EditArticlePage() {
       error('请输入文章内容');
       return;
     }
-
     try {
       const submitData = {
         title: formData.title,
@@ -348,7 +299,6 @@ export default function EditArticlePage() {
         category_id: formData.category_id || undefined,
         tags: formData.tags.length > 0 ? formData.tags : undefined
       };
-
       await adminApi.articles.update(articleId, submitData);
       setLastSaved(new Date());
       setHasUnsavedChanges(false);
@@ -360,27 +310,22 @@ export default function EditArticlePage() {
       error(errorMessage);
     }
   }, [formData, articleId, success, error]);
-
-  const handlePublish = async () => {
+  const handlePublish = useCallback(async () => {
     if (!formData.title.trim()) {
       error('请输入文章标题');
       titleInputRef.current?.focus();
       return;
     }
-
     if (!formData.slug.trim()) {
       error('请输入文章别名');
       return;
     }
-
     if (!formData.content.trim()) {
       error('请输入文章内容');
       return;
     }
-
     try {
       setIsSubmitting(true);
-
       const submitData = {
         title: formData.title,
         slug: formData.slug,
@@ -391,9 +336,7 @@ export default function EditArticlePage() {
         category_id: formData.category_id || undefined,
         tags: formData.tags.length > 0 ? formData.tags : undefined
       };
-
       await adminApi.articles.update(articleId, submitData);
-
       success('文章已更新并发布');
       setHasUnsavedChanges(false);
       router.push('/admin/articles');
@@ -404,12 +347,24 @@ export default function EditArticlePage() {
     } finally {
       setIsSubmitting(false);
     }
-  };
-
+  }, [formData, articleId, success, error, router]);
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        handleSaveDraft();
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        handlePublish();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handlePublish, handleSaveDraft]);
   const filteredTags = tags.filter(tag =>
     tag.name.toLowerCase().includes(tagSearchQuery.toLowerCase())
   );
-
   const renderPreview = () => {
     return (
       <div className="prose prose-slate dark:prose-invert max-w-none prose-headings:text-foreground prose-p:text-foreground/80">
@@ -419,7 +374,6 @@ export default function EditArticlePage() {
       </div>
     );
   };
-
   if (isLoading || isFetchingArticle) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -437,7 +391,6 @@ export default function EditArticlePage() {
       </div>
     );
   }
-
   return (
     <div className={`space-y-6 ${isFullscreen ? 'fixed inset-0 z-50 bg-background p-6 overflow-auto' : ''}`}>
       <motion.div
@@ -463,7 +416,6 @@ export default function EditArticlePage() {
             <p className="text-sm text-foreground/50 mt-1 ml-11">修改文章内容</p>
           </div>
         </div>
-
         <div className="flex items-center gap-4">
           {lastSaved && (
             <motion.div
@@ -490,7 +442,6 @@ export default function EditArticlePage() {
           </AnimatePresence>
         </div>
       </motion.div>
-
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
         <div className="xl:col-span-3 space-y-6">
           <GlassCardAdmin className="p-6">
@@ -529,7 +480,6 @@ export default function EditArticlePage() {
                 </button>
               </div>
             </div>
-
             <div className="space-y-5">
               <div>
                 <div className="flex items-center justify-between mb-2">
@@ -582,7 +532,6 @@ export default function EditArticlePage() {
                   </motion.p>
                 )}
               </div>
-
               <FormInput
                 label="文章别名 (Slug)"
                 name="slug"
@@ -592,7 +541,6 @@ export default function EditArticlePage() {
                 leftIcon={() => <span className="text-foreground/40 text-sm">/</span>}
                 required
               />
-
               <div className={`${editorMode === 'split' ? 'grid grid-cols-2 gap-4' : ''}`}>
                 <div className={editorMode === 'preview' ? 'hidden' : ''}>
                   <div className="flex items-center justify-between mb-3">
@@ -623,7 +571,6 @@ export default function EditArticlePage() {
                       value={formData.content}
                       onChange={handleContentChange}
                       placeholder="使用 Markdown 格式编写文章内容...
-
 支持的格式：
 # 标题
 **粗体** *斜体*
@@ -654,7 +601,6 @@ export default function EditArticlePage() {
                     </motion.p>
                   )}
                 </div>
-
                 {(editorMode === 'split' || editorMode === 'preview') && (
                   <div className={editorMode === 'split' ? '' : 'mt-4'}>
                     <div className="flex items-center justify-between mb-3">
@@ -671,7 +617,6 @@ export default function EditArticlePage() {
               </div>
             </div>
           </GlassCardAdmin>
-
           <GlassCardAdmin className="p-6">
             <div className="flex items-center gap-3 mb-6">
               <div className="p-2 rounded-lg bg-purple-500/10">
@@ -682,7 +627,6 @@ export default function EditArticlePage() {
                 <p className="text-xs text-foreground/50">SEO 优化和文章元数据</p>
               </div>
             </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="md:col-span-2">
                 <div className="flex items-center justify-between mb-2">
@@ -711,7 +655,6 @@ export default function EditArticlePage() {
                   </p>
                 </div>
               </div>
-
               <div className="md:col-span-2">
                 <div className="flex items-center gap-2 mb-2">
                   <ImageIcon className="w-4 h-4 text-foreground/50" />
@@ -733,6 +676,7 @@ export default function EditArticlePage() {
                     animate={{ opacity: 1, y: 0 }}
                     className="mt-4 relative group"
                   >
+                    {/* 封面 URL 由用户任意填写，域名不可控，保留 <img> */}
                     <img
                       src={formData.cover_image}
                       alt="封面预览"
@@ -748,7 +692,6 @@ export default function EditArticlePage() {
             </div>
           </GlassCardAdmin>
         </div>
-
         <div className="space-y-6">
           <GlassCardAdmin className="p-5 sticky top-6">
             <div className="flex items-center gap-2 mb-4">
@@ -768,7 +711,6 @@ export default function EditArticlePage() {
                 progressPercentage === 100 ? 'text-green-500' : 'text-foreground/60'
               }`}>{progressPercentage}%</span>
             </div>
-
             <div className="space-y-2.5 mb-5">
               {[
                 { key: 'title', label: '标题' },
@@ -797,7 +739,6 @@ export default function EditArticlePage() {
                 </div>
               ))}
             </div>
-
             <div className="p-3 rounded-lg bg-background/30 border border-border/20">
               <div className="flex items-center gap-2 text-xs text-foreground/50 mb-2">
                 <Info className="w-3 h-3" />
@@ -819,7 +760,6 @@ export default function EditArticlePage() {
               </div>
             </div>
           </GlassCardAdmin>
-
           <GlassCardAdmin className="p-5">
             <div className="flex items-center gap-2 mb-4">
               <div className="p-1.5 rounded-lg bg-blue-500/10">
@@ -827,7 +767,6 @@ export default function EditArticlePage() {
               </div>
               <h2 className="text-base font-semibold text-foreground">分类与标签</h2>
             </div>
-
             <div className="space-y-4">
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-foreground/70">文章分类</label>
@@ -852,7 +791,6 @@ export default function EditArticlePage() {
                   </div>
                 </div>
               </div>
-
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-foreground/70">文章标签</label>
                 <div className="relative">
@@ -867,7 +805,6 @@ export default function EditArticlePage() {
                       className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-background/50 border border-border/50 text-foreground placeholder:text-foreground/30 focus:outline-none focus:ring-2 focus:ring-tech-cyan/20 focus:border-tech-cyan/50 transition-all text-sm"
                     />
                   </div>
-
                   <AnimatePresence>
                     {showTagDropdown && (
                       <motion.div
@@ -905,13 +842,12 @@ export default function EditArticlePage() {
                     )}
                   </AnimatePresence>
                 </div>
-
                 {formData.tags.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mt-2">
                     <AnimatePresence mode="popLayout">
                       {formData.tags.map(tagId => {
                         const tag = tags.find(t => t.id === tagId);
-                        if (!tag) return null;
+                        if (!tag) {return null;}
                         return (
                           <motion.span
                             key={tagId}
@@ -938,7 +874,6 @@ export default function EditArticlePage() {
               </div>
             </div>
           </GlassCardAdmin>
-
           <GlassCardAdmin className="p-5">
             <h2 className="text-base font-semibold text-foreground mb-4 flex items-center gap-2">
               <div className="p-1.5 rounded-lg bg-green-500/10">
@@ -946,7 +881,6 @@ export default function EditArticlePage() {
               </div>
               保存操作
             </h2>
-
             <div className="space-y-3">
               <Button
             type="button"
@@ -962,7 +896,6 @@ export default function EditArticlePage() {
             )}
             {formData.is_published ? '更新并发布' : '发布文章'}
           </Button>
-
               <Button
                 type="button"
                 variant="secondary"
@@ -977,7 +910,6 @@ export default function EditArticlePage() {
                 )}
                 保存更改
               </Button>
-
               <div className="pt-3 border-t border-border/20">
                 <Link href={`/posts/${formData.slug}`} target="_blank">
                   <Button
@@ -992,7 +924,6 @@ export default function EditArticlePage() {
                 </Link>
               </div>
             </div>
-
             {progressPercentage < 40 && (
               <motion.div
                 initial={{ opacity: 0, y: 5 }}
@@ -1008,14 +939,12 @@ export default function EditArticlePage() {
           </GlassCardAdmin>
         </div>
       </div>
-
       {showTagDropdown && (
         <div
           className="fixed inset-0 z-10"
           onClick={() => setShowTagDropdown(false)}
         />
       )}
-
       <ToastContainer toasts={toasts} onClose={removeToast} />
     </div>
   );

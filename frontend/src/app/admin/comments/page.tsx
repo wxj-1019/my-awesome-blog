@@ -16,12 +16,13 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { adminApi } from '@/lib/admin-api-client'
+import { validateArrayData } from '@/utils/data-validation'
 import Button from '@/components/admin/Button'
 import FormInput from '@/components/admin/FormInput'
-import ConfirmDialog from '@/components/admin/ConfirmDialog'
+import ConfirmDialog from '@/components/ui/ConfirmDialog'
 import { useToast } from '@/components/admin/Toast'
-import LoadingState from '@/components/admin/LoadingState'
-import EmptyState from '@/components/admin/EmptyState'
+import LoadingState from '@/components/ui/LoadingState'
+import EmptyState from '@/components/ui/EmptyState'
 import GlassCardAdmin from '@/components/ui/GlassCardAdmin'
 
 interface Comment {
@@ -61,13 +62,13 @@ export default function CommentsPage() {
       setLoading(true)
       const skip = (currentPage - 1) * pageSize
       
-      const data: any = await adminApi.comments.list({
+      const data = await adminApi.comments.list({
         skip,
         limit: pageSize,
         approved: filter === 'all' ? undefined : (filter === 'approved')
       })
       
-      let filteredComments = Array.isArray(data) ? data : []
+      let filteredComments = validateArrayData<Comment>(data)
       
       if (searchQuery) {
         filteredComments = filteredComments.filter((c: Comment) => 
@@ -114,7 +115,7 @@ export default function CommentsPage() {
   }
 
   const deleteComment = async () => {
-    if (!deleteDialog.comment) return
+    if (!deleteDialog.comment) {return}
     
     try {
       await adminApi.comments.delete(deleteDialog.comment.id)
@@ -129,7 +130,7 @@ export default function CommentsPage() {
   }
 
   const submitReply = async () => {
-    if (!replyContent.trim() || !selectedComment) return
+    if (!replyContent.trim() || !selectedComment) {return}
     
     try {
       success('回复已发送')

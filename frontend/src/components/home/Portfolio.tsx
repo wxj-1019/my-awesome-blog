@@ -1,8 +1,7 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { Code, Star, GitFork, Eye, ExternalLink, FolderOpen, Filter } from 'lucide-react'
-import Link from 'next/link'
 import GlassCard from '@/components/ui/GlassCard'
 import { cn } from '@/lib/utils'
 

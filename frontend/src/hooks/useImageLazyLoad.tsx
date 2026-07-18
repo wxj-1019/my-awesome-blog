@@ -33,7 +33,7 @@ export function LazyImage({
 
   useEffect(() => {
     const img = imgRef.current;
-    if (!img) return;
+    if (!img) {return;}
 
     observerRef.current = new IntersectionObserver(
       ([entry]) => {
@@ -128,6 +128,7 @@ export interface VirtualListProps<T> {
   itemHeight: number;
   containerHeight: number;
   renderItem: (item: T, index: number) => ReactNode;
+  getItemKey?: (item: T) => string | number;
   overscan?: number;
   className?: string;
 }
@@ -137,6 +138,7 @@ export function VirtualList<T>({
   itemHeight,
   containerHeight,
   renderItem,
+  getItemKey,
   overscan = 5,
   className
 }: VirtualListProps<T>) {
@@ -157,7 +159,7 @@ export function VirtualList<T>({
         <div style={{ transform: `translateY(${offsetY}px)`, position: 'absolute', top: 0, left: 0, right: 0 }}>
           {visibleItems.map((item, index) => (
             <div
-              key={index}
+              key={getItemKey ? getItemKey(item) : index}
               style={{ height: itemHeight }}
             >
               {renderItem(item, index)}

@@ -68,7 +68,7 @@ export default function ActivityView() {
       hideLoading();
       setIsLoading(false);
     }, 800);
-  }, []);
+  }, [showLoading, hideLoading]);
 
   const getActivityIcon = (type: string) => {
     switch (type) {

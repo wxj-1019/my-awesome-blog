@@ -1,7 +1,7 @@
 'use client';
 
 import { ThemeProvider, useTheme } from '@/context/theme-context';
-import { useState, useEffect } from 'react';
+
 import MatrixCodeRain from '@/components/background/MatrixCodeRain';
 import DynamicBackground from '@/components/ui/DynamicBackground';
 

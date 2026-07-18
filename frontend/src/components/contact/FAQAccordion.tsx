@@ -1,17 +1,13 @@
 'use client';
-
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, HelpCircle } from 'lucide-react';
-import { useTheme } from '@/context/theme-context';
 import GlassCard from '@/components/ui/GlassCard';
-
 interface FAQItem {
   id: string;
   question: string;
   answer: string;
 }
-
 const faqItems: FAQItem[] = [
   {
     id: '1',
@@ -44,11 +40,8 @@ const faqItems: FAQItem[] = [
     answer: '你可以在我的 GitHub 主页查看开源项目，在网站上查看我的作品集，也可以关注我的 Twitter 获取最新动态。这些渠道都有链接在页面上方。',
   },
 ];
-
 export default function FAQAccordion() {
-  const { resolvedTheme } = useTheme();
   const [openItems, setOpenItems] = useState<Set<string>>(new Set());
-
   const toggleItem = (id: string) => {
     const newOpenItems = new Set(openItems);
     if (newOpenItems.has(id)) {
@@ -58,7 +51,6 @@ export default function FAQAccordion() {
     }
     setOpenItems(newOpenItems);
   };
-
   return (
     <section className="w-full py-12">
       <div className="container mx-auto px-4 sm:px-6">
@@ -71,11 +63,9 @@ export default function FAQAccordion() {
               你可能想了解的事情
             </p>
           </div>
-
           <div className="space-y-4">
             {faqItems.map((item, index) => {
               const isOpen = openItems.has(item.id);
-
               return (
                 <motion.div
                   key={item.id}
@@ -94,7 +84,6 @@ export default function FAQAccordion() {
                       <div className="w-10 h-10 rounded-xl bg-tech-cyan/10 flex items-center justify-center flex-shrink-0">
                         <HelpCircle className="w-5 h-5 text-tech-cyan" />
                       </div>
-
                       <div className="flex-grow min-w-0">
                         <div className="flex items-center justify-between gap-4">
                           <h3 className="font-sf-pro-display font-semibold text-foreground text-lg">
@@ -110,7 +99,6 @@ export default function FAQAccordion() {
                         </div>
                       </div>
                     </motion.button>
-
                     <AnimatePresence mode="wait">
                       {isOpen && (
                         <motion.div
@@ -133,7 +121,6 @@ export default function FAQAccordion() {
               );
             })}
           </div>
-
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}

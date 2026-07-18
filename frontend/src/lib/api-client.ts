@@ -1,6 +1,8 @@
 import { env } from '@/lib/env';
 
-const API_BASE_URL = env.NEXT_PUBLIC_API_URL || 'http://localhost:8989/api/v1';
+export const API_BASE_URL = env.NEXT_PUBLIC_API_URL || 'http://localhost:8989/api/v1';
+export const TOKEN_KEY = 'auth_token';
+export const USER_KEY = 'auth_user';
 
 interface ApiClientOptions extends Omit<RequestInit, 'body'> {
   body?: unknown;
@@ -11,7 +13,7 @@ export async function apiRequest<T = unknown>(
   options: ApiClientOptions = {},
   retries = 1
 ): Promise<T> {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+  const token = typeof window !== 'undefined' ? localStorage.getItem(TOKEN_KEY) : null;
 
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
@@ -31,8 +33,8 @@ export async function apiRequest<T = unknown>(
     if (!response.ok) {
       if (response.status === 401) {
         if (typeof window !== 'undefined') {
-          localStorage.removeItem('auth_token');
-          localStorage.removeItem('auth_user');
+          localStorage.removeItem(TOKEN_KEY);
+          localStorage.removeItem(USER_KEY);
           window.location.href = '/login?message=认证已过期，请重新登录';
         }
         throw new Error('认证失败');
@@ -82,3 +84,10 @@ export const put = <T = unknown>(endpoint: string, data?: unknown, options: Requ
 
 export const del = <T = unknown>(endpoint: string, options: RequestInit = {}) =>
   apiRequest<T>(endpoint, { ...options, method: 'DELETE' });
+
+export const patch = <T = unknown>(endpoint: string, data?: unknown, options: RequestInit = {}) =>
+  apiRequest<T>(endpoint, {
+    ...options,
+    method: 'PATCH',
+    body: data,
+  });

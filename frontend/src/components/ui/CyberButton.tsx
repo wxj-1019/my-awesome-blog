@@ -1,6 +1,6 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/Button';
+
 
 interface CyberButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
@@ -18,13 +18,13 @@ const CyberButton: React.FC<CyberButtonProps> = ({
   disabled,
   ...props 
 }) => {
-  const baseStyles = "relative font-syne uppercase tracking-wider font-bold transition-all duration-300 clip-path-cyber hover:translate-x-[-2px] hover:translate-y-[-2px]";
+  const baseStyles = "relative font-syne uppercase tracking-wider font-bold transition-all duration-300 clip-path-cyber hover:translate-x-[-2px] hover:translate-y-[-2px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
   
   const variants = {
-    primary: "bg-tech-cyan text-black hover:bg-tech-lightcyan hover:shadow-[4px_4px_0_rgba(0,217,255,0.4)]",
-    secondary: "bg-tech-purple text-white hover:bg-tech-purple/80 hover:shadow-[4px_4px_0_rgba(124,58,237,0.4)]",
-    accent: "bg-tech-pink text-white hover:bg-tech-pink/80 hover:shadow-[4px_4px_0_rgba(244,63,94,0.4)]",
-    outline: "bg-transparent border border-tech-cyan text-tech-cyan hover:bg-tech-cyan/10 hover:shadow-[0_0_15px_rgba(0,217,255,0.3)]",
+    primary: "bg-tech-cyan text-black hover:bg-tech-lightcyan hover:shadow-[4px_4px_0_var(--shadow-tech-cyan)]",
+    secondary: "bg-tech-purple text-white hover:bg-tech-purple/80 hover:shadow-[4px_4px_0_var(--shadow-tech-purple)]",
+    accent: "bg-tech-pink text-white hover:bg-tech-pink/80 hover:shadow-[4px_4px_0_var(--shadow-tech-pink)]",
+    outline: "bg-transparent border border-tech-cyan text-tech-cyan hover:bg-tech-cyan/10 hover:shadow-[0_0_15px_var(--shadow-tech-cyan)]",
   };
 
   const sizes = {

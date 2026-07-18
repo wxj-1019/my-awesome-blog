@@ -2,15 +2,15 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, Edit, Trash2, Type, Sparkles, Power, PowerOff, MoveUp, MoveDown } from 'lucide-react'
+import { Plus, Edit, Trash2, Type, Sparkles, Power, PowerOff } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { adminApi } from '@/lib/admin-api-client'
 import Button from '@/components/admin/Button'
 import FormInput from '@/components/admin/FormInput'
-import ConfirmDialog from '@/components/admin/ConfirmDialog'
+import ConfirmDialog from '@/components/ui/ConfirmDialog'
 import { useToast } from '@/components/admin/Toast'
-import LoadingState from '@/components/admin/LoadingState'
-import EmptyState from '@/components/admin/EmptyState'
+import LoadingState from '@/components/ui/LoadingState'
+import EmptyState from '@/components/ui/EmptyState'
 import GlassCardAdmin from '@/components/ui/GlassCardAdmin'
 
 interface TypewriterContent {
@@ -80,7 +80,7 @@ export default function TypewriterPage() {
   }
 
   const handleDelete = async () => {
-    if (!deleteDialog.content) return
+    if (!deleteDialog.content) {return}
     
     try {
       await adminApi.typewriter.delete(deleteDialog.content.id)

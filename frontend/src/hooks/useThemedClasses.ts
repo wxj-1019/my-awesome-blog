@@ -4,8 +4,6 @@ import {
   LIGHT_CLASS_NAMES,
   DARK_CLASS_NAMES,
   TECH_CLASS_NAMES,
-  THEME_VARIANTS,
-  GLASS_VARIANTS,
 } from '@/constants/theme';
 
 export interface ThemedClassesResult {
@@ -16,7 +14,7 @@ export interface ThemedClassesResult {
 
 export function useThemedClasses(): ThemedClassesResult {
   const getTheme = useCallback((): Theme => {
-    if (typeof window === 'undefined') return 'dark';
+    if (typeof window === 'undefined') {return 'dark';}
     return document.documentElement.classList.contains('dark') ? 'dark' : 'light';
   }, []);
 

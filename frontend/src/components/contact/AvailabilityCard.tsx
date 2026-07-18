@@ -1,13 +1,9 @@
 'use client';
-
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle, XCircle, Clock, Calendar, MessageSquare, AlertCircle } from 'lucide-react';
-import { useTheme } from '@/context/theme-context';
 import GlassCard from '@/components/ui/GlassCard';
-
 type AvailabilityStatus = 'available' | 'busy' | 'offline' | 'away';
-
 interface AvailabilityInfo {
   status: AvailabilityStatus;
   label: string;
@@ -16,9 +12,7 @@ interface AvailabilityInfo {
   color: string;
   icon: React.ReactNode;
 }
-
 export default function AvailabilityCard() {
-  const { resolvedTheme } = useTheme();
   const [availability, setAvailability] = useState<AvailabilityInfo>({
     status: 'available',
     label: '在线',
@@ -27,16 +21,13 @@ export default function AvailabilityCard() {
     color: 'text-green-500',
     icon: <CheckCircle className="w-5 h-5" />,
   });
-
   useEffect(() => {
     const getCurrentAvailability = (): AvailabilityInfo => {
       const now = new Date();
       const hour = now.getHours();
       const day = now.getDay();
-
       const isWeekday = day >= 1 && day <= 5;
       const isWorkHours = hour >= 9 && hour < 18;
-
       if (isWeekday && isWorkHours) {
         return {
           status: 'available',
@@ -75,19 +66,16 @@ export default function AvailabilityCard() {
         };
       }
     };
-
     setAvailability(getCurrentAvailability());
   }, []);
-
   const getNextWorkingDay = () => {
     const now = new Date();
     const day = now.getDay();
-    let daysUntilMonday = (8 - day) % 7 || 7;
+    const daysUntilMonday = (8 - day) % 7 || 7;
     const nextMonday = new Date(now);
     nextMonday.setDate(now.getDate() + daysUntilMonday);
     return nextMonday.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'long' });
   };
-
   return (
     <section className="w-full py-12">
       <div className="container mx-auto px-4 sm:px-6">
@@ -100,7 +88,6 @@ export default function AvailabilityCard() {
               了解我的工作状态和响应时间
             </p>
           </div>
-
           <GlassCard padding="lg">
             <div className="flex items-center gap-6 mb-8">
               <motion.div
@@ -119,7 +106,6 @@ export default function AvailabilityCard() {
                   {availability.icon}
                 </div>
               </motion.div>
-
               <div className="flex-grow">
                 <div className="flex items-center gap-3 mb-1">
                   <h3 className="font-sf-pro-display text-2xl font-semibold text-foreground">
@@ -143,7 +129,6 @@ export default function AvailabilityCard() {
                 </p>
               </div>
             </div>
-
             <div className="space-y-4">
               <div className="flex items-start gap-4 p-4 bg-foreground/5 dark:bg-foreground/10 rounded-2xl">
                 <div className="w-10 h-10 rounded-xl bg-tech-cyan/10 flex items-center justify-center flex-shrink-0">
@@ -158,7 +143,6 @@ export default function AvailabilityCard() {
                   </p>
                 </div>
               </div>
-
               <div className="flex items-start gap-4 p-4 bg-foreground/5 dark:bg-foreground/10 rounded-2xl">
                 <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center flex-shrink-0">
                   <Calendar className="w-5 h-5 text-purple-500" />
@@ -172,7 +156,6 @@ export default function AvailabilityCard() {
                   </p>
                 </div>
               </div>
-
               <div className="flex items-start gap-4 p-4 bg-foreground/5 dark:bg-foreground/10 rounded-2xl">
                 <div className="w-10 h-10 rounded-xl bg-pink-500/10 flex items-center justify-center flex-shrink-0">
                   <AlertCircle className="w-5 h-5 text-pink-500" />
@@ -187,7 +170,6 @@ export default function AvailabilityCard() {
                 </div>
               </div>
             </div>
-
             <AnimatePresence mode="wait">
               {availability.status === 'offline' && (
                 <motion.div

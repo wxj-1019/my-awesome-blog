@@ -1,6 +1,6 @@
 'use client';
 
-import { cn } from '@/lib/utils';
+
 import ArtistCard from './ArtistCard';
 import type { Artist } from '@/types/music';
 

@@ -104,6 +104,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           'rounded-xl font-semibold',
           'transition-all duration-200 ease-out',
           'cursor-pointer',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
           'min-h-[48px]',
           sizeStyles.padding,
           sizeStyles.text,

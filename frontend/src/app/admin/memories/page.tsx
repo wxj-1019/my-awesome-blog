@@ -2,15 +2,15 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Brain, Trash2, Search, Filter, Plus, Eye, Star, Clock, Tag, Sparkles, RefreshCw, Database, X, Edit, AlertTriangle } from 'lucide-react'
+import { Brain, Trash2, Search, Filter, Plus, Eye, Star, Clock, Sparkles, RefreshCw, Database, Edit } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { adminApi } from '@/lib/admin-api-client'
 import Button from '@/components/admin/Button'
 import FormInput from '@/components/admin/FormInput'
-import ConfirmDialog from '@/components/admin/ConfirmDialog'
+import ConfirmDialog from '@/components/ui/ConfirmDialog'
 import { useToast } from '@/components/admin/Toast'
-import LoadingState from '@/components/admin/LoadingState'
-import EmptyState from '@/components/admin/EmptyState'
+import LoadingState from '@/components/ui/LoadingState'
+import EmptyState from '@/components/ui/EmptyState'
 import GlassCardAdmin from '@/components/ui/GlassCardAdmin'
 
 interface Memory {
@@ -19,7 +19,7 @@ interface Memory {
   memory_type: string
   importance: number
   embedding?: number[]
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
   created_at: string
   updated_at?: string
 }
@@ -54,11 +54,11 @@ export default function MemoriesPage() {
   const fetchMemories = useCallback(async () => {
     try {
       setLoading(true)
-      const params: any = {}
-      if (typeFilter) params.memory_type = typeFilter
-      if (minImportance > 0) params.min_importance = minImportance
-      const data = await adminApi.memories.list(params) as any
-      setMemories(data?.items || Array.isArray(data) ? (data.items || data) : [])
+      const params: { memory_type?: string; min_importance?: number } = {}
+      if (typeFilter) {params.memory_type = typeFilter}
+      if (minImportance > 0) {params.min_importance = minImportance}
+      const data = await adminApi.memories.list(params) as { items?: Memory[] } | Memory[]
+      setMemories(Array.isArray(data) ? data : (data.items || []))
     } catch (err) {
       console.error('Failed to fetch memories:', err)
       error('加载记忆列表失败')
@@ -69,7 +69,7 @@ export default function MemoriesPage() {
 
   const fetchStats = useCallback(async () => {
     try {
-      const data = await adminApi.memories.getStats() as any
+      const data = await adminApi.memories.getStats() as MemoryStats
       setStats(data)
     } catch (err) {
       console.error('Failed to fetch stats:', err)
@@ -110,7 +110,7 @@ export default function MemoriesPage() {
   }
 
   const handleDelete = async () => {
-    if (!deleteDialog.memory) return
+    if (!deleteDialog.memory) {return}
     
     try {
       await adminApi.memories.delete(deleteDialog.memory.id)
@@ -127,7 +127,7 @@ export default function MemoriesPage() {
 
   const handleCleanup = async () => {
     try {
-      const result = await adminApi.memories.cleanup() as any
+      const result = await adminApi.memories.cleanup() as { deleted_count?: number }
       success(`清理完成，删除了 ${result?.deleted_count || 0} 条过期记忆`)
       fetchMemories()
       fetchStats()
@@ -149,8 +149,8 @@ export default function MemoriesPage() {
         memory_type: typeFilter || undefined,
         min_importance: minImportance > 0 ? minImportance : undefined,
         top_k: 50
-      }) as any
-      setMemories(data?.results || [])
+      }) as { results?: Memory[] }
+      setMemories(data.results || [])
     } catch (err) {
       console.error('Failed to search:', err)
       error('搜索失败')
@@ -200,16 +200,16 @@ export default function MemoriesPage() {
   }
 
   const getImportanceColor = (importance: number) => {
-    if (importance >= 80) return 'text-red-400'
-    if (importance >= 50) return 'text-yellow-400'
+    if (importance >= 80) {return 'text-red-400'}
+    if (importance >= 50) {return 'text-yellow-400'}
     return 'text-green-400'
   }
 
   const filteredMemories = searchQuery 
     ? memories 
     : memories.filter(m => {
-        if (typeFilter && m.memory_type !== typeFilter) return false
-        if (m.importance < minImportance) return false
+        if (typeFilter && m.memory_type !== typeFilter) {return false}
+        if (m.importance < minImportance) {return false}
         return true
       })
 

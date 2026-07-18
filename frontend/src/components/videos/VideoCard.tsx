@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Star, Play, Clock, MoreVertical, ChevronRight } from 'lucide-react';
+import { Star, Play, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import GlassCard from '@/components/ui/GlassCard';
 
@@ -50,31 +50,31 @@ const statusLabels: Record<VideoStatus, string> = {
 };
 
 const formatTimeAgo = (date?: Date): string => {
-  if (!date) return '';
+  if (!date) {return '';}
   const now = new Date();
   const diff = now.getTime() - date.getTime();
   const minutes = Math.floor(diff / 60000);
   const hours = Math.floor(diff / 3600000);
   const days = Math.floor(diff / 86400000);
 
-  if (minutes < 1) return '刚刚';
-  if (minutes < 60) return `${minutes}分钟前`;
-  if (hours < 24) return `${hours}小时前`;
-  if (days < 7) return `${days}天前`;
+  if (minutes < 1) {return '刚刚';}
+  if (minutes < 60) {return `${minutes}分钟前`;}
+  if (hours < 24) {return `${hours}小时前`;}
+  if (days < 7) {return `${days}天前`;}
   return date.toLocaleDateString('zh-CN');
 };
 
 const formatEpisode = (episode?: Episode): string => {
-  if (!episode) return '';
+  if (!episode) {return '';}
   return `S${episode.season} E${episode.episode}`;
 };
 
 const formatProgress = (progress?: number): string => {
-  if (progress === undefined || progress === null) return '';
+  if (progress === undefined || progress === null) {return '';}
   return `${Math.round(progress)}%`;
 };
 
-const VideoCard: React.FC<VideoCardProps> = ({ video, onClick, onContinueWatching, showProgress = true }) => {
+const VideoCard: React.FC<VideoCardProps> = ({ video, onClick, onContinueWatching: _onContinueWatching, showProgress = true }) => {
   const hasProgress = video.progress !== undefined && video.progress !== null && video.progress > 0;
   const isWatching = video.status === 'watching';
 
@@ -94,6 +94,7 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, onClick, onContinueWatchin
         glowEffect
       >
         <div className="relative aspect-[2/3] overflow-hidden">
+          {/* 视频封面可能来自外部站点，域名不可控，保留 <img> */}
           <img 
             src={video.coverUrl} 
             alt={video.title}

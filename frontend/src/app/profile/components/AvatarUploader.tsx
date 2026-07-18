@@ -1,18 +1,15 @@
 'use client';
-
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
 import { Camera, Upload, X, AlertCircle, CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useThemedClasses } from '@/hooks/useThemedClasses';
-
 interface AvatarUploaderProps {
   avatar?: string;
   name?: string;
   isEditing?: boolean;
   onAvatarChange: (avatar: string) => void;
 }
-
 export default function AvatarUploader({
   avatar,
   name,
@@ -24,15 +21,12 @@ export default function AvatarUploader({
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropZoneRef = useRef<HTMLDivElement>(null);
-  const { getThemeClass } = useThemedClasses();
-
   const handleFileUpload = (file: File) => {
     if (!file.type.startsWith('image/')) {
       setUploadStatus('error');
       setTimeout(() => setUploadStatus('idle'), 3000);
       return;
     }
-
     setUploadStatus('uploading');
     const reader = new FileReader();
     reader.onloadend = () => {
@@ -50,49 +44,40 @@ export default function AvatarUploader({
     };
     reader.readAsDataURL(file);
   };
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       handleFileUpload(e.target.files[0]);
     }
   };
-
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(true);
   };
-
   const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
   };
-
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
-
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFileUpload(e.dataTransfer.files[0]);
     }
   };
-
   const handleClick = () => {
     if (isEditing) {
       fileInputRef.current?.click();
     }
   };
-
   const handleRemoveAvatar = () => {
     setPreviewUrl(null);
     onAvatarChange('');
     setUploadStatus('idle');
   };
-
   const displayAvatar = previewUrl || avatar;
-
   return (
     <div
       ref={dropZoneRef}
@@ -119,7 +104,6 @@ export default function AvatarUploader({
             ease: 'easeInOut',
           }}
         />
-
         {/* 主头像容器 */}
         <motion.div
           className={cn(
@@ -132,10 +116,12 @@ export default function AvatarUploader({
           whileHover={{ scale: 1.05 }}
         >
           {displayAvatar ? (
-            <img
+            <Image
               src={displayAvatar}
               alt="Avatar"
-              className="w-full h-full object-cover transition-transform duration-300"
+              fill
+              sizes="128px"
+              className="object-cover transition-transform duration-300"
             />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-tech-cyan/20 to-tech-sky/20 flex items-center justify-center">
@@ -144,7 +130,6 @@ export default function AvatarUploader({
               </span>
             </div>
           )}
-
           {/* 拖拽覆盖层 */}
           {isDragging && (
             <motion.div
@@ -157,7 +142,6 @@ export default function AvatarUploader({
             </motion.div>
           )}
         </motion.div>
-
         {/* 编辑模式下的上传按钮 */}
         <AnimatePresence>
           {isEditing && !isDragging && (
@@ -191,7 +175,6 @@ export default function AvatarUploader({
             </motion.label>
           )}
         </AnimatePresence>
-
         {/* 删除头像按钮 */}
         <AnimatePresence>
           {isEditing && displayAvatar && !isDragging && (
@@ -210,7 +193,6 @@ export default function AvatarUploader({
             </motion.button>
           )}
         </AnimatePresence>
-
         {/* 悬浮效果的光环 */}
         <div
           className={cn(
@@ -220,7 +202,6 @@ export default function AvatarUploader({
               : 'border-tech-cyan/0 group-hover:border-tech-cyan/30'
           )}
         />
-
         {/* 上传状态提示 */}
         <AnimatePresence>
           {uploadStatus !== 'idle' && (
@@ -244,7 +225,6 @@ export default function AvatarUploader({
           )}
         </AnimatePresence>
       </div>
-
       {/* 提示文字 */}
       {isEditing && !isDragging && (
         <p className="text-center text-xs text-muted-foreground mt-3">

@@ -79,7 +79,7 @@ export interface FocusTrapOptions {
 export function useFocusTrap({ containerRef, onEscape }: FocusTrapOptions) {
   useEffect(() => {
     const container = containerRef.current;
-    if (!container) return;
+    if (!container) {return;}
 
     const focusableElements = container.querySelectorAll(
       'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'

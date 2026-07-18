@@ -12,7 +12,7 @@ interface StatsGridProps {
 export default function StatsGrid({ stats, loading }: StatsGridProps) {
   // 格式化日期
   const formatDate = (dateString?: string): string => {
-    if (!dateString) return 'N/A';
+    if (!dateString) {return 'N/A';}
     const date = new Date(dateString);
     return date.toLocaleDateString('zh-CN', {
       year: 'numeric',
@@ -25,6 +25,7 @@ export default function StatsGrid({ stats, loading }: StatsGridProps) {
     return (
       <GlassCard padding="lg" className="border-tech-cyan/20">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {/* 骨架屏：列表为占位符，使用 index 作为 key 即可 */}
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="animate-pulse">
               <div className="w-10 h-10 rounded-lg bg-tech-cyan/20 mb-2 mx-auto"></div>
@@ -80,9 +81,9 @@ export default function StatsGrid({ stats, loading }: StatsGridProps) {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {statsData.map((stat, index) => (
+        {statsData.map((stat) => (
           <div
-            key={index}
+            key={stat.label}
             className="group relative p-4 rounded-xl bg-[var(--card)]/40 hover:bg-tech-cyan/10 transition-all duration-300 hover:scale-105 cursor-pointer"
           >
             {/* 渐变边框效果 */}

@@ -1,9 +1,9 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Star, Trophy, Clock } from 'lucide-react';
+import { Star, Clock } from 'lucide-react';
 import type { Game } from '@/types/game';
-import { cn } from '@/lib/utils';
+
 
 interface GameCardProps {
   game: Game;
@@ -20,6 +20,7 @@ export default function GameCard({ game, onClick }: GameCardProps) {
       onClick={() => onClick(game)}
     >
       {/* Background Image */}
+      {/* 游戏封面可能来自外部平台，域名不可控，保留 <img> */}
       <img
         src={game.coverImage}
         alt={game.title}

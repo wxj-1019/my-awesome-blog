@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useRef, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Play, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import GlassCard from '@/components/ui/GlassCard';
-import VideoCard, { VideoItem } from './VideoCard';
+import  { VideoItem } from './VideoCard';
 import { cn } from '@/lib/utils';
 
 interface RecentlyWatchedProps {
@@ -74,8 +74,9 @@ const RecentlyWatched: React.FC<RecentlyWatchedProps> = ({ videos, onContinueWat
               "w-8 h-8 rounded-full bg-black/20 border border-white/10 hover:bg-tech-cyan/20 hover:border-tech-cyan/50 transition-all",
               !canScrollLeft && "opacity-30 cursor-not-allowed"
             )}
+            aria-label="上一页"
           >
-            <ChevronLeft className="w-4 h-4" />
+            <ChevronLeft className="w-4 h-4" aria-hidden="true" />
           </Button>
           <Button
             onClick={() => scroll('right')}
@@ -86,8 +87,9 @@ const RecentlyWatched: React.FC<RecentlyWatchedProps> = ({ videos, onContinueWat
               "w-8 h-8 rounded-full bg-black/20 border border-white/10 hover:bg-tech-cyan/20 hover:border-tech-cyan/50 transition-all",
               !canScrollRight && "opacity-30 cursor-not-allowed"
             )}
+            aria-label="下一页"
           >
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="w-4 h-4" aria-hidden="true" />
           </Button>
         </div>
       </div>
@@ -109,6 +111,7 @@ const RecentlyWatched: React.FC<RecentlyWatchedProps> = ({ videos, onContinueWat
             >
               <div className="relative group cursor-pointer" onClick={() => onContinueWatching?.(video)}>
                 <div className="relative aspect-[2/3] rounded-lg overflow-hidden mb-3">
+                  {/* 视频封面可能来自外部站点，域名不可控，保留 <img> */}
                   <img
                     src={video.coverUrl}
                     alt={video.title}
@@ -159,10 +162,10 @@ const RecentlyWatched: React.FC<RecentlyWatchedProps> = ({ videos, onContinueWat
                           const hours = Math.floor(diff / 3600000);
                           const days = Math.floor(diff / 86400000);
 
-                          if (minutes < 1) return '刚刚';
-                          if (minutes < 60) return `${minutes}分钟前`;
-                          if (hours < 24) return `${hours}小时前`;
-                          if (days < 7) return `${days}天前`;
+                          if (minutes < 1) {return '刚刚';}
+                          if (minutes < 60) {return `${minutes}分钟前`;}
+                          if (hours < 24) {return `${hours}小时前`;}
+                          if (days < 7) {return `${days}天前`;}
                           return video.lastWatched!.toLocaleDateString('zh-CN');
                         })()}
                       </span>

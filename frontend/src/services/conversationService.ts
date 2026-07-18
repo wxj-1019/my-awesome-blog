@@ -23,12 +23,12 @@ export const conversationService = {
     search?: string;
   }): Promise<PaginatedResponse<Conversation>> {
     const queryParams = new URLSearchParams();
-    if (params?.skip !== undefined) queryParams.append('skip', params.skip.toString());
-    if (params?.limit !== undefined) queryParams.append('limit', params.limit.toString());
-    if (params?.tenant_id) queryParams.append('tenant_id', params.tenant_id);
-    if (params?.user_id) queryParams.append('user_id', params.user_id);
-    if (params?.status) queryParams.append('status', params.status);
-    if (params?.search) queryParams.append('search', params.search);
+    if (params?.skip !== undefined) {queryParams.append('skip', params.skip.toString());}
+    if (params?.limit !== undefined) {queryParams.append('limit', params.limit.toString());}
+    if (params?.tenant_id) {queryParams.append('tenant_id', params.tenant_id);}
+    if (params?.user_id) {queryParams.append('user_id', params.user_id);}
+    if (params?.status) {queryParams.append('status', params.status);}
+    if (params?.search) {queryParams.append('search', params.search);}
 
     const url = queryParams.toString() ? `${API_BASE}/?${queryParams}` : API_BASE;
     return apiRequest<PaginatedResponse<Conversation>>(url);
@@ -60,8 +60,8 @@ export const conversationService = {
 
   async getConversationMessages(id: string, params?: { skip?: number; limit?: number }): Promise<PaginatedResponse<ConversationMessage>> {
     const queryParams = new URLSearchParams();
-    if (params?.skip !== undefined) queryParams.append('skip', params.skip.toString());
-    if (params?.limit !== undefined) queryParams.append('limit', params.limit.toString());
+    if (params?.skip !== undefined) {queryParams.append('skip', params.skip.toString());}
+    if (params?.limit !== undefined) {queryParams.append('limit', params.limit.toString());}
 
     const url = queryParams.toString() ? `${API_BASE}/${id}/messages?${queryParams}` : `${API_BASE}/${id}/messages`;
     return apiRequest<PaginatedResponse<ConversationMessage>>(url);

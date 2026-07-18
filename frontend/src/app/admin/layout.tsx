@@ -17,14 +17,10 @@ import {
   FileImage,
   Clock,
   Cloud,
-  LogOut,
   Bell,
   Search,
   Menu,
-  X,
   Sparkles,
-  Moon,
-  Sun,
   Activity,
   ScrollText,
   Mail,
@@ -293,7 +289,7 @@ function getCurrentPageTitle(pathname: string, menuGroups: MenuGroup[]): string 
     const item = group.items.find(item => 
       pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href))
     );
-    if (item) return item.label;
+    if (item) {return item.label;}
   }
   return '仪表盘';
 }

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Send, Paperclip, Mic, Settings } from 'lucide-react';
+import { Send, Paperclip, Settings } from 'lucide-react';
 
 interface ChatInputProps {
   onSend: (message: string) => void;

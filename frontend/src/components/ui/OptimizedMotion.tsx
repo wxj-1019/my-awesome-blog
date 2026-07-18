@@ -323,6 +323,7 @@ export function Skeleton({
 
   return (
     <>
+      {/* 骨架屏占位符：使用 index 作为 key */}
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}

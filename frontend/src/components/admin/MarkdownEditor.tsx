@@ -22,8 +22,6 @@ import {
   EyeOff,
   Maximize2,
   Minimize2,
-  Undo,
-  Redo,
   HelpCircle,
   Loader2
 } from 'lucide-react';
@@ -114,8 +112,8 @@ const MarkdownEditor = React.forwardRef<HTMLDivElement, MarkdownEditorProps>(
 
     const togglePreview = () => {
       setCurrentPreview(current => {
-        if (current === 'edit') return 'live';
-        if (current === 'live') return 'preview';
+        if (current === 'edit') {return 'live';}
+        if (current === 'live') {return 'preview';}
         return 'edit';
       });
     };
@@ -141,16 +139,18 @@ const MarkdownEditor = React.forwardRef<HTMLDivElement, MarkdownEditorProps>(
                 onClick={() => onChange(value + '**粗体**')}
                 className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-all"
                 title="粗体 (Ctrl+B)"
+                aria-label="粗体"
               >
-                <Bold className="w-4 h-4" />
+                <Bold className="w-4 h-4" aria-hidden="true" />
               </button>
               <button
                 type="button"
                 onClick={() => onChange(value + '*斜体*')}
                 className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-all"
                 title="斜体 (Ctrl+I)"
+                aria-label="斜体"
               >
-                <Italic className="w-4 h-4" />
+                <Italic className="w-4 h-4" aria-hidden="true" />
               </button>
               <div className="w-px h-5 bg-border/50 mx-1" />
               <button
@@ -158,24 +158,27 @@ const MarkdownEditor = React.forwardRef<HTMLDivElement, MarkdownEditorProps>(
                 onClick={() => onChange(value + '\n# ')}
                 className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-all"
                 title="标题 1"
+                aria-label="标题 1"
               >
-                <Heading1 className="w-4 h-4" />
+                <Heading1 className="w-4 h-4" aria-hidden="true" />
               </button>
               <button
                 type="button"
                 onClick={() => onChange(value + '\n## ')}
                 className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-all"
                 title="标题 2"
+                aria-label="标题 2"
               >
-                <Heading2 className="w-4 h-4" />
+                <Heading2 className="w-4 h-4" aria-hidden="true" />
               </button>
               <button
                 type="button"
                 onClick={() => onChange(value + '\n### ')}
                 className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-all"
                 title="标题 3"
+                aria-label="标题 3"
               >
-                <Heading3 className="w-4 h-4" />
+                <Heading3 className="w-4 h-4" aria-hidden="true" />
               </button>
               <div className="w-px h-5 bg-border/50 mx-1" />
               <button
@@ -183,24 +186,27 @@ const MarkdownEditor = React.forwardRef<HTMLDivElement, MarkdownEditorProps>(
                 onClick={() => onChange(value + '\n- ')}
                 className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-all"
                 title="无序列表"
+                aria-label="无序列表"
               >
-                <List className="w-4 h-4" />
+                <List className="w-4 h-4" aria-hidden="true" />
               </button>
               <button
                 type="button"
                 onClick={() => onChange(value + '\n1. ')}
                 className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-all"
                 title="有序列表"
+                aria-label="有序列表"
               >
-                <ListOrdered className="w-4 h-4" />
+                <ListOrdered className="w-4 h-4" aria-hidden="true" />
               </button>
               <button
                 type="button"
                 onClick={() => onChange(value + '\n> ')}
                 className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-all"
                 title="引用"
+                aria-label="引用"
               >
-                <Quote className="w-4 h-4" />
+                <Quote className="w-4 h-4" aria-hidden="true" />
               </button>
               <div className="w-px h-5 bg-border/50 mx-1" />
               <button
@@ -208,16 +214,18 @@ const MarkdownEditor = React.forwardRef<HTMLDivElement, MarkdownEditorProps>(
                 onClick={() => onChange(value + '\n```\n代码\n```')}
                 className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-all"
                 title="代码块"
+                aria-label="代码块"
               >
-                <Code className="w-4 h-4" />
+                <Code className="w-4 h-4" aria-hidden="true" />
               </button>
               <button
                 type="button"
                 onClick={() => onChange(value + '[链接文字](url)')}
                 className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-all"
                 title="链接"
+                aria-label="链接"
               >
-                <Link2 className="w-4 h-4" />
+                <Link2 className="w-4 h-4" aria-hidden="true" />
               </button>
               <button
                 type="button"
@@ -227,30 +235,33 @@ const MarkdownEditor = React.forwardRef<HTMLDivElement, MarkdownEditorProps>(
                   input.accept = 'image/*';
                   input.onchange = (e) => {
                     const file = (e.target as HTMLInputElement).files?.[0];
-                    if (file) handleImageUpload(file);
+                    if (file) {handleImageUpload(file);}
                   };
                   input.click();
                 }}
                 className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-all"
                 title="插入图片"
+                aria-label="插入图片"
               >
-                <ImageIcon className="w-4 h-4" />
+                <ImageIcon className="w-4 h-4" aria-hidden="true" />
               </button>
               <button
                 type="button"
                 onClick={() => onChange(value + '\n| 列1 | 列2 | 列3 |\n|------|------|------|\n| 内容 | 内容 | 内容 |')}
                 className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-all"
                 title="表格"
+                aria-label="表格"
               >
-                <Table className="w-4 h-4" />
+                <Table className="w-4 h-4" aria-hidden="true" />
               </button>
               <button
                 type="button"
                 onClick={() => onChange(value + '\n---\n')}
                 className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-all"
                 title="分割线"
+                aria-label="分割线"
               >
-                <Minus className="w-4 h-4" />
+                <Minus className="w-4 h-4" aria-hidden="true" />
               </button>
             </div>
 
@@ -266,16 +277,18 @@ const MarkdownEditor = React.forwardRef<HTMLDivElement, MarkdownEditorProps>(
                 onClick={togglePreview}
                 className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-all"
                 title={currentPreview === 'preview' ? '编辑' : currentPreview === 'live' ? '仅预览' : '实时预览'}
+                aria-label={currentPreview === 'preview' ? '编辑' : currentPreview === 'live' ? '仅预览' : '实时预览'}
               >
-                {currentPreview === 'preview' ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {currentPreview === 'preview' ? <EyeOff className="w-4 h-4" aria-hidden="true" /> : <Eye className="w-4 h-4" aria-hidden="true" />}
               </button>
               <button
                 type="button"
                 onClick={toggleFullscreen}
                 className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-all"
                 title={isFullscreen ? '退出全屏' : '全屏'}
+                aria-label={isFullscreen ? '退出全屏' : '全屏'}
               >
-                {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                {isFullscreen ? <Minimize2 className="w-4 h-4" aria-hidden="true" /> : <Maximize2 className="w-4 h-4" aria-hidden="true" />}
               </button>
             </div>
           </div>

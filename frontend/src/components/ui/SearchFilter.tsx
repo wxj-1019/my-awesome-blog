@@ -52,7 +52,8 @@ const SearchFilter = ({
             value={searchValue}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder={placeholder}
-            className="w-full pl-10 pr-4 py-3 bg-transparent border border-glass-border rounded-xl 
+            aria-label="搜索关键词"
+            className="w-full pl-10 pr-4 py-3 bg-transparent border border-glass-border rounded-xl
                      text-foreground placeholder:text-foreground/50
                      focus:outline-none focus:ring-2 focus:ring-tech-cyan/50 focus:border-tech-cyan/50
                      transition-all duration-300"
@@ -65,8 +66,9 @@ const SearchFilter = ({
                        transition-colors"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
+              aria-label="清除"
             >
-              <X className="w-4 h-4" />
+              <X className="w-4 h-4" aria-hidden="true" />
             </motion.button>
           )}
         </div>

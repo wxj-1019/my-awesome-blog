@@ -1,4 +1,6 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8989';
+import { MOCK_WEATHER } from '@/mock/weather';
+
+const API_BASE_URL = ''; // 使用相对路径，走 Next.js rewrite 代理
 const API_PATH = '/api/v1/weather';
 
 export interface WeatherAQI {
@@ -40,9 +42,9 @@ export interface BackendWeatherCurrent {
   sunrise: string;
   sunset: string;
   aqi: WeatherAQI;
-  index: any[];
-  alarm: any[];
-  hour: any[];
+  index: unknown[];
+  alarm: unknown[];
+  hour: unknown[];
 }
 
 export interface BackendWeatherResponse {
@@ -109,7 +111,7 @@ export const backendWeatherService = {
       };
     } catch (error) {
       console.error('Failed to fetch weather from backend:', error);
-      throw error;
+      return { ...MOCK_WEATHER, updateTime: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }) };
     }
   },
 
@@ -148,12 +150,12 @@ export const backendWeatherService = {
       };
     } catch (error) {
       console.error('Failed to fetch forecast from backend:', error);
-      throw error;
+      return { ...MOCK_WEATHER, updateTime: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }) };
     }
   },
 
   isDaytime(updateTime: string): boolean {
-    if (!updateTime) return true;
+    if (!updateTime) {return true;}
     try {
       const hour = parseInt(updateTime.split(':')[0]);
       return hour >= 6 && hour < 18;

@@ -7,9 +7,9 @@ import { useTheme } from '@/context/theme-context';
 
 // 绳子主题常量
 const ROPE_THEME_CONSTANTS = {
-  DEFAULT_ROPE_COLOR: 'from-[#D4A574] to-[#8B4513]',
-  FIXED_POINT_GRADIENT: 'linear-gradient(to bottom, #C4956A, #8B4513)',
-  KNOT_GRADIENT: 'linear-gradient(to bottom, #C4956A, #8B4513)',
+  DEFAULT_ROPE_COLOR: 'from-[var(--rope-from)] to-[var(--rope-to)]',
+  FIXED_POINT_GRADIENT: 'linear-gradient(to bottom, var(--rope-mid), var(--rope-to))',
+  KNOT_GRADIENT: 'linear-gradient(to bottom, var(--rope-mid), var(--rope-to))',
   DEFAULT_ROPE_LENGTH: 120,
   DEFAULT_ROPE_WIDTH: 4,
   DEFAULT_ANIMATION_DURATION: 400,

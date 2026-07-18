@@ -16,7 +16,7 @@ interface PerformanceResult {
  */
 export const measurePerformance = async <T>(
   fn: () => Promise<T>,
-  label: string = 'Operation'
+  _label: string = 'Operation'
 ): Promise<PerformanceResult & { result: T }> => {
   const startTime = performance.now();
   const result = await fn();
@@ -25,7 +25,7 @@ export const measurePerformance = async <T>(
 
   // Log performance in development
   if (process.env.NODE_ENV === 'development') {
-    console.log(`${label}: ${duration.toFixed(2)}ms`);
+
   }
 
   return {
@@ -44,7 +44,7 @@ export const measurePerformance = async <T>(
  */
 export const measureSyncPerformance = <T>(
   fn: () => T,
-  label: string = 'Operation'
+  _label: string = 'Operation'
 ): PerformanceResult & { result: T } => {
   const startTime = performance.now();
   const result = fn();
@@ -53,7 +53,7 @@ export const measureSyncPerformance = <T>(
 
   // Log performance in development
   if (process.env.NODE_ENV === 'development') {
-    console.log(`${label}: ${duration.toFixed(2)}ms`);
+
   }
 
   return {

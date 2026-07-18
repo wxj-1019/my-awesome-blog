@@ -1,13 +1,13 @@
 'use client';
 
 import * as React from 'react';
-import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
-import { CalendarIcon, ArrowRightIcon, Heart, MessageCircle } from 'lucide-react';
+import Image from 'next/image';
+import type { Route } from 'next';
+import { CalendarIcon, ArrowRightIcon, Heart, MessageCircle, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useTheme } from '@/context/theme-context';
 
-interface SimplePostCardProps {
+export interface ArticleCardProps {
   id: string;
   title: string;
   excerpt: string;
@@ -24,7 +24,7 @@ interface SimplePostCardProps {
   style?: React.CSSProperties;
 }
 
-export default function SimplePostCard({
+export default function ArticleCard({
   id,
   title,
   excerpt,
@@ -38,54 +38,43 @@ export default function SimplePostCard({
   coverImage,
   likes = 0,
   comments = 0,
-  style
-}: SimplePostCardProps) {
-  const { resolvedTheme } = useTheme();
-  const [mounted, setMounted] = React.useState(false);
-
-  // 防止 hydration 错误
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const glassCardClass = mounted && resolvedTheme === 'dark'
-    ? 'glass-card'
-    : 'bg-gray-100 shadow-lg border border-gray-200';
+  style,
+}: ArticleCardProps) {
+  const glassCardClass = 'glass-card';
 
   // 设置默认封面图片
   const [imgSrc, setImgSrc] = React.useState(coverImage || '/assets/avatar.jpg');
 
   // 图片加载失败时的回调函数
   const handleError = () => {
-    // 直接切换到默认图片
     setImgSrc('/assets/avatar.jpg');
   };
 
   // 当 coverImage 发生变化时，更新 imgSrc
   React.useEffect(() => {
-    if (coverImage) {
-      setImgSrc(coverImage);
-    } else {
-      setImgSrc('/assets/avatar.jpg');
-    }
+    setImgSrc(coverImage || '/assets/avatar.jpg');
   }, [coverImage]);
 
+  const targetHref = href || `/posts/${id}`;
+
   return (
-    <article
+    <Link
+      href={targetHref as Route}
       className={cn(
-        `${glassCardClass} group overflow-hidden h-full flex flex-col transition-all duration-300 hover:-translate-y-2 hover:shadow-xl cursor-pointer`,
+        `${glassCardClass} group overflow-hidden h-full flex flex-col transition-all duration-300 hover:-translate-y-2 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2`,
         className
       )}
-      role="article"
       aria-labelledby={`post-title-${id}`}
+      style={style}
     >
       {/* 封面图片区域 */}
       <div className="relative aspect-video overflow-hidden">
-        <img
+        <Image
           src={imgSrc}
           alt={title}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          loading="lazy"
+          fill
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          className="object-cover transition-transform duration-500 group-hover:scale-105"
           onError={handleError}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-tech-darkblue/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -103,53 +92,62 @@ export default function SimplePostCard({
             <p className="text-muted-foreground mb-3 sm:mb-4 line-clamp-2 text-sm sm:text-base">
               {excerpt}
             </p>
-            <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
-              <div className="flex items-center gap-1" aria-label={`发布日期：${date}`}>
-                <CalendarIcon className="w-4 h-4" />
-                <time>{date}</time>
+            {showMeta && (
+              <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
+                <div className="flex items-center gap-1" aria-label={`发布日期：${date}`}>
+                  <CalendarIcon className="w-4 h-4" />
+                  <time>{date}</time>
+                </div>
+                {readTime && (
+                  <div className="flex items-center gap-1" aria-label={`阅读时间：${readTime}`}>
+                    <Clock className="w-4 h-4" aria-hidden="true" />
+                    <span>{readTime}</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-1" aria-label={`点赞数：${likes}`}>
+                  <Heart className="w-4 h-4" aria-hidden="true" />
+                  <span>{likes}</span>
+                </div>
+                <div className="flex items-center gap-1" aria-label={`评论数：${comments}`}>
+                  <MessageCircle className="w-4 h-4" aria-hidden="true" />
+                  <span>{comments}</span>
+                </div>
+                {showCategory && category && (
+                  <span className="px-2 sm:px-3 py-1 rounded-full bg-tech-cyan/20 text-tech-cyan text-xs font-medium">
+                    {category}
+                  </span>
+                )}
               </div>
-              <div className="flex items-center gap-1" aria-label={`点赞数：${likes}`}>
-                <Heart className="w-4 h-4" aria-hidden="true" />
-                <span>{likes}</span>
-              </div>
-              <div className="flex items-center gap-1" aria-label={`评论数：${comments}`}>
-                <MessageCircle className="w-4 h-4" aria-hidden="true" />
-                <span>{comments}</span>
-              </div>
-              {showCategory && category && (
-                <span className="px-2 sm:px-3 py-1 rounded-full bg-tech-cyan/20 text-tech-cyan text-xs font-medium">
-                  {category}
-                </span>
-              )}
-            </div>
+            )}
           </div>
           <div className="flex-shrink-0">
-            <Link
-              href={href ? href as any : `/posts/${id}` as any}
+            <div
               className="w-10 h-10 rounded-full bg-tech-cyan/20 flex items-center justify-center group-hover:bg-tech-cyan transition-colors"
-              aria-label={`查看文章: ${title}`}
+              aria-hidden="true"
             >
               <ArrowRightIcon
                 className="w-5 h-5 text-tech-cyan group-hover:text-white transition-transform group-hover:translate-x-1"
+                aria-hidden="true"
               />
-            </Link>
+            </div>
           </div>
         </div>
       </div>
-    </article>
+    </Link>
   );
 }
 
-// SimplePostCard Skeleton Component for Loading State
-export function SimplePostCardSkeleton() {
+// ArticleCard Skeleton Component for Loading State
+export function ArticleCardSkeleton() {
   return (
-    <article
+    <div
       className="glass-card overflow-hidden h-full flex flex-col animate-pulse"
       role="status"
       aria-label="加载中"
+      aria-busy="true"
     >
-      <div className="relative aspect-video bg-glass/20"></div>
-      
+      <div className="relative aspect-video bg-glass/20" />
+
       <div className="p-4 sm:p-6">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
@@ -192,6 +190,6 @@ export function SimplePostCardSkeleton() {
           </div>
         </div>
       </div>
-    </article>
+    </div>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, createContext, useContext, useState } from 'react';
+import {  createContext, useContext, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, CheckCircle, AlertCircle, Info, AlertTriangle, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -130,8 +130,9 @@ function ToastItem({ toast, onRemove }: ToastItemProps) {
         <button
           onClick={() => onRemove(toast.id)}
           className="flex-shrink-0 text-foreground/50 hover:text-foreground transition-colors"
+          aria-label="关闭"
         >
-          <X className="w-4 h-4" />
+          <X className="w-4 h-4" aria-hidden="true" />
         </button>
       </div>
 

@@ -84,18 +84,18 @@ const TextType = ({
   }, [text, fetchFromApi, dynamicTexts]);
 
   const getRandomSpeed = useCallback(() => {
-    if (!variableSpeed) return typingSpeed;
+    if (!variableSpeed) {return typingSpeed;}
     const { min, max } = variableSpeed;
     return Math.random() * (max - min) + min;
   }, [variableSpeed, typingSpeed]);
 
   const getCurrentTextColor = () => {
-    if (textColors.length === 0) return;
+    if (textColors.length === 0) {return;}
     return textColors[currentTextIndex % textColors.length];
   };
 
   useEffect(() => {
-    if (!startOnVisible || !containerRef.current) return;
+    if (!startOnVisible || !containerRef.current) {return;}
 
     const observer = new IntersectionObserver(
       entries => {
@@ -126,7 +126,7 @@ const TextType = ({
   }, [showCursor, cursorBlinkDuration]);
 
   useEffect(() => {
-    if (!isVisible || textArray.length === 0) return;
+    if (!isVisible || textArray.length === 0) {return;}
 
     let timeout: ReturnType<typeof setTimeout>;
 
@@ -137,7 +137,7 @@ const TextType = ({
       if (isDeleting) {
         if (displayedText === '') {
           // 完成删除后，切换到下一个文本
-          if (onSentenceComplete) onSentenceComplete(textArray[currentTextIndex], currentTextIndex);
+          if (onSentenceComplete) {onSentenceComplete(textArray[currentTextIndex], currentTextIndex);}
 
           // 设置下一个文本的索引
           const nextTextIndex = (currentTextIndex + 1) % textArray.length;

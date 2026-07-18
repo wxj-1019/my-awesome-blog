@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
-import { Camera, Image as ImageIcon, Calendar, Star, Heart, Share2, Download, Play, Pause } from 'lucide-react';
+import { motion, useMotionValue, useTransform } from 'framer-motion';
+import { Camera, Image as ImageIcon, Calendar, Star, Heart, Share2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import GlassCard from '@/components/ui/GlassCard';
 import { useThemedClasses } from '@/hooks/useThemedClasses';
-import useThrottle from '@/hooks/useThrottle';
+
 import { Album } from '@/types';
 
 interface AlbumCardProps {
@@ -36,7 +36,7 @@ const AlbumCard: React.FC<AlbumCardProps> = ({
   const rotateY = useTransform(mouseX, [-100, 100], [-5, 5]);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!enableMagneticEffect) return;
+    if (!enableMagneticEffect) {return;}
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left - rect.width / 2;
     const y = e.clientY - rect.top - rect.height / 2;
@@ -45,14 +45,14 @@ const AlbumCard: React.FC<AlbumCardProps> = ({
   };
 
   const handleMouseLeave = () => {
-    if (!enableMagneticEffect) return;
+    if (!enableMagneticEffect) {return;}
     setIsHovered(false);
     mouseX.set(0);
     mouseY.set(0);
   };
 
   const handleMouseEnter = () => {
-    if (!enableHoverEffect) return;
+    if (!enableHoverEffect) {return;}
     setIsHovered(true);
   };
 
@@ -133,20 +133,23 @@ const AlbumCard: React.FC<AlbumCardProps> = ({
                       whileTap={{ scale: 0.9 }}
                       className="p-2 bg-white/20 backdrop-blur-sm rounded-full hover:bg-white/30 transition-colors"
                       onClick={handleLike}
+                      aria-label={isPlaying ? '取消收藏' : '收藏'}
                     >
                       <Heart
                         className={cn(
                           'w-4 h-4',
                           isPlaying && 'fill-red-500 text-red-500'
                         )}
+                        aria-hidden="true"
                       />
                     </motion.button>
                     <motion.button
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
                       className="p-2 bg-white/20 backdrop-blur-sm rounded-full hover:bg-white/30 transition-colors"
+                      aria-label="分享"
                     >
-                      <Share2 className="w-4 h-4" />
+                      <Share2 className="w-4 h-4" aria-hidden="true" />
                     </motion.button>
                   </div>
                   <div className="flex items-center gap-2 text-sm">

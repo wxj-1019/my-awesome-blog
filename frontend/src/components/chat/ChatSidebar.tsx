@@ -1,9 +1,10 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, Plus, Trash2, FileText, Github, Menu, X, Cpu, Star, Check, Sparkles } from 'lucide-react';
+import { MessageSquare, Plus, Trash2, FileText, X, Cpu, Check, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
+import type { Prompt } from '@/types';
 import PromptSettings from './PromptSettings';
 
 export interface ChatSession {
@@ -28,7 +29,7 @@ interface ChatSidebarProps {
   onDeleteSession: (id: string, e: React.MouseEvent) => void;
   isOpen: boolean;
   onClose: () => void;
-  onSelectPrompt?: (prompt: any) => void;
+  onSelectPrompt?: (prompt: Prompt) => void;
   selectedPrompt?: SelectedPromptInfo | null;
 }
 
@@ -45,7 +46,7 @@ export function ChatSidebar({
 }: ChatSidebarProps) {
   const [isPromptSettingsOpen, setIsPromptSettingsOpen] = useState(false);
 
-  const handleSelectPrompt = (prompt: any) => {
+  const handleSelectPrompt = (prompt: Prompt) => {
     onSelectPrompt?.(prompt);
   };
 
@@ -82,8 +83,9 @@ export function ChatSidebar({
           <button 
             onClick={onClose}
             className="rounded-lg p-2 text-zinc-400 hover:bg-white/10 hover:text-white md:hidden"
+            aria-label="关闭"
           >
-            <X size={20} />
+            <X size={20} aria-hidden="true" />
           </button>
         </div>
 
@@ -92,7 +94,7 @@ export function ChatSidebar({
           <button
             onClick={() => {
               onNewChat();
-              if (window.innerWidth < 768) onClose();
+              if (window.innerWidth < 768) {onClose();}
             }}
             className="group flex w-full items-center gap-3 rounded-xl bg-white/5 px-4 py-3 text-sm font-medium text-white transition-all hover:bg-gradient-to-r hover:from-cyan-600 hover:to-blue-600 hover:shadow-lg hover:shadow-cyan-500/20 border border-white/10 hover:border-transparent"
           >
@@ -112,7 +114,7 @@ export function ChatSidebar({
                 key={session.id}
                 onClick={() => {
                   onSelectSession(session.id);
-                  if (window.innerWidth < 768) onClose();
+                  if (window.innerWidth < 768) {onClose();}
                 }}
                 className={cn(
                   "group relative flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left text-sm transition-all",
@@ -148,8 +150,9 @@ export function ChatSidebar({
                       onDeleteSession(session.id, e);
                     }}
                     className="rounded p-1.5 hover:bg-red-500/20 hover:text-red-400 text-zinc-500"
+                    aria-label="删除会话"
                   >
-                    <Trash2 size={14} />
+                    <Trash2 size={14} aria-hidden="true" />
                   </div>
                 </div>
               </button>

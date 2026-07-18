@@ -141,8 +141,9 @@ export default function QuickNav({ items, trigger, className }: QuickNavProps) {
                   <button
                     onClick={() => setIsOpen(false)}
                     className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded hover:bg-glass/20 text-foreground/50 hover:text-foreground transition-colors"
+                    aria-label="关闭"
                   >
-                    <X className="w-4 h-4" />
+                    <X className="w-4 h-4" aria-hidden="true" />
                   </button>
                 </div>
               </div>

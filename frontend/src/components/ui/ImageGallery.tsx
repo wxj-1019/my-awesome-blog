@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import GlassCard from './GlassCard';
 
@@ -118,11 +119,12 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({
           >
             <GlassCard className="overflow-hidden group">
               <div className="relative aspect-square overflow-hidden">
-                <img
+                <Image
                   src={image.src}
                   alt={image.alt}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  loading="lazy"
+                  fill
+                  sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
+                  className="object-cover transition-transform duration-500 group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
                   <div>
@@ -152,11 +154,13 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({
             >
               ✕
             </button>
-            <div className="relative rounded-xl overflow-hidden">
-              <img
+            <div className="relative w-full h-[80vh] rounded-xl overflow-hidden">
+              <Image
                 src={selectedImage.src}
                 alt={selectedImage.alt}
-                className="w-full h-auto max-h-[80vh] object-contain"
+                fill
+                sizes="100vw"
+                className="object-contain"
               />
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
                 <h3 className="text-white text-xl font-bold">{selectedImage.title}</h3>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, X, Info, AlertTriangle, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -114,6 +114,7 @@ export function LoadingDots({ size = 'md', color = 'currentColor', className }: 
 
   return (
     <div className={cn('flex items-center gap-1', className)}>
+      {/* 加载动画点：列表固定不变，使用 index 作为 key */}
       {[0, 1, 2].map((i) => (
         <motion.div
           key={i}

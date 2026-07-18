@@ -1,13 +1,8 @@
 'use client';
-
 import { motion } from 'framer-motion';
-import { Mail, MessageSquare, Github, Twitter, Linkedin, MapPin, Clock, Globe } from 'lucide-react';
-import { useTheme } from '@/context/theme-context';
+import { Mail, Github, Twitter, Linkedin, MapPin, Clock, Globe } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
-
 export default function HeroSection() {
-  const { resolvedTheme } = useTheme();
-
   return (
     <section className="relative w-full py-16 md:py-24 overflow-hidden">
       <div className="absolute inset-0 opacity-30">
@@ -15,7 +10,6 @@ export default function HeroSection() {
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-tech-cyan/30 rounded-full blur-3xl dark:bg-tech-cyan/20" />
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/30 rounded-full blur-3xl dark:bg-purple-500/20" />
       </div>
-
       <div className="relative z-10 container mx-auto px-4 sm:px-6">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -41,14 +35,12 @@ export default function HeroSection() {
                   className="absolute -top-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-4 border-white dark:border-black shadow-lg"
                 />
               </div>
-
               <h1 className="font-sf-pro-display text-4xl md:text-5xl font-bold text-foreground mb-3">
                 联系我
               </h1>
               <p className="font-sf-pro-text text-lg text-foreground/80 max-w-2xl mx-auto mb-6">
                 很高兴与你交流。无论是技术咨询、商务合作，还是单纯聊天，欢迎随时联系我。
               </p>
-
               <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
                 <span className="flex items-center gap-2 text-sm text-foreground/60 bg-foreground/10 dark:bg-foreground/5 px-4 py-2 rounded-full border border-foreground/20">
                   <MapPin className="w-4 h-4" />
@@ -64,7 +56,6 @@ export default function HeroSection() {
                 </span>
               </div>
             </motion.div>
-
             <div className="flex flex-wrap justify-center gap-4 pt-6 border-t border-foreground/10">
               <motion.a
                 whileHover={{ scale: 1.05, y: -2 }}
@@ -110,7 +101,6 @@ export default function HeroSection() {
               </motion.a>
             </div>
           </GlassCard>
-
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}

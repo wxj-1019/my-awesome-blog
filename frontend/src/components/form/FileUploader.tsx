@@ -2,6 +2,7 @@
 
 import { useState, useRef, DragEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import NextImage from 'next/image';
 import { Upload, X, File, Image, FileText, Film, Music, FileCode, Check, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useThemedClasses } from '@/hooks/useThemedClasses';
@@ -27,7 +28,7 @@ export interface FileUploaderProps {
 }
 
 const formatFileSize = (bytes: number): string => {
-  if (bytes === 0) return '0 B';
+  if (bytes === 0) {return '0 B';}
   const k = 1024;
   const sizes = ['B', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
@@ -35,11 +36,11 @@ const formatFileSize = (bytes: number): string => {
 };
 
 const getFileIcon = (type: string) => {
-  if (type.startsWith('image/')) return Image;
-  if (type.startsWith('video/')) return Film;
-  if (type.startsWith('audio/')) return Music;
-  if (type.startsWith('text/') || type.includes('json') || type.includes('xml')) return FileText;
-  if (type.includes('javascript') || type.includes('typescript') || type.includes('python')) return FileCode;
+  if (type.startsWith('image/')) {return Image;}
+  if (type.startsWith('video/')) {return Film;}
+  if (type.startsWith('audio/')) {return Music;}
+  if (type.startsWith('text/') || type.includes('json') || type.includes('xml')) {return FileText;}
+  if (type.includes('javascript') || type.includes('typescript') || type.includes('python')) {return FileCode;}
   return File;
 };
 
@@ -99,7 +100,7 @@ export default function FileUploader({
     e.stopPropagation();
     setIsDragging(false);
 
-    if (disabled || !e.dataTransfer.files) return;
+    if (disabled || !e.dataTransfer.files) {return;}
 
     validateFiles(e.dataTransfer.files);
   };
@@ -107,7 +108,7 @@ export default function FileUploader({
   const handleDragOver = (e: DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!disabled) setIsDragging(true);
+    if (!disabled) {setIsDragging(true);}
   };
 
   const handleDragLeave = (e: DragEvent) => {
@@ -212,6 +213,7 @@ export default function FileUploader({
             exit={{ opacity: 0, y: -10 }}
             className="space-y-2"
           >
+            {/* 错误提示列表：error 为字符串且无自然唯一 ID，使用 index 作为 key */}
             {errors.map((error, index) => (
               <motion.div
                 key={index}
@@ -226,8 +228,9 @@ export default function FileUploader({
                 <button
                   onClick={() => handleRemoveError(index)}
                   className="text-red-400 hover:text-red-500 transition-colors"
+                  aria-label="关闭错误提示"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-4 h-4" aria-hidden="true" />
                 </button>
               </motion.div>
             ))}
@@ -261,9 +264,11 @@ export default function FileUploader({
                 <div className="flex items-start gap-3">
                   {file.preview ? (
                     <div className="relative w-16 h-16 rounded overflow-hidden flex-shrink-0">
-                      <img
+                      <NextImage
                         src={file.preview}
                         alt={file.name}
+                        width={64}
+                        height={64}
                         className="w-full h-full object-cover"
                       />
                     </div>
@@ -299,8 +304,9 @@ export default function FileUploader({
                   whileTap={{ scale: 0.9 }}
                   onClick={() => handleRemove(file.id)}
                   className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                  aria-label="移除文件"
                 >
-                  <X className="w-3 h-3" />
+                  <X className="w-3 h-3" aria-hidden="true" />
                 </motion.button>
               </motion.div>
             );

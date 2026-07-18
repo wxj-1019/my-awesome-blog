@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Smile, BookOpen, Keyboard, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -87,7 +87,7 @@ export function QuickPhrase({ onPhraseSelect }: QuickPhraseProps) {
 }
 
 export function KeyboardShortcutHelp({ isOpen, onClose }: KeyboardShortcutProps) {
-  if (!isOpen) return null;
+  if (!isOpen) {return null;}
 
   return (
     <AnimatePresence>
@@ -105,13 +105,14 @@ export function KeyboardShortcutHelp({ isOpen, onClose }: KeyboardShortcutProps)
           <button
             onClick={onClose}
             className="text-white/50 hover:text-white transition-colors"
+            aria-label="关闭"
           >
-            <X className="w-4 h-4" />
+            <X className="w-4 h-4" aria-hidden="true" />
           </button>
         </div>
         <div className="space-y-2">
-          {SHORTCUTS.map((shortcut, index) => (
-            <div key={index} className="flex items-center justify-between text-sm">
+          {SHORTCUTS.map((shortcut) => (
+            <div key={shortcut.key} className="flex items-center justify-between text-sm">
               <kbd className="px-2 py-1 bg-white/10 rounded text-xs font-mono text-tech-cyan">
                 {shortcut.key}
               </kbd>

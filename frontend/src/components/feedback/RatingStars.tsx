@@ -39,7 +39,7 @@ export default forwardRef<HTMLDivElement, RatingStarsProps>(function RatingStars
     className,
     labelClassName,
   },
-  ref
+  _ref
 ) {
   const [hoverValue, setHoverValue] = useState(0);
 
@@ -67,7 +67,7 @@ export default forwardRef<HTMLDivElement, RatingStarsProps>(function RatingStars
 
     return (
       <motion.button
-        key={index}
+        key={starValue}
         type="button"
         disabled={readonly}
         onClick={() => handleClick(index)}
@@ -110,10 +110,10 @@ export default forwardRef<HTMLDivElement, RatingStarsProps>(function RatingStars
 
   const getRatingText = (rating: number): string => {
     const percentage = (rating / max) * 100;
-    if (percentage >= 80) return '非常满意';
-    if (percentage >= 60) return '满意';
-    if (percentage >= 40) return '一般';
-    if (percentage >= 20) return '不满意';
+    if (percentage >= 80) {return '非常满意';}
+    if (percentage >= 60) {return '满意';}
+    if (percentage >= 40) {return '一般';}
+    if (percentage >= 20) {return '不满意';}
     return '非常不满意';
   };
 

@@ -62,7 +62,7 @@ export function ChatWindow({
 
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (!input.trim() || isLoading) return;
+    if (!input.trim() || isLoading) {return;}
 
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
@@ -106,7 +106,7 @@ export function ChatWindow({
       if (reader) {
         while (true) {
           const { done, value } = await reader.read();
-          if (done) break;
+          if (done) {break;}
 
           const chunk = decoder.decode(value, { stream: true });
           const lines = chunk.split('\n');
@@ -114,7 +114,7 @@ export function ChatWindow({
           for (const line of lines) {
             if (line.startsWith('data: ')) {
               const data = line.slice(6);
-              if (data === '[DONE]') continue;
+              if (data === '[DONE]') {continue;}
 
               try {
                 const parsed = JSON.parse(data);
@@ -338,8 +338,9 @@ export function ChatWindow({
           <button
             onClick={onToggleSidebar}
             className="rounded-lg p-2 text-zinc-400 hover:bg-white/10 hover:text-white transition-colors"
+            aria-label="打开侧边栏"
           >
-            <Menu size={20} />
+            <Menu size={20} aria-hidden="true" />
           </button>
 
           {selectedPrompt ? (
@@ -424,8 +425,9 @@ export function ChatWindow({
                   ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/30 hover:shadow-cyan-500/50'
                   : 'bg-white/10 text-zinc-500 cursor-not-allowed'
               )}
+              aria-label="发送"
             >
-              {isLoading ? <Loader2 className="animate-spin" size={18} /> : <Send size={18} />}
+              {isLoading ? <Loader2 className="animate-spin" size={18} aria-hidden="true" /> : <Send size={18} aria-hidden="true" />}
             </button>
           </form>
           <p className="mt-2 text-center text-xs text-zinc-600">

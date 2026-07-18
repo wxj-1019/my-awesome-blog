@@ -63,7 +63,7 @@ export default function MarkdownRenderer({
 
   const components = {
     // 代码块
-    code({ node, inline, className, children, ...props }: CodeProps) {
+    code({ _node, inline, className, children, ...props }: CodeProps) {
       const match = /language-(\w+)/.exec(className || '');
       const language = match ? match[1] : '';
       const codeContent = String(children).replace(/\n$/, '');
@@ -103,7 +103,7 @@ export default function MarkdownRenderer({
     },
 
     // 链接 - 添加外部链接标识和安全检查
-    a({ node, href, title, children, ...props }: LinkProps) {
+    a({ _node, href, title, children, ...props }: LinkProps) {
       const isExternal = href?.startsWith('http');
       return (
         <a
@@ -122,8 +122,8 @@ export default function MarkdownRenderer({
       );
     },
 
-    // 图片 - 添加懒加载和错误处理
-    img({ node, src, alt, title, ...props }: ImageProps) {
+    // 图片 - Markdown 中的图片地址来自用户输入，可能为任意外部域名，保留 <img>
+    img({ _node, src, alt, title, ...props }: ImageProps) {
       return (
         <img
           src={src}
@@ -141,7 +141,7 @@ export default function MarkdownRenderer({
     },
 
     // 引用块
-    blockquote({ node, children, ...props }: ComponentProps) {
+    blockquote({ _node, children, ...props }: ComponentProps) {
       return (
         <blockquote
           className="border-l-4 border-tech-cyan/50 pl-4 py-2 my-3 bg-tech-cyan/5 rounded-r-lg italic"
@@ -153,7 +153,7 @@ export default function MarkdownRenderer({
     },
 
     // 表格
-    table({ node, children, ...props }: ComponentProps) {
+    table({ _node, children, ...props }: ComponentProps) {
       return (
         <div className="overflow-x-auto my-4">
           <table
@@ -166,7 +166,7 @@ export default function MarkdownRenderer({
       );
     },
 
-    th({ node, children, ...props }: ComponentProps) {
+    th({ _node, children, ...props }: ComponentProps) {
       return (
         <th
           className="px-4 py-3 text-left text-sm font-semibold text-white/90 bg-slate-800/50"
@@ -177,7 +177,7 @@ export default function MarkdownRenderer({
       );
     },
 
-    td({ node, children, ...props }: ComponentProps) {
+    td({ _node, children, ...props }: ComponentProps) {
       return (
         <td
           className="px-4 py-3 text-sm text-white/70 border-t border-white/10"
@@ -189,7 +189,7 @@ export default function MarkdownRenderer({
     },
 
     // 水平线
-    hr({ node, ...props }: ComponentProps) {
+    hr({ _node, ...props }: ComponentProps) {
       return (
         <hr
           className="my-6 border-white/10"

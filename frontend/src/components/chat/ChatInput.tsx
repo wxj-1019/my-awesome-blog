@@ -23,7 +23,7 @@ export function ChatInput({ onSend, onStop, isLoading, disabled }: ChatInputProp
   };
 
   const handleSend = () => {
-    if (!input.trim() || isLoading || disabled || isSending) return;
+    if (!input.trim() || isLoading || disabled || isSending) {return;}
     setIsSending(true);
     setTimeout(() => {
       onSend(input);

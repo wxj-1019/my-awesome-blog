@@ -1,22 +1,19 @@
 'use client';
-
 import { useState, useCallback } from 'react';
 import { Message, Reply } from '@/types';
 import { formatDistanceToNow } from '@/lib/utils';
 import { cn } from '@/lib/utils';
-import { Trash2, MessageSquare, Heart, Reply as ReplyIcon, ChevronDown, ChevronUp, Star } from 'lucide-react';
+import { Trash2, MessageSquare, Heart, Reply as ReplyIcon, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { deleteMessage, likeMessage, replyToMessage } from '@/services/messageService';
 import { useThemedClasses } from '@/hooks/useThemedClasses';
-import ConfirmDialog from '@/components/feedback/ConfirmDialog';
-
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
 interface MessageListProps {
   messages: Message[];
   currentUserId?: string;
   onMessageDeleted?: (id: string) => void;
   onMessageUpdated?: (updatedMessage: Message) => void;
 }
-
 export default function MessageList({
   messages,
   currentUserId,
@@ -33,15 +30,12 @@ export default function MessageList({
   const [messageToDelete, setMessageToDelete] = useState<string | null>(null);
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
-
   const handleDelete = useCallback(async (id: string) => {
     setMessageToDelete(id);
     setDeleteConfirmOpen(true);
   }, []);
-
   const confirmDelete = useCallback(async () => {
-    if (!messageToDelete) return;
-
+    if (!messageToDelete) {return;}
     setDeletingId(messageToDelete);
     try {
       await deleteMessage(messageToDelete);
@@ -55,7 +49,6 @@ export default function MessageList({
       setMessageToDelete(null);
     }
   }, [messageToDelete, onMessageDeleted]);
-
   const handleLike = useCallback(async (id: string) => {
     try {
       const updatedMessage = await likeMessage(id);
@@ -64,51 +57,44 @@ export default function MessageList({
         [id]: !prev[id]
       }));
       onMessageUpdated?.(updatedMessage);
-    } catch (error) {
+    } catch {
       setAlertMessage('点赞失败，请重试');
       setAlertOpen(true);
     }
   }, [onMessageUpdated]);
-
   const toggleReply = (id: string) => {
     setReplies(prev => ({
       ...prev,
       [id]: !prev[id]
     }));
   };
-
   const handleReplySubmit = useCallback(async (id: string) => {
     const text = replyTexts[id];
-    if (!text || text.trim().length === 0) return;
-
+    if (!text || text.trim().length === 0) {return;}
     try {
       const updatedMessage = await replyToMessage(id, text);
       onMessageUpdated?.(updatedMessage);
-
       // 清空输入框
       setReplyTexts(prev => ({
         ...prev,
         [id]: ''
       }));
-
       // 关闭回复框
       setReplies(prev => ({
         ...prev,
         [id]: false
       }));
-    } catch (error) {
+    } catch {
       setAlertMessage('回复失败，请重试');
       setAlertOpen(true);
     }
   }, [replyTexts, onMessageUpdated]);
-
   const toggleReplies = useCallback((id: string) => {
     setExpandedReplies(prev => ({
       ...prev,
       [id]: !prev[id]
     }));
   }, []);
-
   if (messages.length === 0) {
     return (
       <div className={cn(
@@ -121,7 +107,6 @@ export default function MessageList({
       </div>
     );
   }
-
   return (
     <div className="space-y-4">
       <h3 className={cn(
@@ -131,7 +116,6 @@ export default function MessageList({
         <MessageSquare className="w-5 h-5 text-tech-cyan" />
         全部留言 ({messages.length})
       </h3>
-
       <div className="space-y-3">
         {messages.map((message) => (
           <div
@@ -146,18 +130,20 @@ export default function MessageList({
               {/* 头像 */}
               <div className="flex-shrink-0">
                 {message.author.avatar ? (
-                  <img
-                    src={message.author.avatar}
-                    alt={message.author.username}
-                    className="w-10 h-10 rounded-full border-2 border-tech-cyan/30"
-                  />
+                  <>
+                    {/* 留言作者头像可能来自外部任意来源，保留 <img> */}
+                    <img
+                      src={message.author.avatar}
+                      alt={message.author.username}
+                      className="w-10 h-10 rounded-full border-2 border-tech-cyan/30"
+                    />
+                  </>
                 ) : (
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-tech-cyan to-tech-lightcyan flex items-center justify-center text-white font-bold">
                     {message.author.username.charAt(0).toUpperCase()}
                   </div>
                 )}
               </div>
-
               {/* 内容 */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
@@ -183,14 +169,12 @@ export default function MessageList({
                     {formatDistanceToNow(new Date(message.created_at))}
                   </span>
                 </div>
-
                 <p className={cn(
                   "mt-1 text-sm leading-relaxed",
                   themedClasses.textClass
                 )}>
                   {message.content}
                 </p>
-
                 {/* 操作按钮 */}
                 <div className="flex items-center gap-4 mt-3">
                   <Button
@@ -207,7 +191,6 @@ export default function MessageList({
                     <Heart className={cn("w-3.5 h-3.5", likedMessages[message.id] && "fill-current")} />
                     {likedMessages[message.id] ? '已赞' : '点赞'} ({message.likes || 0})
                   </Button>
-
                   <Button
                     variant="ghost"
                     size="sm"
@@ -217,7 +200,6 @@ export default function MessageList({
                     <ReplyIcon className="w-3.5 h-3.5" />
                     回复
                   </Button>
-
                   <Button
                     variant="ghost"
                     size="sm"
@@ -236,10 +218,7 @@ export default function MessageList({
                       </>
                     )}
                   </Button>
-
-
                 </div>
-
                 {/* 回复列表 */}
                 {expandedReplies[message.id] && message.replies && message.replies.length > 0 && (
                   <div className="mt-3 space-y-2 pl-4 border-l-2 border-muted">
@@ -256,7 +235,6 @@ export default function MessageList({
                     ))}
                   </div>
                 )}
-
                 {/* 回复框 */}
                 {replies[message.id] && (
                   <div className="mt-3 pt-3 border-t border-muted">
@@ -286,7 +264,6 @@ export default function MessageList({
                   </div>
                 )}
               </div>
-
               {/* 删除按钮 */}
               {currentUserId === message.author.id && (
                 <Button
@@ -303,7 +280,6 @@ export default function MessageList({
           </div>
         ))}
       </div>
-
       {/* 删除确认对话框 */}
       <ConfirmDialog
         isOpen={deleteConfirmOpen}
@@ -311,11 +287,10 @@ export default function MessageList({
         onConfirm={confirmDelete}
         title="删除留言"
         description="删除后无法恢复，确定要删除这条留言吗？"
-        type="danger"
+        variant="danger"
         confirmText="确定删除"
         cancelText="取消"
       />
-
       {/* 提示对话框 */}
       <ConfirmDialog
         isOpen={alertOpen}
@@ -323,7 +298,7 @@ export default function MessageList({
         onConfirm={() => setAlertOpen(false)}
         title="提示"
         description={alertMessage}
-        type="info"
+        variant="info"
         confirmText="知道了"
         cancelText="取消"
       />

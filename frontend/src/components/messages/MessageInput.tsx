@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback, memo } from 'react';
+import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
 import { createMessage, DANMAKU_COLORS, validateMessage } from '@/services/messageService';
@@ -109,9 +110,11 @@ function MessageInput({
       {/* 用户信息 */}
       <div className="flex items-center gap-3 mb-4">
         {currentUser?.avatar ? (
-          <img
+          <Image
             src={currentUser.avatar}
             alt={currentUser.username}
+            width={32}
+            height={32}
             className="w-8 h-8 rounded-full border border-tech-cyan/30"
           />
         ) : (

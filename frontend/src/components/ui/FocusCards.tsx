@@ -2,7 +2,8 @@
 
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { Eye, Heart, Clock, ArrowRight } from 'lucide-react'
+import {  Clock, ArrowRight } from 'lucide-react'
+import Image from 'next/image'
 import { Album } from '@/types'
 import { cn } from '@/lib/utils'
 import { useThemedClasses } from '@/hooks/useThemedClasses'
@@ -15,7 +16,7 @@ interface FocusCardsProps {
 export function FocusCards({ cards, className }: FocusCardsProps) {
   const { getThemeClass } = useThemedClasses()
 
-  if (cards.length === 0) return null;
+  if (cards.length === 0) {return null;}
 
   return (
     <div className={cn('container mx-auto px-4', className)}>
@@ -39,11 +40,12 @@ export function FocusCards({ cards, className }: FocusCardsProps) {
                 )}
               >
                 <div className="relative aspect-video overflow-hidden">
-                  <img
+                  <Image
                     src={card.coverImage || '/assets/placeholder.svg'}
                     alt={card.title}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                    loading="lazy"
+                    fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    className="object-cover transition-transform duration-700 group-hover:scale-110"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                   

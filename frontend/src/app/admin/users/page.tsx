@@ -1,19 +1,18 @@
 'use client'
-
 import { useEffect, useState, useCallback } from 'react'
+import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, Edit, Trash2, Users as UsersIcon, Sparkles, Shield, ShieldOff } from 'lucide-react'
+import { Plus, Edit, Trash2, Users as UsersIcon, Sparkles, Shield } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { adminApi } from '@/lib/admin-api-client'
 import { validateArrayData } from '@/utils/data-validation'
 import Button from '@/components/admin/Button'
 import FormInput from '@/components/admin/FormInput'
-import ConfirmDialog from '@/components/admin/ConfirmDialog'
+import ConfirmDialog from '@/components/ui/ConfirmDialog'
 import { useToast } from '@/components/admin/Toast'
-import LoadingState from '@/components/admin/LoadingState'
-import EmptyState from '@/components/admin/EmptyState'
+import LoadingState from '@/components/ui/LoadingState'
+import EmptyState from '@/components/ui/EmptyState'
 import GlassCardAdmin from '@/components/ui/GlassCardAdmin'
-
 interface User {
   id: string
   username: string
@@ -24,9 +23,8 @@ interface User {
   avatar: string
   created_at: string
 }
-
 export default function UsersPage() {
-  const { success, error, warning } = useToast()
+  const { success, error } = useToast();
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
@@ -43,11 +41,10 @@ export default function UsersPage() {
     password: '',
     is_superuser: false
   })
-
   const fetchUsers = useCallback(async () => {
     try {
       setLoading(true)
-      const data: any = await adminApi.users.list()
+      const data = await adminApi.users.list()
       setUsers(validateArrayData<User>(data))
     } catch (err) {
       console.error('Failed to fetch users:', err)
@@ -56,11 +53,9 @@ export default function UsersPage() {
       setLoading(false)
     }
   }, [error])
-
   useEffect(() => {
     fetchUsers()
   }, [fetchUsers])
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -85,9 +80,8 @@ export default function UsersPage() {
       error('保存用户失败，请重试')
     }
   }
-
   const deleteUser = async () => {
-    if (!deleteDialog.user) return
+    if (!deleteDialog.user) {return}
     
     try {
       await adminApi.users.delete(deleteDialog.user.id)
@@ -100,7 +94,6 @@ export default function UsersPage() {
       setDeleteDialog({ open: false, user: null })
     }
   }
-
   const toggleUserStatus = async (user: User) => {
     try {
       await adminApi.users.toggleStatus(user.id, !user.is_active)
@@ -111,7 +104,6 @@ export default function UsersPage() {
       error('更新用户状态失败，请重试')
     }
   }
-
   const openEditModal = (user: User) => {
     setEditingUser(user)
     setFormData({
@@ -123,13 +115,11 @@ export default function UsersPage() {
     })
     setShowModal(true)
   }
-
   const filteredUsers = users.filter(user => 
     user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.full_name?.toLowerCase().includes(searchQuery.toLowerCase())
   )
-
   return (
     <div className="space-y-6">
       <motion.div
@@ -173,7 +163,6 @@ export default function UsersPage() {
           </div>
         </GlassCardAdmin>
       </motion.div>
-
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -189,7 +178,6 @@ export default function UsersPage() {
           />
         </GlassCardAdmin>
       </motion.div>
-
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -246,7 +234,7 @@ export default function UsersPage() {
                               transition={{ duration: 0.2 }}
                             >
                               {user.avatar ? (
-                                <img src={user.avatar} alt="" className="w-full h-full rounded-full object-cover" />
+                                <Image src={user.avatar} alt="" width={40} height={40} className="rounded-full object-cover" />
                               ) : (
                                 user.username.charAt(0).toUpperCase()
                               )}
@@ -322,7 +310,6 @@ export default function UsersPage() {
           )}
         </GlassCardAdmin>
       </motion.div>
-
       <AnimatePresence>
         {showModal && (
           <motion.div
@@ -446,7 +433,6 @@ export default function UsersPage() {
           </motion.div>
         )}
       </AnimatePresence>
-
       <ConfirmDialog
         isOpen={deleteDialog.open}
         onClose={() => setDeleteDialog({ open: false, user: null })}

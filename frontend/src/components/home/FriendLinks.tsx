@@ -1,9 +1,6 @@
 'use client';
 
-import Link from 'next/link';
 import FriendLinkCard from '@/components/ui/FriendLinkCard';
-import { useTheme } from '@/context/theme-context';
-import { useState, useEffect } from 'react';
 
 interface FriendLink {
   id: string;
@@ -18,17 +15,6 @@ interface FriendLinksProps {
 }
 
 export default function FriendLinks({ links }: FriendLinksProps) {
-  const { resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const glassCardClass = mounted && resolvedTheme === 'dark'
-    ? 'glass-card'
-    : 'bg-gray-100 shadow-lg border border-gray-200';
-
   if (!links || links.length === 0) {
     return null;
   }
@@ -40,7 +26,7 @@ export default function FriendLinks({ links }: FriendLinksProps) {
       </h2>
 
       <div className="grid grid-cols-2 gap-3">
-        {links.map((link, index) => (
+        {links.map((link) => (
             <a
               key={link.id}
               href={link.url}

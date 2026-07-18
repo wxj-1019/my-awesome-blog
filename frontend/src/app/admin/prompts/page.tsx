@@ -1,18 +1,17 @@
 'use client'
-
 import { useEffect, useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, Edit, Trash2, FileText, Sparkles, Copy, Star, FolderPlus, Folder, Download, Upload, Code, ChevronDown, Search, Filter, MoreHorizontal } from 'lucide-react'
+import { Plus, Edit, Trash2, FileText, Sparkles, Copy, Star, FolderPlus, Download, Code, Search, Filter } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { adminApi } from '@/lib/admin-api-client'
+import { validateArrayData } from '@/utils/data-validation'
 import Button from '@/components/admin/Button'
 import FormInput from '@/components/admin/FormInput'
-import ConfirmDialog from '@/components/admin/ConfirmDialog'
+import ConfirmDialog from '@/components/ui/ConfirmDialog'
 import { useToast } from '@/components/admin/Toast'
-import LoadingState from '@/components/admin/LoadingState'
-import EmptyState from '@/components/admin/EmptyState'
+import LoadingState from '@/components/ui/LoadingState'
+import EmptyState from '@/components/ui/EmptyState'
 import GlassCardAdmin from '@/components/ui/GlassCardAdmin'
-
 interface Prompt {
   id: string
   name: string
@@ -22,7 +21,7 @@ interface Prompt {
   category?: string
   is_active: boolean
   is_system: boolean
-  variables?: Record<string, any>
+  variables?: Record<string, unknown>
   ab_test_group?: string
   ab_test_percentage?: number
   usage_count?: number
@@ -30,7 +29,6 @@ interface Prompt {
   created_at: string
   updated_at?: string
 }
-
 interface PromptFolder {
   id: string
   name: string
@@ -38,11 +36,10 @@ interface PromptFolder {
   icon?: string
   parent_id?: string
 }
-
 export default function PromptsPage() {
   const { success, error } = useToast()
   const [prompts, setPrompts] = useState<Prompt[]>([])
-  const [folders, setFolders] = useState<PromptFolder[]>([])
+  const [, setFolders] = useState<PromptFolder[]>([]);
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [showFolderModal, setShowFolderModal] = useState(false)
@@ -70,14 +67,16 @@ export default function PromptsPage() {
     color: '#06b6d4',
     icon: 'folder'
   })
-
   const fetchPrompts = useCallback(async () => {
     try {
       setLoading(true)
-      const params: any = {}
-      if (selectedCategory) params.category = selectedCategory
-      const data = await adminApi.prompts.list(params) as any
-      setPrompts(data?.items || Array.isArray(data) ? (data.items || data) : [])
+      const params: Record<string, string> = {}
+      if (selectedCategory) {params.category = selectedCategory}
+      const data = await adminApi.prompts.list(params)
+      const rawItems = data && typeof data === 'object' && !Array.isArray(data) && 'items' in data
+        ? (data as { items: unknown }).items
+        : data
+      setPrompts(validateArrayData<Prompt>(rawItems))
     } catch (err) {
       console.error('Failed to fetch prompts:', err)
       error('加载提示词列表失败')
@@ -85,7 +84,6 @@ export default function PromptsPage() {
       setLoading(false)
     }
   }, [error, selectedCategory])
-
   const fetchFolders = useCallback(async () => {
     try {
       const data = await adminApi.prompts.getFolders()
@@ -94,12 +92,10 @@ export default function PromptsPage() {
       console.error('Failed to fetch folders:', err)
     }
   }, [])
-
   useEffect(() => {
     fetchPrompts()
     fetchFolders()
   }, [fetchPrompts, fetchFolders])
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -126,9 +122,8 @@ export default function PromptsPage() {
       error('保存失败，请重试')
     }
   }
-
   const handleDelete = async () => {
-    if (!deleteDialog.prompt) return
+    if (!deleteDialog.prompt) {return}
     
     try {
       await adminApi.prompts.delete(deleteDialog.prompt.id)
@@ -141,7 +136,6 @@ export default function PromptsPage() {
       setDeleteDialog({ open: false, prompt: null })
     }
   }
-
   const handleDuplicate = async (prompt: Prompt) => {
     try {
       await adminApi.prompts.duplicate(prompt.id)
@@ -152,7 +146,6 @@ export default function PromptsPage() {
       error('复制失败')
     }
   }
-
   const handleSetDefault = async (prompt: Prompt) => {
     try {
       await adminApi.prompts.setDefault(prompt.id)
@@ -162,7 +155,6 @@ export default function PromptsPage() {
       error('设置失败')
     }
   }
-
   const handleExport = async () => {
     try {
       const data = await adminApi.prompts.export()
@@ -179,7 +171,6 @@ export default function PromptsPage() {
       error('导出失败')
     }
   }
-
   const handleFolderSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
@@ -199,7 +190,6 @@ export default function PromptsPage() {
       error('保存失败')
     }
   }
-
   const resetForm = () => {
     setFormData({
       name: '',
@@ -214,7 +204,6 @@ export default function PromptsPage() {
       ab_test_percentage: 50
     })
   }
-
   const openEditModal = (prompt: Prompt) => {
     setEditingPrompt(prompt)
     setFormData({
@@ -231,15 +220,12 @@ export default function PromptsPage() {
     })
     setShowModal(true)
   }
-
   const filteredPrompts = prompts.filter(p => 
     p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     p.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (p.category && p.category.toLowerCase().includes(searchQuery.toLowerCase()))
   )
-
   const categories = Array.from(new Set(prompts.map(p => p.category).filter(Boolean)))
-
   return (
     <div className="space-y-6">
       <motion.div
@@ -300,7 +286,6 @@ export default function PromptsPage() {
           </div>
         </GlassCardAdmin>
       </motion.div>
-
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -334,7 +319,6 @@ export default function PromptsPage() {
               </div>
             )}
           </div>
-
           {loading ? (
             <LoadingState message="加载中..." size="md" variant="dots" />
           ) : filteredPrompts.length === 0 ? (
@@ -475,7 +459,6 @@ export default function PromptsPage() {
           )}
         </GlassCardAdmin>
       </motion.div>
-
       <AnimatePresence>
         {showModal && (
           <motion.div
@@ -568,7 +551,6 @@ export default function PromptsPage() {
           </motion.div>
         )}
       </AnimatePresence>
-
       <AnimatePresence>
         {showFolderModal && (
           <motion.div
@@ -597,7 +579,6 @@ export default function PromptsPage() {
           </motion.div>
         )}
       </AnimatePresence>
-
       <AnimatePresence>
         {showCodePreview && (
           <motion.div
@@ -624,7 +605,6 @@ export default function PromptsPage() {
           </motion.div>
         )}
       </AnimatePresence>
-
       <ConfirmDialog
         isOpen={deleteDialog.open}
         onClose={() => setDeleteDialog({ open: false, prompt: null })}

@@ -11,23 +11,22 @@ import {
   ExternalLink,
   Github,
   Star,
-  Calendar,
   X,
   CheckCircle,
   Clock,
   Sparkles,
   ChevronLeft,
-  ChevronRight,
-  GripVertical
+  ChevronRight
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { adminApi } from '@/lib/admin-api-client'
+import { validateArrayData } from '@/utils/data-validation'
 import Button from '@/components/admin/Button'
 import FormInput from '@/components/admin/FormInput'
-import ConfirmDialog from '@/components/admin/ConfirmDialog'
+import ConfirmDialog from '@/components/ui/ConfirmDialog'
 import { useToast } from '@/components/admin/Toast'
-import LoadingState from '@/components/admin/LoadingState'
-import EmptyState from '@/components/admin/EmptyState'
+import LoadingState from '@/components/ui/LoadingState'
+import EmptyState from '@/components/ui/EmptyState'
 import GlassCardAdmin from '@/components/ui/GlassCardAdmin'
 
 interface PortfolioItem {
@@ -90,13 +89,13 @@ export default function PortfoliosPage() {
       setLoading(true)
       const skip = (currentPage - 1) * pageSize
       
-      const data: any = await adminApi.portfolio.list({
+      const data = await adminApi.portfolio.list({
         skip,
         limit: pageSize,
         is_active: true
       })
       
-      let filteredData = Array.isArray(data) ? data : []
+      let filteredData = validateArrayData<PortfolioItem>(data)
       
       if (searchQuery) {
         filteredData = filteredData.filter((p: PortfolioItem) => 
@@ -202,7 +201,7 @@ export default function PortfoliosPage() {
   }
 
   const deletePortfolio = async () => {
-    if (!deleteDialog.portfolio) return
+    if (!deleteDialog.portfolio) {return}
     
     try {
       await adminApi.portfolio.delete(deleteDialog.portfolio.id)
@@ -354,6 +353,7 @@ export default function PortfoliosPage() {
                     >
                       {portfolio.cover_image ? (
                         <div className="aspect-video bg-glass/20 relative overflow-hidden">
+                          {/* 作品封面 URL 由用户填写，可能为外部域名，保留 <img> */}
                           <img 
                             src={portfolio.cover_image} 
                             alt={portfolio.title}
@@ -395,9 +395,9 @@ export default function PortfoliosPage() {
                         
                         {portfolio.technologies && portfolio.technologies.length > 0 && (
                           <div className="flex flex-wrap gap-1 mb-3">
-                            {portfolio.technologies.slice(0, 4).map((tech, i) => (
+                            {portfolio.technologies.slice(0, 4).map((tech) => (
                               <span 
-                                key={i}
+                                key={tech}
                                 className="px-2 py-0.5 text-xs bg-glass/30 text-foreground/70 rounded"
                               >
                                 {tech}

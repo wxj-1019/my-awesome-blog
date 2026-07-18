@@ -4,15 +4,18 @@ import { useEffect, RefObject } from 'react';
 
 export function useCodeBlockEnhancement(contentRef: RefObject<HTMLDivElement>) {
   useEffect(() => {
-    if (!contentRef.current) return;
+    if (!contentRef.current) {return;}
 
     const content = contentRef.current;
+    const timeouts: NodeJS.Timeout[] = [];
+    const handlers: Array<{ element: HTMLElement; type: string; fn: EventListener }> = [];
+
     const processCodeBlocks = () => {
       const codeBlocks = content.querySelectorAll('pre code');
 
       codeBlocks.forEach((codeBlock) => {
         const pre = codeBlock.parentElement;
-        if (!pre || pre.parentElement?.classList.contains('code-enhanced')) return;
+        if (!pre || pre.parentElement?.classList.contains('code-enhanced')) {return;}
 
         const language = Array.from(codeBlock.classList)
           .find(cls => cls.startsWith('language-'))
@@ -54,9 +57,7 @@ export function useCodeBlockEnhancement(contentRef: RefObject<HTMLDivElement>) {
           <span>复制代码</span>
         `;
 
-        let copyTimeout: NodeJS.Timeout;
-
-        copyButton.addEventListener('click', async () => {
+        const clickHandler = async () => {
           const code = codeBlock.textContent || '';
           try {
             await navigator.clipboard.writeText(code);
@@ -67,8 +68,7 @@ export function useCodeBlockEnhancement(contentRef: RefObject<HTMLDivElement>) {
               <span class="text-green-400">已复制</span>
             `;
 
-            clearTimeout(copyTimeout);
-            copyTimeout = setTimeout(() => {
+            const timeout = setTimeout(() => {
               copyButton.innerHTML = `
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
@@ -77,10 +77,14 @@ export function useCodeBlockEnhancement(contentRef: RefObject<HTMLDivElement>) {
                 <span>复制代码</span>
               `;
             }, 2000);
+            timeouts.push(timeout);
           } catch (err) {
             console.error('复制失败:', err);
           }
-        });
+        };
+
+        copyButton.addEventListener('click', clickHandler);
+        handlers.push({ element: copyButton, type: 'click', fn: clickHandler as EventListener });
 
         header.appendChild(leftContent);
         header.appendChild(copyButton);
@@ -106,6 +110,11 @@ export function useCodeBlockEnhancement(contentRef: RefObject<HTMLDivElement>) {
 
     processCodeBlocks();
 
-    return () => {};
+    return () => {
+      timeouts.forEach(clearTimeout);
+      handlers.forEach(({ element, type, fn }) => {
+        element.removeEventListener(type, fn);
+      });
+    };
   }, [contentRef]);
 }

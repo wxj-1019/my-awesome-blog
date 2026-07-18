@@ -367,7 +367,7 @@ export interface Prompt {
   name: string;
   version: string;
   content: string;
-  variables?: Record<string, any>;
+  variables?: Record<string, unknown>;
   description?: string;
   category?: string;
   is_active: boolean;
@@ -385,7 +385,7 @@ export interface PromptCreate {
   name: string;
   version: string;
   content: string;
-  variables?: Record<string, any>;
+  variables?: Record<string, unknown>;
   description?: string;
   category?: string;
   is_system?: boolean;
@@ -394,7 +394,7 @@ export interface PromptCreate {
 export interface PromptUpdate {
   name?: string;
   content?: string;
-  variables?: Record<string, any>;
+  variables?: Record<string, unknown>;
   description?: string;
   category?: string;
   is_active?: boolean;
@@ -405,7 +405,7 @@ export interface PromptVersion {
   prompt_id: string;
   version: string;
   content: string;
-  variables?: Record<string, any>;
+  variables?: Record<string, unknown>;
   created_at: string;
 }
 

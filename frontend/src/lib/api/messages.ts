@@ -54,10 +54,10 @@ export const getMessages = async (params?: {
   is_deleted?: boolean;
 }): Promise<MessageWithUser[]> => {
   const queryParams = new URLSearchParams();
-  if (params?.skip !== undefined) queryParams.append('skip', params.skip.toString());
-  if (params?.limit !== undefined) queryParams.append('limit', params.limit.toString());
-  if (params?.is_read !== undefined) queryParams.append('is_read', params.is_read.toString());
-  if (params?.is_deleted !== undefined) queryParams.append('is_deleted', params.is_deleted.toString());
+  if (params?.skip !== undefined) {queryParams.append('skip', params.skip.toString());}
+  if (params?.limit !== undefined) {queryParams.append('limit', params.limit.toString());}
+  if (params?.is_read !== undefined) {queryParams.append('is_read', params.is_read.toString());}
+  if (params?.is_deleted !== undefined) {queryParams.append('is_deleted', params.is_deleted.toString());}
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
@@ -178,8 +178,8 @@ export const getUnreadMessages = async (params?: {
   limit?: number;
 }): Promise<MessageWithUser[]> => {
   const queryParams = new URLSearchParams();
-  if (params?.skip !== undefined) queryParams.append('skip', params.skip.toString());
-  if (params?.limit !== undefined) queryParams.append('limit', params.limit.toString());
+  if (params?.skip !== undefined) {queryParams.append('skip', params.skip.toString());}
+  if (params?.limit !== undefined) {queryParams.append('limit', params.limit.toString());}
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 

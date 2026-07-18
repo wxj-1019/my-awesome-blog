@@ -42,14 +42,13 @@ const SheetTrigger = React.forwardRef<HTMLDivElement, SheetTriggerProps>(
     const { setOpen } = context;
     
     if (asChild && React.isValidElement(children)) {
-      return React.cloneElement(children, {
-        onClick: (e: React.MouseEvent) => {
-          if ((children.props as any).onClick) {
-            (children.props as any).onClick(e);
-          }
+      const child = children as React.ReactElement<{ onClick?: (e: React.MouseEvent<unknown>) => void }>;
+      return React.cloneElement(child, {
+        onClick: (e: React.MouseEvent<unknown>) => {
+          child.props.onClick?.(e);
           setOpen(true);
         },
-      } as any);
+      });
     }
     
     return (
@@ -77,14 +76,13 @@ const SheetClose = React.forwardRef<HTMLDivElement, SheetCloseProps>(
     const { setOpen } = context;
     
     if (asChild && React.isValidElement(children)) {
-      return React.cloneElement(children, {
-        onClick: (e: React.MouseEvent) => {
-          if ((children.props as any).onClick) {
-            (children.props as any).onClick(e);
-          }
+      const child = children as React.ReactElement<{ onClick?: (e: React.MouseEvent<unknown>) => void }>;
+      return React.cloneElement(child, {
+        onClick: (e: React.MouseEvent<unknown>) => {
+          child.props.onClick?.(e);
           setOpen(false);
         },
-      } as any);
+      });
     }
     
     return (

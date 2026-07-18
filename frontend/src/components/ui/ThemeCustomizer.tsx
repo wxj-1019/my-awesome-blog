@@ -4,10 +4,12 @@ import { useState } from 'react';
 import { Sun, Moon, Monitor, Palette, Type, Palette as PaletteIcon } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useTheme } from '@/context/theme-context';
+import { useToast } from '@/components/ui/use-toast';
 import GlassCard from '@/components/ui/GlassCard';
 
 export default function ThemeCustomizer() {
   const { theme, setTheme } = useTheme();
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('appearance');
 
   return (
@@ -153,7 +155,7 @@ export default function ThemeCustomizer() {
             className="flex-1 bg-tech-cyan hover:bg-tech-cyan/90 text-white"
             onClick={() => {
               // 保存设置
-              alert('主题设置已保存！');
+              toast({ description: '主题设置已保存！' });
             }}
           >
             保存

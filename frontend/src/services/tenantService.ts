@@ -19,10 +19,10 @@ export const tenantService = {
     status?: string;
   }): Promise<PaginatedResponse<Tenant>> {
     const queryParams = new URLSearchParams();
-    if (params?.skip !== undefined) queryParams.append('skip', params.skip.toString());
-    if (params?.limit !== undefined) queryParams.append('limit', params.limit.toString());
-    if (params?.search) queryParams.append('search', params.search);
-    if (params?.status) queryParams.append('status', params.status);
+    if (params?.skip !== undefined) {queryParams.append('skip', params.skip.toString());}
+    if (params?.limit !== undefined) {queryParams.append('limit', params.limit.toString());}
+    if (params?.search) {queryParams.append('search', params.search);}
+    if (params?.status) {queryParams.append('status', params.status);}
 
     const url = queryParams.toString() ? `${API_BASE}/?${queryParams}` : API_BASE;
     return apiRequest<PaginatedResponse<Tenant>>(url);

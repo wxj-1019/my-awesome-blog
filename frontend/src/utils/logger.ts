@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 const isDevelopment = process.env.NODE_ENV === 'development';
 
 type LogLevel = 'log' | 'info' | 'warn' | 'error' | 'debug';
@@ -12,14 +13,14 @@ class Logger {
   }
 
   private _log(level: LogLevel, ...args: unknown[]): void {
-    if (!this.enabled) return;
+    if (!this.enabled) {return;}
 
     const timestamp = new Date().toISOString();
     const message = `[${timestamp}]${this.prefix ? ` [${this.prefix}]` : ''}`;
 
     switch (level) {
       case 'log':
-        console.log(message, ...args);
+
         break;
       case 'info':
         console.info(message, ...args);

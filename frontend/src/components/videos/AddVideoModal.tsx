@@ -2,11 +2,11 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Save, Film, Tv, MonitorPlay, Clock } from 'lucide-react';
+import { X, Save, Film, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { VideoItem, VideoType, VideoStatus, Episode } from './VideoCard';
+import { VideoItem, VideoType, VideoStatus } from './VideoCard';
 import GlassCard from '@/components/ui/GlassCard';
 import { cn } from '@/lib/utils';
 

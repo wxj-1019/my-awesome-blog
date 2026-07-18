@@ -35,7 +35,7 @@ export default function LazyImage({
   // Intersection Observer 实现懒加载
   useEffect(() => {
     const container = containerRef.current;
-    if (!container) return;
+    if (!container) {return;}
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -134,7 +134,7 @@ export function LazyAvatar({
 
   useEffect(() => {
     const container = containerRef.current;
-    if (!container) return;
+    if (!container) {return;}
 
     const observer = new IntersectionObserver(
       ([entry]) => {

@@ -32,7 +32,7 @@ export default function Tabs({
   orientation = 'horizontal',
   animated = true,
   className,
-  tabClassName,
+  tabClassName: _tabClassName,
   contentClassName
 }: TabsProps) {
   const [activeTab, setActiveTab] = useState(defaultTab || tabs[0]?.id);

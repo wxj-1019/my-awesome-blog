@@ -1,4 +1,5 @@
 import * as React from 'react';
+import Image from 'next/image';
 import { cn } from '@/lib/utils';
 
 const Avatar = React.forwardRef<
@@ -39,10 +40,12 @@ Avatar.displayName = 'Avatar';
 
 const AvatarImage = React.forwardRef<
   HTMLImageElement,
-  React.ImgHTMLAttributes<HTMLImageElement> & {
+  Omit<React.ImgHTMLAttributes<HTMLImageElement>, 'alt' | 'src' | 'width' | 'height'> & {
+    src: string
+    alt: string
     onLoadingStatusChange?: (status: 'loading' | 'loaded' | 'error') => void
   }
->(({ className, onLoad, onError, onLoadingStatusChange, ...props }, ref) => {
+>(({ className, alt, onLoad, onError, onLoadingStatusChange, ...props }, ref) => {
   const handleLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     onLoadingStatusChange?.('loaded');
     onLoad?.(e);
@@ -54,9 +57,12 @@ const AvatarImage = React.forwardRef<
   };
 
   return (
-    <img
+    <Image
       ref={ref}
-      className={cn('aspect-square h-full w-full object-cover', className)}
+      alt={alt}
+      fill
+      sizes="(max-width: 768px) 100vw, 33vw"
+      className={cn('aspect-square object-cover', className)}
       onLoad={handleLoad}
       onError={handleError}
       {...props}

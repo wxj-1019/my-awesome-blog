@@ -7,10 +7,10 @@ import { cn } from '@/lib/utils'
 import { adminApi } from '@/lib/admin-api-client'
 import Button from '@/components/admin/Button'
 import FormInput from '@/components/admin/FormInput'
-import ConfirmDialog from '@/components/admin/ConfirmDialog'
+import ConfirmDialog from '@/components/ui/ConfirmDialog'
 import { useToast } from '@/components/admin/Toast'
-import LoadingState from '@/components/admin/LoadingState'
-import EmptyState from '@/components/admin/EmptyState'
+import LoadingState from '@/components/ui/LoadingState'
+import EmptyState from '@/components/ui/EmptyState'
 import GlassCardAdmin from '@/components/ui/GlassCardAdmin'
 
 interface Tag {
@@ -82,7 +82,7 @@ export default function TagsPage() {
   }
 
   const deleteTag = async () => {
-    if (!deleteDialog.tag) return
+    if (!deleteDialog.tag) {return}
     
     try {
       await adminApi.tags.delete(deleteDialog.tag.id)

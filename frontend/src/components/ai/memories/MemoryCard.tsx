@@ -22,16 +22,16 @@ export default function MemoryCard({ memory, onEdit, onDelete }: MemoryCardProps
   };
 
   const getImportanceColor = (importance?: number) => {
-    if (!importance) return 'bg-gray-500/20 text-gray-400';
-    if (importance >= 0.8) return 'bg-red-500/20 text-red-400';
-    if (importance >= 0.5) return 'bg-yellow-500/20 text-yellow-400';
+    if (!importance) {return 'bg-gray-500/20 text-gray-400';}
+    if (importance >= 0.8) {return 'bg-red-500/20 text-red-400';}
+    if (importance >= 0.5) {return 'bg-yellow-500/20 text-yellow-400';}
     return 'bg-green-500/20 text-green-400';
   };
 
   const getImportanceLabel = (importance?: number) => {
-    if (!importance) return '未设置';
-    if (importance >= 0.8) return '高';
-    if (importance >= 0.5) return '中';
+    if (!importance) {return '未设置';}
+    if (importance >= 0.8) {return '高';}
+    if (importance >= 0.5) {return '中';}
     return '低';
   };
 

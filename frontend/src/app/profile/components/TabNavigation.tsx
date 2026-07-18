@@ -1,23 +1,17 @@
 'use client';
-
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, Settings, Activity, Lock, Bell, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useThemedClasses } from '@/hooks/useThemedClasses';
-
 interface TabNavigationProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   orientation?: 'horizontal' | 'vertical';
 }
-
 export default function TabNavigation({
   activeTab,
   setActiveTab,
   orientation = 'horizontal'
 }: TabNavigationProps) {
-  const { getThemeClass } = useThemedClasses();
-
   const tabs = [
     { id: 'profile', label: '个人信息', icon: User, description: '管理您的个人资料' },
     { id: 'security', label: '账号安全', icon: Lock, description: '密码与登录设置' },
@@ -26,13 +20,10 @@ export default function TabNavigation({
     { id: 'settings', label: '系统设置', icon: Settings, description: '应用配置选项' },
     { id: 'privacy', label: '隐私设置', icon: Shield, description: '隐私与权限管理' },
   ];
-
   const handleTabChange = (tabId: string) => {
     setActiveTab(tabId);
   };
-
   const isVertical = orientation === 'vertical';
-
   return (
     <div
       className={cn(
@@ -43,7 +34,6 @@ export default function TabNavigation({
       {tabs.map((tab, index) => {
         const Icon = tab.icon;
         const isActive = activeTab === tab.id;
-
         return (
           <motion.button
             key={tab.id}
@@ -77,7 +67,6 @@ export default function TabNavigation({
                 transition={{ type: 'spring', damping: 30, stiffness: 300 }}
               />
             )}
-
             {isActive && isVertical && (
               <motion.div
                 className="absolute left-0 top-0 bottom-0 w-1 bg-tech-cyan rounded-r-full"
@@ -86,13 +75,11 @@ export default function TabNavigation({
                 transition={{ type: 'spring', damping: 30, stiffness: 300 }}
               />
             )}
-
             <Icon className={cn(
               'transition-all duration-300',
               isActive ? 'scale-110' : 'scale-100',
               isVertical ? 'w-5 h-5 mt-0.5' : 'w-4 h-4'
             )} />
-
             <div className="flex-1">
               <span className={cn(
                 'block font-medium',
@@ -100,7 +87,6 @@ export default function TabNavigation({
               )}>
                 {tab.label}
               </span>
-
               {isVertical && tab.description && (
                 <motion.p
                   initial={{ opacity: 0, height: 0 }}
@@ -115,7 +101,6 @@ export default function TabNavigation({
                 </motion.p>
               )}
             </div>
-
             {isActive && (
               <AnimatePresence>
                 <motion.div

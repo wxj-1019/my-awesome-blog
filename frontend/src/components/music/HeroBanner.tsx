@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { ChevronLeft, ChevronRight, Play } from 'lucide-react';
 import type { Banner } from '@/types/music';
@@ -27,7 +27,7 @@ export default function HeroBanner({
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!autoPlay || isPaused) return;
+    if (!autoPlay || isPaused) {return;}
 
     const timer = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % banners.length);
@@ -37,7 +37,7 @@ export default function HeroBanner({
   }, [autoPlay, interval, isPaused, banners.length]);
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (!containerRef.current) return;
+    if (!containerRef.current) {return;}
     const rect = containerRef.current.getBoundingClientRect();
     const x = (e.clientX - rect.left - rect.width / 2) / rect.width;
     const y = (e.clientY - rect.top - rect.height / 2) / rect.height;
@@ -184,9 +184,9 @@ export default function HeroBanner({
               'opacity-0 group-hover:opacity-100',
               'hover:scale-110 active:scale-95'
             )}
-            aria-label="上一张"
+            aria-label="上一页"
           >
-            <ChevronLeft className="w-6 h-6" />
+            <ChevronLeft className="w-6 h-6" aria-hidden="true" />
           </button>
           <button
             onClick={goToNext}
@@ -200,9 +200,9 @@ export default function HeroBanner({
               'opacity-0 group-hover:opacity-100',
               'hover:scale-110 active:scale-95'
             )}
-            aria-label="下一张"
+            aria-label="下一页"
           >
-            <ChevronRight className="w-6 h-6" />
+            <ChevronRight className="w-6 h-6" aria-hidden="true" />
           </button>
         </>
       )}
@@ -210,9 +210,9 @@ export default function HeroBanner({
       {/* Indicators */}
       {showIndicators && (
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2">
-          {banners.map((_, index) => (
+          {banners.map((banner, index) => (
             <button
-              key={index}
+              key={banner.id}
               onClick={() => goToSlide(index)}
               className={cn(
                 'rounded-full transition-all duration-300 ease-out',

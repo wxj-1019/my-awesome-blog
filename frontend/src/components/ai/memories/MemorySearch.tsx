@@ -52,8 +52,9 @@ export default function MemorySearch({ onSearch, results, searching }: MemorySea
             <button
               onClick={handleClear}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition-colors"
+              aria-label="清除"
             >
-              <X className="w-4 h-4" />
+              <X className="w-4 h-4" aria-hidden="true" />
             </button>
           )}
         </div>

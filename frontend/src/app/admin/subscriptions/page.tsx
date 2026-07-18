@@ -9,18 +9,18 @@ import {
   Download,
   CheckCircle,
   XCircle,
-  Sparkles,
   ChevronLeft,
   ChevronRight
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { adminApi } from '@/lib/admin-api-client'
+import { validateArrayData } from '@/utils/data-validation'
 import Button from '@/components/admin/Button'
 import FormInput from '@/components/admin/FormInput'
-import ConfirmDialog from '@/components/admin/ConfirmDialog'
+import ConfirmDialog from '@/components/ui/ConfirmDialog'
 import { useToast } from '@/components/admin/Toast'
-import LoadingState from '@/components/admin/LoadingState'
-import EmptyState from '@/components/admin/EmptyState'
+import LoadingState from '@/components/ui/LoadingState'
+import EmptyState from '@/components/ui/EmptyState'
 import GlassCardAdmin from '@/components/ui/GlassCardAdmin'
 
 interface Subscription {
@@ -50,13 +50,13 @@ export default function SubscriptionsPage() {
       setLoading(true)
       const skip = (currentPage - 1) * pageSize
       
-      const data: any = await adminApi.subscriptions.list({
+      const data = await adminApi.subscriptions.list({
         skip,
         limit: pageSize,
         is_active: filter === 'all' ? true : filter === 'active'
       })
       
-      let filteredData = Array.isArray(data) ? data : []
+      let filteredData = validateArrayData<Subscription>(data)
       
       if (searchQuery) {
         filteredData = filteredData.filter((s: Subscription) => 
@@ -80,7 +80,7 @@ export default function SubscriptionsPage() {
 
   const fetchCount = useCallback(async () => {
     try {
-      const count: any = await adminApi.subscriptions.count()
+      const count = await adminApi.subscriptions.count()
       setTotalCount(typeof count === 'number' ? count : 0)
     } catch (err) {
       console.error('Failed to fetch count:', err)
@@ -92,7 +92,7 @@ export default function SubscriptionsPage() {
   }, [fetchCount])
 
   const deleteSubscription = async () => {
-    if (!deleteDialog.subscription) return
+    if (!deleteDialog.subscription) {return}
     
     try {
       await adminApi.subscriptions.delete(deleteDialog.subscription.id)

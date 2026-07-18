@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import type { Song, PlayMode } from '@/types/music';
 import { 
   Play, Pause, SkipBack, SkipForward, Repeat, Repeat1, Shuffle, 
-  ListMusic, Volume2, Maximize2, ChevronUp, ChevronDown 
+  ListMusic, Volume2, Maximize2, ChevronDown 
 } from 'lucide-react';
 
 interface PlayerBarProps {
@@ -62,13 +62,13 @@ export default function PlayerBar({
   const getPlayModeIcon = () => {
     switch (playMode) {
       case 'list':
-        return <Repeat className="w-5 h-5" />;
+        return <Repeat className="w-5 h-5" aria-hidden="true" />;
       case 'random':
-        return <Shuffle className="w-5 h-5" />;
+        return <Shuffle className="w-5 h-5" aria-hidden="true" />;
       case 'single':
-        return <Repeat1 className="w-5 h-5" />;
+        return <Repeat1 className="w-5 h-5" aria-hidden="true" />;
       default:
-        return <Repeat className="w-5 h-5" />;
+        return <Repeat className="w-5 h-5" aria-hidden="true" />;
     }
   };
 
@@ -135,8 +135,8 @@ export default function PlayerBar({
                     {currentSong.artists.map(artist => artist.name).join(', ')}
                   </p>
                 </div>
-                <button className="flex-shrink-0 text-white/40 hover:text-pink-400 transition-colors duration-300">
-                  <ListMusic className="w-5 h-5" />
+                <button className="flex-shrink-0 text-white/40 hover:text-pink-400 transition-colors duration-300" aria-label="播放列表">
+                  <ListMusic className="w-5 h-5" aria-hidden="true" />
                 </button>
               </>
             ) : (
@@ -171,7 +171,7 @@ export default function PlayerBar({
                 onClick={onPrevious}
                 aria-label="上一首"
               >
-                <SkipBack className="w-5 h-5 fill-current" />
+                <SkipBack className="w-5 h-5 fill-current" aria-hidden="true" />
               </button>
 
               <button
@@ -184,9 +184,9 @@ export default function PlayerBar({
                 aria-label={isPlaying ? '暂停' : '播放'}
               >
                 {isPlaying ? (
-                  <Pause className="w-5 h-5 fill-current" />
+                  <Pause className="w-5 h-5 fill-current" aria-hidden="true" />
                 ) : (
-                  <Play className="w-5 h-5 fill-current ml-0.5" />
+                  <Play className="w-5 h-5 fill-current ml-0.5" aria-hidden="true" />
                 )}
               </button>
 
@@ -195,7 +195,7 @@ export default function PlayerBar({
                 onClick={onNext}
                 aria-label="下一首"
               >
-                <SkipForward className="w-5 h-5 fill-current" />
+                <SkipForward className="w-5 h-5 fill-current" aria-hidden="true" />
               </button>
 
               <button
@@ -203,7 +203,7 @@ export default function PlayerBar({
                 onClick={onShowPlaylist}
                 aria-label="播放列表"
               >
-                <ListMusic className="w-5 h-5" />
+                <ListMusic className="w-5 h-5" aria-hidden="true" />
               </button>
             </div>
 
@@ -256,7 +256,7 @@ export default function PlayerBar({
                 className="text-white/40 hover:text-white/70 transition-colors duration-300"
                 aria-label="音量"
               >
-                <Volume2 className="w-5 h-5" />
+                <Volume2 className="w-5 h-5" aria-hidden="true" />
               </button>
 
               <div className="w-24 relative h-1.5 group cursor-pointer">
@@ -295,7 +295,7 @@ export default function PlayerBar({
               onClick={onToggleExpand}
               aria-label={isExpanded ? '收起播放器' : '展开播放器'}
             >
-              {isExpanded ? <ChevronDown className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
+              {isExpanded ? <ChevronDown className="w-5 h-5" aria-hidden="true" /> : <Maximize2 className="w-5 h-5" aria-hidden="true" />}
             </button>
           </div>
         </div>

@@ -1,5 +1,4 @@
 'use client'
-
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -15,21 +14,15 @@ import {
   XCircle,
   ChevronLeft,
   ChevronRight,
-  Filter,
-  Download,
   RefreshCw,
-  MoreVertical,
-  FileText,
-  Sparkles
+  FileText
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { adminApi } from '@/lib/admin-api-client'
-import Button from '@/components/admin/Button'
 import FormInput from '@/components/admin/FormInput'
-import ConfirmDialog from '@/components/admin/ConfirmDialog'
+import ConfirmDialog from '@/components/ui/ConfirmDialog'
 import { useToast } from '@/components/admin/Toast'
 import GlassCardAdmin from '@/components/ui/GlassCardAdmin'
-
 interface Article {
   id: string
   title: string
@@ -49,9 +42,8 @@ interface Article {
     name: string
   }
 }
-
 export default function ArticlesPage() {
-  const { success, error, warning } = useToast()
+  const { success, error } = useToast();
   const [articles, setArticles] = useState<Article[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
@@ -65,7 +57,6 @@ export default function ArticlesPage() {
   })
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const pageSize = 10
-
   const fetchArticles = useCallback(async () => {
     try {
       setLoading(true)
@@ -100,19 +91,16 @@ export default function ArticlesPage() {
       setLoading(false)
     }
   }, [currentPage, filter, searchQuery, error])
-
   useEffect(() => {
     fetchArticles()
   }, [fetchArticles])
-
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     setCurrentPage(1)
     fetchArticles()
   }
-
   const deleteArticle = async () => {
-    if (!deleteDialog.article) return
+    if (!deleteDialog.article) {return}
     
     try {
       setActionLoading(deleteDialog.article.id)
@@ -127,7 +115,6 @@ export default function ArticlesPage() {
       setDeleteDialog({ open: false, article: null })
     }
   }
-
   const togglePublish = async (article: Article) => {
     try {
       setActionLoading(article.id)
@@ -141,7 +128,6 @@ export default function ArticlesPage() {
       setActionLoading(null)
     }
   }
-
   const toggleFeature = async (article: Article) => {
     try {
       setActionLoading(article.id)
@@ -155,7 +141,6 @@ export default function ArticlesPage() {
       setActionLoading(null)
     }
   }
-
   const togglePin = async (article: Article) => {
     try {
       setActionLoading(article.id)
@@ -169,7 +154,6 @@ export default function ArticlesPage() {
       setActionLoading(null)
     }
   }
-
   const toggleSelectAll = () => {
     if (selectedArticles.size === articles.length) {
       setSelectedArticles(new Set())
@@ -177,7 +161,6 @@ export default function ArticlesPage() {
       setSelectedArticles(new Set(articles.map(a => a.id)))
     }
   }
-
   const toggleSelect = (id: string) => {
     const newSelected = new Set(selectedArticles)
     if (newSelected.has(id)) {
@@ -187,15 +170,12 @@ export default function ArticlesPage() {
     }
     setSelectedArticles(newSelected)
   }
-
   const totalPages = Math.ceil(total / pageSize)
-
-  const filterButtons = useMemo(() => [
+  const filterButtons: { key: 'all' | 'published' | 'draft'; label: string; count: number }[] = useMemo(() => [
     { key: 'all', label: '全部', count: articles.length },
     { key: 'published', label: '已发布', count: articles.filter(a => a.is_published).length },
     { key: 'draft', label: '草稿', count: articles.filter(a => !a.is_published).length },
   ], [articles])
-
   return (
     <div className="space-y-6">
       <motion.div
@@ -235,7 +215,6 @@ export default function ArticlesPage() {
           </div>
         </GlassCardAdmin>
       </motion.div>
-
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -272,7 +251,7 @@ export default function ArticlesPage() {
                 {filterButtons.map((btn) => (
                   <motion.button
                     key={btn.key}
-                    onClick={() => { setFilter(btn.key as any); setCurrentPage(1); }}
+                    onClick={() => { setFilter(btn.key); setCurrentPage(1); }}
                     className={cn(
                       "px-4 py-2.5 text-sm font-medium transition-all duration-200 flex items-center gap-2",
                       filter === btn.key 
@@ -298,7 +277,6 @@ export default function ArticlesPage() {
           </div>
         </GlassCardAdmin>
       </motion.div>
-
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -503,9 +481,9 @@ export default function ArticlesPage() {
                                   hoverColor: article.is_published ? 'text-orange-500 hover:bg-orange-500/10' : 'text-green-500 hover:bg-green-500/10',
                                   tooltip: article.is_published ? '下架' : '发布'
                                 },
-                              ].map((action, i) => (
+                              ].map((action) => (
                                 <motion.button
-                                  key={i}
+                                  key={action.tooltip}
                                   onClick={action.onClick}
                                   disabled={actionLoading === article.id}
                                   className={cn(
@@ -563,7 +541,6 @@ export default function ArticlesPage() {
                   </tbody>
                 </table>
               </div>
-
               {totalPages > 1 && (
                 <motion.div 
                   className="px-6 py-4 border-t border-glass-border/30 flex items-center justify-between bg-glass/10"
@@ -603,7 +580,6 @@ export default function ArticlesPage() {
           )}
         </GlassCardAdmin>
       </motion.div>
-
       <ConfirmDialog
         isOpen={deleteDialog.open}
         onClose={() => setDeleteDialog({ open: false, article: null })}

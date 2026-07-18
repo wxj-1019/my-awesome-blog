@@ -33,11 +33,11 @@ export const getAuditLogs = async (params?: {
   resource_type?: string;
 }): Promise<AuditLogWithUser[]> => {
   const queryParams = new URLSearchParams();
-  if (params?.skip !== undefined) queryParams.append('skip', params.skip.toString());
-  if (params?.limit !== undefined) queryParams.append('limit', params.limit.toString());
-  if (params?.user_id) queryParams.append('user_id', params.user_id);
-  if (params?.action) queryParams.append('action', params.action);
-  if (params?.resource_type) queryParams.append('resource_type', params.resource_type);
+  if (params?.skip !== undefined) {queryParams.append('skip', params.skip.toString());}
+  if (params?.limit !== undefined) {queryParams.append('limit', params.limit.toString());}
+  if (params?.user_id) {queryParams.append('user_id', params.user_id);}
+  if (params?.action) {queryParams.append('action', params.action);}
+  if (params?.resource_type) {queryParams.append('resource_type', params.resource_type);}
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
@@ -61,8 +61,8 @@ export const getAuditLogsByUser = async (userId: string, params?: {
   limit?: number;
 }): Promise<AuditLogWithUser[]> => {
   const queryParams = new URLSearchParams();
-  if (params?.skip !== undefined) queryParams.append('skip', params.skip.toString());
-  if (params?.limit !== undefined) queryParams.append('limit', params.limit.toString());
+  if (params?.skip !== undefined) {queryParams.append('skip', params.skip.toString());}
+  if (params?.limit !== undefined) {queryParams.append('limit', params.limit.toString());}
   queryParams.append('user_id', userId);
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;

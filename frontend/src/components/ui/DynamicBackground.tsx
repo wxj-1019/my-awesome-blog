@@ -46,7 +46,7 @@ const DynamicBackground = memo(function DynamicBackground({ className }: Dynamic
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    if (!ctx) {return;}
 
     const resizeCanvas = () => {
       canvas.width = window.innerWidth;
@@ -197,7 +197,7 @@ const DynamicBackground = memo(function DynamicBackground({ className }: Dynamic
       ctx.fillStyle = gradientBg;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      particlesRef.current.forEach((particle, index) => {
+      particlesRef.current.forEach((particle, _index) => {
         particle.pulsePhase += particle.pulseSpeed;
         particle.radius = particle.baseRadius * (1 + 0.2 * Math.sin(particle.pulsePhase));
         
@@ -231,13 +231,13 @@ const DynamicBackground = memo(function DynamicBackground({ className }: Dynamic
         particle.vy *= 0.99;
         particle.vy = Math.min(particle.vy, -0.2);
 
-        if (particle.x < -particle.radius * 2) particle.x = canvas.width + particle.radius;
-        if (particle.x > canvas.width + particle.radius * 2) particle.x = -particle.radius;
+        if (particle.x < -particle.radius * 2) {particle.x = canvas.width + particle.radius;}
+        if (particle.x > canvas.width + particle.radius * 2) {particle.x = -particle.radius;}
         if (particle.y < -particle.radius * 2) {
           particle.y = canvas.height + particle.radius;
           particle.x = Math.random() * canvas.width;
         }
-        if (particle.y > canvas.height + particle.radius * 2) particle.y = -particle.radius;
+        if (particle.y > canvas.height + particle.radius * 2) {particle.y = -particle.radius;}
 
         ctx.globalAlpha = particle.opacity;
 

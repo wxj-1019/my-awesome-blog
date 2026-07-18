@@ -104,15 +104,16 @@ const AdminSidebar = React.forwardRef<HTMLDivElement, AdminSidebarProps>(
             whileTap={{ scale: 0.9 }}
             onClick={() => onSidebarToggle(!sidebarOpen)}
             className="p-2.5 rounded-xl hover:bg-slate-100/50 dark:hover:bg-slate-700/50 transition-all duration-200 relative z-10 hidden lg:flex items-center justify-center group"
+            aria-label={sidebarOpen ? '收起侧边栏' : '展开侧边栏'}
           >
             <motion.div
               animate={{ rotate: sidebarOpen ? 0 : 180 }}
               transition={{ duration: 0.3 }}
             >
               {sidebarOpen ? (
-                <ChevronLeft className="w-5 h-5 text-foreground/50 group-hover:text-tech-cyan transition-colors" />
+                <ChevronLeft className="w-5 h-5 text-foreground/50 group-hover:text-tech-cyan transition-colors" aria-hidden="true" />
               ) : (
-                <ChevronRight className="w-5 h-5 text-foreground/50 group-hover:text-tech-cyan transition-colors" />
+                <ChevronRight className="w-5 h-5 text-foreground/50 group-hover:text-tech-cyan transition-colors" aria-hidden="true" />
               )}
             </motion.div>
           </motion.button>
@@ -123,12 +124,14 @@ const AdminSidebar = React.forwardRef<HTMLDivElement, AdminSidebarProps>(
             onClick={() => onMobileToggle(false)}
             className="p-2.5 rounded-xl hover:bg-glass/50 transition-all duration-200 lg:hidden relative z-10"
             animate={{ opacity: mobileOpen ? 1 : 0 }}
+            aria-label="关闭"
           >
             <svg 
               className="w-5 h-5 text-foreground/70" 
               fill="none" 
               stroke="currentColor" 
               viewBox="0 0 24 24"
+              aria-hidden="true"
             >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -194,7 +197,7 @@ const AdminSidebar = React.forwardRef<HTMLDivElement, AdminSidebarProps>(
                         whileHover={{ x: sidebarOpen ? 4 : 0 }}
                       >
                         <Link
-                          href={item.href as any}
+                          href={item.href as React.ComponentProps<typeof Link>['href']}
                           onClick={() => onMobileToggle(false)}
                           className={cn(
                             "flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300 ease-out",

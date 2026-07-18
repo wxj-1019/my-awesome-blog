@@ -3,7 +3,7 @@
 import { ReactNode } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { MessageSquare, Sparkles, Database, Settings, Plus } from 'lucide-react';
+import { MessageSquare, Sparkles, Database, Settings } from 'lucide-react';
 
 interface AILayoutProps {
   children: ReactNode;

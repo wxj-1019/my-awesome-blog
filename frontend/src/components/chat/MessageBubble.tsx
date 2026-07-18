@@ -5,6 +5,11 @@ import { User, Bot, Copy, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 
+interface CodeProps extends React.ComponentPropsWithoutRef<'code'> {
+  inline?: boolean;
+  _node?: unknown;
+}
+
 interface MessageBubbleProps {
   role: 'user' | 'assistant';
   content: string;
@@ -55,7 +60,7 @@ export function MessageBubble({ role, content, isTyping }: MessageBubbleProps) {
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={{
-                code({ node, inline, className, children, ...props }: any) {
+                code({ _node, inline, className, children, ...props }: CodeProps) {
                   const match = /language-(\w+)/.exec(className || '');
                   const codeText = String(children).replace(/\n$/, '');
                   

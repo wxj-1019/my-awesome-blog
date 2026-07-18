@@ -139,7 +139,7 @@ export default function SocialProof() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
         {stats.map((stat, index) => (
-          <StatCard key={index} stat={stat} delay={index * 0.1} />
+          <StatCard key={stat.label} stat={stat} delay={index * 0.1} />
         ))}
       </div>
 
@@ -148,7 +148,7 @@ export default function SocialProof() {
       </h3>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {testimonials.map((testimonial, index) => (
-          <TestimonialCard key={index} testimonial={testimonial} delay={0.4 + index * 0.1} />
+          <TestimonialCard key={`${testimonial.name}-${testimonial.role}`} testimonial={testimonial} delay={0.4 + index * 0.1} />
         ))}
       </div>
     </section>

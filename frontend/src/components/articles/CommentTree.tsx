@@ -1,5 +1,4 @@
 'use client';
-
 import { useState, useCallback, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
@@ -9,57 +8,47 @@ import { ThumbsUp, MessageSquare, ChevronDown, ChevronUp, User, Clock } from 'lu
 import { useThemedClasses } from '@/hooks/useThemedClasses';
 import { Comment } from '@/types';
 import { formatDateRelative } from '@/utils/dateFormat';
-
 interface CommentTreeProps {
   comments: Comment[];
   depth?: number;
   maxDepth?: number;
-  onReply?: (commentId: string) => void;
+  onReply?: (commentId: string, content: string) => void;
   onLike?: (commentId: string) => void;
   className?: string;
 }
-
 interface CommentItemProps {
   comment: Comment;
   depth: number;
   maxDepth: number;
-  onReply?: (commentId: string) => void;
+  onReply?: (commentId: string, content: string) => void;
   onLike?: (commentId: string) => void;
 }
-
 function CommentItem({ comment, depth, maxDepth, onReply, onLike }: CommentItemProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [isReplying, setIsReplying] = useState(false);
   const [replyContent, setReplyContent] = useState('');
   const { themedClasses, getThemeClass } = useThemedClasses();
-
   const textClass = themedClasses.textClass;
   const mutedTextClass = themedClasses.mutedTextClass;
   const cardBgClass = themedClasses.cardBgClass;
-
   const hasReplies = comment.replies && comment.replies.length > 0;
   const canReply = depth < maxDepth;
-
   const handleLike = useCallback(() => {
     onLike?.(comment.id);
   }, [onLike, comment.id]);
-
   const handleReply = useCallback(() => {
     if (replyContent.trim()) {
-      onReply?.(comment.id);
+      onReply?.(comment.id, replyContent.trim());
       setReplyContent('');
       setIsReplying(false);
     }
-  }, [onReply, replyContent]);
-
+  }, [onReply, replyContent, comment.id]);
   const toggleExpanded = useCallback(() => {
     setIsExpanded(prev => !prev);
   }, []);
-
   const toggleReplying = useCallback(() => {
     setIsReplying(prev => !prev);
   }, []);
-
   const itemVariants = {
     hidden: { opacity: 0, x: -10 },
     visible: {
@@ -70,7 +59,6 @@ function CommentItem({ comment, depth, maxDepth, onReply, onLike }: CommentItemP
       }
     }
   };
-
   const repliesVariants = {
     hidden: { opacity: 0, height: 0 },
     visible: {
@@ -81,7 +69,6 @@ function CommentItem({ comment, depth, maxDepth, onReply, onLike }: CommentItemP
       }
     }
   };
-
   return (
     <motion.div
       initial="hidden"
@@ -98,7 +85,6 @@ function CommentItem({ comment, depth, maxDepth, onReply, onLike }: CommentItemP
           )}>
             <User className={cn(depth === 0 ? 'w-5 h-5' : 'w-4 h-4', 'text-tech-cyan')} />
           </div>
-
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
@@ -131,11 +117,9 @@ function CommentItem({ comment, depth, maxDepth, onReply, onLike }: CommentItemP
                 </Button>
               )}
             </div>
-
             <p className={cn('text-sm leading-relaxed mb-3', mutedTextClass)}>
               {comment.content}
             </p>
-
             <div className="flex items-center gap-2">
               <Button
                 variant="ghost"
@@ -146,7 +130,6 @@ function CommentItem({ comment, depth, maxDepth, onReply, onLike }: CommentItemP
                 <ThumbsUp className="w-3 h-3 mr-1" />
                 {comment.likes}
               </Button>
-
               {canReply && (
                 <Button
                   variant="ghost"
@@ -158,7 +141,6 @@ function CommentItem({ comment, depth, maxDepth, onReply, onLike }: CommentItemP
                   {isReplying ? '取消' : '回复'}
                 </Button>
               )}
-
               <AnimatePresence>
                 {isReplying && (
                   <motion.div
@@ -201,7 +183,6 @@ function CommentItem({ comment, depth, maxDepth, onReply, onLike }: CommentItemP
           </div>
         </div>
       </GlassCard>
-
       <AnimatePresence>
         {hasReplies && isExpanded && (
           <motion.div
@@ -227,10 +208,8 @@ function CommentItem({ comment, depth, maxDepth, onReply, onLike }: CommentItemP
     </motion.div>
   );
 }
-
 const CommentItemWithMemo = memo(CommentItem);
 CommentItemWithMemo.displayName = 'CommentItem';
-
 function CommentTree({
   comments,
   depth = 0,
@@ -239,10 +218,8 @@ function CommentTree({
   onLike,
   className
 }: CommentTreeProps) {
-  const { themedClasses, getThemeClass } = useThemedClasses();
-  const textClass = themedClasses.textClass;
+  const { themedClasses } = useThemedClasses();
   const cardBgClass = themedClasses.cardBgClass;
-
   if (comments.length === 0) {
     return (
       <GlassCard className={cn('p-8 text-center', cardBgClass)}>
@@ -253,7 +230,6 @@ function CommentTree({
       </GlassCard>
     );
   }
-
   return (
     <div className={cn('space-y-4', className)}>
       {comments.map((comment) => (
@@ -269,8 +245,6 @@ function CommentTree({
     </div>
   );
 }
-
 const CommentTreeWithMemo = memo(CommentTree);
 CommentTreeWithMemo.displayName = 'CommentTree';
-
 export default CommentTreeWithMemo;

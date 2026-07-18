@@ -29,9 +29,9 @@ export function useArticleFilters({ categories, tags }: UseArticleFiltersProps):
     const tagParam = searchParams?.get('tag');
     const searchParam = searchParams?.get('search');
 
-    if (categoryParam) setSelectedCategory(categoryParam);
-    if (tagParam) setSelectedTag(tagParam);
-    if (searchParam) setSearchQuery(searchParam);
+    if (categoryParam) {setSelectedCategory(categoryParam);}
+    if (tagParam) {setSelectedTag(tagParam);}
+    if (searchParam) {setSearchQuery(searchParam);}
   }, [searchParams]);
 
   const handleCategoryChange = useCallback((categoryId: string | null) => {

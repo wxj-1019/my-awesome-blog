@@ -19,11 +19,11 @@ export const memoryService = {
     memory_type?: 'short_term' | 'long_term';
   }): Promise<PaginatedResponse<Memory>> {
     const queryParams = new URLSearchParams();
-    if (params?.skip !== undefined) queryParams.append('skip', params.skip.toString());
-    if (params?.limit !== undefined) queryParams.append('limit', params.limit.toString());
-    if (params?.tenant_id) queryParams.append('tenant_id', params.tenant_id);
-    if (params?.user_id) queryParams.append('user_id', params.user_id);
-    if (params?.memory_type) queryParams.append('memory_type', params.memory_type);
+    if (params?.skip !== undefined) {queryParams.append('skip', params.skip.toString());}
+    if (params?.limit !== undefined) {queryParams.append('limit', params.limit.toString());}
+    if (params?.tenant_id) {queryParams.append('tenant_id', params.tenant_id);}
+    if (params?.user_id) {queryParams.append('user_id', params.user_id);}
+    if (params?.memory_type) {queryParams.append('memory_type', params.memory_type);}
 
     const url = queryParams.toString() ? `${API_BASE}/?${queryParams}` : API_BASE;
     return apiRequest<PaginatedResponse<Memory>>(url);
@@ -56,9 +56,9 @@ export const memoryService = {
   async searchMemories(request: MemorySearchRequest): Promise<MemorySearchResult[]> {
     const queryParams = new URLSearchParams();
     queryParams.append('query', request.query);
-    if (request.limit !== undefined) queryParams.append('limit', request.limit.toString());
-    if (request.threshold !== undefined) queryParams.append('threshold', request.threshold.toString());
-    if (request.memory_type && request.memory_type !== 'all') queryParams.append('memory_type', request.memory_type);
+    if (request.limit !== undefined) {queryParams.append('limit', request.limit.toString());}
+    if (request.threshold !== undefined) {queryParams.append('threshold', request.threshold.toString());}
+    if (request.memory_type && request.memory_type !== 'all') {queryParams.append('memory_type', request.memory_type);}
 
     return apiRequest<MemorySearchResult[]>(`${API_BASE}/search?${queryParams}`);
   },

@@ -112,7 +112,7 @@ function CommandBar({
             aria-label="搜索文章 (Ctrl+K)"
             title="搜索文章 (Ctrl+K)"
           >
-            <Search className={`w-5 h-5 ${getThemeClass('text-white', 'text-gray-800')}`} />
+            <Search className={`w-5 h-5 ${getThemeClass('text-white', 'text-gray-800')}`} aria-hidden="true" />
           </button>
 
           <div className="h-6 w-px bg-white/20" />
@@ -123,7 +123,7 @@ function CommandBar({
             aria-label="筛选文章 (Ctrl+F)"
             title="筛选文章 (Ctrl+F)"
           >
-            <Filter className={`w-5 h-5 ${getThemeClass('text-white', 'text-gray-800')}`} />
+            <Filter className={`w-5 h-5 ${getThemeClass('text-white', 'text-gray-800')}`} aria-hidden="true" />
           </button>
 
           <div className="h-6 w-px bg-white/20" />
@@ -135,9 +135,9 @@ function CommandBar({
             title={`切换视图模式 (Ctrl+V)`}
           >
             {currentView === 'grid' ? (
-              <List className={`w-5 h-5 ${getThemeClass('text-white', 'text-gray-800')}`} />
+              <List className={`w-5 h-5 ${getThemeClass('text-white', 'text-gray-800')}`} aria-hidden="true" />
             ) : (
-              <Grid className={`w-5 h-5 ${getThemeClass('text-white', 'text-gray-800')}`} />
+              <Grid className={`w-5 h-5 ${getThemeClass('text-white', 'text-gray-800')}`} aria-hidden="true" />
             )}
           </button>
 
@@ -153,7 +153,7 @@ function CommandBar({
                   className="p-1 rounded-full hover:bg-white/10 transition-all"
                   aria-label="清除筛选"
                 >
-                  <X className={`w-3 h-3 ${getThemeClass('text-white', 'text-gray-800')}`} />
+                  <X className={`w-3 h-3 ${getThemeClass('text-white', 'text-gray-800')}`} aria-hidden="true" />
                 </button>
               </div>
             </>
@@ -164,7 +164,7 @@ function CommandBar({
             className="p-2 rounded-full bg-[#EC4899] hover:bg-[#EC4899]/90 transition-all active:scale-95 shadow-[0_0_15px_rgba(236,72,153,0.5)]"
             aria-label="打开侧边栏查看更多选项"
           >
-            <Sparkles className="w-5 h-5 text-white" />
+            <Sparkles className="w-5 h-5 text-white" aria-hidden="true" />
           </button>
         </motion.div>
       </div>
@@ -210,7 +210,7 @@ function CommandBar({
                   className="p-2 rounded-full hover:bg-white/10 transition-all"
                   aria-label="关闭搜索"
                 >
-                  <X className={`w-5 h-5 ${getThemeClass('text-white', 'text-gray-800')}`} />
+                  <X className={`w-5 h-5 ${getThemeClass('text-white', 'text-gray-800')}`} aria-hidden="true" />
                 </button>
               </div>
 
@@ -286,7 +286,7 @@ function CommandBar({
                     className="p-2 rounded-full hover:bg-white/10 transition-all"
                     aria-label="关闭筛选"
                   >
-                    <X className={`w-5 h-5 ${getThemeClass('text-white', 'text-gray-800')}`} />
+                    <X className={`w-5 h-5 ${getThemeClass('text-white', 'text-gray-800')}`} aria-hidden="true" />
                   </button>
                 </div>
 

@@ -24,6 +24,8 @@ export function useInfiniteScroll({
   }, [loading, hasMore, onLoadMore]);
 
   useEffect(() => {
+    const target = observerTargetRef.current;
+
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {
@@ -33,16 +35,16 @@ export function useInfiniteScroll({
       { threshold, rootMargin }
     );
 
-    if (observerTargetRef.current) {
-      observer.observe(observerTargetRef.current);
+    if (target) {
+      observer.observe(target);
     }
 
     return () => {
-      if (observerTargetRef.current) {
-        observer.unobserve(observerTargetRef.current);
+      if (target) {
+        observer.unobserve(target);
       }
     };
-  }, [hasMore, loading, handleLoadMore, threshold, rootMargin, onLoadMore]);
+  }, [hasMore, loading, handleLoadMore, threshold, rootMargin]);
 
   return observerTargetRef;
 }

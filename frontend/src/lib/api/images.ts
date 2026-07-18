@@ -34,8 +34,8 @@ export const getImages = async (params?: {
   limit?: number;
 }): Promise<Image[]> => {
   const queryParams = new URLSearchParams();
-  if (params?.skip !== undefined) queryParams.append('skip', params.skip.toString());
-  if (params?.limit !== undefined) queryParams.append('limit', params.limit.toString());
+  if (params?.skip !== undefined) {queryParams.append('skip', params.skip.toString());}
+  if (params?.limit !== undefined) {queryParams.append('limit', params.limit.toString());}
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 

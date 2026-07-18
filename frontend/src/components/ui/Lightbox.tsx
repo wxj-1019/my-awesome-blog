@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ZoomIn, ZoomOut, RotateCw, Download, Share2, ChevronLeft, ChevronRight, Maximize2, Minimize2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/components/ui/use-toast';
 
 export interface LightboxImage {
   id: string;
@@ -53,6 +54,7 @@ const Lightbox: React.FC<LightboxProps> = ({
   const [showControls, setShowControls] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(currentIndex);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const { toast } = useToast();
 
   const currentImage = images[currentImageIndex];
 
@@ -60,11 +62,47 @@ const Lightbox: React.FC<LightboxProps> = ({
     setCurrentImageIndex(currentIndex);
   }, [currentIndex]);
 
+  const resetTransforms = useCallback(() => {
+    setZoom(1);
+    setRotation(0);
+    setPosition({ x: 0, y: 0 });
+  }, []);
+
+  const handleNext = useCallback(() => {
+    if (isTransitioning) {return;}
+    setIsTransitioning(true);
+    setCurrentImageIndex(prev => (prev + 1) % images.length);
+    resetTransforms();
+    setTimeout(() => setIsTransitioning(false), 300);
+    onNext?.();
+  }, [images.length, isTransitioning, resetTransforms, onNext]);
+
+  const handlePrevious = useCallback(() => {
+    if (isTransitioning) {return;}
+    setIsTransitioning(true);
+    setCurrentImageIndex(prev => (prev - 1 + images.length) % images.length);
+    resetTransforms();
+    setTimeout(() => setIsTransitioning(false), 300);
+    onPrevious?.();
+  }, [images.length, isTransitioning, resetTransforms, onPrevious]);
+
+  const handleZoomIn = useCallback(() => {
+    setZoom(prev => Math.min(prev + 0.5, 5));
+  }, []);
+
+  const handleZoomOut = useCallback(() => {
+    setZoom(prev => Math.max(prev - 0.5, 0.5));
+  }, []);
+
+  const handleRotate = useCallback(() => {
+    setRotation(prev => (prev + 90) % 360);
+  }, []);
+
   useEffect(() => {
     if (keyboardNavigation) {
       const handleKeyDown = (e: KeyboardEvent) => {
-        if (!isOpen) return;
-        
+        if (!isOpen) {return;}
+
         switch (e.key) {
           case 'Escape':
             onClose();
@@ -92,43 +130,7 @@ const Lightbox: React.FC<LightboxProps> = ({
       window.addEventListener('keydown', handleKeyDown);
       return () => window.removeEventListener('keydown', handleKeyDown);
     }
-  }, [isOpen, keyboardNavigation]);
-
-  const resetTransforms = useCallback(() => {
-    setZoom(1);
-    setRotation(0);
-    setPosition({ x: 0, y: 0 });
-  }, []);
-
-  const handleNext = useCallback(() => {
-    if (isTransitioning) return;
-    setIsTransitioning(true);
-    setCurrentImageIndex(prev => (prev + 1) % images.length);
-    resetTransforms();
-    setTimeout(() => setIsTransitioning(false), 300);
-    onNext?.();
-  }, [images.length, isTransitioning, resetTransforms, onNext]);
-
-  const handlePrevious = useCallback(() => {
-    if (isTransitioning) return;
-    setIsTransitioning(true);
-    setCurrentImageIndex(prev => (prev - 1 + images.length) % images.length);
-    resetTransforms();
-    setTimeout(() => setIsTransitioning(false), 300);
-    onPrevious?.();
-  }, [images.length, isTransitioning, resetTransforms, onPrevious]);
-
-  const handleZoomIn = useCallback(() => {
-    setZoom(prev => Math.min(prev + 0.5, 5));
-  }, []);
-
-  const handleZoomOut = useCallback(() => {
-    setZoom(prev => Math.max(prev - 0.5, 0.5));
-  }, []);
-
-  const handleRotate = useCallback(() => {
-    setRotation(prev => (prev + 90) % 360);
-  }, []);
+  }, [isOpen, keyboardNavigation, onClose, handleNext, handlePrevious, handleZoomIn, handleZoomOut, handleRotate]);
 
   const handleDownload = useCallback(async () => {
     try {
@@ -159,9 +161,9 @@ const Lightbox: React.FC<LightboxProps> = ({
       }
     } else {
       navigator.clipboard.writeText(currentImage.src);
-      alert('图片链接已复制到剪贴板');
+      toast({ description: '图片链接已复制到剪贴板' });
     }
-  }, [currentImage]);
+  }, [currentImage, toast]);
 
   const handleFullscreen = useCallback(() => {
     setIsFullscreen(prev => !prev);
@@ -226,7 +228,7 @@ const Lightbox: React.FC<LightboxProps> = ({
     }
   }, [isFullscreen]);
 
-  if (!isOpen || !currentImage) return null;
+  if (!isOpen || !currentImage) {return null;}
 
   return (
     <AnimatePresence>
@@ -282,8 +284,9 @@ const Lightbox: React.FC<LightboxProps> = ({
                             className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 p-2 md:p-3 bg-black/50 hover:bg-black/70 rounded-full text-white transition-all duration-200 z-10"
                             onClick={handlePrevious}
                             disabled={isTransitioning}
+                            aria-label="上一张图片"
                           >
-                            <ChevronLeft className="w-6 h-6 md:w-8 md:h-8" />
+                            <ChevronLeft className="w-6 h-6 md:w-8 md:h-8" aria-hidden="true" />
                           </motion.button>
                           <motion.button
                             initial={{ opacity: 0, x: 20 }}
@@ -292,8 +295,9 @@ const Lightbox: React.FC<LightboxProps> = ({
                             className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 p-2 md:p-3 bg-black/50 hover:bg-black/70 rounded-full text-white transition-all duration-200 z-10"
                             onClick={handleNext}
                             disabled={isTransitioning}
+                            aria-label="下一张图片"
                           >
-                            <ChevronRight className="w-6 h-6 md:w-8 md:h-8" />
+                            <ChevronRight className="w-6 h-6 md:w-8 md:h-8" aria-hidden="true" />
                           </motion.button>
                         </>
                       )}
@@ -319,21 +323,24 @@ const Lightbox: React.FC<LightboxProps> = ({
                             className="p-2 bg-black/50 hover:bg-black/70 rounded-lg text-white transition-all duration-200"
                             onClick={handleZoomOut}
                             disabled={zoom <= 0.5}
+                            aria-label="缩小"
                           >
-                            <ZoomOut className="w-5 h-5" />
+                            <ZoomOut className="w-5 h-5" aria-hidden="true" />
                           </button>
                           <button
                             className="p-2 bg-black/50 hover:bg-black/70 rounded-lg text-white transition-all duration-200"
                             onClick={handleZoomIn}
                             disabled={zoom >= 5}
+                            aria-label="放大"
                           >
-                            <ZoomIn className="w-5 h-5" />
+                            <ZoomIn className="w-5 h-5" aria-hidden="true" />
                           </button>
                           <button
                             className="p-2 bg-black/50 hover:bg-black/70 rounded-lg text-white transition-all duration-200"
                             onClick={resetTransforms}
+                            aria-label="重置视图"
                           >
-                            <Maximize2 className="w-5 h-5" />
+                            <Maximize2 className="w-5 h-5" aria-hidden="true" />
                           </button>
                         </>
                       )}
@@ -341,8 +348,9 @@ const Lightbox: React.FC<LightboxProps> = ({
                         <button
                           className="p-2 bg-black/50 hover:bg-black/70 rounded-lg text-white transition-all duration-200"
                           onClick={handleRotate}
+                          aria-label="旋转图片"
                         >
-                          <RotateCw className="w-5 h-5" />
+                          <RotateCw className="w-5 h-5" aria-hidden="true" />
                         </button>
                       )}
                     </div>
@@ -351,31 +359,35 @@ const Lightbox: React.FC<LightboxProps> = ({
                         <button
                           className="p-2 bg-black/50 hover:bg-black/70 rounded-lg text-white transition-all duration-200"
                           onClick={handleFullscreen}
+                          aria-label={isFullscreen ? '退出全屏' : '进入全屏'}
                         >
-                          {isFullscreen ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
+                          {isFullscreen ? <Minimize2 className="w-5 h-5" aria-hidden="true" /> : <Maximize2 className="w-5 h-5" aria-hidden="true" />}
                         </button>
                       )}
                       {enableDownload && (
                         <button
                           className="p-2 bg-black/50 hover:bg-black/70 rounded-lg text-white transition-all duration-200"
                           onClick={handleDownload}
+                          aria-label="下载图片"
                         >
-                          <Download className="w-5 h-5" />
+                          <Download className="w-5 h-5" aria-hidden="true" />
                         </button>
                       )}
                       {enableShare && (
                         <button
                           className="p-2 bg-black/50 hover:bg-black/70 rounded-lg text-white transition-all duration-200"
                           onClick={handleShare}
+                          aria-label="分享图片"
                         >
-                          <Share2 className="w-5 h-5" />
+                          <Share2 className="w-5 h-5" aria-hidden="true" />
                         </button>
                       )}
                       <button
                         className="p-2 bg-black/50 hover:bg-black/70 rounded-lg text-white transition-all duration-200"
                         onClick={onClose}
+                        aria-label="关闭预览"
                       >
-                        <X className="w-5 h-5" />
+                        <X className="w-5 h-5" aria-hidden="true" />
                       </button>
                     </div>
                   </motion.div>
@@ -415,9 +427,9 @@ const Lightbox: React.FC<LightboxProps> = ({
             </AnimatePresence>
 
             <div className="absolute bottom-20 md:bottom-24 left-1/2 -translate-x-1/2 flex gap-1 z-20">
-              {images.map((_, index) => (
+              {images.map((image, index) => (
                 <button
-                  key={index}
+                  key={image.id}
                   className={cn(
                     'w-2 h-2 rounded-full transition-all duration-200',
                     index === currentImageIndex
@@ -428,6 +440,8 @@ const Lightbox: React.FC<LightboxProps> = ({
                     setCurrentImageIndex(index);
                     resetTransforms();
                   }}
+                  aria-label={`查看第 ${index + 1} 张图片${image.title ? `：${image.title}` : ''}`}
+                  aria-current={index === currentImageIndex ? 'true' : undefined}
                 />
               ))}
             </div>

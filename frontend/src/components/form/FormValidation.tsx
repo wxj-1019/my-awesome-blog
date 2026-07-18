@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertCircle, CheckCircle, Info } from 'lucide-react';
+import { AlertCircle, CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export interface ValidationRule<T = any> {
+export interface ValidationRule<T = unknown> {
   name: string;
   validate: (value: T) => boolean | string;
   message: string;
@@ -19,11 +19,11 @@ export interface FieldValidation {
 
 export interface FormValidationProps {
   children: React.ReactNode;
-  onSubmit: (data: Record<string, any>) => void;
+  onSubmit: (data: Record<string, unknown>) => void;
   className?: string;
 }
 
-export function useFormValidation<T extends Record<string, any>>(
+export function useFormValidation<T extends Record<string, unknown>>(
   initialValues: T,
   validationRules: Partial<Record<keyof T, ValidationRule[]>>
 ) {
@@ -31,9 +31,9 @@ export function useFormValidation<T extends Record<string, any>>(
   const [errors, setErrors] = useState<Partial<Record<keyof T, string>>>({});
   const [touched, setTouched] = useState<Partial<Record<keyof T, boolean>>>({});
 
-  const validateField = (name: keyof T, value: any) => {
+  const validateField = (name: keyof T, value: unknown) => {
     const rules = validationRules[name];
-    if (!rules) return true;
+    if (!rules) {return true;}
 
     for (const rule of rules) {
       const result = rule.validate(value);
@@ -63,7 +63,7 @@ export function useFormValidation<T extends Record<string, any>>(
     return isValid;
   };
 
-  const handleChange = (name: keyof T, value: any) => {
+  const handleChange = (name: keyof T, value: unknown) => {
     setValues(prev => ({ ...prev, [name]: value }));
 
     if (touched[name]) {

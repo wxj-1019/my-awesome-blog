@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Mail, MessageSquare, ExternalLink } from 'lucide-react';
+import {  ExternalLink } from 'lucide-react';
 
 interface ContactCardProps {
   icon: React.ReactNode;
@@ -85,7 +85,7 @@ export default function ContactCards({ cards }: ContactCardsProps) {
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {cards.map((card, index) => (
-          <ContactCard key={index} {...card} delay={index * 0.1} />
+          <ContactCard key={card.title} {...card} delay={index * 0.1} />
         ))}
       </div>
     </section>

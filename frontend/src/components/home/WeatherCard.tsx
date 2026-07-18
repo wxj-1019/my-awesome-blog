@@ -26,7 +26,7 @@ export default function WeatherCard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
-  const [city, setCity] = useState('杭州');
+  const city = '杭州';
   const [isExpanded, setIsExpanded] = useState(false);
   const [animationPhase, setAnimationPhase] = useState(0);
 
@@ -60,32 +60,32 @@ export default function WeatherCard() {
   }, [isExpanded]);
 
   const getWeatherIcon = () => {
-    if (!weather) return null;
+    if (!weather) {return null;}
     const weatherText = weather.weather.toLowerCase();
     
-    if (weatherText.includes('晴')) return <Sun className="w-5 h-5 text-yellow-400" />;
-    if (weatherText.includes('多云') || weatherText.includes('阴')) return <Cloud className="w-5 h-5 text-gray-300" />;
-    if (weatherText.includes('雨')) return <CloudRain className="w-5 h-5 text-blue-400" />;
-    if (weatherText.includes('雪')) return <Snowflake className="w-5 h-5 text-white" />;
-    if (weatherText.includes('雷')) return <CloudLightning className="w-5 h-5 text-yellow-500" />;
-    if (weatherText.includes('雾')) return <CloudFog className="w-5 h-5 text-gray-400" />;
+    if (weatherText.includes('晴')) {return <Sun className="w-5 h-5 text-yellow-400" />;}
+    if (weatherText.includes('多云') || weatherText.includes('阴')) {return <Cloud className="w-5 h-5 text-gray-300" />;}
+    if (weatherText.includes('雨')) {return <CloudRain className="w-5 h-5 text-blue-400" />;}
+    if (weatherText.includes('雪')) {return <Snowflake className="w-5 h-5 text-white" />;}
+    if (weatherText.includes('雷')) {return <CloudLightning className="w-5 h-5 text-yellow-500" />;}
+    if (weatherText.includes('雾')) {return <CloudFog className="w-5 h-5 text-gray-400" />;}
     
     return <Sun className="w-5 h-5 text-yellow-400" />;
   };
 
   const getAQILevel = () => {
-    if (!weather?.airQuality) return { level: '未知', color: 'text-gray-400' };
+    if (!weather?.airQuality) {return { level: '未知', color: 'text-gray-400' };}
     const aqi = parseInt(weather.airQuality.replace(/\D/g, ''));
     
-    if (aqi <= 50) return { level: '优', color: 'text-green-400' };
-    if (aqi <= 100) return { level: '良', color: 'text-yellow-400' };
-    if (aqi <= 150) return { level: '轻度', color: 'text-orange-400' };
-    if (aqi <= 200) return { level: '中度', color: 'text-red-400' };
+    if (aqi <= 50) {return { level: '优', color: 'text-green-400' };}
+    if (aqi <= 100) {return { level: '良', color: 'text-yellow-400' };}
+    if (aqi <= 150) {return { level: '轻度', color: 'text-orange-400' };}
+    if (aqi <= 200) {return { level: '中度', color: 'text-red-400' };}
     return { level: '重度', color: 'text-red-600' };
   };
 
   const formatUpdateTime = () => {
-    if (!weather?.updateTime) return '--:--';
+    if (!weather?.updateTime) {return '--:--';}
     try {
       const timeStr = weather.updateTime.split(' ')[1] || weather.updateTime;
       return timeStr.split(':')[0] + ':' + timeStr.split(':')[1];

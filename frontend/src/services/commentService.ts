@@ -1,6 +1,11 @@
-import { API_BASE_URL } from '@/config/api';
+import { apiRequest } from '@/lib/api-client';
+import type { Comment as UIComment } from '@/types';
+import logger from '@/utils/logger';
 
-export interface Comment {
+/**
+ * 后端返回的评论数据结构
+ */
+export interface ApiComment {
   id: string;
   content: string;
   article_id: string;
@@ -15,11 +20,6 @@ export interface Comment {
     avatar: string | null;
     full_name: string | null;
   };
-  article?: {
-    id: string;
-    title: string;
-    slug: string;
-  };
 }
 
 export interface CommentCreate {
@@ -33,74 +33,107 @@ export interface CommentUpdate {
   is_approved?: boolean;
 }
 
-const API_URL = `${API_BASE_URL}/comments`;
+const API_URL = '/comments';
 
-export const commentService = {
-  async getComments(params?: { article_id?: string; skip?: number; limit?: number }): Promise<Comment[]> {
-    const queryString = new URLSearchParams();
-    if (params?.article_id) queryString.append('article_id', params.article_id);
-    if (params?.skip !== undefined) queryString.append('skip', params.skip.toString());
-    if (params?.limit !== undefined) queryString.append('limit', params.limit.toString());
+/**
+ * 将后端评论转换为 UI 展示用的评论类型
+ */
+function toUIComment(apiComment: ApiComment): UIComment {
+  return {
+    id: apiComment.id,
+    content: apiComment.content,
+    author: {
+      id: apiComment.author?.id || apiComment.author_id,
+      username: apiComment.author?.username || '匿名用户',
+      avatar: apiComment.author?.avatar || undefined,
+    },
+    createdAt: apiComment.created_at,
+    likes: 0,
+    replies: [],
+  };
+}
 
-    const response = await fetch(`${API_URL}?${queryString.toString()}`);
-    if (!response.ok) throw new Error('Failed to fetch comments');
-    return response.json();
-  },
+/**
+ * 获取评论的回复并递归构建回复树
+ */
+async function getRepliesTree(parentId: string, depth = 0, maxDepth = 2): Promise<UIComment[]> {
+  if (depth >= maxDepth) {
+    return [];
+  }
 
-  async getCommentById(commentId: string): Promise<Comment> {
-    const response = await fetch(`${API_URL}/${commentId}`);
-    if (!response.ok) throw new Error('Failed to fetch comment');
-    return response.json();
-  },
+  try {
+    const replies = await apiRequest<ApiComment[]>(`${API_URL}/${parentId}/replies`);
+    const result: UIComment[] = [];
 
-  async createComment(commentData: CommentCreate): Promise<Comment> {
-    const token = localStorage.getItem('auth_token');
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { Authorization: `Bearer ${token}` }),
-      },
-      body: JSON.stringify(commentData),
-    });
-    if (!response.ok) throw new Error('Failed to create comment');
-    return response.json();
-  },
+    for (const reply of replies) {
+      const uiReply = toUIComment(reply);
+      uiReply.replies = await getRepliesTree(reply.id, depth + 1, maxDepth);
+      result.push(uiReply);
+    }
 
-  async updateComment(commentId: string, commentData: CommentUpdate): Promise<Comment> {
-    const token = localStorage.getItem('auth_token');
-    const response = await fetch(`${API_URL}/${commentId}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { Authorization: `Bearer ${token}` }),
-      },
-      body: JSON.stringify(commentData),
-    });
-    if (!response.ok) throw new Error('Failed to update comment');
-    return response.json();
-  },
+    return result;
+  } catch (error) {
+    logger.error(`获取评论回复失败: ${parentId}`, error);
+    return [];
+  }
+}
 
-  async deleteComment(commentId: string): Promise<void> {
-    const token = localStorage.getItem('auth_token');
-    const response = await fetch(`${API_URL}/${commentId}`, {
-      method: 'DELETE',
-      headers: {
-        ...(token && { Authorization: `Bearer ${token}` }),
-      },
-    });
-    if (!response.ok) throw new Error('Failed to delete comment');
-  },
+/**
+ * 获取文章评论树（顶层评论 + 回复）
+ */
+export const getCommentTree = async (
+  articleId: string,
+  maxDepth = 2
+): Promise<UIComment[]> => {
+  try {
+    const topLevelComments = await apiRequest<ApiComment[]>(
+      `${API_URL}/?article_id=${articleId}&limit=100`
+    );
 
-  async approveComment(commentId: string): Promise<Comment> {
-    const token = localStorage.getItem('auth_token');
-    const response = await fetch(`${API_URL}/${commentId}/approve`, {
-      method: 'POST',
-      headers: {
-        ...(token && { Authorization: `Bearer ${token}` }),
-      },
-    });
-    if (!response.ok) throw new Error('Failed to approve comment');
-    return response.json();
-  },
+    const result: UIComment[] = [];
+
+    for (const comment of topLevelComments) {
+      const uiComment = toUIComment(comment);
+      uiComment.replies = await getRepliesTree(comment.id, 0, maxDepth);
+      result.push(uiComment);
+    }
+
+    return result;
+  } catch (error) {
+    logger.error(`获取文章评论失败: ${articleId}`, error);
+    throw error;
+  }
+};
+
+/**
+ * 创建评论或回复
+ */
+export const createComment = async (commentData: CommentCreate): Promise<UIComment> => {
+  const apiComment = await apiRequest<ApiComment>(API_URL, {
+    method: 'POST',
+    body: commentData,
+  });
+  return toUIComment(apiComment);
+};
+
+/**
+ * 更新评论
+ */
+export const updateComment = async (
+  commentId: string,
+  commentData: CommentUpdate
+): Promise<ApiComment> => {
+  return apiRequest(`${API_URL}/${commentId}`, {
+    method: 'PUT',
+    body: commentData,
+  });
+};
+
+/**
+ * 删除评论
+ */
+export const deleteComment = async (commentId: string): Promise<void> => {
+  return apiRequest(`${API_URL}/${commentId}`, {
+    method: 'DELETE',
+  });
 };

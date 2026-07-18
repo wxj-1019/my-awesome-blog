@@ -5,7 +5,7 @@ module.exports = {
   ],
   rules: {
     // 企业级代码规范
-    'no-console': 'warn',
+    'no-console': ['error', { allow: ['error', 'warn'] }],
     'no-debugger': 'error',
     'prefer-const': 'error',
     'no-var': 'error',

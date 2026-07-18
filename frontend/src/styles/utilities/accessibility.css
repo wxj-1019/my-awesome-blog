@@ -14,3 +14,39 @@
   outline: 2px solid var(--tech-cyan) !important;
   outline-offset: 2px;
 }
+
+/* 全局减少动画支持
+ * 尊重用户系统偏好设置
+ * 将所有动画时间缩短到几乎不可见
+ * 但保留焦点指示器以便导航
+ */
+@media (prefers-reduced-motion: reduce) {
+  .dynamic-bg-light::before,
+  .dynamic-bg-light::after {
+    animation: none;
+  }
+
+  /* 保留必要的UI反馈 */
+  .focus-visible\:ring-2:focus-visible {
+    transition: box-shadow 0.1s ease-out !important;
+  }
+}
+
+/* 高对比度模式支持 */
+@media (prefers-contrast: high) {
+  .glass-card,
+  [class*="backdrop-blur"] {
+    backdrop-filter: none !important;
+    background-color: var(--background) !important;
+    border-width: 2px !important;
+  }
+}
+
+/* 减少透明度偏好支持 */
+@media (prefers-reduced-transparency: reduce) {
+  [class*="bg-glass"],
+  [class*="backdrop-blur"] {
+    backdrop-filter: none !important;
+    background-color: var(--card) !important;
+  }
+}

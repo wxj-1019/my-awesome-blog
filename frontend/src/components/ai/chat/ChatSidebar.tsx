@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Plus, Trash2, MessageSquare, Archive } from 'lucide-react';
 import type { Conversation } from '@/types';
-import { conversationService } from '@/services/conversationService';
+
 
 interface ChatSidebarProps {
   conversations: Conversation[];
@@ -118,8 +118,9 @@ export default function ChatSidebar({
                       onArchiveConversation(conv.id);
                     }}
                     className="p-1.5 rounded-lg bg-secondary dark:bg-muted/30 hover:bg-secondary/80 dark:hover:bg-muted/40 text-muted-foreground dark:text-foreground/70 hover:text-foreground dark:hover:text-foreground transition-all"
+                    aria-label="归档对话"
                   >
-                    <Archive className="w-4 h-4" />
+                    <Archive className="w-4 h-4" aria-hidden="true" />
                   </button>
                   <button
                     onClick={(e) => {
@@ -127,8 +128,9 @@ export default function ChatSidebar({
                       onDeleteConversation(conv.id);
                     }}
                     className="p-1.5 rounded-lg bg-error/10 dark:bg-red-500/20 hover:bg-error/20 dark:hover:bg-red-500/40 text-error dark:text-red-400 hover:text-error dark:hover:text-red-300 transition-all"
+                    aria-label="删除对话"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-4 h-4" aria-hidden="true" />
                   </button>
                 </div>
               </div>

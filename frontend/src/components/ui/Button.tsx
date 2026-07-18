@@ -1,10 +1,8 @@
 'use client';
-
 import * as React from 'react';
 import { Slot } from '@radix-ui/react-slot';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
-
 const buttonVariants = cva(
   'inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 relative overflow-hidden',
   {
@@ -35,76 +33,35 @@ const buttonVariants = cva(
     },
   }
 );
-
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
 }
-
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, children, onClick, ...props }, ref) => {
     const Comp = asChild ? Slot : 'button';
-    const rippleRef = React.useRef<HTMLSpanElement | null>(null);
     const buttonRef = React.useRef<HTMLButtonElement>(null);
-    const animationTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+    const [ripples, setRipples] = React.useState<Array<{ id: number; x: number; y: number }>>([]);
+    const rippleIdRef = React.useRef(0);
 
-    const rippleRefMerged = React.useMemo(
-      () => ({ current: null }),
-      []
-    );
-
-    React.useEffect(() => {
-      return () => {
-        if (animationTimeoutRef.current) {
-          clearTimeout(animationTimeoutRef.current);
-        }
-        if (rippleRef.current) {
-          rippleRef.current.remove();
-          rippleRef.current = null;
-        }
-      };
-    }, []);
+    React.useImperativeHandle(ref, () => buttonRef.current!);
 
     const handleClick = React.useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
-      if (onClick) {
-        onClick(e);
-      }
+      onClick?.(e);
 
       const button = e.currentTarget;
       const rect = button.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
+      const id = rippleIdRef.current++;
 
-      let ripple = rippleRef.current;
-      
-      if (!ripple) {
-        ripple = document.createElement('span');
-        ripple.className = 'button-ripple';
-        rippleRef.current = ripple;
-        button.appendChild(ripple);
-      }
+      setRipples(prev => [...prev, { id, x, y }]);
 
-      ripple.style.setProperty('--ripple-x', `${x}px`);
-      ripple.style.setProperty('--ripple-y', `${y}px`);
-      
-      ripple.style.animation = 'none';
-      ripple.offsetHeight;
-      ripple.style.animation = 'button-ripple 0.6s ease-out forwards';
-
-      if (animationTimeoutRef.current) {
-        clearTimeout(animationTimeoutRef.current);
-      }
-
-      animationTimeoutRef.current = setTimeout(() => {
-        if (rippleRef.current) {
-          rippleRef.current.remove();
-          rippleRef.current = null;
-        }
+      setTimeout(() => {
+        setRipples(prev => prev.filter(ripple => ripple.id !== id));
       }, 600);
     }, [onClick]);
-
-    React.useImperativeHandle(ref, () => buttonRef.current!);
 
     return (
       <Comp
@@ -115,10 +72,19 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         {children}
+        {ripples.map(ripple => (
+          <span
+            key={ripple.id}
+            className="button-ripple"
+            style={{
+              '--ripple-x': `${ripple.x}px`,
+              '--ripple-y': `${ripple.y}px`,
+            } as React.CSSProperties}
+          />
+        ))}
       </Comp>
     );
   }
 );
 Button.displayName = 'Button';
-
 export { Button, buttonVariants };

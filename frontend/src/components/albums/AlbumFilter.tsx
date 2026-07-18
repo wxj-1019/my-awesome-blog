@@ -169,6 +169,7 @@ const AlbumFilter: React.FC<AlbumFilterProps> = ({
           <div className="flex gap-2 p-1 bg-black/20 rounded-lg border border-glass-border">
             {(['grid', 'list', 'masonry'] as ViewMode[]).map((mode) => {
               const Icon = mode === 'grid' ? Grid3X3 : mode === 'list' ? List : Filter;
+              const label = mode === 'grid' ? '网格视图' : mode === 'list' ? '列表视图' : '瀑布流视图';
               return (
                 <motion.button
                   key={mode}
@@ -181,8 +182,9 @@ const AlbumFilter: React.FC<AlbumFilterProps> = ({
                       : 'text-white/60 hover:text-white hover:bg-white/10'
                   )}
                   onClick={() => handleViewModeChange(mode)}
+                  aria-label={label}
                 >
-                  <Icon className="h-4 w-4" />
+                  <Icon className="h-4 w-4" aria-hidden="true" />
                 </motion.button>
               );
             })}
@@ -198,7 +200,7 @@ const AlbumFilter: React.FC<AlbumFilterProps> = ({
               className="pt-2 border-t border-glass-border"
             >
               <p className="text-sm">
-                搜索结果: <span className="text-tech-cyan font-semibold">"{searchTerm}"</span>
+                搜索结果: <span className="text-tech-cyan font-semibold">&quot;{searchTerm}&quot;</span>
               </p>
             </motion.div>
           )}

@@ -49,6 +49,13 @@ const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
     const variant = toastVariants[type];
     const VariantIcon = variant.icon;
 
+    const handleClose = React.useCallback(() => {
+      setIsVisible(false);
+      setTimeout(() => {
+        onClose?.(id);
+      }, 300);
+    }, [onClose, id]);
+
     React.useEffect(() => {
       const interval = setInterval(() => {
         setProgress((prev) => {
@@ -65,14 +72,7 @@ const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
         clearInterval(interval);
         clearTimeout(timeout);
       };
-    }, [duration]);
-
-    const handleClose = () => {
-      setIsVisible(false);
-      setTimeout(() => {
-        onClose?.(id);
-      }, 300);
-    };
+    }, [duration, handleClose]);
 
     return (
       <AnimatePresence mode="wait">
@@ -110,8 +110,9 @@ const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
               <button
                 onClick={handleClose}
                 className="flex-shrink-0 p-1 rounded-lg hover:bg-black/5 dark:hover:bg-black/10 transition-colors"
+                aria-label="关闭"
               >
-                <X className="w-4 h-4 text-foreground/50" />
+                <X className="w-4 h-4 text-foreground/50" aria-hidden="true" />
               </button>
             </div>
 

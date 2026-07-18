@@ -1,12 +1,9 @@
 'use client';
-
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
 import { Folder, FolderOpen } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
 import { useThemedClasses } from '@/hooks/useThemedClasses';
 import { memo } from 'react';
-
 interface Category {
   id: string;
   name: string;
@@ -14,31 +11,23 @@ interface Category {
   description: string;
   article_count: number;
 }
-
 interface CategoryNavProps {
   categories: Category[];
   selectedCategory: string | null;
   onCategorySelect: (categoryId: string | null) => void;
 }
-
 function CategoryNav({ categories, selectedCategory, onCategorySelect }: CategoryNavProps) {
-  const searchParams = useSearchParams();
   const { themedClasses, getThemeClass } = useThemedClasses();
-
-  const textClass = themedClasses.textClass;
   const mutedTextClass = themedClasses.mutedTextClass;
-
   if (!categories || categories.length === 0) {
     return null;
   }
-
   return (
     <GlassCard className="overflow-hidden">
       <div className="flex items-center gap-2 mb-4">
         <Folder className="h-5 w-5 text-tech-cyan" />
         <h3 className="text-lg font-bold">分类导航</h3>
       </div>
-
       <div className="space-y-1">
         <button
           onClick={() => onCategorySelect(null)}
@@ -59,7 +48,6 @@ function CategoryNav({ categories, selectedCategory, onCategorySelect }: Categor
             {categories.reduce((sum, cat) => sum + cat.article_count, 0)}
           </span>
         </button>
-
         {categories.map((category) => (
           <Link
             key={category.id}
@@ -89,5 +77,4 @@ function CategoryNav({ categories, selectedCategory, onCategorySelect }: Categor
     </GlassCard>
   );
 }
-
 export default memo(CategoryNav);

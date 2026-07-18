@@ -1,42 +1,32 @@
 'use client';
-
 import { Globe, Twitter, Github, Linkedin, Link as LinkIcon } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
-import { useTheme } from '@/context/theme-context';
-
 interface SocialLink {
   type: 'website' | 'twitter' | 'github' | 'linkedin';
   value: string;
 }
-
 interface SocialLinksCardProps {
   socialLinks: SocialLink[];
   isEditing?: boolean;
 }
-
 const socialConfig = {
   website: { icon: Globe, label: '个人网站', color: 'text-blue-500' },
   twitter: { icon: Twitter, label: 'Twitter', color: 'text-sky-500' },
   github: { icon: Github, label: 'GitHub', color: 'text-gray-600 dark:text-gray-300' },
   linkedin: { icon: Linkedin, label: 'LinkedIn', color: 'text-blue-600' },
 };
-
 export default function SocialLinksCard({ socialLinks, isEditing = false }: SocialLinksCardProps) {
-  const { resolvedTheme } = useTheme();
   const validLinks = socialLinks.filter(link => link.value);
-
   return (
     <GlassCard padding="lg" className="border-tech-cyan/20 hover:shadow-[0_0_30px_var(--shadow-tech-cyan)] transition-all duration-300 hover:-translate-y-1 animate-fade-in-up">
       <h3 className="text-lg font-semibold text-foreground mb-6 flex items-center gap-2">
         <LinkIcon className="w-5 h-5 text-tech-cyan" />
         <span className="text-gradient-primary">社交链接</span>
       </h3>
-
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {validLinks.map((link, index) => {
           const config = socialConfig[link.type];
           const Icon = config.icon;
-
           return (
             <a
               key={link.type}
@@ -67,14 +57,12 @@ export default function SocialLinksCard({ socialLinks, isEditing = false }: Soci
             </a>
           );
         })}
-
         {validLinks.length === 0 && (
           <div className="col-span-full text-center py-8 text-muted-foreground">
             {isEditing ? '添加社交链接以展示您的社交网络' : '暂无社交链接'}
           </div>
         )}
       </div>
-
       {/* 底部装饰线 */}
       <div className="mt-6 pt-4 border-t border-tech-cyan/20">
         <div className="h-1 bg-gradient-to-r from-tech-cyan via-tech-sky to-transparent rounded-full animate-pulse" />
@@ -82,7 +70,6 @@ export default function SocialLinksCard({ socialLinks, isEditing = false }: Soci
     </GlassCard>
   );
 }
-
 function getLinkUrl(type: string, value: string): string {
   switch (type) {
     case 'twitter':
@@ -96,7 +83,6 @@ function getLinkUrl(type: string, value: string): string {
       return value.startsWith('http') ? value : `https://${value}`;
   }
 }
-
 function formatLinkValue(type: string, value: string): string {
   switch (type) {
     case 'twitter':

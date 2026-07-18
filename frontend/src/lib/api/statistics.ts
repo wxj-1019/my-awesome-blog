@@ -70,8 +70,8 @@ export const getGrowthStats = async (params?: {
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
   const queryParams = new URLSearchParams();
-  if (params?.days) queryParams.append('days', params.days.toString());
-  if (params?.period) queryParams.append('period', params.period);
+  if (params?.days) {queryParams.append('days', params.days.toString());}
+  if (params?.period) {queryParams.append('period', params.period);}
 
   const response = await fetch(`${API_BASE_URL}/stats/growth?${queryParams.toString()}`, {
     headers: {

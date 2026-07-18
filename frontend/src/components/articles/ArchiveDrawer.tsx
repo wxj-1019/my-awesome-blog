@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo, memo } from 'react';
+import { useState, useMemo, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, TrendingUp, Users, X, Clock } from 'lucide-react';
 import Link from 'next/link';
@@ -34,7 +34,7 @@ function ArchiveDrawer({
   const groupedArticles = useMemo(() => {
     return hotArticles.reduce((acc, article) => {
       const month = formatMonthYear(article.published_at);
-      if (!acc[month]) acc[month] = [];
+      if (!acc[month]) {acc[month] = [];}
       acc[month].push(article);
       return acc;
     }, {} as Record<string, Article[]>);
@@ -79,8 +79,9 @@ function ArchiveDrawer({
                   <button
                     onClick={onClose}
                     className="p-2 rounded-full hover:bg-white/10 transition-all"
+                    aria-label="关闭"
                   >
-                    <X className={`w-6 h-6 ${getThemeClass('text-white', 'text-gray-800')}`} />
+                    <X className={`w-6 h-6 ${getThemeClass('text-white', 'text-gray-800')}`} aria-hidden="true" />
                   </button>
                 </div>
 

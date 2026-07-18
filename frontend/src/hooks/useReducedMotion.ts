@@ -64,6 +64,6 @@ export const GPU_ACCELERATED_PROPS = {
  */
 export function useWillChange(isAnimating: boolean): string {
   const reducedMotion = useReducedMotion();
-  if (reducedMotion) return 'auto';
+  if (reducedMotion) {return 'auto';}
   return isAnimating ? 'transform, opacity' : 'auto';
 }

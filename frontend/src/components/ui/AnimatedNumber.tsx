@@ -14,7 +14,7 @@ interface AnimatedNumberProps {
 
 export default function AnimatedNumber({
   value,
-  duration = 2000,
+  duration: _duration = 2000,
   delay = 0,
   formatFn = (v) => v.toLocaleString(),
   className = '',

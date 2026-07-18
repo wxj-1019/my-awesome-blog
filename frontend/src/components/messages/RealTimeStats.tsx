@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, memo, useCallback } from 'react';
+import { useState, useEffect, useMemo, memo } from 'react';
 import { motion } from 'framer-motion';
 import {
   Users, MessageSquare, TrendingUp, Activity, Zap, Globe,
@@ -50,6 +50,8 @@ function RealTimeStats() {
   ];
 
   // 模拟数据初始化
+  // messageRate 仅用于初始化统计卡片，加入依赖会导致每次 rate 变化时重复初始化
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     // 初始化实时数据
     const initialOnlineUsers = Math.floor(Math.random() * 50) + 10;
@@ -146,6 +148,8 @@ function RealTimeStats() {
       { rank: 7, name: 'Thinker', value: 134, metric: '浏览量', change: 18 },
       { rank: 8, name: 'Writer', value: 56, metric: '留言数', change: 4 }
     ]);
+    // messageRate 仅用于初始化统计卡片，加入依赖会导致每次 rate 变化时重复初始化
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // 实时数据更新
@@ -156,7 +160,7 @@ function RealTimeStats() {
         return Math.max(5, prev + change);
       });
 
-      setMessageRate(prev => {
+      setMessageRate(_prev => {
         const newRate = Math.floor(Math.random() * 10) + 1;
         return newRate;
       });
@@ -177,10 +181,10 @@ function RealTimeStats() {
       // 模拟真实数据：白天活跃度高，夜间低
       const hour = i;
       let base = 20;
-      if (hour >= 9 && hour <= 12) base = 70;  // 上午高峰
-      if (hour >= 14 && hour <= 17) base = 65; // 下午高峰
-      if (hour >= 20 && hour <= 22) base = 55; // 晚上高峰
-      if (hour >= 23 || hour <= 6) base = 15;  // 夜间低谷
+      if (hour >= 9 && hour <= 12) {base = 70;}  // 上午高峰
+      if (hour >= 14 && hour <= 17) {base = 65;} // 下午高峰
+      if (hour >= 20 && hour <= 22) {base = 55;} // 晚上高峰
+      if (hour >= 23 || hour <= 6) {base = 15;}  // 夜间低谷
       return base + Math.random() * 20;
     });
   }, []);
@@ -339,9 +343,10 @@ function RealTimeStats() {
 
           <div className="h-32">
             <div className="flex items-end gap-1 h-full">
+              {/* 24 小时活动柱状图：index 即小时，作为稳定 key */}
               {activityData.map((height, i) => (
                 <motion.div
-                  key={i}
+                  key={`hour-${i}`}
                   className="flex-1 bg-gradient-to-t from-tech-cyan to-tech-cyan/30 rounded-t-sm relative group will-change-transform"
                   initial={{ height: 0 }}
                   animate={{ height: `${height}%` }}
@@ -437,6 +442,7 @@ function RealTimeStats() {
           月度趋势
         </div>
         <div className="flex items-end gap-1 h-24">
+          {/* 12 个月度柱状图：顺序固定，使用 index 作为 key */}
           {Array.from({ length: 12 }, (_, i) => {
             // 模拟月度数据
             const monthValue = 30 + Math.random() * 40;

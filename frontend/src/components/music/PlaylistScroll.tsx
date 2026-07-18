@@ -22,7 +22,7 @@ export default function PlaylistScroll({
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const scroll = (direction: 'left' | 'right') => {
-    if (!scrollRef.current) return;
+    if (!scrollRef.current) {return;}
     const scrollAmount = direction === 'left' ? -400 : 400;
     scrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
   };

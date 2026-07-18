@@ -1,7 +1,7 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import { Gamepad2, Heart, Clock, Trophy, Star, List, Monitor, Smartphone, Box } from 'lucide-react';
+import { Gamepad2, Heart, Clock, Trophy, Star, Monitor, Smartphone, Box } from 'lucide-react';
 
 interface GameSidebarProps {
   activeSection: string;

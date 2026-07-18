@@ -33,22 +33,22 @@ const calculateStrength = (password: string): PasswordStrength => {
     return { score: 0, feedback: '', color: 'bg-gray-300' };
   }
 
-  if (password.length >= 8) score += 1;
-  else feedback.push('至少8个字符');
+  if (password.length >= 8) {score += 1;}
+  else {feedback.push('至少8个字符');}
 
-  if (password.length >= 12) score += 1;
+  if (password.length >= 12) {score += 1;}
 
-  if (/[a-z]/.test(password)) score += 1;
-  else feedback.push('小写字母');
+  if (/[a-z]/.test(password)) {score += 1;}
+  else {feedback.push('小写字母');}
 
-  if (/[A-Z]/.test(password)) score += 1;
-  else feedback.push('大写字母');
+  if (/[A-Z]/.test(password)) {score += 1;}
+  else {feedback.push('大写字母');}
 
-  if (/[0-9]/.test(password)) score += 1;
-  else feedback.push('数字');
+  if (/[0-9]/.test(password)) {score += 1;}
+  else {feedback.push('数字');}
 
-  if (/[^a-zA-Z0-9]/.test(password)) score += 1;
-  else feedback.push('特殊字符');
+  if (/[^a-zA-Z0-9]/.test(password)) {score += 1;}
+  else {feedback.push('特殊字符');}
 
   const colors = [
     'bg-red-500',
@@ -135,8 +135,9 @@ export default function PasswordField({
           className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground/50 hover:text-foreground transition-colors"
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
+          aria-label={showPassword ? '隐藏密码' : '显示密码'}
         >
-          {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+          {showPassword ? <EyeOff className="w-5 h-5" aria-hidden="true" /> : <Eye className="w-5 h-5" aria-hidden="true" />}
         </motion.button>
       </div>
 

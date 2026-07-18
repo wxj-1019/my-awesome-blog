@@ -14,9 +14,12 @@ import {
   ChevronLeft,
   ChevronRight
 } from 'lucide-react'
+import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { adminApi } from '@/lib/admin-api-client'
 import { validateArrayData } from '@/utils/data-validation'
+import { useToast } from '@/components/admin/Toast'
+import ConfirmDialog from '@/components/ui/ConfirmDialog'
 
 interface ImageItem {
   id: string
@@ -42,6 +45,18 @@ export default function ImagesPage() {
   const [total, setTotal] = useState(0)
   const [selectedImage, setSelectedImage] = useState<ImageItem | null>(null)
   const [copiedId, setCopiedId] = useState<string | null>(null)
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    description: string;
+    onConfirm: () => void | Promise<void>;
+  }>({
+    isOpen: false,
+    title: '确认操作',
+    description: '',
+    onConfirm: () => {},
+  })
+  const { success, error } = useToast()
   const pageSize = 12
 
   const fetchImages = useCallback(async () => {
@@ -49,7 +64,7 @@ export default function ImagesPage() {
       setLoading(true)
       const skip = (currentPage - 1) * pageSize
       
-      const data: any = await adminApi.images.list({
+      const data = await adminApi.images.list({
         skip,
         limit: pageSize
       })
@@ -77,37 +92,44 @@ export default function ImagesPage() {
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
-    if (!files || files.length === 0) return
+    if (!files || files.length === 0) {return}
 
     setUploading(true)
-    
+
     try {
-      Array.from(files).forEach(async (file) => {
-        const formData = new FormData()
-        formData.append('file', file)
-        await adminApi.images.upload(formData)
-      })
-      
+      await Promise.all(
+        Array.from(files).map(async (file) => {
+          const formData = new FormData()
+          formData.append('file', file)
+          await adminApi.images.upload(formData)
+        })
+      )
+
       fetchImages()
-      alert('图片上传成功')
-    } catch (error) {
-      console.error('Failed to upload images:', error)
-      alert('上传失败，请重试')
+      success('图片上传成功')
+    } catch (uploadError) {
+      console.error('Failed to upload images:', uploadError)
+      error('上传失败，请重试')
     } finally {
       setUploading(false)
     }
   }
 
-  const deleteImage = async (id: string) => {
-    if (!confirm('确定要删除这张图片吗？此操作不可恢复。')) return
-    
-    try {
-      await adminApi.images.delete(id)
-      fetchImages()
-    } catch (error) {
-      console.error('Failed to delete image:', error)
-      alert('删除失败，请重试')
-    }
+  const deleteImage = (id: string) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: '删除图片',
+      description: '确定要删除这张图片吗？此操作不可恢复。',
+      onConfirm: async () => {
+        try {
+          await adminApi.images.delete(id)
+          fetchImages()
+        } catch (deleteError) {
+          console.error('Failed to delete image:', deleteError)
+          error('删除失败，请重试')
+        }
+      },
+    })
   }
 
   const copyUrl = (url: string, id: string) => {
@@ -117,7 +139,7 @@ export default function ImagesPage() {
   }
 
   const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return '0 Bytes'
+    if (bytes === 0) {return '0 Bytes'}
     const k = 1024
     const sizes = ['Bytes', 'KB', 'MB', 'GB']
     const i = Math.floor(Math.log(bytes) / Math.log(k))
@@ -219,10 +241,12 @@ export default function ImagesPage() {
                 className="group relative aspect-square rounded-xl overflow-hidden bg-gray-100 cursor-pointer hover:shadow-lg transition-all"
                 onClick={() => setSelectedImage(image)}
               >
-                <img
+                <Image
                   src={image.thumbnail_url || image.url}
                   alt={image.original_filename}
-                  className="w-full h-full object-cover"
+                  fill
+                  sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 16vw"
+                  className="object-cover"
                 />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
                   <div className="flex gap-2">
@@ -274,13 +298,15 @@ export default function ImagesPage() {
                   <tr key={image.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-4 py-3">
                       <div 
-                        className="w-12 h-12 rounded-lg bg-gray-100 overflow-hidden cursor-pointer"
+                        className="relative w-12 h-12 rounded-lg bg-gray-100 overflow-hidden cursor-pointer"
                         onClick={() => setSelectedImage(image)}
                       >
-                        <img
+                        <Image
                           src={image.thumbnail_url || image.url}
                           alt={image.original_filename}
-                          className="w-full h-full object-cover"
+                          width={48}
+                          height={48}
+                          className="object-cover"
                         />
                       </div>
                     </td>
@@ -363,6 +389,15 @@ export default function ImagesPage() {
         )}
       </div>
 
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={() => setConfirmDialog(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmDialog.onConfirm}
+        title={confirmDialog.title}
+        description={confirmDialog.description}
+        variant="danger"
+      />
+
       {/* Image Preview Modal */}
       {selectedImage && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -381,9 +416,11 @@ export default function ImagesPage() {
               </button>
             </div>
             <div className="p-4 overflow-auto max-h-[calc(90vh-8rem)]">
-              <img
+              <Image
                 src={selectedImage.url}
                 alt={selectedImage.original_filename}
+                width={selectedImage.width}
+                height={selectedImage.height}
                 className="max-w-full h-auto mx-auto rounded-lg"
               />
             </div>

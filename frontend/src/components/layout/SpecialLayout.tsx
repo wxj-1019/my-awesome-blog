@@ -1,6 +1,5 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import Navbar from '@/components/navigation/Navbar';
 import Footer from '@/components/navigation/Footer';

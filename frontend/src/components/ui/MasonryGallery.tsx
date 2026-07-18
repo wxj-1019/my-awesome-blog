@@ -1,9 +1,7 @@
 'use client';
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
-
 export interface MasonryImage {
   id: string;
   src: string;
@@ -14,7 +12,6 @@ export interface MasonryImage {
   category?: string;
   date?: string;
 }
-
 interface MasonryGalleryProps {
   images: MasonryImage[];
   columns?: number;
@@ -25,7 +22,6 @@ interface MasonryGalleryProps {
   enableLazyLoad?: boolean;
   loadingThreshold?: number;
 }
-
 const MasonryGallery: React.FC<MasonryGalleryProps> = ({
   images,
   columns = 3,
@@ -42,29 +38,25 @@ const MasonryGallery: React.FC<MasonryGalleryProps> = ({
   const [imagePositions, setImagePositions] = useState<Map<string, { col: number; top: number }>>(new Map());
   const containerRef = useRef<HTMLDivElement>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
-
-  const responsiveColumns = {
-    'xs': 1,
-    'sm': 2,
-    'md': 3,
-    'lg': columns,
-    'xl': columns,
-  };
-
   const getColumnsForScreen = useCallback(() => {
-    if (typeof window === 'undefined') return columns;
+    const responsiveColumns = {
+      xs: 1,
+      sm: 2,
+      md: 3,
+      lg: columns,
+      xl: columns,
+    };
+    if (typeof window === 'undefined') {return columns;}
     const width = window.innerWidth;
-    if (width < 640) return responsiveColumns.xs;
-    if (width < 768) return responsiveColumns.sm;
-    if (width < 1024) return responsiveColumns.md;
+    if (width < 640) {return responsiveColumns.xs;}
+    if (width < 768) {return responsiveColumns.sm;}
+    if (width < 1024) {return responsiveColumns.md;}
     return responsiveColumns.lg;
-  }, [columns, responsiveColumns]);
-
+  }, [columns]);
   const calculateLayout = useCallback((currentColumns: number) => {
     const heights = new Array(currentColumns).fill(0);
     const positions = new Map<string, { col: number; top: number }>();
-
-    images.forEach((image, index) => {
+    images.forEach((image, _index) => {
       const minHeight = Math.min(...heights);
       const colIndex = heights.indexOf(minHeight);
       
@@ -78,30 +70,24 @@ const MasonryGallery: React.FC<MasonryGalleryProps> = ({
       
       heights[colIndex] += imageHeight + gap;
     });
-
     setColumnHeights(heights);
     setImagePositions(positions);
   }, [images, gap]);
-
   useEffect(() => {
     const currentColumns = getColumnsForScreen();
     calculateLayout(currentColumns);
-
     const handleResize = () => {
       const newColumns = getColumnsForScreen();
       calculateLayout(newColumns);
     };
-
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, [calculateLayout, getColumnsForScreen]);
-
   useEffect(() => {
     if (!enableLazyLoad) {
       setVisibleImages(new Set(images.map(img => img.id)));
       return;
     }
-
     observerRef.current = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -115,22 +101,17 @@ const MasonryGallery: React.FC<MasonryGalleryProps> = ({
       },
       { threshold: loadingThreshold }
     );
-
     const imageElements = containerRef.current?.querySelectorAll('[data-image-id]');
     imageElements?.forEach(el => observerRef.current?.observe(el));
-
     return () => {
       observerRef.current?.disconnect();
     };
   }, [enableLazyLoad, loadingThreshold, images]);
-
   const handleImageLoad = useCallback((imageId: string) => {
     setLoadedImages(prev => new Set(prev).add(imageId));
   }, []);
-
   const currentColumns = getColumnsForScreen();
   const containerHeight = Math.max(...columnHeights);
-
   return (
     <div ref={containerRef} className={cn('relative', className)}>
       <div
@@ -141,12 +122,9 @@ const MasonryGallery: React.FC<MasonryGalleryProps> = ({
       >
         {images.map((image, index) => {
           const position = imagePositions.get(image.id);
-          if (!position) return null;
-
+          if (!position) {return null;}
           const aspectRatio = image.aspectRatio || 1;
           const columnWidth = `calc((100% - ${(currentColumns - 1) * gap * 4}px) / ${currentColumns})`;
-          const imageHeight = (parseInt(columnWidth) / 100) * 800 * aspectRatio;
-
           return (
             <motion.div
               key={image.id}
@@ -222,5 +200,4 @@ const MasonryGallery: React.FC<MasonryGalleryProps> = ({
     </div>
   );
 };
-
 export default MasonryGallery;

@@ -21,7 +21,7 @@ const MessagePagination = ({
   onPageChange = () => {},
   className,
   showEdgeButtons = true,
-  showEllipsis = true
+  showEllipsis: _showEllipsis = true
 }: MessagePaginationProps) => {
   const currentPage = (typeof propCurrentPage === 'number' && !isNaN(propCurrentPage)) ? propCurrentPage : 1;
   const totalPages = (typeof propTotalPages === 'number' && !isNaN(propTotalPages)) ? propTotalPages : 1;
@@ -65,7 +65,7 @@ const MessagePagination = ({
     }
   };
 
-  if (totalPages <= 1) return null;
+  if (totalPages <= 1) {return null;}
 
   const pageNumbers = getPageNumbers();
 
@@ -91,8 +91,9 @@ const MessagePagination = ({
                 'border-gray-300 text-gray-700 hover:bg-gray-100'
               )
             )}
+            aria-label="首页"
           >
-            <ChevronsLeft className="w-4 h-4" />
+            <ChevronsLeft className="w-4 h-4" aria-hidden="true" />
           </Button>
         </motion.div>
       )}
@@ -110,8 +111,9 @@ const MessagePagination = ({
               'border-gray-300 text-gray-700 hover:bg-gray-100'
             )
           )}
+          aria-label="上一页"
         >
-          <ChevronLeft className="w-4 h-4" />
+          <ChevronLeft className="w-4 h-4" aria-hidden="true" />
         </Button>
       </motion.div>
 
@@ -144,6 +146,7 @@ const MessagePagination = ({
               </Button>
             </motion.div>
           ) : (
+            // 省略号占位符：使用 index 作为 key
             <motion.span
               key={index}
               className={cn(
@@ -172,8 +175,9 @@ const MessagePagination = ({
               'border-gray-300 text-gray-700 hover:bg-gray-100'
             )
           )}
+          aria-label="下一页"
         >
-          <ChevronRight className="w-4 h-4" />
+          <ChevronRight className="w-4 h-4" aria-hidden="true" />
         </Button>
       </motion.div>
 
@@ -191,8 +195,9 @@ const MessagePagination = ({
                 'border-gray-300 text-gray-700 hover:bg-gray-100'
               )
             )}
+            aria-label="末页"
           >
-            <ChevronsRight className="w-4 h-4" />
+            <ChevronsRight className="w-4 h-4" aria-hidden="true" />
           </Button>
         </motion.div>
       )}

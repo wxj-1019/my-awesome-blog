@@ -1,10 +1,7 @@
 'use client';
-
-import { Music, Radio, Video, Mic2, Heart, HardDrive, Download, ListMusic, ChevronLeft, ChevronRight, Disc } from 'lucide-react';
-import { useTheme } from '@/context/theme-context';
+import { Music, Radio, Video, Mic2, Heart, HardDrive, Download, ListMusic, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Playlist } from '@/types/music';
-
 interface MusicSidebarProps {
   activeSection: string;
   onSectionChange: (section: string) => void;
@@ -12,23 +9,18 @@ interface MusicSidebarProps {
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
 }
-
 export default function MusicSidebar({ activeSection, onSectionChange, playlists, isCollapsed = false, onToggleCollapse }: MusicSidebarProps) {
-  const { resolvedTheme } = useTheme();
-
   const navItems = [
     { id: 'discover', icon: Music, label: '发现音乐' },
     { id: 'fm', icon: Radio, label: '私人FM' },
     { id: 'video', icon: Video, label: '视频' },
     { id: 'radio', icon: Mic2, label: '电台' },
   ];
-
   const myMusicItems = [
     { id: 'liked', icon: Heart, label: '我喜欢的音乐' },
     { id: 'local', icon: HardDrive, label: '本地音乐' },
     { id: 'download', icon: Download, label: '下载管理' },
   ];
-
   return (
     <aside className={cn(
       'hidden md:flex flex-col h-full flex-shrink-0 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]',
@@ -47,12 +39,11 @@ export default function MusicSidebar({ activeSection, onSectionChange, playlists
           aria-label={isCollapsed ? '展开侧边栏' : '收起侧边栏'}
         >
           {isCollapsed ? (
-            <ChevronRight className="w-5 h-5 text-white/60" />
+            <ChevronRight className="w-5 h-5 text-white/60" aria-hidden="true" />
           ) : (
-            <ChevronLeft className="w-5 h-5 text-white/60" />
+            <ChevronLeft className="w-5 h-5 text-white/60" aria-hidden="true" />
           )}
         </button>
-
         {!isCollapsed && (
           <>
             <div className="mb-8">
@@ -79,7 +70,6 @@ export default function MusicSidebar({ activeSection, onSectionChange, playlists
                 ))}
               </nav>
             </div>
-
             <div className="mb-8">
               <h3 className="text-xs font-semibold text-white/40 mb-3 px-3 uppercase tracking-wider">我的音乐</h3>
               <nav className="flex flex-col gap-1">
@@ -104,7 +94,6 @@ export default function MusicSidebar({ activeSection, onSectionChange, playlists
                 ))}
               </nav>
             </div>
-
             <div>
               <h3 className="text-xs font-semibold text-white/40 mb-3 px-3 uppercase tracking-wider">创建的歌单</h3>
               <nav className="flex flex-col gap-1">
@@ -131,7 +120,6 @@ export default function MusicSidebar({ activeSection, onSectionChange, playlists
             </div>
           </>
         )}
-
         {isCollapsed && (
           <nav className="flex flex-col gap-4 items-center">
             {navItems.map((item) => (
@@ -145,8 +133,9 @@ export default function MusicSidebar({ activeSection, onSectionChange, playlists
                     : 'hover:bg-white/5 text-white/50'
                 )}
                 title={item.label}
+                aria-label={item.label}
               >
-                <item.icon className="w-5 h-5" />
+                <item.icon className="w-5 h-5" aria-hidden="true" />
               </button>
             ))}
             <div className="w-8 h-[1px] bg-black/5 dark:bg-white/5 my-2" />
@@ -161,8 +150,9 @@ export default function MusicSidebar({ activeSection, onSectionChange, playlists
                     : 'hover:bg-black/5 dark:hover:bg-white/10 text-black/60 dark:text-white/60'
                 )}
                 title={item.label}
+                aria-label={item.label}
               >
-                <item.icon className="w-5 h-5" />
+                <item.icon className="w-5 h-5" aria-hidden="true" />
               </button>
             ))}
             <div className="w-8 h-[1px] bg-black/5 dark:bg-white/5 my-2" />
@@ -170,8 +160,9 @@ export default function MusicSidebar({ activeSection, onSectionChange, playlists
                onClick={() => {}}
                className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-black/60 dark:text-white/60 transition-all duration-200"
                title="歌单"
+               aria-label="歌单"
             >
-              <ListMusic className="w-5 h-5" />
+              <ListMusic className="w-5 h-5" aria-hidden="true" />
             </button>
           </nav>
         )}

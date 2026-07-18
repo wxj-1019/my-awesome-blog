@@ -1,5 +1,4 @@
 'use client';
-
 import { useState, useCallback, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Flag, X, AlertCircle } from 'lucide-react';
@@ -7,7 +6,6 @@ import { Button } from '@/components/ui/Button';
 import GlassCard from '@/components/ui/GlassCard';
 import { cn } from '@/lib/utils';
 import { useThemedClasses } from '@/hooks/useThemedClasses';
-
 interface ReportDialogProps {
   isOpen: boolean;
   onClose: () => void;
@@ -15,7 +13,6 @@ interface ReportDialogProps {
   messageAuthor?: string;
   messageContent?: string;
 }
-
 const reportReasons = [
   { id: 'spam', label: '垃圾信息', icon: '🚫' },
   { id: 'harassment', label: '骚扰/辱骂', icon: '😡' },
@@ -23,7 +20,6 @@ const reportReasons = [
   { id: 'misleading', label: '误导信息', icon: '🤥' },
   { id: 'other', label: '其他原因', icon: '📝' },
 ];
-
 function ReportDialog({
   isOpen,
   onClose,
@@ -35,20 +31,15 @@ function ReportDialog({
   const [details, setDetails] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { themedClasses, getThemeClass } = useThemedClasses();
-
   const textClass = themedClasses.textClass;
   const mutedTextClass = themedClasses.mutedTextClass;
-  const cardBgClass = themedClasses.cardBgClass;
-
   const handleClose = useCallback(() => {
     setSelectedReason('');
     setDetails('');
     onClose();
   }, [onClose]);
-
   const handleSubmit = useCallback(async () => {
-    if (!selectedReason) return;
-
+    if (!selectedReason) {return;}
     setIsSubmitting(true);
     try {
       await new Promise(resolve => setTimeout(resolve, 500));
@@ -58,9 +49,7 @@ function ReportDialog({
       setIsSubmitting(false);
     }
   }, [selectedReason, details, onSubmit, handleClose]);
-
-  if (!isOpen) return null;
-
+  if (!isOpen) {return null;}
   return (
     <AnimatePresence>
       {isOpen && (
@@ -95,11 +84,11 @@ function ReportDialog({
                     'text-white/50 hover:text-white',
                     getThemeClass('', 'text-gray-500 hover:text-gray-700')
                   )}
+                  aria-label="关闭"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-5 h-5" aria-hidden="true" />
                 </Button>
               </div>
-
               <div className="mb-6 p-4 rounded-lg bg-tech-pink/5 border border-tech-pink/20">
                 <div className="flex items-start gap-2 mb-2">
                   <AlertCircle className="w-4 h-4 text-tech-pink mt-0.5 flex-shrink-0" />
@@ -116,7 +105,6 @@ function ReportDialog({
                   </div>
                 )}
               </div>
-
               <div className="mb-4">
                 <label className={`block text-sm font-medium mb-3 ${textClass}`}>
                   请选择举报原因
@@ -142,7 +130,6 @@ function ReportDialog({
                   ))}
                 </div>
               </div>
-
               <div className="mb-6">
                 <label className={`block text-sm font-medium mb-2 ${textClass}`}>
                   详细说明 (可选)
@@ -162,7 +149,6 @@ function ReportDialog({
                   )}
                 />
               </div>
-
               <div className="flex gap-3">
                 <Button
                   variant="outline"
@@ -194,5 +180,4 @@ function ReportDialog({
     </AnimatePresence>
   );
 }
-
 export default memo(ReportDialog);

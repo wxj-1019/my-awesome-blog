@@ -12,8 +12,6 @@ import {
   Palette,
   Save,
   RefreshCw,
-  CheckCircle,
-  XCircle,
   ChevronRight,
   Info
 } from 'lucide-react'
@@ -141,12 +139,12 @@ export default function SettingsPage() {
     if (savedSettings) {
       try {
         const parsed = JSON.parse(savedSettings)
-        if (parsed.site) setSiteSettings(parsed.site)
-        if (parsed.seo) setSeoSettings(parsed.seo)
-        if (parsed.email) setEmailSettings(parsed.email)
-        if (parsed.security) setSecuritySettings(parsed.security)
-        if (parsed.notifications) setNotificationSettings(parsed.notifications)
-        if (parsed.appearance) setAppearanceSettings(parsed.appearance)
+        if (parsed.site) {setSiteSettings(parsed.site)}
+        if (parsed.seo) {setSeoSettings(parsed.seo)}
+        if (parsed.email) {setEmailSettings(parsed.email)}
+        if (parsed.security) {setSecuritySettings(parsed.security)}
+        if (parsed.notifications) {setNotificationSettings(parsed.notifications)}
+        if (parsed.appearance) {setAppearanceSettings(parsed.appearance)}
       } catch (e) {
         console.error('Failed to parse saved settings:', e)
       }
@@ -686,6 +684,7 @@ export default function SettingsPage() {
   )
 }
 
-function AnimatePresence({ children, mode }: { children: React.ReactNode; mode: string }) {
+function AnimatePresence({ children, mode: _mode }: { children: React.ReactNode; mode: string }) {
+  void _mode;
   return <>{children}</>
 }

@@ -46,8 +46,8 @@ export const getUsers = async (params?: {
   limit?: number;
 }): Promise<User[]> => {
   const queryParams = new URLSearchParams();
-  if (params?.skip !== undefined) queryParams.append('skip', params.skip.toString());
-  if (params?.limit !== undefined) queryParams.append('limit', params.limit.toString());
+  if (params?.skip !== undefined) {queryParams.append('skip', params.skip.toString());}
+  if (params?.limit !== undefined) {queryParams.append('limit', params.limit.toString());}
 
   const response = await fetch(`${API_BASE_URL}/users/?${queryParams.toString()}`, {
     headers: {

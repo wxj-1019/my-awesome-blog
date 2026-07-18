@@ -1,6 +1,6 @@
 'use client';
 
-import { FileText, Eye, Heart, MessageCircle, TrendingUp } from 'lucide-react';
+import { FileText, Eye, Heart, MessageCircle } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
 import { useThemedClasses } from '@/hooks/useThemedClasses';
 import { memo } from 'react';

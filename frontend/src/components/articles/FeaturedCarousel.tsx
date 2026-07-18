@@ -1,21 +1,18 @@
 'use client';
-
 import { useState, useCallback, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useThemedClasses } from '@/hooks/useThemedClasses';
 import { ArrowRight, Clock, Eye, Heart } from 'lucide-react';
 import type { Article } from '@/types';
-
 interface FeaturedCarouselProps {
   articles: Article[];
 }
-
 function FeaturedCarousel({ articles }: FeaturedCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(0);
   const { getThemeClass } = useThemedClasses();
-
   const paginate = useCallback((newDirection: number) => {
     setDirection(newDirection);
     setCurrentIndex((prevIndex) => {
@@ -26,14 +23,11 @@ function FeaturedCarousel({ articles }: FeaturedCarouselProps) {
       }
     });
   }, [articles.length]);
-
   const handleDotClick = useCallback((index: number) => {
     setDirection(index > currentIndex ? 1 : -1);
     setCurrentIndex(index);
   }, [currentIndex]);
-
   const currentArticle = articles[currentIndex];
-
   const variants = {
     enter: (direction: number) => ({
       x: direction > 0 ? 1000 : -1000,
@@ -64,12 +58,7 @@ function FeaturedCarousel({ articles }: FeaturedCarouselProps) {
       }
     })
   };
-
-  const nextArticle = articles[(currentIndex + 1) % articles.length];
-  const prevArticle = articles[(currentIndex - 1 + articles.length) % articles.length];
-
-  if (articles.length === 0) return null;
-
+  if (articles.length === 0) {return null;}
   return (
     <section className="relative h-[80vh] w-full overflow-hidden bg-black">
       <AnimatePresence initial={false} custom={direction} mode="wait">
@@ -102,7 +91,6 @@ function FeaturedCarousel({ articles }: FeaturedCarouselProps) {
                 >
                   {currentArticle.excerpt}
                 </motion.p>
-
                 <div className="flex items-center gap-4 mb-6">
                   <div className="flex items-center gap-2">
                     <Eye className="w-4 h-4 text-tech-cyan" />
@@ -123,7 +111,6 @@ function FeaturedCarousel({ articles }: FeaturedCarouselProps) {
                     </span>
                   </div>
                 </div>
-
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -139,7 +126,6 @@ function FeaturedCarousel({ articles }: FeaturedCarouselProps) {
                 </motion.div>
               </div>
             </div>
-
             <div className="w-full lg:w-2/3 relative">
               {currentArticle.cover_image && (
                 <motion.div
@@ -148,10 +134,13 @@ function FeaturedCarousel({ articles }: FeaturedCarouselProps) {
                   transition={{ duration: 0.5 }}
                   className="relative aspect-video rounded-2xl overflow-hidden shadow-2xl"
                 >
-                  <img
+                  <Image
                     src={currentArticle.cover_image}
                     alt={currentArticle.title}
-                    className="w-full h-full object-cover"
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 66vw"
+                    className="object-cover"
+                    priority
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
                   <div className="absolute top-4 left-4">
@@ -161,23 +150,21 @@ function FeaturedCarousel({ articles }: FeaturedCarouselProps) {
                   </div>
                 </motion.div>
               )}
-
               <button
                 onClick={() => paginate(1)}
                 className="absolute right-4 top-1/2 -translate-y-1/2 p-4 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm transition-all z-20 active:scale-95"
                 aria-label="下一篇"
               >
-                <ArrowRight className="w-6 h-6 text-white" />
+                <ArrowRight className="w-6 h-6 text-white" aria-hidden="true" />
               </button>
             </div>
           </div>
         </motion.div>
       </AnimatePresence>
-
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-3 z-20">
-        {articles.map((_, index) => (
+        {articles.map((article, index) => (
           <button
-            key={index}
+            key={article.id}
             onClick={() => handleDotClick(index)}
             className={`w-3 h-3 rounded-full transition-all ${
               index === currentIndex 
@@ -188,7 +175,6 @@ function FeaturedCarousel({ articles }: FeaturedCarouselProps) {
           />
         ))}
       </div>
-
       <div className="absolute bottom-8 right-8 hidden md:flex items-center gap-2 z-20">
         <span className={`text-sm ${getThemeClass('text-gray-400', 'text-gray-600')}`}>
           {currentIndex + 1} / {articles.length}
@@ -197,8 +183,6 @@ function FeaturedCarousel({ articles }: FeaturedCarouselProps) {
     </section>
   );
 }
-
 const FeaturedCarouselWithMemo = memo(FeaturedCarousel);
 FeaturedCarouselWithMemo.displayName = 'FeaturedCarousel';
-
 export default FeaturedCarouselWithMemo;

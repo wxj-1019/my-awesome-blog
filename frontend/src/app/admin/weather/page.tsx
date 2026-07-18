@@ -110,17 +110,17 @@ const POPULAR_CITIES = [
 
 const getWeatherIcon = (weatherCode: string, size = 'w-12 h-12') => {
   const code = parseInt(weatherCode)
-  if (isNaN(code)) return <Cloud className={cn(size, 'text-gray-400 dark:text-gray-500 dark:text-gray-400')} />
+  if (isNaN(code)) {return <Cloud className={cn(size, 'text-gray-400 dark:text-gray-500 dark:text-gray-400')} />}
 
-  if (code === 0 || code === 1) return <Sun className={cn(size, 'text-yellow-400')} />
-  if (code === 2 || code === 3) return <CloudSun className={cn(size, 'text-yellow-300')} />
-  if (code >= 4 && code <= 9) return <Cloud className={cn(size, 'text-gray-400 dark:text-gray-500 dark:text-gray-400')} />
-  if (code >= 10 && code <= 19) return <CloudRain className={cn(size, 'text-blue-400')} />
-  if (code >= 20 && code <= 25) return <CloudSnow className={cn(size, 'text-blue-200')} />
-  if (code >= 26 && code <= 29) return <CloudFog className={cn(size, 'text-gray-400 dark:text-gray-500 dark:text-gray-400')} />
-  if (code >= 30 && code <= 39) return <Wind className={cn(size, 'text-cyan-400')} />
-  if (code >= 40 && code === 49) return <CloudFog className={cn(size, 'text-gray-400 dark:text-gray-500 dark:text-gray-400')} />
-  if (code >= 50) return <CloudRain className={cn(size, 'text-blue-400')} />
+  if (code === 0 || code === 1) {return <Sun className={cn(size, 'text-yellow-400')} />}
+  if (code === 2 || code === 3) {return <CloudSun className={cn(size, 'text-yellow-300')} />}
+  if (code >= 4 && code <= 9) {return <Cloud className={cn(size, 'text-gray-400 dark:text-gray-500 dark:text-gray-400')} />}
+  if (code >= 10 && code <= 19) {return <CloudRain className={cn(size, 'text-blue-400')} />}
+  if (code >= 20 && code <= 25) {return <CloudSnow className={cn(size, 'text-blue-200')} />}
+  if (code >= 26 && code <= 29) {return <CloudFog className={cn(size, 'text-gray-400 dark:text-gray-500 dark:text-gray-400')} />}
+  if (code >= 30 && code <= 39) {return <Wind className={cn(size, 'text-cyan-400')} />}
+  if (code >= 40 && code === 49) {return <CloudFog className={cn(size, 'text-gray-400 dark:text-gray-500 dark:text-gray-400')} />}
+  if (code >= 50) {return <CloudRain className={cn(size, 'text-blue-400')} />}
 
   return <Cloud className={cn(size, 'text-gray-400 dark:text-gray-500 dark:text-gray-400')} />
 }
@@ -195,7 +195,7 @@ export default function WeatherAdminPage() {
             return updated
           })
 
-          if (showToast) toast.success(`已获取 ${city} 天气数据`)
+          if (showToast) {toast.success(`已获取 ${city} 天气数据`)}
         } else {
           toast.error(response.message || '获取天气数据失败')
         }
@@ -209,6 +209,8 @@ export default function WeatherAdminPage() {
     []
   )
 
+  // searchCity 仅用于初始化加载，加入依赖会导致输入过程中重复请求天气
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const saved = localStorage.getItem('recentWeatherCities')
     if (saved) {
@@ -223,6 +225,8 @@ export default function WeatherAdminPage() {
       }
     }
     fetchWeather(searchCity)
+    // searchCity 仅用于初始化加载，加入依赖会导致输入过程中重复请求天气
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchWeather])
 
   const handleSearch = () => {
@@ -473,8 +477,8 @@ export default function WeatherAdminPage() {
                       <div>
                         <h4 className="text-yellow-400 font-medium">天气预警</h4>
                         <div className="mt-2 space-y-2">
-                          {current.alarm.map((alarm, index) => (
-                            <div key={index} className="text-sm">
+                          {current.alarm.map((alarm) => (
+                            <div key={`${alarm.title}-${alarm.type}-${alarm.level}`} className="text-sm">
                               <span className="text-white dark:text-gray-100">{alarm.title}</span>
                               <span className="text-gray-400 dark:text-gray-500 dark:text-gray-400 ml-2">
                                 ({alarm.type} - {alarm.level})
@@ -495,9 +499,9 @@ export default function WeatherAdminPage() {
                     </h3>
                     <div className="overflow-x-auto">
                       <div className="flex gap-4 min-w-max pb-2">
-                        {current.hour.slice(0, 12).map((hour, index) => (
+                        {current.hour.slice(0, 12).map((hour) => (
                           <div
-                            key={index}
+                            key={hour.time}
                             className="flex flex-col items-center p-3 rounded-lg bg-white/5 min-w-[80px]"
                           >
                             <span className="text-gray-400 dark:text-gray-500 dark:text-gray-400 text-sm">{hour.time}</span>
@@ -517,8 +521,8 @@ export default function WeatherAdminPage() {
                       生活指数
                     </h3>
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                      {current.index.slice(0, 8).map((item, index) => (
-                        <div key={index} className="p-3 rounded-lg bg-white/5 dark:bg-white/5 border border-white/10 dark:border-white/5">
+                      {current.index.slice(0, 8).map((item) => (
+                        <div key={item.name} className="p-3 rounded-lg bg-white/5 dark:bg-white/5 border border-white/10 dark:border-white/5">
                           <p className="text-gray-400 dark:text-gray-500 dark:text-gray-400 text-sm">{item.name}</p>
                           <p className="text-white dark:text-gray-100 font-medium mt-1">{item.level}</p>
                           {item.tips && (

@@ -35,7 +35,7 @@ class WebSocketService {
     this.simulationMode = !process.env.NEXT_PUBLIC_WS_HOST;
     
     if (this.simulationMode) {
-      console.log('WebSocket 模拟模式已启用 - 使用模拟通知');
+
     }
   }
 
@@ -49,7 +49,7 @@ class WebSocketService {
 
     // 模拟模式：不连接真实 WebSocket，而是启动模拟
     if (this.simulationMode) {
-      console.log('WebSocket 模拟模式 - 启动模拟通知');
+
       this.isConnecting = false;
       this.startSimulation();
       return;
@@ -59,14 +59,14 @@ class WebSocketService {
       this.ws = new WebSocket(this.url);
 
       this.ws.onopen = () => {
-        console.log('WebSocket 连接已建立');
+
         this.reconnectAttempts = 0;
         this.isConnecting = false;
       };
 
       this.ws.onmessage = (event) => {
         try {
-          const data = JSON.parse(event.data);
+          const data = JSON.parse(event.data) as unknown;
           this.handleMessage(data);
         } catch (error) {
           console.error('解析 WebSocket 消息失败:', error);
@@ -78,8 +78,7 @@ class WebSocketService {
         this.isConnecting = false;
       };
 
-      this.ws.onclose = (event) => {
-        console.log(`WebSocket 连接关闭，代码: ${event.code}, 原因: ${event.reason}`);
+      this.ws.onclose = (_event) => {
         this.isConnecting = false;
         this.ws = null;
         this.attemptReconnect();
@@ -215,20 +214,18 @@ class WebSocketService {
     };
 
     const event = simulateEvent();
-    console.log('发送模拟 WebSocket 事件:', event.type);
+
     this.notifyHandlers(event);
   }
 
   private attemptReconnect(): void {
     if (!this.shouldReconnect || this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.log('停止尝试重新连接');
+
       return;
     }
 
     this.reconnectAttempts++;
     const delay = this.reconnectDelay * Math.pow(1.5, this.reconnectAttempts - 1);
-
-    console.log(`将在 ${delay}ms 后尝试重新连接 (尝试 ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
 
     setTimeout(() => {
       if (this.shouldReconnect) {
@@ -237,23 +234,24 @@ class WebSocketService {
     }, delay);
   }
 
-  private handleMessage(data: any): void {
+  private handleMessage(data: unknown): void {
     // 根据后端消息格式转换为前端事件
+    const raw = data as Record<string, unknown>;
     let event: WebSocketEvent | null = null;
 
-    switch (data.type) {
+    switch (raw.type) {
       case 'new_message':
         event = {
           type: 'new_message',
-          data: this.transformMessage(data.message)
+          data: this.transformMessage(raw.message)
         };
         break;
       case 'new_reply':
         event = {
           type: 'new_reply',
           data: {
-            parentMessageId: data.parent_message_id,
-            reply: this.transformMessage(data.reply)
+            parentMessageId: raw.parent_message_id as string,
+            reply: this.transformMessage(raw.reply)
           }
         };
         break;
@@ -261,8 +259,8 @@ class WebSocketService {
         event = {
           type: 'message_liked',
           data: {
-            messageId: data.message_id,
-            likes: data.likes
+            messageId: raw.message_id as string,
+            likes: raw.likes as number
           }
         };
         break;
@@ -270,8 +268,8 @@ class WebSocketService {
         event = {
           type: 'message_pinned',
           data: {
-            messageId: data.message_id,
-            isPinned: data.is_pinned
+            messageId: raw.message_id as string,
+            isPinned: raw.is_pinned as boolean
           }
         };
         break;
@@ -279,8 +277,8 @@ class WebSocketService {
         event = {
           type: 'message_featured',
           data: {
-            messageId: data.message_id,
-            isFeatured: data.is_featured
+            messageId: raw.message_id as string,
+            isFeatured: raw.is_featured as boolean
           }
         };
         break;
@@ -288,8 +286,8 @@ class WebSocketService {
         event = {
           type: 'user_online',
           data: {
-            userId: data.user_id,
-            username: data.username
+            userId: raw.user_id as string,
+            username: raw.username as string
           }
         };
         break;
@@ -297,12 +295,12 @@ class WebSocketService {
         event = {
           type: 'user_offline',
           data: {
-            userId: data.user_id
+            userId: raw.user_id as string
           }
         };
         break;
       default:
-        console.warn('未知的 WebSocket 消息类型:', data.type);
+        console.warn('未知的 WebSocket 消息类型:', raw.type);
         return;
     }
 
@@ -311,27 +309,29 @@ class WebSocketService {
     }
   }
 
-  private transformMessage(msg: any): Message {
+  private transformMessage(msg: unknown): Message {
     // 将后端消息格式转换为前端 Message 类型
+    const raw = msg as Record<string, unknown>;
+    const author = raw.author as Record<string, unknown> | undefined;
     return {
-      id: msg.id,
-      content: msg.content,
+      id: raw.id as string,
+      content: raw.content as string,
       author: {
-        id: msg.author?.id || '',
-        username: msg.author?.username || '匿名用户',
-        avatar: msg.author?.avatar
+        id: (author?.id as string) || '',
+        username: (author?.username as string) || '匿名用户',
+        avatar: author?.avatar as string | undefined
       },
-      created_at: msg.created_at,
-      color: msg.color || '#00D9FF',
-      isDanmaku: msg.is_danmaku ?? true,
-      likes: msg.likes || 0,
+      created_at: raw.created_at as string,
+      color: (raw.color as string) || '#00D9FF',
+      isDanmaku: (raw.is_danmaku as boolean | undefined) ?? true,
+      likes: (raw.likes as number | undefined) || 0,
       replies: [],
-      level: msg.level || 1,
-      isEdited: msg.is_edited || false,
-      editedAt: msg.edited_at,
-      isPinned: msg.is_pinned || false,
-      isFeatured: msg.is_featured || false,
-      tags: msg.tags || []
+      level: (raw.level as number | undefined) || 1,
+      isEdited: (raw.is_edited as boolean | undefined) || false,
+      editedAt: raw.edited_at as string | undefined,
+      isPinned: (raw.is_pinned as boolean | undefined) || false,
+      isFeatured: (raw.is_featured as boolean | undefined) || false,
+      tags: (raw.tags as string[] | undefined) || []
     };
   }
 
@@ -353,7 +353,7 @@ class WebSocketService {
     });
   }
 
-  public sendMessage(type: string, data: any): void {
+  public sendMessage(type: string, data: unknown): void {
     if (this.ws?.readyState === WebSocket.OPEN) {
       this.ws.send(JSON.stringify({ type, data }));
     } else {

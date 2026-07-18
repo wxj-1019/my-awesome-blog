@@ -11,7 +11,6 @@ import {
   scaleIn,
   bounceIn,
   PRESETS,
-  VIEWPORT,
 } from '@/lib/animation-utils'
 
 type AnimationType = 

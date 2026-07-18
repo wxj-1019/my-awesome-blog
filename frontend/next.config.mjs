@@ -1,9 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
-  experimental: {
-    typedRoutes: true
-  },
+  typedRoutes: true,
   images: {
     remotePatterns: [
       {
@@ -36,13 +34,24 @@ const nextConfig = {
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
   async redirects() {
-    return [];
+    return [
+      {
+        source: '/posts',
+        destination: '/articles',
+        permanent: true,
+      },
+      {
+        source: '/posts/:id',
+        destination: '/articles/:id',
+        permanent: true,
+      },
+    ];
   },
   async rewrites() {
     return [
       {
         source: '/api/v1/:path*',
-        destination: 'http://localhost:8989/api/v1/:path*', // 后端服务地址
+        destination: `${process.env.INTERNAL_API_URL || 'http://backend:8989'}/api/v1/:path*`, // 后端服务地址
       },
     ]
   },

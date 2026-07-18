@@ -2,9 +2,8 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Save, Clock, ChevronDown, Play, Pause, RotateCcw } from 'lucide-react';
+import { Save, Clock, ChevronDown, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import GlassCard from '@/components/ui/GlassCard';
 import { VideoItem, Episode } from './VideoCard';
@@ -21,12 +20,11 @@ const ProgressTracker: React.FC<ProgressTrackerProps> = ({ video, isOpen, onClos
   const [progress, setProgress] = useState(video.progress || 0);
   const [currentSeason, setCurrentSeason] = useState(video.currentEpisode?.season || 1);
   const [currentEpisode, setCurrentEpisode] = useState(video.currentEpisode?.episode || 1);
-  const [totalSeasons, setTotalSeasons] = useState(10);
-  const [episodesPerSeason, setEpisodesPerSeason] = useState(10);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const totalSeasons = 10;
+  const episodesPerSeason = 10;
 
   const calculateRemainingTime = () => {
-    if (!video.totalDuration) return '';
+    if (!video.totalDuration) {return '';}
     const remainingPercent = 100 - progress;
     const totalMinutes = parseDuration(video.totalDuration);
     const remainingMinutes = Math.round((totalMinutes * remainingPercent) / 100);
@@ -67,17 +65,17 @@ const ProgressTracker: React.FC<ProgressTrackerProps> = ({ video, isOpen, onClos
   };
 
   const formatTimeAgo = (date?: Date): string => {
-    if (!date) return '从未观看';
+    if (!date) {return '从未观看';}
     const now = new Date();
     const diff = now.getTime() - date.getTime();
     const minutes = Math.floor(diff / 60000);
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
 
-    if (minutes < 1) return '刚刚';
-    if (minutes < 60) return `${minutes}分钟前`;
-    if (hours < 24) return `${hours}小时前`;
-    if (days < 7) return `${days}天前`;
+    if (minutes < 1) {return '刚刚';}
+    if (minutes < 60) {return `${minutes}分钟前`;}
+    if (hours < 24) {return `${hours}小时前`;}
+    if (days < 7) {return `${days}天前`;}
     return date.toLocaleDateString('zh-CN');
   };
 

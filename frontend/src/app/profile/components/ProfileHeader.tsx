@@ -1,11 +1,7 @@
 'use client';
-
 import { AtSign, Mail, Edit3, Save, X, Sparkles } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
-import AvatarUploader from './AvatarUploader';
-import SocialLinksCard from './SocialLinksCard';
 import { Button } from '@/components/ui/Button';
-
 interface ProfileHeaderProps {
   profile: {
     id: string;
@@ -23,20 +19,11 @@ interface ProfileHeaderProps {
   onEditToggle?: () => void;
   onAvatarChange?: (avatar: string) => void;
 }
-
 export default function ProfileHeader({
   profile,
   isEditing = false,
-  onEditToggle,
-  onAvatarChange
+  onEditToggle
 }: ProfileHeaderProps) {
-  const socialLinks = [
-    { type: 'website' as const, value: profile.website || '' },
-    { type: 'twitter' as const, value: profile.twitter || '' },
-    { type: 'github' as const, value: profile.github || '' },
-    { type: 'linkedin' as const, value: profile.linkedin || '' },
-  ];
-
   return (
     <GlassCard 
       padding="none" 
@@ -77,7 +64,6 @@ export default function ProfileHeader({
           )}
         </div>
       </div>
-
       {/* 主要内容区域 */}
       <div className="px-6 pb-8 pt-4">
         {/* 右侧：用户信息 */}
@@ -104,7 +90,6 @@ export default function ProfileHeader({
                 </div>
               </div>
             </div>
-
             {/* 个人简介 */}
             {profile.bio && (
               <div className="max-w-2xl">
@@ -116,7 +101,6 @@ export default function ProfileHeader({
           </div>
         </div>
       </div>
-
       {/* 底部发光效果 */}
       <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-tech-cyan to-transparent opacity-50 animate-pulse" />
     </GlassCard>

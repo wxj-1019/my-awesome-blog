@@ -1,21 +1,14 @@
 'use client';
-
 import { motion } from 'framer-motion';
 import { Copy, Edit, Trash2, Eye, TrendingUp } from 'lucide-react';
 import type { Prompt } from '@/types';
-
 interface PromptCardProps {
   prompt: Prompt;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
   onDuplicate: (prompt: Prompt) => void;
 }
-
 export default function PromptCard({ prompt, onEdit, onDelete, onDuplicate }: PromptCardProps) {
-  const handleCopy = () => {
-    navigator.clipboard.writeText(prompt.content);
-  };
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -67,11 +60,9 @@ export default function PromptCard({ prompt, onEdit, onDelete, onDuplicate }: Pr
           </button>
         </div>
       </div>
-
       <p className="text-sm text-white/80 mb-4 line-clamp-2">
         {prompt.description || prompt.content}
       </p>
-
       <div className="grid grid-cols-2 gap-3 pt-3 border-t border-white/10">
         <div className="flex items-center gap-2">
           <TrendingUp className="w-4 h-4 text-tech-cyan" />
@@ -88,7 +79,6 @@ export default function PromptCard({ prompt, onEdit, onDelete, onDuplicate }: Pr
           </div>
         </div>
       </div>
-
       {prompt.ab_test_group && (
         <div className="mt-3 pt-3 border-t border-white/10">
           <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs ${

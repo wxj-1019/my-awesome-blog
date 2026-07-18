@@ -1,4 +1,8 @@
 import '@testing-library/jest-dom';
+import { toHaveNoViolations } from 'jest-axe';
+
+// 扩展 Jest 断言以支持 jest-axe
+expect.extend(toHaveNoViolations);
 
 // Mock matchMedia for jsdom environment
 Object.defineProperty(window, 'matchMedia', {

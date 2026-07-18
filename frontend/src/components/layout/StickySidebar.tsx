@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface StickySidebarProps {
@@ -49,7 +49,7 @@ export default function StickySidebar({
   }, [children]);
 
   useEffect(() => {
-    if (!isSticky) return;
+    if (!isSticky) {return;}
 
     const handleScroll = () => {
       if (sidebarRef.current) {
@@ -64,7 +64,7 @@ export default function StickySidebar({
   }, [isSticky, offset]);
 
   const handleCollapse = () => {
-    if (!isCollapsible) return;
+    if (!isCollapsible) {return;}
     const newCollapsed = !isCollapsed;
     setIsCollapsed(newCollapsed);
     onCollapseChange?.(newCollapsed);
@@ -127,17 +127,18 @@ export default function StickySidebar({
           whileTap={{ scale: 0.95 }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
+          aria-label={isCollapsed ? '展开侧边栏' : '收起侧边栏'}
         >
           {isCollapsed ? (
             isLeft ? (
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-4 h-4" aria-hidden="true" />
             ) : (
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-4 h-4" aria-hidden="true" />
             )
           ) : isLeft ? (
-            <ChevronLeft className="w-4 h-4" />
+            <ChevronLeft className="w-4 h-4" aria-hidden="true" />
           ) : (
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="w-4 h-4" aria-hidden="true" />
           )}
         </motion.button>
       )}

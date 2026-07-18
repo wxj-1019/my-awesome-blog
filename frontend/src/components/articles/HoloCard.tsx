@@ -4,6 +4,7 @@ import { useState, memo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { Eye, Heart, Clock, ArrowRight } from 'lucide-react';
+import Image from 'next/image';
 import { useThemedClasses } from '@/hooks/useThemedClasses';
 import type { Article } from '@/types';
 
@@ -155,11 +156,15 @@ function HoloCard({ article, isFeatured = false, className }: HoloCardProps) {
                 <div className="sticky top-0 z-10 flex items-center justify-between p-6 backdrop-blur-lg border-b border-white/10">
                   <div className="flex items-center gap-3">
                     {article.cover_image && (
-                      <img
-                        src={article.cover_image}
-                        alt={article.title}
-                        className="w-12 h-12 rounded-lg object-cover"
-                      />
+                      <div className="relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
+                        <Image
+                          src={article.cover_image}
+                          alt={article.title}
+                          fill
+                          sizes="48px"
+                          className="object-cover"
+                        />
+                      </div>
                     )}
                     <div>
                       <h2 className={`text-xl font-bold ${getThemeClass('text-white', 'text-gray-900')}`}>

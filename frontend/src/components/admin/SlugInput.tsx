@@ -1,5 +1,4 @@
 'use client';
-
 import * as React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -14,7 +13,6 @@ import {
   Check,
   Loader2
 } from 'lucide-react';
-
 export interface SlugInputProps {
   value: string;
   onChange: (value: string) => void;
@@ -28,7 +26,6 @@ export interface SlugInputProps {
   autoGenerate?: boolean;
   existingSlugs?: string[];
 }
-
 const SlugInput = React.forwardRef<HTMLInputElement, SlugInputProps>(
   ({
     value,
@@ -51,9 +48,7 @@ const SlugInput = React.forwardRef<HTMLInputElement, SlugInputProps>(
     } | null>(null);
     const [copied, setCopied] = React.useState(false);
     const inputRef = React.useRef<HTMLInputElement>(null);
-
     React.useImperativeHandle(ref, () => inputRef.current!);
-
     const generateSlug = React.useCallback((text: string) => {
       return text
         .toLowerCase()
@@ -64,13 +59,11 @@ const SlugInput = React.forwardRef<HTMLInputElement, SlugInputProps>(
         .replace(/^-+|-+$/g, '')
         .substring(0, 100);
     }, []);
-
     const validateSlug = React.useCallback(async (slug: string) => {
       if (!slug) {
         setValidationResult(null);
         return;
       }
-
       if (existingSlugs.includes(slug)) {
         setValidationResult({
           valid: false,
@@ -78,7 +71,6 @@ const SlugInput = React.forwardRef<HTMLInputElement, SlugInputProps>(
         });
         return;
       }
-
       const invalidPattern = /[^a-z0-9-]/;
       if (invalidPattern.test(slug)) {
         setValidationResult({
@@ -87,7 +79,6 @@ const SlugInput = React.forwardRef<HTMLInputElement, SlugInputProps>(
         });
         return;
       }
-
       if (slug.startsWith('-') || slug.endsWith('-')) {
         setValidationResult({
           valid: false,
@@ -95,7 +86,6 @@ const SlugInput = React.forwardRef<HTMLInputElement, SlugInputProps>(
         });
         return;
       }
-
       if (slug.length < 3) {
         setValidationResult({
           valid: false,
@@ -103,13 +93,12 @@ const SlugInput = React.forwardRef<HTMLInputElement, SlugInputProps>(
         });
         return;
       }
-
       if (onValidate) {
         setIsValidating(true);
         try {
           const result = await onValidate(slug);
           setValidationResult(result);
-        } catch (error) {
+        } catch {
           setValidationResult({
             valid: false,
             message: '验证失败，请重试',
@@ -121,14 +110,12 @@ const SlugInput = React.forwardRef<HTMLInputElement, SlugInputProps>(
         setValidationResult({ valid: true });
       }
     }, [existingSlugs, onValidate]);
-
     React.useEffect(() => {
       if (autoGenerate && title && !isLocked && !value) {
         const newSlug = generateSlug(title);
         onChange(newSlug);
       }
     }, [title, autoGenerate, isLocked, value, generateSlug, onChange]);
-
     React.useEffect(() => {
       const timer = setTimeout(() => {
         if (value) {
@@ -137,7 +124,6 @@ const SlugInput = React.forwardRef<HTMLInputElement, SlugInputProps>(
       }, 300);
       return () => clearTimeout(timer);
     }, [value, validateSlug]);
-
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const newValue = e.target.value
         .toLowerCase()
@@ -145,7 +131,6 @@ const SlugInput = React.forwardRef<HTMLInputElement, SlugInputProps>(
         .replace(/-+/g, '-');
       onChange(newValue);
     };
-
     const handleRegenerate = () => {
       if (onGenerateFromTitle) {
         const newSlug = onGenerateFromTitle();
@@ -154,11 +139,9 @@ const SlugInput = React.forwardRef<HTMLInputElement, SlugInputProps>(
         onChange(generateSlug(title));
       }
     };
-
     const toggleLock = () => {
       setIsLocked(!isLocked);
     };
-
     const handleCopy = async () => {
       if (value) {
         await navigator.clipboard.writeText(value);
@@ -166,7 +149,6 @@ const SlugInput = React.forwardRef<HTMLInputElement, SlugInputProps>(
         setTimeout(() => setCopied(false), 2000);
       }
     };
-
     const getValidationIcon = () => {
       if (isValidating) {
         return <Loader2 className="w-4 h-4 animate-spin text-tech-cyan" />;
@@ -179,7 +161,6 @@ const SlugInput = React.forwardRef<HTMLInputElement, SlugInputProps>(
       }
       return <AlertCircle className="w-4 h-4 text-red-500" />;
     };
-
     return (
       <div className={cn('relative', className)}>
         <div className="flex items-center justify-between mb-2">
@@ -213,7 +194,6 @@ const SlugInput = React.forwardRef<HTMLInputElement, SlugInputProps>(
             </button>
           </div>
         </div>
-
         <motion.div
           className={cn(
             'relative flex items-center rounded-xl border transition-all duration-200',
@@ -228,7 +208,6 @@ const SlugInput = React.forwardRef<HTMLInputElement, SlugInputProps>(
             <Link2 className="w-4 h-4" />
             <span className="ml-2 text-sm">/</span>
           </div>
-
           <input
             ref={inputRef}
             type="text"
@@ -241,7 +220,6 @@ const SlugInput = React.forwardRef<HTMLInputElement, SlugInputProps>(
               'placeholder:text-foreground/30 text-sm'
             )}
           />
-
           <div className="flex items-center gap-1 pr-2">
             <AnimatePresence mode="wait">
               {getValidationIcon() && (
@@ -256,7 +234,6 @@ const SlugInput = React.forwardRef<HTMLInputElement, SlugInputProps>(
                 </motion.div>
               )}
             </AnimatePresence>
-
             <button
               type="button"
               onClick={handleRegenerate}
@@ -270,7 +247,6 @@ const SlugInput = React.forwardRef<HTMLInputElement, SlugInputProps>(
             >
               <RefreshCw className="w-4 h-4" />
             </button>
-
             <button
               type="button"
               onClick={handleCopy}
@@ -306,7 +282,6 @@ const SlugInput = React.forwardRef<HTMLInputElement, SlugInputProps>(
             </button>
           </div>
         </motion.div>
-
         <AnimatePresence>
           {showValidation && validationResult && !validationResult.valid && validationResult.message && (
             <motion.div
@@ -322,7 +297,6 @@ const SlugInput = React.forwardRef<HTMLInputElement, SlugInputProps>(
             </motion.div>
           )}
         </AnimatePresence>
-
         {value && validationResult?.valid && (
           <motion.p
             initial={{ opacity: 0 }}
@@ -333,7 +307,6 @@ const SlugInput = React.forwardRef<HTMLInputElement, SlugInputProps>(
             别名格式正确
           </motion.p>
         )}
-
         <p className="mt-1.5 text-xs text-foreground/40">
           别名用于文章URL，只能包含小写字母、数字和连字符
         </p>
@@ -341,7 +314,5 @@ const SlugInput = React.forwardRef<HTMLInputElement, SlugInputProps>(
     );
   }
 );
-
 SlugInput.displayName = 'SlugInput';
-
 export default SlugInput;

@@ -17,11 +17,12 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { adminApi } from '@/lib/admin-api-client'
+import { validateArrayData } from '@/utils/data-validation'
 import Button from '@/components/admin/Button'
 import FormInput from '@/components/admin/FormInput'
 import { useToast } from '@/components/admin/Toast'
-import LoadingState from '@/components/admin/LoadingState'
-import EmptyState from '@/components/admin/EmptyState'
+import LoadingState from '@/components/ui/LoadingState'
+import EmptyState from '@/components/ui/EmptyState'
 import GlassCardAdmin from '@/components/ui/GlassCardAdmin'
 
 interface AuditLogUser {
@@ -88,17 +89,17 @@ export default function AuditLogsPage() {
       setLoading(true)
       const skip = (currentPage - 1) * pageSize
       
-      const params: Record<string, any> = {
+      const params: Record<string, string | number> = {
         skip,
         limit: pageSize
       }
       
-      if (actionFilter) params.action = actionFilter
-      if (resourceFilter) params.resource_type = resourceFilter
+      if (actionFilter) {params.action = actionFilter}
+      if (resourceFilter) {params.resource_type = resourceFilter}
       
-      const data: any = await adminApi.auditLogs.list(params)
+      const data = await adminApi.auditLogs.list(params)
       
-      let filteredData = Array.isArray(data) ? data : []
+      let filteredData = validateArrayData<AuditLog>(data)
       
       if (searchQuery) {
         filteredData = filteredData.filter((log: AuditLog) => 
@@ -151,10 +152,10 @@ export default function AuditLogsPage() {
     const now = new Date()
     const diff = now.getTime() - date.getTime()
     
-    if (diff < 60000) return '刚刚'
-    if (diff < 3600000) return `${Math.floor(diff / 60000)} 分钟前`
-    if (diff < 86400000) return `${Math.floor(diff / 3600000)} 小时前`
-    if (diff < 604800000) return `${Math.floor(diff / 86400000)} 天前`
+    if (diff < 60000) {return '刚刚'}
+    if (diff < 3600000) {return `${Math.floor(diff / 60000)} 分钟前`}
+    if (diff < 86400000) {return `${Math.floor(diff / 3600000)} 小时前`}
+    if (diff < 604800000) {return `${Math.floor(diff / 86400000)} 天前`}
     
     return date.toLocaleDateString('zh-CN', {
       year: 'numeric',
@@ -174,7 +175,7 @@ export default function AuditLogsPage() {
   }
 
   const parseJsonValues = (jsonStr: string | null) => {
-    if (!jsonStr) return null
+    if (!jsonStr) {return null}
     try {
       return JSON.parse(jsonStr)
     } catch {

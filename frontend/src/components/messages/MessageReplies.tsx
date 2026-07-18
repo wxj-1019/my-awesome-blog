@@ -1,7 +1,6 @@
 'use client';
-
 import { useState, useCallback, memo } from 'react';
-import { Reply } from 'lucide-react';
+import { Reply as ReplyIcon } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -9,9 +8,8 @@ import { LazyAvatar } from '@/components/ui/LazyImage';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 import MarkdownRenderer from '@/components/ui/MarkdownRenderer';
-import ConfirmDialog from '@/components/feedback/ConfirmDialog';
-import type { Message } from '@/types';
-
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
+import type { Message, Reply } from '@/types';
 interface MessageRepliesProps {
   message: Message;
   currentUser: { id: string; username: string } | null;
@@ -21,7 +19,6 @@ interface MessageRepliesProps {
   expanded?: boolean;
   maxVisible?: number;
 }
-
 // 单个回复项
 const ReplyItem = memo(function ReplyItem({
   reply,
@@ -30,9 +27,9 @@ const ReplyItem = memo(function ReplyItem({
   onReply,
   onLikeReply,
   onDeleteReply,
-  onToggleReply
+  onToggleReply: _onToggleReply
 }: {
-  reply: any;
+  reply: Reply;
   depth?: number;
   currentUser: { id: string; username: string } | null;
   onReply?: (content: string, parentReplyId?: string) => void;
@@ -42,10 +39,8 @@ const ReplyItem = memo(function ReplyItem({
 }) {
   const [isReplying, setIsReplying] = useState(false);
   const [replyContent, setReplyContent] = useState('');
-
   const isOwner = currentUser?.id === reply.author.id;
   const maxDepth = 3; // 最大嵌套深度
-
   // 高亮@用户
   const highlightMentions = (content: string): string => {
     if (!reply.mentionedUsers || reply.mentionedUsers.length === 0) {
@@ -56,7 +51,6 @@ const ReplyItem = memo(function ReplyItem({
       '**@$1**'
     );
   };
-
   // 处理提交回复
   const handleSubmitReply = () => {
     if (replyContent.trim()) {
@@ -65,7 +59,6 @@ const ReplyItem = memo(function ReplyItem({
       setIsReplying(false);
     }
   };
-
   // 处理点击回复
   const handleReplyClick = () => {
     if (currentUser) {
@@ -73,7 +66,6 @@ const ReplyItem = memo(function ReplyItem({
       setIsReplying(true);
     }
   };
-
   return (
     <motion.div
       initial={{ opacity: 0, x: -10 }}
@@ -140,7 +132,6 @@ const ReplyItem = memo(function ReplyItem({
               </button>
             )}
           </div>
-
           {/* 回复输入框 */}
           <AnimatePresence>
             {isReplying && depth < maxDepth && (
@@ -179,11 +170,10 @@ const ReplyItem = memo(function ReplyItem({
               </motion.div>
             )}
           </AnimatePresence>
-
           {/* 嵌套回复 */}
           {reply.replies && reply.replies.length > 0 && depth < maxDepth && (
             <div className="mt-2 space-y-1">
-              {reply.replies.map((nestedReply: any) => (
+              {reply.replies.map((nestedReply: Reply) => (
                 <ReplyItem
                   key={nestedReply.id}
                   reply={nestedReply}
@@ -201,7 +191,6 @@ const ReplyItem = memo(function ReplyItem({
     </motion.div>
   );
 });
-
 // 回复列表组件
 export default function MessageReplies({
   message,
@@ -219,43 +208,30 @@ export default function MessageReplies({
   const [replyToDelete, setReplyToDelete] = useState<string | null>(null);
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
-
   const replies = message.replies || [];
   const replyCount = message.reply_count || replies.length;
   const hasReplies = replies.length > 0;
-
-  // 提取@的用户名
-  const extractMentions = (content: string): string[] => {
-    const mentions = content.match(/@(\w+)/g) || [];
-    return mentions.map(m => m.substring(1));
-  };
-
   // 处理提交回复
   const handleSubmitReply = useCallback(() => {
     if (replyContent.trim()) {
-      const mentions = extractMentions(replyContent);
       onReply?.(replyContent);
       setReplyContent('');
       setShowReplyForm(false);
     }
   }, [replyContent, onReply]);
-
   // 处理回复某个回复
   const handleNestedReply = useCallback((content: string, parentReplyId?: string) => {
     onReply?.(content, parentReplyId);
   }, [onReply]);
-
   // 处理点赞回复
   const handleLikeReply = useCallback((replyId: string) => {
     onLikeReply?.(replyId);
   }, [onLikeReply]);
-
   // 处理删除回复
   const handleDeleteReply = useCallback((replyId: string) => {
     setReplyToDelete(replyId);
     setDeleteConfirmOpen(true);
   }, []);
-
   const confirmDeleteReply = useCallback(() => {
     if (replyToDelete) {
       onDeleteReply?.(replyToDelete);
@@ -263,10 +239,8 @@ export default function MessageReplies({
       setReplyToDelete(null);
     }
   }, [replyToDelete, onDeleteReply]);
-
   // 显示的回复
   const visibleReplies = isExpanded ? replies : replies.slice(0, maxVisible);
-
   return (
     <>
       <div className="mt-3 pt-3 border-t border-white/5">
@@ -277,7 +251,7 @@ export default function MessageReplies({
               onClick={() => setIsExpanded(!isExpanded)}
               className="flex items-center gap-1.5 text-xs text-white/50 hover:text-tech-cyan transition-colors"
             >
-              <Reply className="w-3.5 h-3.5" />
+              <ReplyIcon className="w-3.5 h-3.5" />
               <span>
                 {replyCount} 条回复{!isExpanded && replyCount > maxVisible && ` (显示前${maxVisible}条)`}
               </span>
@@ -290,7 +264,6 @@ export default function MessageReplies({
             </button>
           </div>
         )}
-
         {/* 回复列表 */}
         <AnimatePresence mode="wait">
         <motion.div
@@ -301,7 +274,7 @@ export default function MessageReplies({
           className="space-y-0.5"
         >
           {hasReplies ? (
-            visibleReplies.map((reply: any) => (
+            visibleReplies.map((reply: Reply) => (
               <ReplyItem
                 key={reply.id}
                 reply={reply}
@@ -318,7 +291,6 @@ export default function MessageReplies({
           )}
         </motion.div>
       </AnimatePresence>
-
       {/* 回复输入框 */}
       <AnimatePresence>
         {showReplyForm && (
@@ -382,7 +354,6 @@ export default function MessageReplies({
           </motion.div>
         )}
       </AnimatePresence>
-
       {/* 回复按钮 */}
       {!showReplyForm && (
         <motion.button
@@ -398,12 +369,11 @@ export default function MessageReplies({
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
-          <Reply className="w-3.5 h-3.5" />
+          <ReplyIcon className="w-3.5 h-3.5" />
           写回复
         </motion.button>
       )}
     </div>
-
     {/* 删除确认对话框 */}
     <ConfirmDialog
       isOpen={deleteConfirmOpen}
@@ -411,11 +381,10 @@ export default function MessageReplies({
       onConfirm={confirmDeleteReply}
       title="删除回复"
       description="删除后无法恢复，确定要删除这条回复吗？"
-      type="danger"
+      variant="danger"
       confirmText="确定删除"
       cancelText="取消"
     />
-
     {/* 提示对话框 */}
     <ConfirmDialog
       isOpen={alertOpen}
@@ -423,7 +392,7 @@ export default function MessageReplies({
       onConfirm={() => setAlertOpen(false)}
       title="提示"
       description={alertMessage}
-      type="info"
+      variant="info"
       confirmText="知道了"
       cancelText="取消"
     />

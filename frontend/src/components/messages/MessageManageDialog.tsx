@@ -64,7 +64,7 @@ function MessageManageDialog({
 
   // 切换置顶
   const handleTogglePin = async () => {
-    if (!message) return;
+    if (!message) {return;}
     setIsSubmitting(true);
     try {
       await onTogglePin(message.id, !message.isPinned);
@@ -75,7 +75,7 @@ function MessageManageDialog({
 
   // 切换精华
   const handleToggleFeature = async () => {
-    if (!message) return;
+    if (!message) {return;}
     setIsSubmitting(true);
     try {
       await onToggleFeature(message.id, !message.isFeatured);
@@ -86,7 +86,7 @@ function MessageManageDialog({
 
   // 保存标签
   const handleSaveTags = async () => {
-    if (!message) return;
+    if (!message) {return;}
     setIsSubmitting(true);
     try {
       await onUpdateTags(message.id, tags);
@@ -103,7 +103,7 @@ function MessageManageDialog({
     }
   }, [isSubmitting, onClose]);
 
-  if (!message) return null;
+  if (!message) {return null;}
 
   return (
     <AnimatePresence>

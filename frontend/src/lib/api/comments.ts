@@ -44,11 +44,11 @@ export const getComments = async (params?: {
   approved_only?: boolean;
 }): Promise<CommentWithAuthor[]> => {
   const queryParams = new URLSearchParams();
-  if (params?.skip !== undefined) queryParams.append('skip', params.skip.toString());
-  if (params?.limit !== undefined) queryParams.append('limit', params.limit.toString());
-  if (params?.article_id) queryParams.append('article_id', params.article_id);
-  if (params?.author_id) queryParams.append('author_id', params.author_id);
-  if (params?.approved_only !== undefined) queryParams.append('approved_only', params.approved_only.toString());
+  if (params?.skip !== undefined) {queryParams.append('skip', params.skip.toString());}
+  if (params?.limit !== undefined) {queryParams.append('limit', params.limit.toString());}
+  if (params?.article_id) {queryParams.append('article_id', params.article_id);}
+  if (params?.author_id) {queryParams.append('author_id', params.author_id);}
+  if (params?.approved_only !== undefined) {queryParams.append('approved_only', params.approved_only.toString());}
 
   const response = await fetch(`${API_BASE_URL}/comments/?${queryParams.toString()}`, {
     headers: {
@@ -70,9 +70,9 @@ export const getCommentsByArticle = async (articleId: string, params?: {
   approved_only?: boolean;
 }): Promise<CommentWithAuthor[]> => {
   const queryParams = new URLSearchParams();
-  if (params?.skip !== undefined) queryParams.append('skip', params.skip.toString());
-  if (params?.limit !== undefined) queryParams.append('limit', params.limit.toString());
-  if (params?.approved_only !== undefined) queryParams.append('approved_only', params.approved_only.toString());
+  if (params?.skip !== undefined) {queryParams.append('skip', params.skip.toString());}
+  if (params?.limit !== undefined) {queryParams.append('limit', params.limit.toString());}
+  if (params?.approved_only !== undefined) {queryParams.append('approved_only', params.approved_only.toString());}
 
   const response = await fetch(`${API_BASE_URL}/comments/?article_id=${articleId}&${queryParams.toString()}`, {
     headers: {

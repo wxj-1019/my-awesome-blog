@@ -33,7 +33,7 @@ export default function BreadcrumbDropdown({
   const hiddenItems = items.slice(maxItems);
 
   const renderSeparator = () => {
-    if (separator) return separator;
+    if (separator) {return separator;}
     return <ChevronRight className="w-4 h-4 text-foreground/40" />;
   };
 
@@ -69,15 +69,16 @@ export default function BreadcrumbDropdown({
                   <button
                     onClick={() => setShowDropdown(false)}
                     className="p-1 rounded hover:bg-glass/20 text-foreground/60 hover:text-foreground transition-colors"
+                    aria-label="关闭"
                   >
-                    <X className="w-4 h-4" />
+                    <X className="w-4 h-4" aria-hidden="true" />
                   </button>
                 </div>
 
                 <div className="space-y-0.5">
                   {items.map((item, index) => (
                     <button
-                      key={index}
+                      key={item.label}
                       onClick={() => {
                         if (item.href) {
                           window.location.href = item.href;
@@ -108,7 +109,7 @@ export default function BreadcrumbDropdown({
   return (
     <div className={cn('flex items-center flex-wrap gap-2', className)}>
       {items.slice(0, 1).map((item, index) => (
-        <div key={index} className="flex items-center">
+        <div key={item.label} className="flex items-center">
           {index > 0 && <span className="mx-2">{renderSeparator()}</span>}
           {item.href ? (
             <a

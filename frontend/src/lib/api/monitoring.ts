@@ -38,7 +38,7 @@ export const getSystemMetrics = async (params?: {
   period?: string;
 }): Promise<SystemMetrics[]> => {
   const queryParams = new URLSearchParams();
-  if (params?.period) queryParams.append('period', params.period);
+  if (params?.period) {queryParams.append('period', params.period);}
 
   const response = await fetch(`${API_BASE_URL}/monitoring/metrics?${queryParams.toString()}`, {
     headers: {

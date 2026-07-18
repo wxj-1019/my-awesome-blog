@@ -33,10 +33,10 @@ const GlassCard = React.forwardRef<HTMLDivElement, GlassCardProps>(
           'backdrop-blur-xl',
           paddingClasses[padding],
           isLight ? [
-            'bg-white/90',
+            'bg-glass',
             'border-glass-border',
             'text-foreground',
-            'shadow-md',
+            'shadow-glass',
             hoverEffect && 'hover:shadow-xl hover:-translate-y-1 hover:border-tech-cyan/30 cursor-pointer',
             glowEffect && 'hover:shadow-[0_0_25px_rgba(59,130,246,0.2)]',
           ] : [

@@ -33,7 +33,7 @@ export function useCardTilt(options: UseCardTiltOptions = {}) {
   const [isHovered, setIsHovered] = useState(false)
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (!ref.current) return
+    if (!ref.current) {return}
 
     const rect = ref.current.getBoundingClientRect()
     const centerX = rect.left + rect.width / 2
@@ -72,7 +72,7 @@ export function useCardTilt(options: UseCardTiltOptions = {}) {
 
   useEffect(() => {
     const element = ref.current
-    if (!element) return
+    if (!element) {return}
 
     element.addEventListener('mousemove', handleMouseMove)
     element.addEventListener('mouseenter', handleMouseEnter)

@@ -1,29 +1,6 @@
-import { API_BASE_URL } from '@/config/api';
+import { apiRequest, API_BASE_URL, TOKEN_KEY } from '@/lib/api-client';
 import logger from '@/utils/logger';
 import type { Article, Category, Tag, RelatedArticle } from '@/types';
-
-// 通用请求函数
-const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
-  
-  const headers = {
-    'Content-Type': 'application/json',
-    ...(token && { 'Authorization': `Bearer ${token}` }),
-    ...options.headers,
-  };
-
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    ...options,
-    headers,
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.detail || errorData.message || `请求失败: ${response.status}`);
-  }
-
-  return response.json();
-};
 
 // 获取文章列表
 export const getArticles = async (filters?: {
@@ -34,11 +11,11 @@ export const getArticles = async (filters?: {
   offset?: number;
 }): Promise<Article[]> => {
   const params = new URLSearchParams();
-  if (filters?.category) params.append('category_id', filters.category);
-  if (filters?.tag) params.append('tag_id', filters.tag);
-  if (filters?.search) params.append('search', filters.search);
-  if (filters?.limit) params.append('limit', filters.limit.toString());
-  if (filters?.offset) params.append('offset', filters.offset.toString());
+  if (filters?.category) {params.append('category_id', filters.category);}
+  if (filters?.tag) {params.append('tag_id', filters.tag);}
+  if (filters?.search) {params.append('search', filters.search);}
+  if (filters?.limit) {params.append('limit', filters.limit.toString());}
+  if (filters?.offset) {params.append('offset', filters.offset.toString());}
 
   const queryString = params.toString();
   const endpoint = `/articles/${queryString ? `?${queryString}` : ''}`;
@@ -107,9 +84,10 @@ export const getFeaturedArticles = async (limit: number = 5): Promise<Article[]>
 };
 
 // 获取热门文章
-export const getPopularArticles = async (limit: number = 10): Promise<Article[]> => {
+export const getPopularArticles = async (params?: number | { limit?: number }): Promise<Article[]> => {
   try {
-    return await apiRequest(`/articles/popular?limit=${limit}`);
+    const limit = typeof params === 'number' ? params : params?.limit;
+    return await apiRequest(`/articles/popular?limit=${limit ?? 10}`);
   } catch (error) {
     logger.error('获取热门文章失败:', error);
     return [];
@@ -124,8 +102,8 @@ export const searchArticles = async (query: string, filters?: {
   try {
     const params = new URLSearchParams();
     params.append('q', query);
-    if (filters?.category_slug) params.append('category_slug', filters.category_slug);
-    if (filters?.tag_slug) params.append('tag_slug', filters.tag_slug);
+    if (filters?.category_slug) {params.append('category_slug', filters.category_slug);}
+    if (filters?.tag_slug) {params.append('tag_slug', filters.tag_slug);}
 
     return await apiRequest(`/articles/search?${params.toString()}`);
   } catch (error) {
@@ -141,7 +119,7 @@ export const uploadImage = async (file: File, options?: {
   alt_text?: string;
   is_featured?: boolean;
 }): Promise<string> => {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+  const token = typeof window !== 'undefined' ? localStorage.getItem(TOKEN_KEY) : null;
 
   if (!token) {
     throw new Error('需要登录才能上传图片');
@@ -149,10 +127,10 @@ export const uploadImage = async (file: File, options?: {
 
   const formData = new FormData();
   formData.append('file', file);
-  if (options?.title) formData.append('title', options.title);
-  if (options?.description) formData.append('description', options.description);
-  if (options?.alt_text) formData.append('alt_text', options.alt_text);
-  if (options?.is_featured !== undefined) formData.append('is_featured', String(options.is_featured));
+  if (options?.title) {formData.append('title', options.title);}
+  if (options?.description) {formData.append('description', options.description);}
+  if (options?.alt_text) {formData.append('alt_text', options.alt_text);}
+  if (options?.is_featured !== undefined) {formData.append('is_featured', String(options.is_featured));}
 
   const response = await fetch(`${API_BASE_URL}/images/`, {
     method: 'POST',
@@ -175,7 +153,7 @@ export const uploadImage = async (file: File, options?: {
 export const updateArticle = async (id: string, data: Partial<Omit<Article, 'id' | 'created_at' | 'updated_at' | 'author_id' | 'author'>>): Promise<Article> => {
   return apiRequest(`/articles/${id}`, {
     method: 'PUT',
-    body: JSON.stringify(data),
+    body: data,
   });
 };
 

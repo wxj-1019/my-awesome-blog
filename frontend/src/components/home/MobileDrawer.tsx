@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { X, Search, Menu, Folder, Archive, Tag, Filter, ChevronRight, Home, User, Settings } from 'lucide-react'
-import GlassCard from '@/components/ui/GlassCard'
 import { cn } from '@/lib/utils'
 
 interface QuickAction {

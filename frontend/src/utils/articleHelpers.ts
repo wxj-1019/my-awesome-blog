@@ -22,7 +22,7 @@ export const getHotArticles = (articles: Article[], limit: number = 10): Article
 export const groupArticlesByMonth = (articles: Article[]): Record<string, Article[]> => {
   return articles.reduce((acc, article) => {
     const month = new Date(article.published_at).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long' });
-    if (!acc[month]) acc[month] = [];
+    if (!acc[month]) {acc[month] = [];}
     acc[month].push(article);
     return acc;
   }, {} as Record<string, Article[]>);

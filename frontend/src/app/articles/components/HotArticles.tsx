@@ -1,11 +1,9 @@
 'use client';
-
 import Link from 'next/link';
 import { TrendingUp, Eye, ThumbsUp, MessageCircle } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
 import { useThemedClasses } from '@/hooks/useThemedClasses';
 import { memo } from 'react';
-
 interface Article {
   id: string;
   title: string;
@@ -14,47 +12,26 @@ interface Article {
   comments_count: number;
   created_at: string;
 }
-
 interface HotArticlesProps {
   articles: Article[];
 }
-
 function HotArticles({ articles }: HotArticlesProps) {
   const { themedClasses, getThemeClass } = useThemedClasses();
-
   const textClass = themedClasses.textClass;
   const mutedTextClass = themedClasses.mutedTextClass;
-
   // 取前6篇热门文章（按浏览量排序）
   const hotArticles = articles
     .sort((a, b) => b.view_count - a.view_count)
     .slice(0, 6);
-
   if (!hotArticles || hotArticles.length === 0) {
     return null;
   }
-
-  // 格式化日期
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - date.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays === 0) return '今天';
-    if (diffDays === 1) return '昨天';
-    if (diffDays < 7) return `${diffDays}天前`;
-    if (diffDays < 30) return `${Math.floor(diffDays / 7)}周前`;
-    return date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
-  };
-
   return (
     <GlassCard>
       <div className="flex items-center gap-2 mb-4">
         <TrendingUp className="h-5 w-5 text-tech-cyan" />
         <h3 className="text-lg font-bold">热门文章</h3>
       </div>
-
       <div className="space-y-3">
         {hotArticles.map((article, index) => (
           <Link
@@ -76,7 +53,6 @@ function HotArticles({ articles }: HotArticlesProps) {
               >
                 {index + 1}
               </div>
-
               {/* 文章内容 */}
               <div className="flex-1 min-w-0">
                 <h4
@@ -84,7 +60,6 @@ function HotArticles({ articles }: HotArticlesProps) {
                 >
                   {article.title}
                 </h4>
-
                 {/* 统计数据 */}
                 <div className="flex items-center gap-3 text-xs">
                   <div className={`flex items-center gap-1 ${mutedTextClass}`}>
@@ -108,5 +83,4 @@ function HotArticles({ articles }: HotArticlesProps) {
     </GlassCard>
   );
 }
-
 export default memo(HotArticles);

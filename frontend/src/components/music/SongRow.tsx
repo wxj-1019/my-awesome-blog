@@ -2,7 +2,7 @@
 
 import { cn } from '@/lib/utils';
 import type { Song } from '@/types/music';
-import { Play, Pause, Heart, MoreHorizontal } from 'lucide-react';
+import { Play, Heart, MoreHorizontal } from 'lucide-react';
 
 interface SongRowProps {
   song: Song;
@@ -72,6 +72,7 @@ export default function SongRow({
 
       {showAlbum && (
         <div className="w-10 h-10 rounded-md overflow-hidden flex-shrink-0 mr-4 shadow-sm">
+          {/* 音乐封面可能来自外部音乐服务，域名不可控，保留 <img> */}
           <img 
             src={song.coverImg || song.album.coverImg} 
             alt={song.name}

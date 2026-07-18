@@ -20,8 +20,7 @@ export async function GET(request: NextRequest) {
     }
     
     const text = await response.text();
-    console.log('后端响应内容:', text);
-    
+
     let albums: Album[];
     try {
       albums = JSON.parse(text);

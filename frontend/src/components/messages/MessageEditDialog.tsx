@@ -37,7 +37,7 @@ export default function MessageEditDialog({
 
   // 计算剩余编辑时间
   useEffect(() => {
-    if (!message) return;
+    if (!message) {return;}
 
     const updateTimeLeft = () => {
       const created = new Date(message.created_at).getTime();
@@ -66,7 +66,7 @@ export default function MessageEditDialog({
 
   // 处理提交
   const handleSubmit = async () => {
-    if (!message || !isEditable) return;
+    if (!message || !isEditable) {return;}
 
     // 验证内容
     const validation = validateMessage(content);
@@ -101,7 +101,7 @@ export default function MessageEditDialog({
     }
   };
 
-  if (!message) return null;
+  if (!message) {return null;}
 
   return (
     <AnimatePresence>
@@ -130,8 +130,9 @@ export default function MessageEditDialog({
                 onClick={handleClose}
                 disabled={isSubmitting}
                 className="text-white/50 hover:text-white transition-colors disabled:opacity-50"
+                aria-label="关闭"
               >
-                <X className="w-5 h-5" />
+                <X className="w-5 h-5" aria-hidden="true" />
               </button>
             </div>
 

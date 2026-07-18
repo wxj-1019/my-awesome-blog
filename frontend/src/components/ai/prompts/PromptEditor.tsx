@@ -1,28 +1,23 @@
 'use client';
-
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Save, X, Play, Code, Plus, Trash2 } from 'lucide-react';
+import { Save, X, Play, Plus, Trash2 } from 'lucide-react';
 import type { Prompt, PromptCreate } from '@/types';
-import { promptService } from '@/services/promptService';
-
 interface PromptEditorProps {
   prompt?: Prompt;
   onSave: (data: PromptCreate) => void;
   onCancel: () => void;
 }
-
 export default function PromptEditor({ prompt, onSave, onCancel }: PromptEditorProps) {
   const [name, setName] = useState(prompt?.name || '');
   const [content, setContent] = useState(prompt?.content || '');
-  const [variables, setVariables] = useState<Record<string, any>>(prompt?.variables || {});
+  const [variables, setVariables] = useState<Record<string, unknown>>(prompt?.variables || {});
   const [description, setDescription] = useState(prompt?.description || '');
   const [category, setCategory] = useState(prompt?.category || '');
   const [previewVariables, setPreviewVariables] = useState<Record<string, string>>({});
-
   const handleSave = () => {
-    if (!name.trim() || !content.trim()) return;
-    
+    if (!name.trim() || !content.trim()) {return;}
+
     onSave({
       name,
       version: 'v1',
@@ -32,22 +27,14 @@ export default function PromptEditor({ prompt, onSave, onCancel }: PromptEditorP
       category,
     });
   };
-
-  const handleAddVariable = () => {
-    const varName = `var_${Object.keys(variables).length + 1}`;
-    setVariables({ ...variables, [varName]: '' });
-  };
-
   const handleRemoveVariable = (varName: string) => {
     const newVars = { ...variables };
     delete newVars[varName];
     setVariables(newVars);
   };
-
   const updatePreviewVariable = (varName: string, value: string) => {
     setPreviewVariables({ ...previewVariables, [varName]: value });
   };
-
   const getPreviewContent = () => {
     let preview = content;
     Object.entries(previewVariables).forEach(([key, value]) => {
@@ -55,7 +42,6 @@ export default function PromptEditor({ prompt, onSave, onCancel }: PromptEditorP
     });
     return preview;
   };
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -69,11 +55,11 @@ export default function PromptEditor({ prompt, onSave, onCancel }: PromptEditorP
         <button
           onClick={onCancel}
           className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition-all"
+          aria-label="关闭"
         >
-          <X className="w-5 h-5" />
+          <X className="w-5 h-5" aria-hidden="true" />
         </button>
       </div>
-
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="text-xs text-white/70 mb-1.5 block">名称</label>
@@ -96,7 +82,6 @@ export default function PromptEditor({ prompt, onSave, onCancel }: PromptEditorP
           />
         </div>
       </div>
-
       <div>
         <label className="text-xs text-white/70 mb-1.5 block">描述</label>
         <textarea
@@ -107,7 +92,6 @@ export default function PromptEditor({ prompt, onSave, onCancel }: PromptEditorP
           className="w-full bg-white/5 text-white placeholder:text-white/50 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-tech-cyan/50 transition-all resize-none"
         />
       </div>
-
       <div>
         <div className="flex items-center justify-between mb-2">
           <label className="text-xs text-white/70 block">Prompt 内容</label>
@@ -127,7 +111,6 @@ export default function PromptEditor({ prompt, onSave, onCancel }: PromptEditorP
           className="w-full bg-black/30 text-white placeholder:text-white/50 rounded-lg px-3 py-3 text-sm font-mono outline-none focus:ring-2 focus:ring-tech-cyan/50 transition-all resize-none"
         />
       </div>
-
       {Object.keys(variables).length > 0 && (
         <div className="space-y-2">
           <label className="text-xs text-white/70 block">变量定义</label>
@@ -142,7 +125,7 @@ export default function PromptEditor({ prompt, onSave, onCancel }: PromptEditorP
               >
                 <input
                   type="text"
-                  value={value}
+                  value={String(value)}
                   onChange={(e) => setVariables({ ...variables, [key]: e.target.value })}
                   placeholder="变量默认值"
                   className="flex-1 bg-transparent text-white placeholder:text-white/50 text-sm outline-none"
@@ -157,15 +140,15 @@ export default function PromptEditor({ prompt, onSave, onCancel }: PromptEditorP
                 <button
                   onClick={() => handleRemoveVariable(key)}
                   className="p-1 rounded hover:bg-red-500/20 text-white/70 hover:text-red-400 transition-all"
+                  aria-label="删除变量"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-4 h-4" aria-hidden="true" />
                 </button>
               </motion.div>
             ))}
           </div>
         </div>
       )}
-
       <div>
         <div className="flex items-center justify-between mb-2">
           <label className="text-xs text-white/70 block">预览</label>
@@ -180,7 +163,6 @@ export default function PromptEditor({ prompt, onSave, onCancel }: PromptEditorP
           {getPreviewContent()}
         </div>
       </div>
-
       <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/10">
         <button
           onClick={onCancel}

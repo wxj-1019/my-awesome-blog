@@ -1,13 +1,10 @@
 'use client';
-
 import { useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
-
 const MODEL_URL = '/wanko/runtime/wanko_touch.model3.json';
 /** Cubism Core 由依赖 live2dcubismcore 提供，pnpm install 后会复制到 public，仅用本地 */
 const CUBISM_CORE_SCRIPT = '/live2dcubismcore.min.js';
 const CUBISM_CORE_TIMEOUT = 10000;
-
 function loadScript(src: string): Promise<void> {
   return new Promise((resolve, reject) => {
     const existing = document.querySelector(`script[src="${src}"]`);
@@ -22,7 +19,6 @@ function loadScript(src: string): Promise<void> {
     document.head.appendChild(script);
   });
 }
-
 function waitForCubismCore(): Promise<void> {
   return new Promise((resolve, reject) => {
     const win =
@@ -51,19 +47,16 @@ function waitForCubismCore(): Promise<void> {
     }, 50);
   });
 }
-
 /** 加载本地 Cubism Core（来自依赖 live2dcubismcore，postinstall 已复制到 public） */
 async function ensureCubismCore(): Promise<void> {
   const win =
     typeof window !== 'undefined'
       ? (window as unknown as { Live2DCubismCore?: unknown })
       : null;
-  if (win?.Live2DCubismCore) return;
-
+  if (win?.Live2DCubismCore) {return;}
   await loadScript(CUBISM_CORE_SCRIPT);
   await waitForCubismCore();
 }
-
 export default function Live2DWidget() {
   const pathname = usePathname();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -74,41 +67,33 @@ export default function Live2DWidget() {
   const mountedRef = useRef(true);
   const appRef = useRef<import('pixi.js').Application | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-
   useEffect(() => {
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
     };
   }, []);
-
   useEffect(() => {
-    if (pathname === '/login' || !containerRef.current) return;
-
+    if (pathname === '/login' || !containerRef.current) {return;}
+    const container = containerRef.current;
     setStatus('loading');
     setErrorMessage('');
-
     const init = async () => {
-      if (!containerRef.current || !mountedRef.current) return;
-
+      if (!container || !mountedRef.current) {return;}
       try {
         await ensureCubismCore();
-        if (!mountedRef.current || !containerRef.current) return;
-
+        if (!mountedRef.current || !container) {return;}
         const PIXI = await import('pixi.js');
         (window as unknown as { PIXI: typeof PIXI }).PIXI = PIXI;
-
         const { Live2DModel } = await import('pixi-live2d-display/cubism4');
-        if (!mountedRef.current || !containerRef.current) return;
-
+        if (!mountedRef.current || !container) {return;}
         const view = document.createElement('canvas');
         view.style.width = '280px';
         view.style.height = '320px';
         view.style.pointerEvents = 'auto';
         view.style.display = 'block';
         canvasRef.current = view;
-        containerRef.current.appendChild(view);
-
+        container.appendChild(view);
         const app = new PIXI.Application({
           view,
           width: 280,
@@ -117,40 +102,32 @@ export default function Live2DWidget() {
           antialias: true,
         });
         appRef.current = app;
-
         const model = await Live2DModel.from(MODEL_URL);
-        if (!mountedRef.current) return;
-
+        if (!mountedRef.current) {return;}
         app.stage.addChild(model);
         model.anchor.set(0.5, 0.5);
         model.x = 40;
         model.y = 160;
         model.scale.set(0.2);
-
         model.on('hit', (hitAreas: string[]) => {
           if (hitAreas.length > 0) {
             model.motion('Tap');
           }
         });
-
-        if (mountedRef.current) setStatus('ok');
+        if (mountedRef.current) {setStatus('ok');}
       } catch (err) {
         if (appRef.current) {
           try {
             appRef.current.destroy(true, { children: true });
-          } catch (_) {
+          } catch {
             // ignore
           }
           appRef.current = null;
         }
-        if (
-          canvasRef.current &&
-          containerRef.current?.contains(canvasRef.current)
-        ) {
-          containerRef.current.removeChild(canvasRef.current);
+        if (canvasRef.current && container.contains(canvasRef.current)) {
+          container.removeChild(canvasRef.current);
         }
         canvasRef.current = null;
-
         const msg = err instanceof Error ? err.message : String(err);
         const hint =
           msg.includes('404') ||
@@ -159,34 +136,27 @@ export default function Live2DWidget() {
             ? '（请确保 public/wanko/runtime 下有 .moc3 和贴图文件）'
             : '';
         setErrorMessage(msg + hint);
-        if (mountedRef.current) setStatus('error');
+        if (mountedRef.current) {setStatus('error');}
         console.error('[Live2D] 加载失败:', err);
       }
     };
-
     init();
-
     return () => {
       if (appRef.current) {
         try {
           appRef.current.destroy(true, { children: true });
-        } catch (_) {
+        } catch {
           // ignore
         }
         appRef.current = null;
       }
-      if (
-        canvasRef.current &&
-        containerRef.current?.contains(canvasRef.current)
-      ) {
-        containerRef.current.removeChild(canvasRef.current);
+      if (canvasRef.current && container.contains(canvasRef.current)) {
+        container.removeChild(canvasRef.current);
       }
       canvasRef.current = null;
     };
   }, [pathname]);
-
-  if (pathname === '/login') return null;
-
+  if (pathname === '/login') {return null;}
   return (
     <div
       className="fixed z-[100] flex flex-col items-end justify-end pointer-events-none"

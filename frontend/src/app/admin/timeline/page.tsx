@@ -13,22 +13,21 @@ import {
   Flag,
   Trophy,
   Bell,
-  Star,
   ChevronLeft,
   ChevronRight,
   Eye,
-  EyeOff,
-  Move
+  EyeOff
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { adminApi } from '@/lib/admin-api-client'
+import { validateArrayData } from '@/utils/data-validation'
 import Button from '@/components/admin/Button'
 import FormInput from '@/components/admin/FormInput'
-import ConfirmDialog from '@/components/admin/ConfirmDialog'
+import ConfirmDialog from '@/components/ui/ConfirmDialog'
 import { useToast } from '@/components/admin/Toast'
-import LoadingState from '@/components/admin/LoadingState'
-import EmptyState from '@/components/admin/EmptyState'
-import GlassCardAdmin from '@/components/ui/AdminGlassCard'
+import LoadingState from '@/components/ui/LoadingState'
+import EmptyState from '@/components/ui/EmptyState'
+import GlassCardAdmin from '@/components/ui/GlassCardAdmin'
 
 interface TimelineEvent {
   id: string
@@ -92,13 +91,13 @@ export default function TimelinePage() {
       setLoading(true)
       const skip = (currentPage - 1) * pageSize
       
-      const data: any = await adminApi.timeline.list({
+      const data = await adminApi.timeline.list({
         skip,
         limit: pageSize,
         is_active: true
       })
       
-      let filteredData = Array.isArray(data) ? data : []
+      let filteredData = validateArrayData<TimelineEvent>(data)
       
       if (searchQuery) {
         filteredData = filteredData.filter((e: TimelineEvent) => 
@@ -193,7 +192,7 @@ export default function TimelinePage() {
   }
 
   const deleteEvent = async () => {
-    if (!deleteDialog.event) return
+    if (!deleteDialog.event) {return}
     
     try {
       await adminApi.timeline.delete(deleteDialog.event.id)

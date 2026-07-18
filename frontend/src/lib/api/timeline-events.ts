@@ -38,9 +38,9 @@ export const getTimelineEvents = async (params?: {
   is_active?: boolean;
 }): Promise<TimelineEvent[]> => {
   const queryParams = new URLSearchParams();
-  if (params?.skip !== undefined) queryParams.append('skip', params.skip.toString());
-  if (params?.limit !== undefined) queryParams.append('limit', params.limit.toString());
-  if (params?.is_active !== undefined) queryParams.append('is_active', params.is_active.toString());
+  if (params?.skip !== undefined) {queryParams.append('skip', params.skip.toString());}
+  if (params?.limit !== undefined) {queryParams.append('limit', params.limit.toString());}
+  if (params?.is_active !== undefined) {queryParams.append('is_active', params.is_active.toString());}
 
   const response = await fetch(`${API_BASE_URL}/timeline-events/?${queryParams.toString()}`, {
     headers: {

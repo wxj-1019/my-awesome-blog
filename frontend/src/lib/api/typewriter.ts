@@ -20,9 +20,9 @@ export interface TypewriterContentsParams {
 export const getTypewriterContents = async (params: TypewriterContentsParams = {}): Promise<TypewriterContent[]> => {
   const queryParams = new URLSearchParams();
   
-  if (params.skip !== undefined) queryParams.append('skip', params.skip.toString());
-  if (params.limit !== undefined) queryParams.append('limit', params.limit.toString());
-  if (params.active_only !== undefined) queryParams.append('active_only', params.active_only.toString());
+  if (params.skip !== undefined) {queryParams.append('skip', params.skip.toString());}
+  if (params.limit !== undefined) {queryParams.append('limit', params.limit.toString());}
+  if (params.active_only !== undefined) {queryParams.append('active_only', params.active_only.toString());}
 
   const response = await fetch(`${API_BASE_URL}/typewriter-contents/?${queryParams.toString()}`, {
     headers: {

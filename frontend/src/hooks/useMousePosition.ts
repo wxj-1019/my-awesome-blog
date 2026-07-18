@@ -61,7 +61,7 @@ export function useElementMousePosition(ref: RefObject<HTMLElement>) {
   });
 
   const handleMouseMove = useCallback((event: MouseEvent) => {
-    if (!ref.current) return;
+    if (!ref.current) {return;}
 
     const rect = ref.current.getBoundingClientRect();
     const x = event.clientX - rect.left;
@@ -94,7 +94,7 @@ export function useElementMousePosition(ref: RefObject<HTMLElement>) {
 
   useEffect(() => {
     const element = ref.current;
-    if (!element) return;
+    if (!element) {return;}
 
     element.addEventListener('mousemove', handleMouseMove);
     element.addEventListener('mouseleave', handleMouseLeave);

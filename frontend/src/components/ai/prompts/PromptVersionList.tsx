@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { GitBranch, RotateCcw, Check } from 'lucide-react';
 import type { PromptVersion } from '@/types';
 import { promptService } from '@/services/promptService';
@@ -17,18 +17,6 @@ export default function PromptVersionList({ promptId, currentVersion, onSelectVe
   const [versions, setVersions] = useState<PromptVersion[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const loadVersions = async () => {
-    setLoading(true);
-    try {
-      const result = await promptService.getPromptVersions(promptId);
-      setVersions(result.versions);
-    } catch (error) {
-      console.error('Failed to load versions:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleActivateVersion = async (version: string) => {
     try {
       await promptService.activatePromptVersion(promptId, version);
@@ -40,6 +28,18 @@ export default function PromptVersionList({ promptId, currentVersion, onSelectVe
   };
 
   useEffect(() => {
+    const loadVersions = async () => {
+      setLoading(true);
+      try {
+        const result = await promptService.getPromptVersions(promptId);
+        setVersions(result.versions);
+      } catch (error) {
+        console.error('Failed to load versions:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     loadVersions();
   }, [promptId]);
 

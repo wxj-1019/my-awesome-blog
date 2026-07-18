@@ -1,7 +1,7 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import { Mail, MessageSquare, Github, Twitter, Linkedin, HelpCircle, User, Clock, Globe } from 'lucide-react';
+import { Mail, MessageSquare, Github, Twitter, Linkedin, HelpCircle, Clock, Globe } from 'lucide-react';
 
 interface ContactSidebarProps {
   activeSection: string;

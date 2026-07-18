@@ -103,8 +103,9 @@ const Pagination = ({
           )}
           whileHover={currentPage !== 1 ? { scale: 1.05 } : {}}
           whileTap={currentPage !== 1 ? { scale: 0.95 } : {}}
+          aria-label="上一页"
         >
-          <ChevronLeft className="w-5 h-5" />
+          <ChevronLeft className="w-5 h-5" aria-hidden="true" />
         </motion.button>
 
         {/* Page Numbers */}
@@ -153,8 +154,9 @@ const Pagination = ({
           )}
           whileHover={currentPage !== totalPages ? { scale: 1.05 } : {}}
           whileTap={currentPage !== totalPages ? { scale: 0.95 } : {}}
+          aria-label="下一页"
         >
-          <ChevronRight className="w-5 h-5" />
+          <ChevronRight className="w-5 h-5" aria-hidden="true" />
         </motion.button>
       </div>
     </motion.div>

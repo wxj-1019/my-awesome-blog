@@ -1,10 +1,8 @@
 'use client';
-
 import { useState, useRef, useEffect, ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GripVertical, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Maximize2, Minimize2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
 export interface SplitPaneProps {
   children: [ReactNode, ReactNode];
   defaultSplit?: number;
@@ -16,7 +14,6 @@ export interface SplitPaneProps {
   showCollapseButtons?: boolean;
   className?: string;
 }
-
 export default function SplitPane({
   children,
   defaultSplit = 50,
@@ -33,69 +30,50 @@ export default function SplitPane({
   const [isCollapsed, setIsCollapsed] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const separatorRef = useRef<HTMLDivElement>(null);
-
   const isHorizontal = orientation === 'horizontal';
-
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      if (!isResizing || !containerRef.current) return;
-
+      if (!isResizing || !containerRef.current) {return;}
       const rect = containerRef.current.getBoundingClientRect();
       const newSize = isHorizontal
         ? ((e.clientX - rect.left) / rect.width) * 100
         : ((e.clientY - rect.top) / rect.height) * 100;
-
       setSplit(Math.max(minSize, Math.min(maxSize, newSize)));
     };
-
     const handleMouseUp = () => {
       setIsResizing(false);
     };
-
     if (isResizing) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
     }
-
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
   }, [isResizing, isHorizontal, minSize, maxSize]);
-
   const handleSeparatorMouseDown = (e: React.MouseEvent) => {
-    if (!resizable) return;
+    if (!resizable) {return;}
     e.preventDefault();
     setIsResizing(true);
   };
-
-  const toggleCollapse = () => {
-    if (!collapsible) return;
-    setIsCollapsed(!isCollapsed);
-  };
-
   const collapseLeft = () => {
-    if (!collapsible) return;
+    if (!collapsible) {return;}
     setIsCollapsed(true);
   };
-
   const collapseRight = () => {
-    if (!collapsible) return;
+    if (!collapsible) {return;}
     setIsCollapsed(false);
   };
-
   const handleMaximize = () => {
     setSplit(isHorizontal ? 100 : 100);
     setIsCollapsed(false);
   };
-
   const handleReset = () => {
     setSplit(defaultSplit);
     setIsCollapsed(false);
   };
-
   const currentSplit = isCollapsed ? 0 : split;
-
   return (
     <div
       ref={containerRef}
@@ -117,7 +95,6 @@ export default function SplitPane({
       >
         {children[0]}
       </motion.div>
-
       <AnimatePresence>
         {!isCollapsed && (
           <motion.div
@@ -142,7 +119,6 @@ export default function SplitPane({
                 <GripVertical className={cn('text-white', isHorizontal ? 'w-3 h-3' : 'w-3 h-3 rotate-90')} />
               </div>
             )}
-
             {showCollapseButtons && (
               <div className={cn(
                 'absolute flex gap-1',
@@ -154,45 +130,45 @@ export default function SplitPane({
                   onClick={collapseLeft}
                   className="p-1.5 rounded bg-glass/30 hover:bg-glass/50 text-foreground/70 hover:text-foreground transition-colors"
                   title="折叠左侧"
+                  aria-label="折叠左侧"
                 >
-                  {isHorizontal ? <ChevronLeft className="w-3 h-3" /> : <ChevronUp className="w-3 h-3" />}
+                  {isHorizontal ? <ChevronLeft className="w-3 h-3" aria-hidden="true" /> : <ChevronUp className="w-3 h-3" aria-hidden="true" />}
                 </motion.button>
-
                 <motion.button
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={collapseRight}
                   className="p-1.5 rounded bg-glass/30 hover:bg-glass/50 text-foreground/70 hover:text-foreground transition-colors"
                   title="折叠右侧"
+                  aria-label="折叠右侧"
                 >
-                  {isHorizontal ? <ChevronRight className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                  {isHorizontal ? <ChevronRight className="w-3 h-3" aria-hidden="true" /> : <ChevronDown className="w-3 h-3" aria-hidden="true" />}
                 </motion.button>
-
                 <motion.button
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={handleMaximize}
                   className="p-1.5 rounded bg-glass/30 hover:bg-glass/50 text-foreground/70 hover:text-foreground transition-colors"
                   title="最大化"
+                  aria-label="最大化"
                 >
-                  <Maximize2 className="w-3 h-3" />
+                  <Maximize2 className="w-3 h-3" aria-hidden="true" />
                 </motion.button>
-
                 <motion.button
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={handleReset}
                   className="p-1.5 rounded bg-glass/30 hover:bg-glass/50 text-foreground/70 hover:text-foreground transition-colors"
                   title="重置"
+                  aria-label="重置"
                 >
-                  <Minimize2 className="w-3 h-3" />
+                  <Minimize2 className="w-3 h-3" aria-hidden="true" />
                 </motion.button>
               </div>
             )}
           </motion.div>
         )}
       </AnimatePresence>
-
       <motion.div
         initial={{ opacity: 0, width: 0 }}
         animate={{ opacity: 1, width: `${100 - currentSplit}%` }}
@@ -201,7 +177,6 @@ export default function SplitPane({
       >
         {children[1]}
       </motion.div>
-
       {isResizing && (
         <motion.div
           initial={{ opacity: 0 }}

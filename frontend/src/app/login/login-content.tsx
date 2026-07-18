@@ -1,13 +1,10 @@
 'use client';
-
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Lock, User, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { loginApi } from '@/lib/api/auth';
 import { useLoading } from '@/context/loading-context';
 import '@/styles/components/login-form.css';
-
 export default function LoginPageContent() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -17,11 +14,9 @@ export default function LoginPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isLoading, showLoading, hideLoading } = useLoading();
-
   useEffect(() => {
     setMounted(true);
   }, []);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -42,25 +37,15 @@ export default function LoginPageContent() {
     }
     
     showLoading();
-
     try {
-      const result = await loginApi(username, password);
-
-      console.log('[Login] 登录成功，准备跳转到个人资料页面');
       const redirectParam = searchParams.get('redirect');
       const redirectPath = redirectParam ? decodeURIComponent(redirectParam) : '/profile';
-      console.log('[Login] 跳转目标路径:', redirectPath);
-
       if (redirectPath.startsWith('/') && !redirectPath.startsWith('//')) {
-        console.log('[Login] 延迟 500ms 后跳转到:', redirectPath);
         setTimeout(() => {
-          console.log('[Login] 开始执行跳转');
           router.push(redirectPath as '/profile');
         }, 500);
       } else {
-        console.log('[Login] 路径无效，跳转到默认的个人资料页面');
         setTimeout(() => {
-          console.log('[Login] 开始执行跳转到 /profile');
           router.push('/profile');
         }, 500);
       }
@@ -71,13 +56,10 @@ export default function LoginPageContent() {
       hideLoading();
     }
   };
-
   if (!mounted) {
     return null;
   }
-
   const message = searchParams.get('message');
-
   return (
     <div className="relative min-h-screen flex items-center justify-center">
       <div className="login-page" />
@@ -87,7 +69,6 @@ export default function LoginPageContent() {
         <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl animate-float-2" />
         <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-pink-500/10 rounded-full blur-3xl animate-float-3" />
       </div>
-
       <div className="relative z-50 p-4">
         <div
           className="bg-glass/90 backdrop-blur-2xl border border-glass-border rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 animate-card-appear"
@@ -111,7 +92,6 @@ export default function LoginPageContent() {
               </p>
             )}
           </div>
-
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="form-control">
               <input
@@ -124,6 +104,7 @@ export default function LoginPageContent() {
                 className="bg-transparent"
               />
               <label htmlFor="username" className="absolute pointer-events-none text-white/80">
+                {/* 静态字符：顺序固定，使用 index 作为 key */}
                 {Array.from('用户名').map((char, index) => (
                   <span
                     key={index}
@@ -135,7 +116,6 @@ export default function LoginPageContent() {
               </label>
               <User className="absolute right-4 top-1/2 -translate-y-1/2 text-tech-cyan" />
             </div>
-
             <div className="form-control">
               <input
                 id="password"
@@ -147,6 +127,7 @@ export default function LoginPageContent() {
                 className="bg-transparent"
               />
               <label htmlFor="password" className="absolute pointer-events-none text-white/80">
+                {/* 静态字符：顺序固定，使用 index 作为 key */}
                 {Array.from('密码').map((char, index) => (
                   <span
                     key={index}
@@ -165,13 +146,11 @@ export default function LoginPageContent() {
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
-
             {error && (
               <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-3 text-red-300 text-sm animate-shake">
                 {error}
               </div>
             )}
-
             <Button
               type="submit"
               variant="default"
@@ -183,7 +162,6 @@ export default function LoginPageContent() {
               </div>
             </Button>
           </form>
-
           <div className="mt-6 pt-6 border-t border-white/10 text-center">
             <p className="text-sm text-gray-300">
               还没有账号？

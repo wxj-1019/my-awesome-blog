@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, memo, useCallback } from 'react';
+import { useState, useRef, memo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Flame, Rocket, Sparkles, Heart, ThumbsUp, ThumbsDown, Laugh } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -51,19 +51,7 @@ const MessageReactionsComponent = function MessageReactions({
     return reactions.find(r => r.emoji === emoji)?.users.includes(currentUser || '');
   };
 
-  const handleReactionClick = useCallback((emoji: string, event: React.MouseEvent) => {
-    const rect = (event.target as HTMLElement).getBoundingClientRect();
-    const x = rect.left + rect.width / 2;
-    const y = rect.top + rect.height / 2;
-
-    createParticles(emoji, x, y);
-    setActiveReaction(emoji);
-    onReaction?.(emoji);
-
-    setTimeout(() => setActiveReaction(null), 500);
-  }, [onReaction]);
-
-  const createParticles = (emoji: string, x: number, y: number) => {
+  const createParticles = useCallback((emoji: string, x: number, y: number) => {
     const newParticles: Particle[] = Array.from({ length: 6 }, (_, i) => ({
       id: `${messageId}-${emoji}-${Date.now()}-${i}`,
       x,
@@ -81,12 +69,24 @@ const MessageReactionsComponent = function MessageReactions({
     setTimeout(() => {
       setParticles([]);
     }, 800);
-  };
+  }, [messageId]);
+
+  const handleReactionClick = useCallback((emoji: string, event: React.MouseEvent) => {
+    const rect = (event.target as HTMLElement).getBoundingClientRect();
+    const x = rect.left + rect.width / 2;
+    const y = rect.top + rect.height / 2;
+
+    createParticles(emoji, x, y);
+    setActiveReaction(emoji);
+    onReaction?.(emoji);
+
+    setTimeout(() => setActiveReaction(null), 500);
+  }, [onReaction, createParticles]);
 
   return (
     <div ref={containerRef} className="flex flex-col gap-2">
       <div className="flex items-center gap-2 flex-wrap">
-        {REACTION_TYPES.map(({ emoji, label, icon: Icon }) => {
+        {REACTION_TYPES.map(({ emoji, label: _label, icon: _Icon }) => {
           const reaction = reactions.find(r => r.emoji === emoji);
           const count = reaction?.count || 0;
           const isReacted = hasReacted(emoji);

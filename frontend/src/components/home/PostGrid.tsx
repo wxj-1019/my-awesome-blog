@@ -1,11 +1,8 @@
 'use client';
 
-import Link from 'next/link';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { Button } from '@/components/ui/Button';
 import type { Post } from '@/types';
-import React, { useState, useCallback, useEffect, useRef } from 'react';
-import SimplePostCard, { SimplePostCardSkeleton } from '@/components/blog/SimplePostCard';
+import React, { useState, useCallback, useEffect } from 'react';
+import ArticleCard, { ArticleCardSkeleton } from '@/components/ui/ArticleCard';
 import { useTheme } from '@/context/theme-context';
 import { useLoading } from '@/context/loading-context';
 
@@ -19,7 +16,7 @@ interface PostCardItemWithThemeProps extends PostCardItemProps {
 }
 
 const PostCardItemWithTheme = React.memo(({ post, index, glassCardClass }: PostCardItemWithThemeProps) => (
-  <SimplePostCard
+  <ArticleCard
     key={post.id}
     id={post.id}
     title={post.title}
@@ -59,14 +56,10 @@ export default function PostGrid({ posts, loading = false, hasMore = true, onLoa
     ? 'glass-card'
     : 'bg-muted/80 shadow-lg border border-border';
 
-  const [page, setPage] = useState(1);
-  const [hasMoreLocal, setHasMoreLocal] = useState(hasMore);
   const [loadingLocal, setLoadingLocal] = useState(loading);
-  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
-  const observerRef = useRef<IntersectionObserver>();
 
   const loadMore = useCallback(async () => {
-    if (loadingLocal || !hasMoreLocal || !onLoadMore) return;
+    if (loadingLocal || !hasMore || !onLoadMore) {return;}
 
     showLoading();
     setLoadingLocal(true);
@@ -76,14 +69,13 @@ export default function PostGrid({ posts, loading = false, hasMore = true, onLoa
     setTimeout(() => {
       hideLoading();
       setLoadingLocal(false);
-      setPage(prev => prev + 1);
     }, 1000);
-  }, [loadingLocal, hasMoreLocal, onLoadMore, showLoading, hideLoading]);
+  }, [loadingLocal, hasMore, onLoadMore, showLoading, hideLoading]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasMoreLocal && !loadingLocal) {
+        if (entries[0].isIntersecting && hasMore && !loadingLocal) {
           loadMore();
         }
       },
@@ -96,7 +88,7 @@ export default function PostGrid({ posts, loading = false, hasMore = true, onLoa
     }
 
     return () => observer.disconnect();
-  }, [loadMore, hasMoreLocal, loadingLocal]);
+  }, [loadMore, hasMore, loadingLocal]);
 
   // 根据加载状态决定是否显示骨架屏
   const shouldShowSkeleton = loadingLocal && posts.length === 0;
@@ -112,7 +104,7 @@ export default function PostGrid({ posts, loading = false, hasMore = true, onLoa
           {shouldShowSkeleton ? (
             // 显示骨架屏
             Array.from({ length: 6 }).map((_, index) => (
-              <SimplePostCardSkeleton key={`skeleton-${index}`} />
+              <ArticleCardSkeleton key={`skeleton-${index}`} />
             ))
           ) : (
             posts.map((post, index) => (
@@ -121,7 +113,7 @@ export default function PostGrid({ posts, loading = false, hasMore = true, onLoa
           )}
         </div>
 
-        {(hasMoreLocal || loadingLocal) && (
+        {(hasMore || loadingLocal) && (
           <div id="sentinel" className="flex justify-center py-8">
             {loadingLocal && posts.length > 0 && (
               <div className="h-12 w-12 border-4 border-tech-cyan border-t-transparent rounded-full animate-spin" />

@@ -1,9 +1,6 @@
 'use client';
-
 import { motion } from 'framer-motion';
-import { Mail, Github, Twitter, Linkedin, MapPin, Clock, ExternalLink, ArrowRight } from 'lucide-react';
-import { useTheme } from '@/context/theme-context';
-
+import { Mail, Github, Twitter, Linkedin, MapPin, Clock, ArrowRight } from 'lucide-react';
 interface ContactCard {
   id: string;
   icon: React.ReactNode;
@@ -14,10 +11,7 @@ interface ContactCard {
   color?: string;
   bgGradient?: string;
 }
-
 export default function ContactCards() {
-  const { resolvedTheme } = useTheme();
-
   const cards: ContactCard[] = [
     {
       id: 'email',
@@ -76,7 +70,6 @@ export default function ContactCards() {
       bgGradient: 'from-orange-500/10 to-orange-600/5',
     },
   ];
-
   return (
     <section className="w-full py-12">
       <div className="container mx-auto px-4 sm:px-6">
@@ -89,7 +82,6 @@ export default function ContactCards() {
               除了邮件，你也可以通过以下渠道联系我
             </p>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {cards.map((card, index) => (
               <motion.div
@@ -120,7 +112,6 @@ export default function ContactCards() {
                   <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent dark:from-white/5 dark:to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   
                   <div className="absolute inset-0 bg-gradient-to-t from-black/0 via-black/0 to-black/0 dark:to-black/20 pointer-events-none" />
-
                   <div className="relative p-6 h-full flex flex-col">
                     <div className="relative mb-4">
                       <motion.div
@@ -152,15 +143,12 @@ export default function ContactCards() {
                         }}
                       />
                     </div>
-
                     <h3 className="font-sf-pro-display text-lg font-semibold text-foreground mb-1.5">
                       {card.title}
                     </h3>
-
                     <p className="font-sf-pro-text text-foreground/60 text-sm mb-4 flex-grow leading-relaxed">
                       {card.description}
                     </p>
-
                     {card.link && (
                       <motion.a
                         href={card.link}
@@ -175,10 +163,8 @@ export default function ContactCards() {
                         <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" />
                       </motion.a>
                     )}
-
                     <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-transparent to-transparent group-hover:via-[var(--card-color)] transition-all duration-500" />
                   </div>
-
                   <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-white/10 to-transparent rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
                   <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-white/5 to-transparent rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
                 </motion.div>

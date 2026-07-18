@@ -38,13 +38,13 @@ export default function PlaylistCard({
   };
 
   const formatNumber = (num: number) => {
-    if (num >= 10000) return (num / 10000).toFixed(1) + 'w';
-    if (num >= 1000) return (num / 1000).toFixed(1) + 'k';
+    if (num >= 10000) {return (num / 10000).toFixed(1) + 'w';}
+    if (num >= 1000) {return (num / 1000).toFixed(1) + 'k';}
     return num.toString();
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!cardRef.current) return;
+    if (!cardRef.current) {return;}
     const rect = cardRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;

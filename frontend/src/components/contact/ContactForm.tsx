@@ -1,22 +1,16 @@
 'use client';
-
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, User, MessageSquare, Send, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
-import { useTheme } from '@/context/theme-context';
 import GlassCard from '@/components/ui/GlassCard';
-
 interface FormData {
   name: string;
   email: string;
   subject: string;
   message: string;
 }
-
 type FormStatus = 'idle' | 'submitting' | 'success' | 'error';
-
 export default function ContactForm() {
-  const { resolvedTheme } = useTheme();
   const [formData, setFormData] = useState<FormData>({
     name: '',
     email: '',
@@ -26,31 +20,29 @@ export default function ContactForm() {
   const [status, setStatus] = useState<FormStatus>('idle');
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
   const [touched, setTouched] = useState<Partial<Record<keyof FormData, boolean>>>({});
-
   const validateField = (name: keyof FormData, value: string): string => {
     switch (name) {
       case 'name':
-        if (!value.trim()) return '请输入您的姓名';
-        if (value.length < 2) return '姓名至少需要2个字符';
+        if (!value.trim()) {return '请输入您的姓名';}
+        if (value.length < 2) {return '姓名至少需要2个字符';}
         return '';
       case 'email':
-        if (!value.trim()) return '请输入您的邮箱';
+        if (!value.trim()) {return '请输入您的邮箱';}
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(value)) return '请输入有效的邮箱地址';
+        if (!emailRegex.test(value)) {return '请输入有效的邮箱地址';}
         return '';
       case 'subject':
-        if (!value.trim()) return '请输入主题';
-        if (value.length < 3) return '主题至少需要3个字符';
+        if (!value.trim()) {return '请输入主题';}
+        if (value.length < 3) {return '主题至少需要3个字符';}
         return '';
       case 'message':
-        if (!value.trim()) return '请输入消息内容';
-        if (value.length < 10) return '消息内容至少需要10个字符';
+        if (!value.trim()) {return '请输入消息内容';}
+        if (value.length < 10) {return '消息内容至少需要10个字符';}
         return '';
       default:
         return '';
     }
   };
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -62,7 +54,6 @@ export default function ContactForm() {
       }));
     }
   };
-
   const handleBlur = (name: keyof FormData, value: string) => {
     setTouched(prev => ({ ...prev, [name]: true }));
     setErrors(prev => ({
@@ -70,16 +61,14 @@ export default function ContactForm() {
       [name]: validateField(name, value),
     }));
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     const newErrors: Partial<Record<keyof FormData, string>> = {};
     Object.entries(formData).forEach(([key, value]) => {
       const error = validateField(key as keyof FormData, value);
-      if (error) newErrors[key as keyof FormData] = error;
+      if (error) {newErrors[key as keyof FormData] = error;}
     });
-
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       setTouched({
@@ -90,9 +79,7 @@ export default function ContactForm() {
       });
       return;
     }
-
     setStatus('submitting');
-
     try {
       await new Promise(resolve => setTimeout(resolve, 1500));
       setStatus('success');
@@ -101,12 +88,11 @@ export default function ContactForm() {
       setErrors({});
       
       setTimeout(() => setStatus('idle'), 3000);
-    } catch (error) {
+    } catch {
       setStatus('error');
       setTimeout(() => setStatus('idle'), 3000);
     }
   };
-
   const renderInput = (
     name: keyof FormData,
     label: string,
@@ -117,7 +103,6 @@ export default function ContactForm() {
     const error = errors[name];
     const isTouched = touched[name];
     const showError = isTouched && error;
-
     return (
       <div className="space-y-2">
         <label className="block text-sm font-medium text-foreground/90 font-sf-pro-text">
@@ -190,7 +175,6 @@ export default function ContactForm() {
       </div>
     );
   };
-
   return (
     <section className="w-full py-12 relative">
       <div className="container mx-auto px-4 sm:px-6">
@@ -210,18 +194,14 @@ export default function ContactForm() {
               填写下面的表单，我会尽快回复你。通常在 24 小时内回复。
             </p>
           </motion.div>
-
           <GlassCard padding="lg" className="shadow-xl shadow-foreground/5 dark:shadow-black/20">
-
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {renderInput('name', '姓名', 'text', <User className="w-5 h-5" />)}
                 {renderInput('email', '邮箱', 'email', <Mail className="w-5 h-5" />)}
               </div>
-
               {renderInput('subject', '主题', 'text', <MessageSquare className="w-5 h-5" />)}
               {renderInput('message', '消息内容', 'text', <MessageSquare className="w-5 h-5" />, 6)}
-
               <motion.button
                 type="submit"
                 disabled={status === 'submitting'}
@@ -255,7 +235,6 @@ export default function ContactForm() {
                 )}
               </motion.button>
             </form>
-
             <AnimatePresence mode="wait">
               {status === 'success' && (
                 <motion.div
@@ -270,7 +249,6 @@ export default function ContactForm() {
                   </div>
                 </motion.div>
               )}
-
               {status === 'error' && (
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}

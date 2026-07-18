@@ -1,5 +1,4 @@
 'use client';
-
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -41,27 +40,21 @@ import Button from '@/components/admin/Button';
 import FormInput from '@/components/admin/FormInput';
 import { useToast, ToastContainer } from '@/components/admin/Toast';
 import GlassCardAdmin from '@/components/ui/GlassCardAdmin';
-
 interface Category {
   id: string;
   name: string;
   slug: string;
   color?: string;
 }
-
 interface Tag {
   id: string;
   name: string;
   slug: string;
   color?: string;
 }
-
 type EditorMode = 'edit' | 'preview' | 'split';
-
-const AUTOSAVE_INTERVAL = 30000;
 const MIN_TITLE_LENGTH = 5;
 const MIN_CONTENT_LENGTH = 100;
-
 const MarkdownToolbar = ({ onInsert }: { onInsert: (text: string) => void }) => {
   const tools = [
     { icon: Heading1, title: '标题 1', insert: '# ' },
@@ -76,12 +69,11 @@ const MarkdownToolbar = ({ onInsert }: { onInsert: (text: string) => void }) => 
     { icon: ListOrdered, title: '有序列表', insert: '1. ' },
     { icon: Minus, title: '分割线', insert: '\n---\n' },
   ];
-
   return (
     <div className="flex items-center gap-0.5 p-1 bg-background/30 rounded-lg border border-border/30">
-      {tools.map((tool, index) => (
+      {tools.map((tool) => (
         <button
-          key={index}
+          key={tool.title}
           type="button"
           title={tool.title}
           onClick={() => onInsert(tool.insert)}
@@ -93,14 +85,11 @@ const MarkdownToolbar = ({ onInsert }: { onInsert: (text: string) => void }) => 
     </div>
   );
 };
-
 export default function NewArticlePage() {
   const router = useRouter();
   const { success, error, info, toasts, removeToast } = useToast();
-  const autosaveTimerRef = useRef<NodeJS.Timeout | null>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
   const contentTextareaRef = useRef<HTMLTextAreaElement>(null);
-
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -112,8 +101,6 @@ export default function NewArticlePage() {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showTagDropdown, setShowTagDropdown] = useState(false);
   const [touchedFields, setTouchedFields] = useState<Set<string>>(new Set());
-  const [activeTab, setActiveTab] = useState<'content' | 'settings'>('content');
-
   const [formData, setFormData] = useState({
     title: '',
     slug: '',
@@ -124,14 +111,12 @@ export default function NewArticlePage() {
     category_id: '',
     tags: [] as string[]
   });
-
   const stats = {
     charCount: formData.content.length,
     wordCount: formData.content.trim() ? formData.content.trim().split(/\s+/).length : 0,
     readingTime: Math.max(1, Math.ceil(formData.content.trim().split(/\s+/).length / 200)),
     titleLength: formData.title.length
   };
-
   const formProgress = {
     title: formData.title.length >= MIN_TITLE_LENGTH,
     content: formData.content.length >= MIN_CONTENT_LENGTH,
@@ -139,16 +124,13 @@ export default function NewArticlePage() {
     tags: formData.tags.length > 0,
     excerpt: formData.excerpt.length > 0
   };
-
   const progressPercentage = Math.round(
     (Object.values(formProgress).filter(Boolean).length / Object.keys(formProgress).length) * 100
   );
-
   const validationErrors = {
     title: touchedFields.has('title') && formData.title.length < MIN_TITLE_LENGTH,
     content: touchedFields.has('content') && formData.content.length < MIN_CONTENT_LENGTH
   };
-
   const loadCategoriesAndTags = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -165,17 +147,14 @@ export default function NewArticlePage() {
       setIsLoading(false);
     }
   }, [error]);
-
   useEffect(() => {
     loadCategoriesAndTags();
   }, [loadCategoriesAndTags]);
-
   useEffect(() => {
     if (!isLoading && formData.content) {
       setHasUnsavedChanges(true);
     }
   }, [formData, isLoading]);
-
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (hasUnsavedChanges) {
@@ -186,6 +165,147 @@ export default function NewArticlePage() {
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [hasUnsavedChanges]);
+  const generateSlug = (title: string) => {
+    return title
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim();
+  };
+  const generateExcerpt = (content: string) => {
+    const plainText = content.replace(/[#*`_\[\]]/g, '').trim();
+    return plainText.length > 150 ? plainText.substring(0, 150) + '...' : plainText;
+  };
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const title = e.target.value;
+    setTouchedFields(prev => new Set(prev).add('title'));
+    setFormData(prev => ({
+      ...prev,
+      title,
+      slug: generateSlug(title)
+    }));
+  };
+  const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const content = e.target.value;
+    setTouchedFields(prev => new Set(prev).add('content'));
+    setFormData(prev => ({
+      ...prev,
+      content
+    }));
+  };
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setTouchedFields(prev => new Set(prev).add(name));
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+  const handleTagToggle = (tagId: string) => {
+    setFormData(prev => {
+      const newTags = prev.tags.includes(tagId)
+        ? prev.tags.filter(id => id !== tagId)
+        : [...prev.tags, tagId];
+      return { ...prev, tags: newTags };
+    });
+  };
+  const handleAutoExcerpt = () => {
+    const excerpt = generateExcerpt(formData.content);
+    setFormData(prev => ({ ...prev, excerpt }));
+    info('已自动生成摘要');
+  };
+  const insertMarkdown = (text: string) => {
+    const textarea = contentTextareaRef.current;
+    if (!textarea) {return;}
+    
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const newContent = formData.content.substring(0, start) + text + formData.content.substring(end);
+    
+    setFormData(prev => ({ ...prev, content: newContent }));
+    
+    setTimeout(() => {
+      textarea.focus();
+      const cursorPos = text.includes('[](url)') ? start + 1 : start + text.length;
+      textarea.setSelectionRange(cursorPos, cursorPos);
+    }, 0);
+  };
+  const handleSaveDraft = useCallback(async () => {
+    if (!formData.title.trim()) {
+      error('请输入文章标题');
+      return;
+    }
+    if (!formData.content.trim()) {
+      error('请输入文章内容');
+      return;
+    }
+    try {
+      const submitData = {
+        title: formData.title,
+        slug: formData.slug,
+        content: formData.content,
+        excerpt: formData.excerpt || undefined,
+        cover_image: formData.cover_image || undefined,
+        is_published: false,
+        category_id: formData.category_id || undefined,
+        tags: formData.tags.length > 0 ? formData.tags : undefined
+      };
+      await adminApi.articles.create(submitData);
+      setLastSaved(new Date());
+      setHasUnsavedChanges(false);
+      success('草稿已保存');
+    } catch (err: unknown) {
+      console.error('Failed to save draft:', err);
+      const errorMessage = err instanceof Error ? err.message : '保存草稿失败';
+      error(errorMessage);
+    }
+  }, [formData, success, error]);
+  const handlePublish = useCallback(async () => {
+    if (!formData.title.trim()) {
+      error('请输入文章标题');
+      titleInputRef.current?.focus();
+      return;
+    }
+    if (!formData.slug.trim()) {
+      error('请输入文章别名');
+      return;
+    }
+    if (!formData.content.trim()) {
+      error('请输入文章内容');
+      return;
+    }
+    try {
+      setIsSubmitting(true);
+      const submitData = {
+        title: formData.title,
+        slug: formData.slug,
+        content: formData.content,
+        excerpt: formData.excerpt || undefined,
+        cover_image: formData.cover_image || undefined,
+        is_published: true,
+        category_id: formData.category_id || undefined,
+        tags: formData.tags.length > 0 ? formData.tags : undefined
+      };
+      await adminApi.articles.create(submitData);
+      success('文章发布成功');
+      setHasUnsavedChanges(false);
+      router.push('/admin/articles');
+    } catch (err: unknown) {
+      console.error('Failed to publish article:', err);
+      const errorMessage = err instanceof Error ? err.message : '发布文章失败';
+      error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [formData, success, error, router]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -200,173 +320,11 @@ export default function NewArticlePage() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [formData]);
-
-  const generateSlug = (title: string) => {
-    return title
-      .toLowerCase()
-      .replace(/[^\w\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      .trim();
-  };
-
-  const generateExcerpt = (content: string) => {
-    const plainText = content.replace(/[#*`_\[\]]/g, '').trim();
-    return plainText.length > 150 ? plainText.substring(0, 150) + '...' : plainText;
-  };
-
-  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const title = e.target.value;
-    setTouchedFields(prev => new Set(prev).add('title'));
-    setFormData(prev => ({
-      ...prev,
-      title,
-      slug: generateSlug(title)
-    }));
-  };
-
-  const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const content = e.target.value;
-    setTouchedFields(prev => new Set(prev).add('content'));
-    setFormData(prev => ({
-      ...prev,
-      content
-    }));
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setTouchedFields(prev => new Set(prev).add(name));
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleTagToggle = (tagId: string) => {
-    setFormData(prev => {
-      const newTags = prev.tags.includes(tagId)
-        ? prev.tags.filter(id => id !== tagId)
-        : [...prev.tags, tagId];
-      return { ...prev, tags: newTags };
-    });
-  };
-
-  const handleAutoExcerpt = () => {
-    const excerpt = generateExcerpt(formData.content);
-    setFormData(prev => ({ ...prev, excerpt }));
-    info('已自动生成摘要');
-  };
-
-  const insertMarkdown = (text: string) => {
-    const textarea = contentTextareaRef.current;
-    if (!textarea) return;
-    
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = formData.content.substring(start, end);
-    const newContent = formData.content.substring(0, start) + text + formData.content.substring(end);
-    
-    setFormData(prev => ({ ...prev, content: newContent }));
-    
-    setTimeout(() => {
-      textarea.focus();
-      const cursorPos = text.includes('[](url)') ? start + 1 : start + text.length;
-      textarea.setSelectionRange(cursorPos, cursorPos);
-    }, 0);
-  };
-
-  const handleSaveDraft = useCallback(async () => {
-    if (!formData.title.trim()) {
-      error('请输入文章标题');
-      return;
-    }
-    if (!formData.content.trim()) {
-      error('请输入文章内容');
-      return;
-    }
-
-    try {
-      const submitData = {
-        title: formData.title,
-        slug: formData.slug,
-        content: formData.content,
-        excerpt: formData.excerpt || undefined,
-        cover_image: formData.cover_image || undefined,
-        is_published: false,
-        category_id: formData.category_id || undefined,
-        tags: formData.tags.length > 0 ? formData.tags : undefined
-      };
-
-      await adminApi.articles.create(submitData);
-      setLastSaved(new Date());
-      setHasUnsavedChanges(false);
-      success('草稿已保存');
-    } catch (err: unknown) {
-      console.error('Failed to save draft:', err);
-      const errorMessage = err instanceof Error ? err.message : '保存草稿失败';
-      error(errorMessage);
-    }
-  }, [formData, success, error, info]);
-
-  const handlePublish = async () => {
-    if (!formData.title.trim()) {
-      error('请输入文章标题');
-      titleInputRef.current?.focus();
-      return;
-    }
-
-    if (!formData.slug.trim()) {
-      error('请输入文章别名');
-      return;
-    }
-
-    if (!formData.content.trim()) {
-      error('请输入文章内容');
-      return;
-    }
-
-    try {
-      setIsSubmitting(true);
-
-      const submitData = {
-        title: formData.title,
-        slug: formData.slug,
-        content: formData.content,
-        excerpt: formData.excerpt || undefined,
-        cover_image: formData.cover_image || undefined,
-        is_published: true,
-        category_id: formData.category_id || undefined,
-        tags: formData.tags.length > 0 ? formData.tags : undefined
-      };
-
-      await adminApi.articles.create(submitData);
-
-      success('文章发布成功');
-      setHasUnsavedChanges(false);
-      router.push('/admin/articles');
-    } catch (err: unknown) {
-      console.error('Failed to publish article:', err);
-      const errorMessage = err instanceof Error ? err.message : '发布文章失败';
-      error(errorMessage);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  }, [handlePublish, handleSaveDraft]);
 
   const filteredTags = tags.filter(tag =>
     tag.name.toLowerCase().includes(tagSearchQuery.toLowerCase())
   );
-
   const renderPreview = () => {
     return (
       <div className="prose prose-slate dark:prose-invert max-w-none prose-headings:text-foreground prose-p:text-foreground/80">
@@ -376,7 +334,6 @@ export default function NewArticlePage() {
       </div>
     );
   };
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -394,7 +351,6 @@ export default function NewArticlePage() {
       </div>
     );
   }
-
   return (
     <div className={`space-y-6 ${isFullscreen ? 'fixed inset-0 z-50 bg-background p-6 overflow-auto' : ''}`}>
       <motion.div
@@ -420,7 +376,6 @@ export default function NewArticlePage() {
             <p className="text-sm text-foreground/50 mt-1 ml-11">创建一篇新的博客文章</p>
           </div>
         </div>
-
         <div className="flex items-center gap-4">
           {lastSaved && (
             <motion.div
@@ -447,7 +402,6 @@ export default function NewArticlePage() {
           </AnimatePresence>
         </div>
       </motion.div>
-
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
         <div className="xl:col-span-3 space-y-6">
           <GlassCardAdmin className="p-6">
@@ -486,7 +440,6 @@ export default function NewArticlePage() {
                 </button>
               </div>
             </div>
-
             <div className="space-y-5">
               <div>
                 <div className="flex items-center justify-between mb-2">
@@ -539,7 +492,6 @@ export default function NewArticlePage() {
                   </motion.p>
                 )}
               </div>
-
               <FormInput
                 label="文章别名 (Slug)"
                 name="slug"
@@ -549,7 +501,6 @@ export default function NewArticlePage() {
                 leftIcon={() => <span className="text-foreground/40 text-sm">/</span>}
                 required
               />
-
               <div className={`${editorMode === 'split' ? 'grid grid-cols-2 gap-4' : ''}`}>
                 <div className={editorMode === 'preview' ? 'hidden' : ''}>
                   <div className="flex items-center justify-between mb-3">
@@ -580,7 +531,6 @@ export default function NewArticlePage() {
                       value={formData.content}
                       onChange={handleContentChange}
                       placeholder="使用 Markdown 格式编写文章内容...
-
 支持的格式：
 # 标题
 **粗体** *斜体*
@@ -611,7 +561,6 @@ export default function NewArticlePage() {
                     </motion.p>
                   )}
                 </div>
-
                 {(editorMode === 'split' || editorMode === 'preview') && (
                   <div className={editorMode === 'split' ? '' : 'mt-4'}>
                     <div className="flex items-center justify-between mb-3">
@@ -628,7 +577,6 @@ export default function NewArticlePage() {
               </div>
             </div>
           </GlassCardAdmin>
-
           <GlassCardAdmin className="p-6">
             <div className="flex items-center gap-3 mb-6">
               <div className="p-2 rounded-lg bg-purple-500/10">
@@ -639,7 +587,6 @@ export default function NewArticlePage() {
                 <p className="text-xs text-foreground/50">SEO 优化和文章元数据</p>
               </div>
             </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="md:col-span-2">
                 <div className="flex items-center justify-between mb-2">
@@ -668,7 +615,6 @@ export default function NewArticlePage() {
                   </p>
                 </div>
               </div>
-
               <div className="md:col-span-2">
                 <div className="flex items-center gap-2 mb-2">
                   <ImageIcon className="w-4 h-4 text-foreground/50" />
@@ -690,6 +636,7 @@ export default function NewArticlePage() {
                     animate={{ opacity: 1, y: 0 }}
                     className="mt-4 relative group"
                   >
+                    {/* 封面 URL 由用户任意填写，域名不可控，保留 <img> */}
                     <img
                       src={formData.cover_image}
                       alt="封面预览"
@@ -705,7 +652,6 @@ export default function NewArticlePage() {
             </div>
           </GlassCardAdmin>
         </div>
-
         <div className="space-y-6">
           <GlassCardAdmin className="p-5 sticky top-6">
             <div className="flex items-center gap-2 mb-4">
@@ -725,7 +671,6 @@ export default function NewArticlePage() {
                 progressPercentage === 100 ? 'text-green-500' : 'text-foreground/60'
               }`}>{progressPercentage}%</span>
             </div>
-
             <div className="space-y-2.5 mb-5">
               {[
                 { key: 'title', label: '标题' },
@@ -754,7 +699,6 @@ export default function NewArticlePage() {
                 </div>
               ))}
             </div>
-
             <div className="p-3 rounded-lg bg-background/30 border border-border/20">
               <div className="flex items-center gap-2 text-xs text-foreground/50 mb-2">
                 <Info className="w-3 h-3" />
@@ -776,7 +720,6 @@ export default function NewArticlePage() {
               </div>
             </div>
           </GlassCardAdmin>
-
           <GlassCardAdmin className="p-5">
             <div className="flex items-center gap-2 mb-4">
               <div className="p-1.5 rounded-lg bg-blue-500/10">
@@ -784,7 +727,6 @@ export default function NewArticlePage() {
               </div>
               <h2 className="text-base font-semibold text-foreground">分类与标签</h2>
             </div>
-
             <div className="space-y-4">
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-foreground/70">文章分类</label>
@@ -809,7 +751,6 @@ export default function NewArticlePage() {
                   </div>
                 </div>
               </div>
-
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-foreground/70">文章标签</label>
                 <div className="relative">
@@ -824,7 +765,6 @@ export default function NewArticlePage() {
                       className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-background/50 border border-border/50 text-foreground placeholder:text-foreground/30 focus:outline-none focus:ring-2 focus:ring-tech-cyan/20 focus:border-tech-cyan/50 transition-all text-sm"
                     />
                   </div>
-
                   <AnimatePresence>
                     {showTagDropdown && (
                       <motion.div
@@ -862,13 +802,12 @@ export default function NewArticlePage() {
                     )}
                   </AnimatePresence>
                 </div>
-
                 {formData.tags.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mt-2">
                     <AnimatePresence mode="popLayout">
                       {formData.tags.map(tagId => {
                         const tag = tags.find(t => t.id === tagId);
-                        if (!tag) return null;
+                        if (!tag) {return null;}
                         return (
                           <motion.span
                             key={tagId}
@@ -895,7 +834,6 @@ export default function NewArticlePage() {
               </div>
             </div>
           </GlassCardAdmin>
-
           <GlassCardAdmin className="p-5">
             <h2 className="text-base font-semibold text-foreground mb-4 flex items-center gap-2">
               <div className="p-1.5 rounded-lg bg-green-500/10">
@@ -903,7 +841,6 @@ export default function NewArticlePage() {
               </div>
               发布操作
             </h2>
-
             <div className="space-y-3">
               <Button
                 type="button"
@@ -919,7 +856,6 @@ export default function NewArticlePage() {
                 )}
                 发布文章
               </Button>
-
               <Button
                 type="button"
                 variant="secondary"
@@ -934,7 +870,6 @@ export default function NewArticlePage() {
                 )}
                 保存草稿
               </Button>
-
               <div className="pt-3 border-t border-border/20">
                 <Button
                   type="button"
@@ -947,7 +882,6 @@ export default function NewArticlePage() {
                 </Button>
               </div>
             </div>
-
             {progressPercentage < 40 && (
               <motion.div
                 initial={{ opacity: 0, y: 5 }}
@@ -963,14 +897,12 @@ export default function NewArticlePage() {
           </GlassCardAdmin>
         </div>
       </div>
-
       {showTagDropdown && (
         <div
           className="fixed inset-0 z-10"
           onClick={() => setShowTagDropdown(false)}
         />
       )}
-
       <ToastContainer toasts={toasts} onClose={removeToast} />
     </div>
   );

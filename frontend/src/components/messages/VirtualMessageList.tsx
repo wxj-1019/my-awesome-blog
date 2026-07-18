@@ -1,10 +1,8 @@
 'use client';
-
-import { useState, useCallback, useRef, useEffect, memo } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { useState, useCallback, useEffect, memo } from 'react';
+import {  motion } from 'framer-motion';
 import { Heart, Reply, Trash2, Flame, Flag, Edit2, Check, Pin, Star, Settings, MoreHorizontal } from 'lucide-react';
 import { LazyAvatar } from '@/components/ui/LazyImage';
-import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
@@ -15,7 +13,6 @@ import MessageEditDialog from './MessageEditDialog';
 import MessageReplies from './MessageReplies';
 import MessageManageDialog from './MessageManageDialog';
 import MarkdownRenderer from '@/components/ui/MarkdownRenderer';
-
 interface VirtualMessageListProps {
   messages: Message[];
   currentUser: UserProfile | null;
@@ -33,7 +30,6 @@ interface VirtualMessageListProps {
   onUpdateTags?: (messageId: string, tags: string[]) => Promise<void>;
   columnCount?: number;
 }
-
 // 模拟用户等级和成就
 const userLevels: Record<string, number> = {
   admin: 50,
@@ -44,7 +40,6 @@ const userLevels: Record<string, number> = {
   user5: 8,
   user6: 5
 };
-
 // 单个留言卡片 - memo优化
 const MessageCard = memo(function MessageCard({
   msg,
@@ -53,7 +48,7 @@ const MessageCard = memo(function MessageCard({
   onDelete,
   onReply,
   onReport,
-  onEdit,
+  onEdit: _onEdit,
   onOpenEdit,
   onMessageReply,
   onLikeReply,
@@ -76,21 +71,18 @@ const MessageCard = memo(function MessageCard({
   isAdmin?: boolean;
 }) {
   const isOwner = currentUser?.id === msg.author.id;
-  const level = userLevels[msg.author.username] || 1;
   
   // 控制内容显示的展开/收起
   const [isExpanded, setIsExpanded] = useState(false);
-
   // 截取内容以显示摘要
   const getContentSummary = () => {
-    if (isExpanded) return msg.content;
+    if (isExpanded) {return msg.content;}
     
     const maxLength = 150; // 最大字符数
-    if (msg.content.length <= maxLength) return msg.content;
+    if (msg.content.length <= maxLength) {return msg.content;}
     
     return msg.content.substring(0, maxLength) + '...';
   };
-
   return (
     <motion.div
       id={`message-${msg.id}`}
@@ -126,7 +118,6 @@ const MessageCard = memo(function MessageCard({
               </div>
             </div>
           </div>
-
           {/* 标记：置顶、精华、弹幕 */}
           <div className="flex items-center gap-1">
             {msg.isPinned && (
@@ -149,7 +140,6 @@ const MessageCard = memo(function MessageCard({
             )}
           </div>
         </div>
-
         {/* 内容 */}
         <div className="mb-3 min-h-[40px]">
           <div
@@ -191,7 +181,6 @@ const MessageCard = memo(function MessageCard({
             </div>
           )}
         </div>
-
         {/* 反应和互动 */}
         <div className="space-y-2">
           <MessageReactions
@@ -203,7 +192,6 @@ const MessageCard = memo(function MessageCard({
             currentUser={currentUser?.id}
             onReaction={() => onLike(msg.id)}
           />
-
           {/* 操作按钮 */}
           <div className="flex items-center justify-between pt-2 border-t border-white/5">
             <div className="flex gap-2">
@@ -222,7 +210,6 @@ const MessageCard = memo(function MessageCard({
                 <span className="hidden sm:inline">举报</span>
               </button>
             </div>
-
             <div className="flex items-center gap-1 sm:gap-2">
               <button
                 onClick={() => onLike(msg.id)}
@@ -238,7 +225,6 @@ const MessageCard = memo(function MessageCard({
                 />
                 {msg.likes || 0}
               </button>
-
               {isOwner && (
                 <>
                   <button
@@ -257,7 +243,6 @@ const MessageCard = memo(function MessageCard({
                   </button>
                 </>
               )}
-
               {/* 管理按钮（仅管理员） */}
               {isAdmin && (
                 <button
@@ -271,7 +256,6 @@ const MessageCard = memo(function MessageCard({
             </div>
           </div>
         </div>
-
         {/* 楼中楼回复 */}
         {msg.replies && msg.replies.length > 0 && (
           <MessageReplies
@@ -288,27 +272,22 @@ const MessageCard = memo(function MessageCard({
     </motion.div>
   );
 });
-
 // 响应式列数计算
 function useColumnCount() {
   const [columnCount, setColumnCount] = useState(3);
-
   useEffect(() => {
     const updateColumnCount = () => {
       const width = window.innerWidth;
-      if (width < 640) setColumnCount(1); // 移动端单列
-      else if (width < 1024) setColumnCount(2); // 平板双列
-      else setColumnCount(3); // 桌面三列
+      if (width < 640) {setColumnCount(1);} // 移动端单列
+      else if (width < 1024) {setColumnCount(2);} // 平板双列
+      else {setColumnCount(3);} // 桌面三列
     };
-
     updateColumnCount();
     window.addEventListener('resize', updateColumnCount);
     return () => window.removeEventListener('resize', updateColumnCount);
   }, []);
-
   return columnCount;
 }
-
 export default function VirtualMessageList({
   messages,
   currentUser,
@@ -326,57 +305,49 @@ export default function VirtualMessageList({
   onUpdateTags,
   columnCount: propColumnCount
 }: VirtualMessageListProps) {
-  const columnCount = propColumnCount || useColumnCount();
-
+  const responsiveColumnCount = useColumnCount();
+  const columnCount = propColumnCount ?? responsiveColumnCount;
   // 编辑对话框状态
   const [editMessage, setEditMessage] = useState<Message | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-
   // 管理对话框状态
   const [manageMessage, setManageMessage] = useState<Message | null>(null);
   const [isManageDialogOpen, setIsManageDialogOpen] = useState(false);
-
   // 打开编辑对话框
   const handleOpenEdit = useCallback((msg: Message) => {
     setEditMessage(msg);
     setIsEditDialogOpen(true);
   }, []);
-
   // 关闭编辑对话框
   const handleCloseEditDialog = useCallback(() => {
     setIsEditDialogOpen(false);
     setEditMessage(null);
   }, []);
-
   // 确认编辑
   const handleConfirmEdit = useCallback(async (newContent: string) => {
-    if (!editMessage || !onEdit) return;
+    if (!editMessage || !onEdit) {return;}
     await onEdit(editMessage.id, newContent);
     handleCloseEditDialog();
   }, [editMessage, onEdit, handleCloseEditDialog]);
-
   // 打开管理对话框
   const handleOpenManage = useCallback((msg: Message) => {
     setManageMessage(msg);
     setIsManageDialogOpen(true);
   }, []);
-
   // 关闭管理对话框
   const handleCloseManageDialog = useCallback(() => {
     setIsManageDialogOpen(false);
     setManageMessage(null);
   }, []);
-
   // 处理回复留言
   const handleMessageReply = useCallback(async (messageId: string, content: string, parentReplyId?: string) => {
-    if (!onMessageReply) return;
+    if (!onMessageReply) {return;}
     try {
       await onMessageReply(messageId, content, parentReplyId);
     } catch (error) {
       throw error;
     }
   }, [onMessageReply]);
-
   if (messages.length === 0) {
     return (
       <div className="text-center py-20 text-white/30 font-mono">
@@ -385,7 +356,6 @@ export default function VirtualMessageList({
       </div>
     );
   }
-
   return (
     <div className="w-full">
       <div 
@@ -415,7 +385,6 @@ export default function VirtualMessageList({
           />
         ))}
       </div>
-
       {/* 统计信息 */}
       <div className="mt-4 flex items-center justify-between text-xs text-white/40">
         <span>共 {messages.length} 条留言</span>
@@ -423,7 +392,6 @@ export default function VirtualMessageList({
           显示 {messages.length} / {messages.length}
         </span>
       </div>
-
       {/* 编辑对话框 */}
       <MessageEditDialog
         message={editMessage}
@@ -431,7 +399,6 @@ export default function VirtualMessageList({
         onClose={handleCloseEditDialog}
         onConfirm={handleConfirmEdit}
       />
-
       {/* 管理对话框 */}
       <MessageManageDialog
         message={manageMessage}

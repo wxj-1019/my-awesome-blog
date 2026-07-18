@@ -175,7 +175,7 @@ export default function MonitoringAdminPage() {
 
   const fetchData = useCallback(async (showToast = false) => {
     try {
-      if (showToast) setRefreshing(true)
+      if (showToast) {setRefreshing(true)}
 
       const [healthRes, metricsRes, statusRes, analyticsRes] = await Promise.all([
         adminApi.get<HealthCheck>('/monitoring/health'),
@@ -189,7 +189,7 @@ export default function MonitoringAdminPage() {
       setStatus(statusRes)
       setAnalytics(analyticsRes)
 
-      if (showToast) toast.success('数据已刷新')
+      if (showToast) {toast.success('数据已刷新')}
     } catch (error) {
       console.error('Failed to fetch monitoring data:', error)
       toast.error('获取监控数据失败')
@@ -204,7 +204,7 @@ export default function MonitoringAdminPage() {
   }, [fetchData])
 
   useEffect(() => {
-    if (!autoRefresh) return
+    if (!autoRefresh) {return}
 
     const interval = setInterval(() => {
       fetchData()

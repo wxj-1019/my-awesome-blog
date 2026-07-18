@@ -1,5 +1,4 @@
 'use client'
-
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -26,17 +25,17 @@ import { Button } from '@/components/ui/Button'
 import LoadingState from '@/components/ui/LoadingState'
 import EmptyState from '@/components/ui/EmptyState'
 import ConfirmDialog from '@/components/ui/ConfirmDialog'
+import Image from 'next/image'
 import { adminApi } from '@/lib/admin-api-client'
 import { cn } from '@/lib/utils'
+import { validateArrayData } from '@/utils/data-validation'
 import toast from 'react-hot-toast'
-
 interface MessageAuthor {
   id: string
   username: string
   email: string
   avatar_url: string | null
 }
-
 interface MessageItem {
   id: string
   author_id: string
@@ -51,23 +50,10 @@ interface MessageItem {
   updated_at: string | null
   author: MessageAuthor | null
 }
-
 interface ActivityStat {
   date: string
   count: number
 }
-
-const MESSAGE_COLORS = [
-  { value: '#00D9FF', label: '默认青' },
-  { value: '#FF6B6B', label: '珊瑚红' },
-  { value: '#4ECDC4', label: '青绿' },
-  { value: '#FFE66D', label: '明黄' },
-  { value: '#95E1D3', label: '薄荷绿' },
-  { value: '#F38181', label: '粉红' },
-  { value: '#AA96DA', label: '紫罗兰' },
-  { value: '#FCBAD3', label: '樱花粉' },
-]
-
 const containerVariants = {
   hidden: { opacity: 0 },
   show: {
@@ -75,12 +61,10 @@ const containerVariants = {
     transition: { staggerChildren: 0.05 },
   },
 }
-
 const itemVariants = {
   hidden: { opacity: 0, y: 20 },
   show: { opacity: 1, y: 0 },
 }
-
 export default function MessagesAdminPage() {
   const [messages, setMessages] = useState<MessageItem[]>([])
   const [trendingMessages, setTrendingMessages] = useState<MessageItem[]>([])
@@ -101,7 +85,6 @@ export default function MessagesAdminPage() {
     message: null,
     hard: false,
   })
-
   const fetchMessages = useCallback(async () => {
     try {
       setLoading(true)
@@ -109,14 +92,15 @@ export default function MessagesAdminPage() {
         skip: (page - 1) * 20,
         limit: 20,
       }
-
       if (filterDanmaku === 'danmaku') {
         params.danmaku_only = true
       }
-
-      const response = await adminApi.getMessages(params) as any
-      let filteredData = response.data || []
-
+      const response = await adminApi.getMessages(params)
+      let filteredData = validateArrayData<MessageItem>(
+        response && typeof response === 'object' && 'data' in response
+          ? (response as { data: unknown }).data
+          : response
+      )
       if (searchTerm) {
         const term = searchTerm.toLowerCase()
         filteredData = filteredData.filter(
@@ -125,13 +109,11 @@ export default function MessagesAdminPage() {
             m.author?.username.toLowerCase().includes(term)
         )
       }
-
       if (filterDeleted === 'deleted') {
         filteredData = filteredData.filter((m: MessageItem) => m.is_deleted)
       } else if (filterDeleted === 'active') {
         filteredData = filteredData.filter((m: MessageItem) => !m.is_deleted)
       }
-
       setMessages(filteredData)
       setTotalPages(Math.ceil(filteredData.length / 20) || 1)
     } catch (error) {
@@ -141,38 +123,40 @@ export default function MessagesAdminPage() {
       setLoading(false)
     }
   }, [page, filterDanmaku, filterDeleted, searchTerm])
-
   const fetchTrending = async () => {
     try {
       const response = await adminApi.get<MessageItem[]>('/messages/trending', {
         params: { limit: 10 },
       })
-      setTrendingMessages(Array.isArray(response) ? response : (response as any)?.data || [])
+      setTrendingMessages(validateArrayData<MessageItem>(
+        response && typeof response === 'object' && 'data' in response
+          ? (response as { data: unknown }).data
+          : response
+      ))
     } catch (error) {
       console.error('Failed to fetch trending messages:', error)
     }
   }
-
   const fetchActivityStats = async () => {
     try {
       const response = await adminApi.get<{ data: ActivityStat[] }>('/messages/stats/activity', {
         params: { days: 14 },
       })
-      setActivityStats((response as any)?.data || [])
+      const rawStats = response && typeof response === 'object' && 'data' in response
+        ? (response as { data: unknown }).data
+        : response
+      setActivityStats(validateArrayData<ActivityStat>(rawStats))
     } catch (error) {
       console.error('Failed to fetch activity stats:', error)
     }
   }
-
   useEffect(() => {
     fetchMessages()
     fetchTrending()
     fetchActivityStats()
   }, [fetchMessages])
-
   const handleDelete = async () => {
-    if (!deleteConfirm.message) return
-
+    if (!deleteConfirm.message) {return}
     try {
       if (deleteConfirm.hard) {
         await adminApi.hardDeleteMessage(deleteConfirm.message.id)
@@ -189,7 +173,6 @@ export default function MessagesAdminPage() {
       setDeleteConfirm({ open: false, message: null, hard: false })
     }
   }
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString('zh-CN', {
       year: 'numeric',
@@ -199,14 +182,11 @@ export default function MessagesAdminPage() {
       minute: '2-digit',
     })
   }
-
   const truncateContent = (content: string, maxLength: number = 100) => {
-    if (content.length <= maxLength) return content
+    if (content.length <= maxLength) {return content}
     return content.slice(0, maxLength) + '...'
   }
-
   const maxActivityCount = Math.max(...activityStats.map(s => s.count), 1)
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -241,7 +221,6 @@ export default function MessagesAdminPage() {
           </Button>
         </div>
       </div>
-
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex-1 relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500 dark:text-gray-400" />
@@ -265,7 +244,6 @@ export default function MessagesAdminPage() {
           筛选
         </Button>
       </div>
-
       <AnimatePresence>
         {showFilters && (
           <motion.div
@@ -332,13 +310,12 @@ export default function MessagesAdminPage() {
           </motion.div>
         )}
       </AnimatePresence>
-
       <GlassCardAdmin className="p-6">
         {loading ? (
           <LoadingState message="加载留言列表..." />
         ) : messages.length === 0 ? (
           <EmptyState
-            icon={<MessageSquare className="w-12 h-12" />}
+            icon={MessageSquare}
             title="暂无留言"
             description={searchTerm ? '没有找到匹配的留言' : '还没有任何留言'}
           />
@@ -368,9 +345,11 @@ export default function MessagesAdminPage() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-2">
                           {message.author?.avatar_url ? (
-                            <img
+                            <Image
                               src={message.author.avatar_url}
                               alt={message.author.username}
+                              width={24}
+                              height={24}
                               className="w-6 h-6 rounded-full"
                             />
                           ) : (
@@ -457,7 +436,6 @@ export default function MessagesAdminPage() {
                 ))}
               </AnimatePresence>
             </motion.div>
-
             {totalPages > 1 && (
               <div className="flex items-center justify-center gap-2 mt-6">
                 <Button
@@ -484,7 +462,6 @@ export default function MessagesAdminPage() {
           </>
         )}
       </GlassCardAdmin>
-
       <AnimatePresence>
         {showDetailModal && selectedMessage && (
           <motion.div
@@ -510,13 +487,14 @@ export default function MessagesAdminPage() {
                   <X className="w-5 h-5" />
                 </button>
               </div>
-
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
                   {selectedMessage.author?.avatar_url ? (
-                    <img
+                    <Image
                       src={selectedMessage.author.avatar_url}
                       alt={selectedMessage.author.username}
+                      width={40}
+                      height={40}
                       className="w-10 h-10 rounded-full"
                     />
                   ) : (
@@ -531,14 +509,12 @@ export default function MessagesAdminPage() {
                     <p className="text-gray-500 dark:text-gray-400 text-xs">{selectedMessage.author?.email}</p>
                   </div>
                 </div>
-
                 <div
                   className="p-4 rounded-lg bg-white/5"
                   style={{ borderLeft: `4px solid ${selectedMessage.color}` }}
                 >
                   <p className="text-gray-300 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 whitespace-pre-wrap">{selectedMessage.content}</p>
                 </div>
-
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <span className="text-gray-500 dark:text-gray-400">留言 ID</span>
@@ -591,7 +567,6 @@ export default function MessagesAdminPage() {
                     </p>
                   </div>
                 </div>
-
                 {selectedMessage.parent_id && (
                   <div>
                     <span className="text-gray-500 dark:text-gray-400 text-sm">回复的留言</span>
@@ -605,7 +580,6 @@ export default function MessagesAdminPage() {
           </motion.div>
         )}
       </AnimatePresence>
-
       <AnimatePresence>
         {showTrendingModal && (
           <motion.div
@@ -634,7 +608,6 @@ export default function MessagesAdminPage() {
                   <X className="w-5 h-5" />
                 </button>
               </div>
-
               <div className="space-y-3">
                 {trendingMessages.length === 0 ? (
                   <p className="text-gray-400 dark:text-gray-500 dark:text-gray-400 text-center py-4">暂无热门留言</p>
@@ -681,7 +654,6 @@ export default function MessagesAdminPage() {
           </motion.div>
         )}
       </AnimatePresence>
-
       <AnimatePresence>
         {showStatsModal && (
           <motion.div
@@ -710,7 +682,6 @@ export default function MessagesAdminPage() {
                   <X className="w-5 h-5" />
                 </button>
               </div>
-
               <div className="space-y-2">
                 {activityStats.length === 0 ? (
                   <p className="text-gray-400 dark:text-gray-500 dark:text-gray-400 text-center py-4">暂无活动数据</p>
@@ -731,7 +702,6 @@ export default function MessagesAdminPage() {
                   ))
                 )}
               </div>
-
               <div className="mt-4 pt-4 border-t border-white/10">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-500 dark:text-gray-400">总计留言</span>
@@ -744,19 +714,18 @@ export default function MessagesAdminPage() {
           </motion.div>
         )}
       </AnimatePresence>
-
       <ConfirmDialog
         isOpen={deleteConfirm.open}
         onClose={() => setDeleteConfirm({ open: false, message: null, hard: false })}
         onConfirm={handleDelete}
         title={deleteConfirm.hard ? '永久删除留言' : '删除留言'}
-        message={
+        description={
           deleteConfirm.hard
             ? '此操作将永久删除该留言，无法恢复。确定要继续吗？'
             : '确定要删除这条留言吗？删除后可以恢复。'
         }
         confirmText={deleteConfirm.hard ? '永久删除' : '删除'}
-        variant="destructive"
+        variant="danger"
       />
     </div>
   )

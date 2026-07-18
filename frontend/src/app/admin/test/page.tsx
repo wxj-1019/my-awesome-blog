@@ -1,15 +1,14 @@
 'use client';
-
 import * as React from 'react';
 import GlassCardAdmin from '@/components/ui/GlassCardAdmin';
 import StatCard from '@/components/ui/StatCard';
-import LoadingState from '@/components/admin/LoadingState';
-import EmptyState from '@/components/admin/EmptyState';
-import ConfirmDialog from '@/components/admin/ConfirmDialog';
+import LoadingState from '@/components/ui/LoadingState';
+import EmptyState from '@/components/ui/EmptyState';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { ToastContainer, useToast } from '@/components/admin/Toast';
 import FormInput from '@/components/admin/FormInput';
 import Button from '@/components/admin/Button';
-import DataTable, { Column } from '@/components/admin/DataTable';
+import DataTable, { Column } from '@/components/ui/DataTable';
 import { 
   FileText, 
   Users, 
@@ -24,7 +23,6 @@ import {
   Edit,
   Trash2
 } from 'lucide-react';
-
 interface TestArticle {
   id: number;
   title: string;
@@ -33,22 +31,18 @@ interface TestArticle {
   views: number;
   createdAt: string;
 }
-
 export default function AdminTestPage() {
   const { success, error, warning, info, toasts, removeToast } = useToast();
   const [confirmOpen, setConfirmOpen] = React.useState(false);
-  const [loading, setLoading] = React.useState(false);
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [search, setSearch] = React.useState('');
-
   const stats = [
     { label: '文章总数', value: 156, icon: FileText, color: '#3b82f6', trend: { value: 12.5, isPositive: true } },
     { label: '用户数', value: 2847, icon: Users, color: '#10b981', trend: { value: 8.2, isPositive: true } },
     { label: '总浏览', value: '125.6K', icon: Eye, color: '#8b5cf6', trend: { value: 23.1, isPositive: true } },
     { label: '增长率', value: '+32%', icon: TrendingUp, color: '#f59e0b', trend: { value: 5.3, isPositive: false } },
   ];
-
   const articles: TestArticle[] = [
     { id: 1, title: '如何使用 Next.js 14', author: '张三', status: 'published', views: 1234, createdAt: '2024-01-01' },
     { id: 2, title: 'React 18 新特性解析', author: '李四', status: 'draft', views: 567, createdAt: '2024-01-02' },
@@ -56,7 +50,6 @@ export default function AdminTestPage() {
     { id: 4, title: 'Tailwind CSS 技巧', author: '赵六', status: 'archived', views: 432, createdAt: '2024-01-04' },
     { id: 5, title: 'Framer Motion 动画指南', author: '孙七', status: 'published', views: 765, createdAt: '2024-01-05' },
   ];
-
   const columns: Column<TestArticle>[] = [
     { key: 'title', title: '标题', sortable: true, filterable: true },
     { key: 'author', title: '作者', sortable: true },
@@ -82,7 +75,7 @@ export default function AdminTestPage() {
     {
       key: 'actions',
       title: '操作',
-      render: (_, row) => (
+      render: (_, _row) => (
         <div className="flex gap-2">
           <Button variant="ghost" size="sm">
             <Edit className="w-4 h-4" />
@@ -94,7 +87,6 @@ export default function AdminTestPage() {
       ),
     },
   ];
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-8">
       <div className="max-w-7xl mx-auto space-y-8">
@@ -106,7 +98,6 @@ export default function AdminTestPage() {
             展示所有优化后的组件及其交互效果
           </p>
         </div>
-
         <section className="space-y-4">
           <h2 className="text-2xl font-bold">统计卡片 (StatCard)</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -120,7 +111,6 @@ export default function AdminTestPage() {
             ))}
           </div>
         </section>
-
         <section className="space-y-4">
           <h2 className="text-2xl font-bold">Glass Cards</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -138,7 +128,6 @@ export default function AdminTestPage() {
             </GlassCardAdmin>
           </div>
         </section>
-
         <section className="space-y-4">
           <h2 className="text-2xl font-bold">按钮组件 (Button)</h2>
           <GlassCardAdmin className="p-6">
@@ -165,7 +154,6 @@ export default function AdminTestPage() {
             </div>
           </GlassCardAdmin>
         </section>
-
         <section className="space-y-4">
           <h2 className="text-2xl font-bold">表单输入 (FormInput)</h2>
           <GlassCardAdmin className="p-6">
@@ -208,7 +196,6 @@ export default function AdminTestPage() {
             </div>
           </GlassCardAdmin>
         </section>
-
         <section className="space-y-4">
           <h2 className="text-2xl font-bold">Toast 通知</h2>
           <GlassCardAdmin className="p-6">
@@ -228,7 +215,6 @@ export default function AdminTestPage() {
             </div>
           </GlassCardAdmin>
         </section>
-
         <section className="space-y-4">
           <h2 className="text-2xl font-bold">确认对话框</h2>
           <GlassCardAdmin className="p-6">
@@ -250,7 +236,6 @@ export default function AdminTestPage() {
             />
           </GlassCardAdmin>
         </section>
-
         <section className="space-y-4">
           <h2 className="text-2xl font-bold">加载状态</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -268,7 +253,6 @@ export default function AdminTestPage() {
             </GlassCardAdmin>
           </div>
         </section>
-
         <section className="space-y-4">
           <h2 className="text-2xl font-bold">空状态</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -297,7 +281,6 @@ export default function AdminTestPage() {
             </GlassCardAdmin>
           </div>
         </section>
-
         <section className="space-y-4">
           <h2 className="text-2xl font-bold">数据表格 (DataTable)</h2>
           <GlassCardAdmin className="p-6">
@@ -308,14 +291,12 @@ export default function AdminTestPage() {
               pageSize={5}
               pagination
               selectable
-              onSelectionChange={(selected) => console.log('Selected:', selected)}
-              onRowClick={(row) => console.log('Clicked:', row)}
+              onSelectionChange={() => {}}
+              onRowClick={() => {}}
             />
           </GlassCardAdmin>
         </section>
-
       </div>
-
       <ToastContainer toasts={toasts} onClose={removeToast} position="top-right" />
     </div>
   );

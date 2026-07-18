@@ -1,27 +1,52 @@
 import { Message, CreateMessageRequest, DanmakuMessage } from '@/types';
-import { API_BASE_URL } from '@/config/api';
+import { apiRequest } from '@/lib/api-client';
+import logger from '@/utils/logger';
 
-// 通用请求函数
-const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
-  
-  const headers = {
-    'Content-Type': 'application/json',
-    ...(token && { 'Authorization': `Bearer ${token}` }),
-    ...options.headers,
+interface RawAuthor {
+  id?: string;
+  username?: string;
+  avatar?: string;
+}
+
+interface RawMessage {
+  id: string;
+  content: string;
+  author?: RawAuthor;
+  created_at: string;
+  updated_at?: string;
+  color?: string;
+  is_danmaku?: boolean;
+  likes?: number;
+  level?: number;
+  is_edited?: boolean;
+  is_pinned?: boolean;
+  is_featured?: boolean;
+  tags?: string[];
+  parent_id?: string;
+  reply_count?: number;
+  speed?: number;
+  y?: number;
+  layer?: number;
+}
+
+// 通用响应转换函数
+const transformMessage = (msg: unknown): Message => {
+  const raw = msg as RawMessage;
+  return {
+    id: raw.id,
+    content: raw.content,
+    author: {
+      id: raw.author?.id || '',
+      username: raw.author?.username || '匿名用户',
+      avatar: raw.author?.avatar,
+    },
+    created_at: raw.created_at,
+    color: raw.color || '#00D9FF',
+    isDanmaku: raw.is_danmaku ?? true,
+    likes: raw.likes || 0,
+    replies: [],
+    level: raw.level || 1,
   };
-
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    ...options,
-    headers,
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.detail || errorData.message || `请求失败: ${response.status}`);
-  }
-
-  return response.json();
 };
 
 // 弹幕颜色选项
@@ -42,25 +67,10 @@ export const DANMAKU_COLORS = [
  */
 export const getMessages = async (): Promise<Message[]> => {
   try {
-    const messages = await apiRequest('/messages/');
-    // 转换后端格式到前端格式
-    return messages.map((msg: any) => ({
-      id: msg.id,
-      content: msg.content,
-      author: {
-        id: msg.author?.id || '',
-        username: msg.author?.username || '匿名用户',
-        avatar: msg.author?.avatar,
-      },
-      created_at: msg.created_at,
-      color: msg.color || '#00D9FF',
-      isDanmaku: msg.is_danmaku ?? true,
-      likes: msg.likes || 0,
-      replies: [],
-      level: msg.level || 1,
-    }));
+    const messages = await apiRequest<RawMessage[]>('/messages/');
+    return messages.map(transformMessage);
   } catch (error) {
-    console.error('获取留言失败:', error);
+    logger.error('获取留言失败:', error);
     return [];
   }
 };
@@ -71,10 +81,9 @@ export const getMessages = async (): Promise<Message[]> => {
  */
 export const getDanmakuMessages = async (): Promise<DanmakuMessage[]> => {
   try {
-    const messages = await apiRequest('/messages/danmaku');
-    // 转换后端格式到前端格式并随机排序
+    const messages = await apiRequest<RawMessage[]>('/messages/danmaku');
     return messages
-      .map((msg: any) => ({
+      .map((msg) => ({
         id: msg.id,
         content: msg.content,
         author: {
@@ -90,7 +99,7 @@ export const getDanmakuMessages = async (): Promise<DanmakuMessage[]> => {
       }))
       .sort(() => Math.random() - 0.5);
   } catch (error) {
-    console.error('获取弹幕失败:', error);
+    logger.error('获取弹幕失败:', error);
     return [];
   }
 };
@@ -103,29 +112,14 @@ export const getDanmakuMessages = async (): Promise<DanmakuMessage[]> => {
 export const createMessage = async (data: CreateMessageRequest): Promise<Message> => {
   const response = await apiRequest('/messages/', {
     method: 'POST',
-    body: JSON.stringify({
+    body: {
       content: data.content,
       color: data.color,
       is_danmaku: data.isDanmaku,
-    }),
+    },
   });
 
-  // 转换后端格式到前端格式
-  return {
-    id: response.id,
-    content: response.content,
-    author: {
-      id: response.author?.id || '',
-      username: response.author?.username || '匿名用户',
-      avatar: response.author?.avatar,
-    },
-    created_at: response.created_at,
-    color: response.color || '#00D9FF',
-    isDanmaku: response.is_danmaku ?? true,
-    likes: response.likes || 0,
-    replies: [],
-    level: response.level || 1,
-  };
+  return transformMessage(response);
 };
 
 /**
@@ -140,7 +134,7 @@ export const deleteMessage = async (messageId: string): Promise<boolean> => {
     });
     return true;
   } catch (error) {
-    console.error('删除留言失败:', error);
+    logger.error('删除留言失败:', error);
     throw error;
   }
 };
@@ -155,21 +149,7 @@ export const likeMessage = async (messageId: string): Promise<Message> => {
     method: 'POST',
   });
 
-  return {
-    id: response.id,
-    content: response.content,
-    author: {
-      id: response.author?.id || '',
-      username: response.author?.username || '匿名用户',
-      avatar: response.author?.avatar,
-    },
-    created_at: response.created_at,
-    color: response.color || '#00D9FF',
-    isDanmaku: response.is_danmaku ?? true,
-    likes: response.likes || 0,
-    replies: [],
-    level: response.level || 1,
-  };
+  return transformMessage(response);
 };
 
 /**
@@ -181,28 +161,14 @@ export const likeMessage = async (messageId: string): Promise<Message> => {
 export const replyToMessage = async (messageId: string, content: string): Promise<Message> => {
   const response = await apiRequest('/messages/', {
     method: 'POST',
-    body: JSON.stringify({
+    body: {
       content,
       parent_id: messageId,
       is_danmaku: false,
-    }),
+    },
   });
 
-  return {
-    id: response.id,
-    content: response.content,
-    author: {
-      id: response.author?.id || '',
-      username: response.author?.username || '匿名用户',
-      avatar: response.author?.avatar,
-    },
-    created_at: response.created_at,
-    color: response.color || '#00D9FF',
-    isDanmaku: false,
-    likes: 0,
-    replies: [],
-    level: response.level || 1,
-  };
+  return transformMessage(response);
 };
 
 /**
@@ -212,24 +178,13 @@ export const replyToMessage = async (messageId: string, content: string): Promis
  */
 export const getMessageReplies = async (messageId: string): Promise<Message[]> => {
   try {
-    const replies = await apiRequest(`/messages/${messageId}/replies`);
-    return replies.map((msg: any) => ({
-      id: msg.id,
-      content: msg.content,
-      author: {
-        id: msg.author?.id || '',
-        username: msg.author?.username || '匿名用户',
-        avatar: msg.author?.avatar,
-      },
-      created_at: msg.created_at,
-      color: msg.color || '#00D9FF',
-      isDanmaku: msg.is_danmaku ?? false,
-      likes: msg.likes || 0,
-      replies: [],
-      level: msg.level || 1,
+    const replies = await apiRequest<RawMessage[]>(`/messages/${messageId}/replies`);
+    return replies.map((msg) => ({
+      ...transformMessage(msg),
+      isDanmaku: (msg as RawMessage).is_danmaku ?? false,
     }));
   } catch (error) {
-    console.error('获取回复失败:', error);
+    logger.error('获取回复失败:', error);
     return [];
   }
 };
@@ -241,28 +196,15 @@ export const getMessageReplies = async (messageId: string): Promise<Message[]> =
  * @returns 更新后的留言
  */
 export const editMessage = async (messageId: string, content: string): Promise<Message> => {
-  const response = await apiRequest(`/messages/${messageId}`, {
+  const response = await apiRequest<RawMessage>(`/messages/${messageId}`, {
     method: 'PUT',
-    body: JSON.stringify({
+    body: {
       content,
-    }),
+    },
   });
 
   return {
-    id: response.id,
-    content: response.content,
-    author: {
-      id: response.author?.id || '',
-      username: response.author?.username || '匿名用户',
-      avatar: response.author?.avatar,
-    },
-    created_at: response.created_at,
-    updated_at: response.updated_at,
-    color: response.color || '#00D9FF',
-    isDanmaku: response.is_danmaku ?? true,
-    likes: response.likes || 0,
-    replies: [],
-    level: response.level || 1,
+    ...transformMessage(response),
     isEdited: true,
     editedAt: response.updated_at,
   };
@@ -304,24 +246,10 @@ export const validateMessage = (content: string): { isValid: boolean; error?: st
  */
 export const getTrendingMessages = async (limit: number = 10): Promise<Message[]> => {
   try {
-    const messages = await apiRequest(`/messages/trending?limit=${limit}`);
-    return messages.map((msg: any) => ({
-      id: msg.id,
-      content: msg.content,
-      author: {
-        id: msg.author?.id || '',
-        username: msg.author?.username || '匿名用户',
-        avatar: msg.author?.avatar,
-      },
-      created_at: msg.created_at,
-      color: msg.color || '#00D9FF',
-      isDanmaku: msg.is_danmaku ?? true,
-      likes: msg.likes || 0,
-      replies: [],
-      level: msg.level || 1,
-    }));
+    const messages = await apiRequest<RawMessage[]>(`/messages/trending?limit=${limit}`);
+    return messages.map(transformMessage);
   } catch (error) {
-    console.error('获取热门留言失败:', error);
+    logger.error('获取热门留言失败:', error);
     return [];
   }
 };
@@ -335,7 +263,7 @@ export const getMessageActivity = async (days: number = 7): Promise<{date: strin
   try {
     return await apiRequest(`/messages/stats/activity?days=${days}`);
   } catch (error) {
-    console.error('获取活跃度失败:', error);
+    logger.error('获取活跃度失败:', error);
     return [];
   }
 };
@@ -352,7 +280,7 @@ export const likeReplyMessage = async (replyId: string): Promise<boolean> => {
     });
     return true;
   } catch (error) {
-    console.error('点赞回复失败:', error);
+    logger.error('点赞回复失败:', error);
     throw error;
   }
 };
@@ -369,7 +297,7 @@ export const deleteReplyMessage = async (replyId: string): Promise<boolean> => {
     });
     return true;
   } catch (error) {
-    console.error('删除回复失败:', error);
+    logger.error('删除回复失败:', error);
     throw error;
   }
 };
@@ -388,29 +316,15 @@ export const replyToMessageWithParent = async (
 ): Promise<Message> => {
   const response = await apiRequest('/messages/', {
     method: 'POST',
-    body: JSON.stringify({
+    body: {
       content,
       parent_id: messageId,
       parent_reply_id: parentReplyId,
       is_danmaku: false,
-    }),
+    },
   });
 
-  return {
-    id: response.id,
-    content: response.content,
-    author: {
-      id: response.author?.id || '',
-      username: response.author?.username || '匿名用户',
-      avatar: response.author?.avatar,
-    },
-    created_at: response.created_at,
-    color: response.color || '#00D9FF',
-    isDanmaku: false,
-    likes: 0,
-    replies: [],
-    level: response.level || 1,
-  };
+  return transformMessage(response);
 };
 
 /**
@@ -423,11 +337,11 @@ export const pinMessage = async (messageId: string, isPinned: boolean): Promise<
   try {
     await apiRequest(`/messages/${messageId}/pin`, {
       method: 'PATCH',
-      body: JSON.stringify({ is_pinned: isPinned }),
+      body: { is_pinned: isPinned },
     });
     return true;
   } catch (error) {
-    console.error('置顶留言失败:', error);
+    logger.error('置顶留言失败:', error);
     throw error;
   }
 };
@@ -442,11 +356,11 @@ export const featureMessage = async (messageId: string, isFeatured: boolean): Pr
   try {
     await apiRequest(`/messages/${messageId}/feature`, {
       method: 'PATCH',
-      body: JSON.stringify({ is_featured: isFeatured }),
+      body: { is_featured: isFeatured },
     });
     return true;
   } catch (error) {
-    console.error('设置精华失败:', error);
+    logger.error('设置精华失败:', error);
     throw error;
   }
 };
@@ -461,11 +375,11 @@ export const updateMessageTags = async (messageId: string, tags: string[]): Prom
   try {
     await apiRequest(`/messages/${messageId}/tags`, {
       method: 'PATCH',
-      body: JSON.stringify({ tags }),
+      body: { tags },
     });
     return true;
   } catch (error) {
-    console.error('更新标签失败:', error);
+    logger.error('更新标签失败:', error);
     throw error;
   }
 };
