@@ -1,6 +1,7 @@
 'use client'
 
 import { cn } from '@/lib/utils'
+import { BlurIn, FadeIn, Stagger, StaggerItem } from '@/components/motion'
 
 interface HighlightItem {
   id: string
@@ -27,9 +28,11 @@ export default function FeaturedHighlights() {
     return (
       <section className="relative overflow-hidden py-6">
         <div className="container mx-auto px-4">
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">暂无精选文章</p>
-          </div>
+          <FadeIn>
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">暂无精选文章</p>
+            </div>
+          </FadeIn>
         </div>
       </section>
     )
@@ -38,15 +41,19 @@ export default function FeaturedHighlights() {
   return (
     <section className="relative overflow-hidden py-6">
       <div className="container mx-auto px-4">
-        <h2 className="text-xl font-bold">精选推荐</h2>
-        <div className="grid grid-cols-1 gap-4 mt-6">
+        <BlurIn>
+          <h2 className="text-xl font-bold text-foreground">精选推荐</h2>
+        </BlurIn>
+        <Stagger className="grid grid-cols-1 gap-4 mt-6" itemCount={highlights.length}>
           {highlights.map((item) => (
-            <div key={item.id} className={cn('p-4 rounded-lg border')}>
-              <h3>{item.title}</h3>
-              <p>{item.description}</p>
-            </div>
+            <StaggerItem key={item.id}>
+              <div className={cn('p-4 rounded-lg border border-glass-border bg-glass/20')}>
+                <h3 className="font-semibold text-foreground">{item.title}</h3>
+                <p className="text-sm text-muted-foreground mt-1">{item.description}</p>
+              </div>
+            </StaggerItem>
           ))}
-        </div>
+        </Stagger>
       </div>
     </section>
   )

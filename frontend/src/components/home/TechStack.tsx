@@ -1,8 +1,8 @@
 'use client'
 
-import { motion } from 'framer-motion'
 import { Code2, Database, Server, Cpu, Layout, Cloud, Shield, Zap } from 'lucide-react'
 import LogoLoop, { type LogoItem } from '@/components/ui/LogoLoop'
+import { BlurIn, FadeIn, HoverLift, Stagger, StaggerItem } from '@/components/motion'
 
 interface TechItem {
   name: string
@@ -28,9 +28,7 @@ const techItems: TechItem[] = [
 
 const logoLoopItems: LogoItem[] = techItems.map((item) => ({
   node: (
-    <div
-      className="flex items-center gap-2 px-4 py-2 rounded-lg bg-glass/30 backdrop-blur-xl border border-glass-border hover:bg-glass/50 hover:border-tech-cyan/30 transition-all duration-300 group"
-    >
+    <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-glass/30 backdrop-blur-xl border border-glass-border hover:bg-glass/50 hover:border-tech-cyan/30 transition-all duration-300 group">
       <div className="text-gray-400 group-hover:text-tech-cyan transition-colors">
         {item.icon}
       </div>
@@ -44,157 +42,124 @@ const logoLoopItems: LogoItem[] = techItems.map((item) => ({
   ariaLabel: `Learn more about ${item.name}`,
 }))
 
+const pillars = [
+  {
+    title: '前端开发',
+    desc: 'Next.js + React + TypeScript，打造高性能、SEO 友好的现代化 Web 应用',
+    icon: <Code2 className="w-5 h-5 sm:w-6 sm:h-6 text-white" />,
+    gradient: 'from-tech-cyan to-tech-sky',
+  },
+  {
+    title: '后端服务',
+    desc: 'FastAPI + PostgreSQL + Redis，提供快速、可靠的 API 服务和数据存储',
+    icon: <Server className="w-5 h-5 sm:w-6 sm:h-6 text-white" />,
+    gradient: 'from-purple-500 to-pink-500',
+  },
+  {
+    title: '部署运维',
+    desc: 'Docker + Vercel，实现容器化部署和自动化 CI/CD 流程',
+    icon: <Cloud className="w-5 h-5 sm:w-6 sm:h-6 text-white" />,
+    gradient: 'from-orange-500 to-red-500',
+  },
+]
+
 export default function TechStack() {
+  const gridItems = techItems.slice(0, 8)
+
   return (
-    <motion.section 
-      className="py-6 sm:py-8 md:py-10 lg:py-12"
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-100px' }}
-      transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
-    >
+    <section className="py-6 sm:py-8 md:py-10 lg:py-12">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div 
-          className="flex items-center gap-3 mb-5 sm:mb-6"
-          initial={{ opacity: 0, x: -20 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true, margin: '-80px' }}
-          transition={{ duration: 0.5 }}
-        >
-          <div className="w-1 h-6 sm:h-8 bg-gradient-to-b from-tech-cyan to-tech-sky rounded-full" />
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">
-            技术栈
-          </h2>
-          <span className="text-xs sm:text-sm text-muted-foreground">
-            Technologies & Tools
-          </span>
-        </motion.div>
-
-        <motion.div 
-          className="relative bg-glass/20 backdrop-blur-xl border border-glass-border rounded-lg p-4 sm:p-6 md:p-8 overflow-hidden"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-80px' }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-        >
-          <div data-testid="tech-orbital-layer" className="absolute inset-0 pointer-events-none" aria-hidden="true">
-            <div className="absolute left-1/2 top-1/2 h-48 w-48 -translate-x-1/2 -translate-y-1/2 rounded-full border border-tech-cyan/15 shadow-[0_0_60px_rgba(6,182,212,.12)]" />
-            <div className="absolute left-1/2 top-1/2 h-28 w-28 -translate-x-1/2 -translate-y-1/2 rounded-full border border-tech-sky/20" />
-            <div className="absolute inset-x-8 top-1/2 h-px bg-gradient-to-r from-transparent via-tech-cyan/25 to-transparent" />
-            <div className="absolute left-1/2 top-8 bottom-8 w-px bg-gradient-to-b from-transparent via-tech-cyan/20 to-transparent" />
+        <BlurIn>
+          <div className="flex items-center gap-3 mb-5 sm:mb-6">
+            <div className="w-1 h-6 sm:h-8 bg-gradient-to-b from-tech-cyan to-tech-sky rounded-full" />
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">
+              技术栈
+            </h2>
+            <span className="text-xs sm:text-sm text-muted-foreground">
+              Technologies & Tools
+            </span>
           </div>
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-tech-cyan to-transparent opacity-50 animate-pulse" />
-          <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-tech-cyan to-transparent opacity-50 animate-pulse" />
+        </BlurIn>
 
-          <div className="mb-5">
-            <p className="text-sm sm:text-base text-muted-foreground">
-              本项目使用现代化技术栈构建，注重性能、可维护性和开发体验。
-            </p>
+        <FadeIn delay={0.08}>
+          <div className="relative bg-glass/20 backdrop-blur-xl border border-glass-border rounded-lg p-4 sm:p-6 md:p-8 overflow-hidden">
+            <div data-testid="tech-orbital-layer" className="absolute inset-0 pointer-events-none" aria-hidden="true">
+              <div className="absolute left-1/2 top-1/2 h-48 w-48 -translate-x-1/2 -translate-y-1/2 rounded-full border border-tech-cyan/15 shadow-[0_0_60px_rgba(6,182,212,.12)]" />
+              <div className="absolute left-1/2 top-1/2 h-28 w-28 -translate-x-1/2 -translate-y-1/2 rounded-full border border-tech-sky/20" />
+              <div className="absolute inset-x-8 top-1/2 h-px bg-gradient-to-r from-transparent via-tech-cyan/25 to-transparent" />
+              <div className="absolute left-1/2 top-8 bottom-8 w-px bg-gradient-to-b from-transparent via-tech-cyan/20 to-transparent" />
+            </div>
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-tech-cyan to-transparent opacity-50 animate-pulse" />
+            <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-tech-cyan to-transparent opacity-50 animate-pulse" />
+
+            <div className="relative mb-5">
+              <p className="text-sm sm:text-base text-muted-foreground">
+                本项目使用现代化技术栈构建，注重性能、可维护性和开发体验。
+              </p>
+            </div>
+
+            <div className="relative py-3 sm:py-4">
+              <LogoLoop
+                logos={logoLoopItems}
+                speed={80}
+                direction="left"
+                pauseOnHover={true}
+                ariaLabel="Technology stack logos"
+                className="w-full"
+              />
+            </div>
+
+            <Stagger
+              className="relative mt-5 sm:mt-6 grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-3"
+              itemCount={gridItems.length}
+            >
+              {gridItems.map((item) => (
+                <StaggerItem key={item.name}>
+                  <HoverLift>
+                    <div className="flex flex-col items-center p-2 sm:p-3 rounded-lg bg-glass/30 backdrop-blur-xl border border-glass-border hover:border-tech-cyan/30 transition-colors cursor-pointer group">
+                      <div
+                        className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg bg-glass/50 flex items-center justify-center mb-1.5 sm:mb-2 group-hover:bg-tech-cyan/20 transition-colors"
+                        style={{ backgroundColor: `${item.color}20` }}
+                      >
+                        <div className="text-gray-400 group-hover:text-tech-cyan transition-colors">
+                          {item.icon}
+                        </div>
+                      </div>
+                      <span className="text-[10px] sm:text-xs font-medium text-gray-300 group-hover:text-white transition-colors text-center truncate w-full">
+                        {item.name}
+                      </span>
+                    </div>
+                  </HoverLift>
+                </StaggerItem>
+              ))}
+            </Stagger>
           </div>
+        </FadeIn>
 
-          <div className="py-3 sm:py-4">
-            <LogoLoop
-              logos={logoLoopItems}
-              speed={80}
-              direction="left"
-              pauseOnHover={true}
-              ariaLabel="Technology stack logos"
-              className="w-full"
-            />
-          </div>
-
-          <div className="mt-5 sm:mt-6 grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-3">
-            {techItems.slice(0, 8).map((item, index) => (
-              <motion.div
-                key={item.name}
-                className="flex flex-col items-center p-2 sm:p-3 rounded-lg bg-glass/30 backdrop-blur-xl border border-glass-border hover:border-tech-cyan/30 hover:scale-105 transition-all duration-300 cursor-pointer group"
-                initial={{ opacity: 0, scale: 0.8 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true, margin: '-50px' }}
-                transition={{ duration: 0.3, delay: index * 0.05 }}
-                whileHover={{ y: -4, borderColor: 'rgba(6, 182, 212, 0.5)' }}
-              >
-                <div
-                  className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg bg-glass/50 flex items-center justify-center mb-1.5 sm:mb-2 group-hover:bg-tech-cyan/20 transition-colors"
-                  style={{ backgroundColor: `${item.color}20` }}
-                >
-                  <div className="text-gray-400 group-hover:text-tech-cyan transition-colors">
-                    {item.icon}
-                  </div>
-                </div>
-                <span className="text-[10px] sm:text-xs font-medium text-gray-300 group-hover:text-white transition-colors text-center truncate w-full">
-                  {item.name}
-                </span>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-
-        <motion.div 
+        <Stagger
           className="mt-5 sm:mt-6 grid grid-cols-1 md:grid-cols-3 gap-4"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true, margin: '-80px' }}
-          transition={{ duration: 0.5, delay: 0.2 }}
+          itemCount={pillars.length}
+          delay={0.1}
         >
-          <motion.div 
-            className="bg-glass/30 backdrop-blur-xl border border-glass-border rounded-lg p-4 sm:p-5 hover:-translate-y-1 transition-transform duration-300 cursor-pointer group"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-60px' }}
-            transition={{ duration: 0.4, delay: 0.1 }}
-            whileHover={{ y: -8, boxShadow: '0 20px 40px rgba(6, 182, 212, 0.15)' }}
-          >
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-gradient-to-br from-tech-cyan to-tech-sky flex items-center justify-center mb-3">
-              <Code2 className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-            </div>
-            <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2 group-hover:text-tech-cyan transition-colors">
-              前端开发
-            </h3>
-            <p className="text-xs sm:text-sm text-muted-foreground">
-              Next.js 14 + React + TypeScript，打造高性能、SEO友好的现代化Web应用
-            </p>
-          </motion.div>
-
-          <motion.div 
-            className="bg-glass/30 backdrop-blur-xl border border-glass-border rounded-lg p-4 sm:p-5 hover:-translate-y-1 transition-transform duration-300 cursor-pointer group"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-60px' }}
-            transition={{ duration: 0.4, delay: 0.2 }}
-            whileHover={{ y: -8, boxShadow: '0 20px 40px rgba(168, 85, 247, 0.15)' }}
-          >
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center mb-3">
-              <Server className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-            </div>
-            <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2 group-hover:text-tech-cyan transition-colors">
-              后端服务
-            </h3>
-            <p className="text-xs sm:text-sm text-muted-foreground">
-              FastAPI + PostgreSQL + Redis，提供快速、可靠的API服务和数据存储
-            </p>
-          </motion.div>
-
-          <motion.div 
-            className="bg-glass/30 backdrop-blur-xl border border-glass-border rounded-lg p-4 sm:p-5 hover:-translate-y-1 transition-transform duration-300 cursor-pointer group"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-60px' }}
-            transition={{ duration: 0.4, delay: 0.3 }}
-            whileHover={{ y: -8, boxShadow: '0 20px 40px rgba(249, 115, 22, 0.15)' }}
-          >
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center mb-3">
-              <Cloud className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-            </div>
-            <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2 group-hover:text-tech-cyan transition-colors">
-              部署运维
-            </h3>
-            <p className="text-xs sm:text-sm text-muted-foreground">
-              Docker + Vercel，实现容器化部署和自动化CI/CD流程
-            </p>
-          </motion.div>
-        </motion.div>
+          {pillars.map((pillar) => (
+            <StaggerItem key={pillar.title}>
+              <HoverLift strong>
+                <div className="bg-glass/30 backdrop-blur-xl border border-glass-border rounded-lg p-4 sm:p-5 cursor-pointer group h-full">
+                  <div
+                    className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-gradient-to-br ${pillar.gradient} flex items-center justify-center mb-3`}
+                  >
+                    {pillar.icon}
+                  </div>
+                  <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2 group-hover:text-tech-cyan transition-colors">
+                    {pillar.title}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground">{pillar.desc}</p>
+                </div>
+              </HoverLift>
+            </StaggerItem>
+          ))}
+        </Stagger>
       </div>
-    </motion.section>
+    </section>
   )
 }

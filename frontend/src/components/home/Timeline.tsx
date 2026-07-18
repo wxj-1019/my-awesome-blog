@@ -6,7 +6,7 @@ import { Award, Calendar, Image, Video, ChevronDown, ChevronRight, Badge, Extern
 import GlassCard from '@/components/ui/GlassCard'
 import { cn } from '@/lib/utils'
 import { timelineService, TimelineEvent as ApiTimelineEvent } from '@/services/timelineService'
-import ScrollReveal from './decorations/ScrollReveal'
+import { BlurIn } from '@/components/motion'
 
 interface MediaItem {
   type: 'image' | 'video' | 'article'
@@ -412,12 +412,11 @@ export default function Timeline() {
         <div className="absolute right-[10%] bottom-24 h-32 w-32 rounded-full border border-purple-500/10 shadow-[0_0_70px_rgba(168,85,247,.1)]" />
       </div>
       <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
-        {/* 标题使用 ScrollReveal 包装 */}
-        <ScrollReveal animation="slideUp" className="mb-8 sm:mb-10 lg:mb-12">
+        <BlurIn className="mb-8 sm:mb-10 lg:mb-12">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center text-foreground">
             我的历程
           </h2>
-        </ScrollReveal>
+        </BlurIn>
 
         {loading ? (
           <div className="flex justify-center items-center py-16 sm:py-20">

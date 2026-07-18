@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { X, Search, Menu, Folder, Archive, Tag, Filter, ChevronRight, Home, User, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -42,6 +44,7 @@ export default function MobileDrawer() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const drawerRef = useRef<HTMLDivElement>(null)
   const overlayRef = useRef<HTMLDivElement>(null)
+  const shouldReduceMotion = useReducedMotion()
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -90,26 +93,35 @@ export default function MobileDrawer() {
         <Menu className="w-6 h-6" />
       </button>
 
-      {isOpen && (
+      <AnimatePresence>
+        {isOpen && (
         <>
-          <div
+          <motion.div
+            key="mobile-drawer-overlay"
             ref={overlayRef}
             onClick={closeDrawer}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] transition-opacity duration-300"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100]"
             aria-hidden="true"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: shouldReduceMotion ? 0.1 : 0.25 }}
           />
 
-          <aside
+          <motion.aside
+            key="mobile-drawer-panel"
             ref={drawerRef}
             className={cn(
               'fixed top-0 left-0 bottom-0 z-[110] w-full sm:w-96',
-              'transform transition-transform duration-300 ease-out',
-              'bg-glass/30 backdrop-blur-xl border-r border-glass-border',
-              isOpen ? 'translate-x-0' : '-translate-x-full'
+              'bg-glass/30 backdrop-blur-xl border-r border-glass-border'
             )}
             role="dialog"
             aria-modal="true"
             aria-label="移动端菜单"
+            initial={shouldReduceMotion ? { opacity: 0 } : { x: '-100%', opacity: 0.9 }}
+            animate={shouldReduceMotion ? { opacity: 1 } : { x: 0, opacity: 1 }}
+            exit={shouldReduceMotion ? { opacity: 0 } : { x: '-100%', opacity: 0.9 }}
+            transition={{ duration: shouldReduceMotion ? 0.12 : 0.3, ease: [0.25, 0.1, 0.25, 1] }}
           >
             <div className="flex flex-col h-full">
               <div className="flex items-center justify-between p-4 border-b border-glass-border">
@@ -285,9 +297,10 @@ export default function MobileDrawer() {
                 </a>
               </div>
             </div>
-          </aside>
+          </motion.aside>
         </>
-      )}
+        )}
+      </AnimatePresence>
     </>
   )
 }

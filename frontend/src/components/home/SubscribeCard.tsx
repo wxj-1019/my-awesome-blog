@@ -5,7 +5,7 @@ import { motion, AnimatePresence, useInView, useReducedMotion } from 'framer-mot
 import { Mail, CheckCircle, Loader2, Sparkles, ArrowRight, Bell } from 'lucide-react'
 import { subscriptionService } from '@/services/subscriptionService'
 import { useToast } from '@/components/ui/use-toast'
-import ScrollReveal from './decorations/ScrollReveal'
+import { FadeIn } from '@/components/motion'
 
 const APPLE_EASE = [0.25, 0.1, 0.25, 1] as const
 
@@ -399,7 +399,7 @@ export default function SubscribeCard() {
   }
 
   return (
-    <ScrollReveal animation="scaleIn" delay={0.1}>
+    <FadeIn direction="none" delay={0.05}>
       <motion.div
         ref={cardRef}
         className="relative mx-auto max-w-6xl bg-glass/30 backdrop-blur-xl border border-glass-border rounded-2xl overflow-hidden shadow-[0_0_80px_rgba(6,182,212,.12)]"
@@ -536,6 +536,6 @@ export default function SubscribeCard() {
           </AnimatePresence>
         </div>
       </motion.div>
-    </ScrollReveal>
+    </FadeIn>
   )
 }
