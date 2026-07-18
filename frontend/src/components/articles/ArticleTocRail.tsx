@@ -137,7 +137,14 @@ export default function ArticleTocRail({
 
   if (headings.length === 0) {
     return (
-      <GlassCard className={cn('p-6 sticky top-24', cardBgClass, className)}>
+      <GlassCard
+        padding="none"
+        className={cn(
+          'p-5 xl:p-6 xl:sticky xl:top-24 shadow-xl xl:shadow-lg',
+          cardBgClass,
+          className
+        )}
+      >
         <Link href="/articles" prefetch={false}>
           <Button variant="ghost" size="sm" className="w-full justify-start">
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -149,7 +156,15 @@ export default function ArticleTocRail({
   }
 
   return (
-    <GlassCard className={cn('p-6 sticky top-24', cardBgClass, className)}>
+    <GlassCard
+      padding="none"
+      className={cn(
+        // xl+ 文档流内 sticky；lg 由父级 fixed 定位
+        'p-5 xl:p-6 xl:sticky xl:top-24 max-h-[calc(100vh-7rem)] overflow-y-auto shadow-xl xl:shadow-lg',
+        cardBgClass,
+        className
+      )}
+    >
       {body}
     </GlassCard>
   );
