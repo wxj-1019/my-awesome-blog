@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
@@ -357,9 +358,12 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
                       <span>{article.read_time} 分钟阅读</span>
                     </div>
                   </div>
-                  <h1 className={`text-3xl md:text-4xl font-bold mb-4 ${textClass}`}>
+                  <motion.h1
+                    layoutId={`article-title-${article.id}`}
+                    className={`text-3xl md:text-4xl font-bold mb-4 ${textClass}`}
+                  >
                     {article.title}
-                  </h1>
+                  </motion.h1>
                   <div className="flex flex-wrap items-center justify-between pb-6 border-b border-dashed border-opacity-30">
                     <div className="flex items-center space-x-4 mb-4 md:mb-0">
                       <div className="flex items-center">

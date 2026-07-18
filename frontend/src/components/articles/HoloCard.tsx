@@ -87,12 +87,15 @@ function HoloCard({ article, isFeatured = false, className }: HoloCardProps) {
           )}
 
           <div className="absolute bottom-0 left-0 right-0 p-6">
-            <h3 className={`
+            <motion.h3
+              layoutId={`article-title-${article.id}`}
+              className={`
               text-xl font-bold text-white mb-2 line-clamp-2
               group-hover:text-[#EC4899] transition-colors
-            `}>
+            `}
+            >
               {article.title}
-            </h3>
+            </motion.h3>
             <p className={`
               text-sm text-gray-300 line-clamp-2 mb-4
               ${getThemeClass('', 'text-gray-600')}

@@ -212,3 +212,37 @@ import { EASE, TRANSITION, STAGGER } from '@/lib/animation-utils';
 
 - L3 异常：设置 `NEXT_PUBLIC_MOTION_L3=0` 并重启前端，Hero/Bridge 跳过滚动联动  
 - 或回退 `HeroSection` / `HomeVisualBridge` 提交，保留 L1 区块动效
+
+### Phase 3+ / 拆分与共享过渡（2026-07-19）
+
+#### 功能
+
+- [x] StatsPanel 拆为 `stats/StatsArticleCard|List|Charts|types`，主文件瘦身为编排层
+- [x] 图表区 `StatsCharts` 使用 `FadeIn` 入场
+- [x] 文章列表 `HoloCard` 标题 `layoutId=article-title-${id}`
+- [x] 文章详情标题匹配同一 `layoutId`
+- [x] `app/articles/layout.tsx` 提供 `LayoutGroup` 共享过渡父级
+- [x] 旧 `home/decorations/ScrollReveal` 标记 @deprecated
+
+#### 全站清裸 motion
+
+- [x] **策略声明**：146+ 文件含 framer-motion；**本阶段不声称全站清零**
+- [x] 高流量路径优先：Stats 拆分后裸 import 收口到子模块；文章路径接入 layoutId/LayoutGroup
+- [ ] 管理后台 / 消息 / 音乐 / 视频等仍大量裸 import → 后续按改文件顺手迁
+
+#### 工程闸门
+
+- [x] `npm run type-check`
+- [x] `npm test` — 25 passed
+- [x] `npm run lint` — 0 errors（修 HoloCard unused Route）
+
+#### 人工项（结构可证 + 需浏览器确认）
+
+| 项 | 代码可证 | 浏览器 |
+|----|----------|--------|
+| 桌面滚动 Hero 视频 scale / 文案淡出 | `data-hero-video-layer` + `useScrollProgress` | 需确认 |
+| Bridge 桌面 scrub | `ensureGsapPlugins` + `SCROLL_VIEWPORT.SCRUB` | 需确认 |
+| 窄屏无视频 zoom | `isDesktop` 门控 | 需确认 |
+| prefers-reduced-motion | `l3Active = MOTION_L3 && !reducedMotion` | 需确认 |
+| `NEXT_PUBLIC_MOTION_L3=0` | 常量读取 env | 需确认重启 dev |
+

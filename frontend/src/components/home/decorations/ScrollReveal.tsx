@@ -1,5 +1,10 @@
 'use client'
 
+/**
+ * @deprecated 新代码请使用 `@/components/motion`（L1）或 `@/components/gsap`（L3）。
+ * 本文件仅兼容旧引用，将逐步移除。
+ */
+
 import { ReactNode } from 'react'
 import { motion, Variants, useReducedMotion } from 'framer-motion'
 import {
