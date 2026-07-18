@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 import TextType from './TextType';
 import GlassCard from '../ui/GlassCard';
 import { useTheme } from '../../context/theme-context';
@@ -226,13 +227,13 @@ export default function HeroSection() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </a>
-              <a
+              <Link
                 href="/articles"
                 className="inline-flex items-center gap-2 px-6 py-3 border border-border rounded-full font-medium
                   hover:bg-glass hover:border-tech-cyan/50 transition-all duration-300"
               >
                 浏览文章
-              </a>
+              </Link>
             </div>
 
             <p className="text-sm text-muted-foreground sr-only">

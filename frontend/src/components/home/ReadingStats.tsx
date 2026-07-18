@@ -1,27 +1,26 @@
 'use client'
 
-import { useState } from 'react'
-import { BookOpen, Clock, TrendingUp, Target, Eye, Heart, Calendar } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { BookOpen, Clock, TrendingUp, Target, Eye, Heart, Calendar, MessageSquare } from 'lucide-react'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import GlassCard from '@/components/ui/GlassCard'
 import { cn } from '@/lib/utils'
+import { getPublicStatistics, type PublicStatisticsOverview } from '@/services/statisticsService'
 
-const heatmapData = Array.from({ length: 7 }, (_, weekIndex) =>
-  Array.from({ length: 7 }, (_, dayIndex) => ({
-    week: weekIndex,
-    day: dayIndex,
-    count: Math.floor(Math.random() * 10),
-    date: `2025-${weekIndex + 1}-${dayIndex + 1}`
-  }))
-).flat()
+const FALLBACK_HEATMAP = Array.from({ length: 49 }, (_, index) => ({
+  week: Math.floor(index / 7),
+  day: index % 7,
+  count: 0,
+  date: '',
+}))
 
-const readingTrendData = [
-  { month: '1月', articles: 12, time: 480, likes: 320 },
-  { month: '2月', articles: 15, time: 600, likes: 450 },
-  { month: '3月', articles: 18, time: 720, likes: 580 },
-  { month: '4月', articles: 14, time: 560, likes: 420 },
-  { month: '5月', articles: 20, time: 800, likes: 650 },
-  { month: '6月', articles: 22, time: 880, likes: 720 }
+const FALLBACK_READING_TREND = [
+  { month: '1月', articles: 0, time: 0, likes: 0 },
+  { month: '2月', articles: 0, time: 0, likes: 0 },
+  { month: '3月', articles: 0, time: 0, likes: 0 },
+  { month: '4月', articles: 0, time: 0, likes: 0 },
+  { month: '5月', articles: 0, time: 0, likes: 0 },
+  { month: '6月', articles: 0, time: 0, likes: 0 },
 ]
 
 const categoryPreferenceData = [
@@ -31,25 +30,6 @@ const categoryPreferenceData = [
   { category: '设计', hours: 18, percentage: 14, color: '#f59e0b' },
   { category: '其他', hours: 12, percentage: 10, color: '#6b7280' }
 ]
-
-const readingStats = [
-  { label: '总阅读时长', value: '45.2', unit: '小时', icon: Clock, color: 'from-tech-cyan to-tech-sky' },
-  { label: '已读文章', value: '101', unit: '篇', icon: BookOpen, color: 'from-purple-500 to-pink-500' },
-  { label: '平均评分', value: '4.5', unit: '分', icon: Star, color: 'from-yellow-500 to-orange-500' },
-  { label: '收藏数', value: '68', unit: '个', icon: Heart, color: 'from-red-500 to-pink-500' }
-]
-
-function Star({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      fill="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-    </svg>
-  )
-}
 
 function HeatmapCell({ count, date }: { count: number; date: string }) {
   const getIntensity = (count: number) => {
@@ -79,6 +59,49 @@ function HeatmapCell({ count, date }: { count: number; date: string }) {
 export default function ReadingStats() {
   const [selectedPeriod, setSelectedPeriod] = useState<'week' | 'month' | 'year'>('month')
   const [activeTab, setActiveTab] = useState<'overview' | 'heatmap' | 'trends'>('overview')
+  const [publicStats, setPublicStats] = useState<PublicStatisticsOverview | null>(null)
+
+  useEffect(() => {
+    void getPublicStatistics().then(setPublicStats)
+  }, [])
+
+  const readingTrendData = useMemo(() => {
+    if (!publicStats?.monthly_stats.length) {
+      return FALLBACK_READING_TREND
+    }
+    return publicStats.monthly_stats.map((item) => ({
+      month: `${item.month}月`,
+      articles: item.articles,
+      time: 0,
+      likes: 0,
+    }))
+  }, [publicStats])
+
+  const heatmapData = useMemo(() => {
+    if (!publicStats?.daily_articles.length) {
+      return FALLBACK_HEATMAP
+    }
+    const counts = new Map(publicStats.daily_articles.map((item) => [item.date, item.count]))
+    return Array.from({ length: 49 }, (_, index) => {
+      const date = new Date()
+      date.setHours(0, 0, 0, 0)
+      date.setDate(date.getDate() - (48 - index))
+      const key = date.toISOString().slice(0, 10)
+      return {
+        week: Math.floor(index / 7),
+        day: date.getDay(),
+        count: counts.get(key) ?? 0,
+        date: key,
+      }
+    })
+  }, [publicStats])
+
+  const readingStats = [
+    { label: '已发布文章', value: String(publicStats?.total_articles ?? 0), unit: '篇', icon: BookOpen, color: 'from-tech-cyan to-tech-sky' },
+    { label: '累计阅读', value: String(publicStats?.total_views ?? 0), unit: '次', icon: Eye, color: 'from-purple-500 to-pink-500' },
+    { label: '读者评论', value: String(publicStats?.total_comments ?? 0), unit: '条', icon: MessageSquare, color: 'from-yellow-500 to-orange-500' },
+    { label: '数据来源', value: publicStats ? '实时' : '暂无', unit: '公开统计', icon: Heart, color: 'from-red-500 to-pink-500' },
+  ]
 
   const periods = [
     { id: 'week' as const, label: '本周' },
@@ -105,8 +128,10 @@ export default function ReadingStats() {
             <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
           </div>
           <div>
-            <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground">阅读统计</h3>
-            <p className="text-xs sm:text-sm text-muted-foreground">追踪你的阅读习惯</p>
+            <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground">内容统计</h3>
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              {publicStats ? '基于公开聚合数据' : '暂无真实数据，图表显示为 0'}
+            </p>
           </div>
         </div>
 
@@ -190,7 +215,7 @@ export default function ReadingStats() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div className="p-3.5 sm:p-4 rounded-xl bg-glass/20 border border-glass-border">
-              <h4 className="text-xs sm:text-sm font-semibold text-foreground mb-3">分类偏好</h4>
+              <h4 className="text-xs sm:text-sm font-semibold text-foreground mb-3">分类偏好（示例）</h4>
               <div className="space-y-2.5 sm:space-y-3">
                 {categoryPreferenceData.map((item) => (
                   <div key={item.category}>
@@ -210,7 +235,7 @@ export default function ReadingStats() {
             </div>
 
             <div className="p-3.5 sm:p-4 rounded-xl bg-glass/20 border border-glass-border">
-              <h4 className="text-xs sm:text-sm font-semibold text-foreground mb-3">本月目标</h4>
+              <h4 className="text-xs sm:text-sm font-semibold text-foreground mb-3">内容目标（示例）</h4>
               <div className="space-y-2.5 sm:space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-xs sm:text-sm">

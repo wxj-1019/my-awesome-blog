@@ -20,6 +20,9 @@ import MediaPlayer from '@/components/ui/MediaPlayer';
 import ReadingProgressBar from '@/components/articles/ReadingProgressBar';
 import CommentTree from '@/components/articles/CommentTree';
 import MarkdownRenderer from '@/components/ui/MarkdownRenderer';
+import SocialShare from '@/components/social/SocialShare';
+import { extractMarkdownHeadings } from '@/utils/markdown-headings';
+import { env } from '@/lib/env';
 import { Comment } from '@/types';
 // 将 RelatedArticle 转换为 Article 类型的辅助函数
 const convertToArticle = (related: RelatedArticle): Article => {
@@ -169,19 +172,9 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
 
     fetchComments();
   }, [params.id]);
-  // 生成目录
+  // 生成目录：与 MarkdownRenderer 共用同一套标题解析/slug 规则
   const generateTableOfContents = (content: string) => {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(content, 'text/html');
-    const headings = doc.querySelectorAll('h1, h2, h3, h4, h5, h6');
-    const tocItems = Array.from(headings).map(heading => {
-      return {
-        id: heading.id,
-        text: heading.textContent || '',
-        level: parseInt(heading.tagName.charAt(1))
-      };
-    });
-    setToc(tocItems);
+    setToc(extractMarkdownHeadings(content));
   };
   // 监听滚动事件以高亮当前标题并计算阅读进度
   useEffect(() => {
@@ -408,13 +401,11 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
                         <Bookmark className={`h-4 w-4 mr-2 ${isBookmarked ? 'fill-current' : ''}`} />
                         {isBookmarked ? '已收藏' : '收藏'}
                       </Button>
-                      <Button variant="outline" size="sm" className={getThemeClass(
-                        'border-glass-border hover:bg-glass/40 text-foreground',
-                        'border-gray-300 hover:bg-gray-50 text-gray-800'
-                      )}>
-                        <Share2 className="h-4 w-4 mr-2" />
-                        分享
-                      </Button>
+                      <SocialShare
+                        url={`${env.NEXT_PUBLIC_SITE_URL}/articles/${article.id}`}
+                        title={article.title}
+                        description={article.excerpt}
+                      />
                     </div>
                   </div>
                 </div>

@@ -1,11 +1,30 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeSanitize from 'rehype-sanitize';
 import rehypeRaw from 'rehype-raw';
+import hljs from 'highlight.js/lib/core';
+import bash from 'highlight.js/lib/languages/bash';
+import css from 'highlight.js/lib/languages/css';
+import javascript from 'highlight.js/lib/languages/javascript';
+import json from 'highlight.js/lib/languages/json';
+import python from 'highlight.js/lib/languages/python';
+import typescript from 'highlight.js/lib/languages/typescript';
+import xml from 'highlight.js/lib/languages/xml';
 import { cn } from '@/lib/utils';
+import { extractMarkdownHeadings } from '@/utils/markdown-headings';
+
+hljs.registerLanguage('bash', bash);
+hljs.registerLanguage('css', css);
+hljs.registerLanguage('html', xml);
+hljs.registerLanguage('javascript', javascript);
+hljs.registerLanguage('js', javascript);
+hljs.registerLanguage('json', json);
+hljs.registerLanguage('python', python);
+hljs.registerLanguage('typescript', typescript);
+hljs.registerLanguage('ts', typescript);
 
 interface MarkdownRendererProps {
   content: string;
@@ -29,6 +48,8 @@ export default function MarkdownRenderer({
     'hr', 'del', 'ins', 'sub', 'sup'
   ]
 }: MarkdownRendererProps) {
+  const headings = useMemo(() => extractMarkdownHeadings(content), [content]);
+
   // 处理空内容
   if (!content || content.trim() === '') {
     return (
@@ -61,7 +82,35 @@ export default function MarkdownRenderer({
     title?: string;
   }
 
+  let headingIndex = 0;
+
   const components = {
+    // 标题 ID 与目录解析共享同一规则，确保锚点稳定且重复标题不冲突
+    h1({ _node, children, ...props }: ComponentProps) {
+      const heading = headings[headingIndex++];
+      return <h1 id={heading?.id} className="scroll-mt-24" {...props}>{children}</h1>;
+    },
+    h2({ _node, children, ...props }: ComponentProps) {
+      const heading = headings[headingIndex++];
+      return <h2 id={heading?.id} className="scroll-mt-24" {...props}>{children}</h2>;
+    },
+    h3({ _node, children, ...props }: ComponentProps) {
+      const heading = headings[headingIndex++];
+      return <h3 id={heading?.id} className="scroll-mt-24" {...props}>{children}</h3>;
+    },
+    h4({ _node, children, ...props }: ComponentProps) {
+      const heading = headings[headingIndex++];
+      return <h4 id={heading?.id} className="scroll-mt-24" {...props}>{children}</h4>;
+    },
+    h5({ _node, children, ...props }: ComponentProps) {
+      const heading = headings[headingIndex++];
+      return <h5 id={heading?.id} className="scroll-mt-24" {...props}>{children}</h5>;
+    },
+    h6({ _node, children, ...props }: ComponentProps) {
+      const heading = headings[headingIndex++];
+      return <h6 id={heading?.id} className="scroll-mt-24" {...props}>{children}</h6>;
+    },
+
     // 代码块
     code({ _node, inline, className, children, ...props }: CodeProps) {
       const match = /language-(\w+)/.exec(className || '');
@@ -69,6 +118,10 @@ export default function MarkdownRenderer({
       const codeContent = String(children).replace(/\n$/, '');
 
       if (!inline && language) {
+        const highlighted = hljs.getLanguage(language)
+          ? hljs.highlight(codeContent, { language }).value
+          : hljs.highlightAuto(codeContent).value;
+
         return (
           <div className="relative my-3 rounded-lg overflow-hidden border border-white/10">
             <div className="flex items-center justify-between px-4 py-2 bg-slate-800/50 border-b border-white/10">
@@ -80,10 +133,11 @@ export default function MarkdownRenderer({
                 复制
               </button>
             </div>
-            <pre className="m-0 p-4 overflow-x-auto bg-slate-900/50 font-mono text-sm text-white/90">
-              <code className={`language-${language}`}>
-                {codeContent}
-              </code>
+            <pre className="hljs m-0 p-4 overflow-x-auto bg-slate-900/50 font-mono text-sm">
+              <code
+                className={`language-${language}`}
+                dangerouslySetInnerHTML={{ __html: highlighted }}
+              />
             </pre>
           </div>
         );

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Share2Icon, CopyIcon, CheckIcon } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { TwitterIcon, LinkedinIcon, MailIcon } from '../icons/SocialIcons';
+import logger from '@/utils/logger';
 interface SocialShareProps {
   url: string;
   title: string;
@@ -34,7 +35,7 @@ export default function SocialShare({ url, title, description, className = '' }:
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      console.error('复制失败:', err);
+      logger.error('复制失败:', err);
     }
   };
   const handleShare = async () => {
