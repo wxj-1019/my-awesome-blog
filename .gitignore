@@ -177,4 +177,5 @@ coverage.xml
 dmypy.json
 
 # Pyre type checker
-.pyre/
+
+.superpowers/
