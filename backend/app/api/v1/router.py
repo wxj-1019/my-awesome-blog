@@ -3,7 +3,8 @@ from app.api.v1.endpoints import (
     auth, users, articles, comments, typewriter_contents,
     categories, tags, friend_links, portfolio, timeline_events,
     statistics, subscriptions, images, audit_logs, analytics, oss_upload,
-    messages, albums, monitoring, llm, prompts, weather, conversations, memories
+    messages, albums, monitoring, llm, prompts, weather, conversations, memories,
+    tenants,
 )
 
 api_router = APIRouter()
@@ -32,3 +33,4 @@ api_router.include_router(prompts.router, prefix="/prompts", tags=["prompts"])
 api_router.include_router(weather.router, prefix="/weather", tags=["weather"])
 api_router.include_router(conversations.router, prefix="/conversations", tags=["conversations"])
 api_router.include_router(memories.router, prefix="/memories", tags=["memories"])
+api_router.include_router(tenants.router, prefix="/tenants", tags=["tenants"])
