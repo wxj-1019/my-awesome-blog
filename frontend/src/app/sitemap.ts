@@ -1,6 +1,9 @@
 import { MetadataRoute } from 'next';
 import { env } from '@/lib/env';
-import { getArticles } from '@/services/articleService';
+import { getArticlesPaginated } from '@/services/articleService';
+
+/** sitemap 收录文章上限，避免构建超时；按页拉取（每页 ≤100） */
+const SITEMAP_MAX_ARTICLES = 2000;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
@@ -64,12 +67,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   try {
-    const articles = await getArticles({ limit: 1000 });
+    // 后端单页 limit≤100，使用分页拉取避免 422 / 构建失败
+    const articles = await getArticlesPaginated({ maxItems: SITEMAP_MAX_ARTICLES });
 
     const articleRoutes: MetadataRoute.Sitemap = articles.map((article) => ({
       url: `${baseUrl}/articles/${article.id}`,
       lastModified: article.updated_at ? new Date(article.updated_at) : new Date(article.created_at),
-      changeFrequency: 'weekly',
+      changeFrequency: 'weekly' as const,
       priority: 0.8,
     }));
 

@@ -1,12 +1,17 @@
-import { getArticles } from '@/services/articleService';
+import { getArticlesPaginated } from '@/services/articleService';
 import { env } from '@/lib/env';
+import type { Article } from '@/types';
+
+/** RSS 最近文章条数（≤ 后端单页上限，单次请求即可） */
+const FEED_MAX_ITEMS = 50;
 
 export async function GET() {
   const baseUrl = env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 
-  let articles: Awaited<ReturnType<typeof getArticles>> = [];
+  let articles: Article[] = [];
   try {
-    articles = await getArticles({ limit: 50 });
+    // 与列表 limit≤100 对齐；需要更多时可自动分页
+    articles = await getArticlesPaginated({ maxItems: FEED_MAX_ITEMS });
   } catch {
     // 如果获取失败，返回空 RSS，避免 500 错误
     articles = [];

@@ -2,25 +2,86 @@ import { apiRequest, API_BASE_URL, TOKEN_KEY } from '@/lib/api-client';
 import logger from '@/utils/logger';
 import type { Article, Category, Tag, RelatedArticle } from '@/types';
 
+/** 后端列表接口单次最大条数（与 API le=100 对齐） */
+export const ARTICLES_PAGE_SIZE = 100;
+
 // 获取文章列表
 export const getArticles = async (filters?: {
   category?: string;
   tag?: string;
   search?: string;
   limit?: number;
+  /** 跳过条数，对应后端 skip */
   offset?: number;
+  skip?: number;
 }): Promise<Article[]> => {
   const params = new URLSearchParams();
   if (filters?.category) {params.append('category_id', filters.category);}
   if (filters?.tag) {params.append('tag_id', filters.tag);}
   if (filters?.search) {params.append('search', filters.search);}
-  if (filters?.limit) {params.append('limit', filters.limit.toString());}
-  if (filters?.offset) {params.append('offset', filters.offset.toString());}
+  if (filters?.limit !== undefined) {
+    // 单页不得超过后端上限，避免 422
+    params.append('limit', String(Math.min(Math.max(filters.limit, 1), ARTICLES_PAGE_SIZE)));
+  }
+  const skip = filters?.skip ?? filters?.offset;
+  if (skip !== undefined) {params.append('skip', String(Math.max(skip, 0)));}
 
   const queryString = params.toString();
   const endpoint = `/articles/${queryString ? `?${queryString}` : ''}`;
 
   return apiRequest(endpoint);
+};
+
+/**
+ * 分页拉取文章，直到凑满 maxItems 或没有更多数据。
+ * 用于 sitemap / RSS 等需要批量读取、但后端限制单页 ≤100 的场景。
+ */
+export const getArticlesPaginated = async (options?: {
+  maxItems?: number;
+  pageSize?: number;
+  category?: string;
+  tag?: string;
+  search?: string;
+}): Promise<Article[]> => {
+  const pageSize = Math.min(
+    Math.max(options?.pageSize ?? ARTICLES_PAGE_SIZE, 1),
+    ARTICLES_PAGE_SIZE
+  );
+  const maxItems = options?.maxItems ?? Number.POSITIVE_INFINITY;
+  const collected: Article[] = [];
+  let skip = 0;
+
+  while (collected.length < maxItems) {
+    const limit = Math.min(pageSize, maxItems - collected.length);
+    let batch: Article[] = [];
+    try {
+      batch = await getArticles({
+        limit,
+        skip,
+        category: options?.category,
+        tag: options?.tag,
+        search: options?.search,
+      });
+    } catch (error) {
+      logger.error('分页获取文章失败:', error);
+      break;
+    }
+
+    if (!batch.length) {
+      break;
+    }
+
+    collected.push(...batch);
+
+    // 本页不足 limit，说明已到末尾
+    if (batch.length < limit) {
+      break;
+    }
+
+    skip += batch.length;
+  }
+
+  return collected;
 };
 
 // 根据ID获取文章详情
