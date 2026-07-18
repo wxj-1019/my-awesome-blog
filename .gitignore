@@ -26,6 +26,16 @@ dist/
 debug.log
 *.log
 
+# Local tooling / ESLint dump artifacts
+**/eslint-*.json
+**/current-errors.json
+**/param-issues.json
+**/remaining-unused*.json
+**/fix-unused-*.mjs
+**/fix-params.mjs
+**/*.tsbuildinfo
+backend/start_server.bat
+
 # Coverage directory used by tools like istanbul
 coverage/
 .nyc_output/
