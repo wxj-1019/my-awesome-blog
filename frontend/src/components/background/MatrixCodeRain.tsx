@@ -13,6 +13,14 @@ const MatrixCodeRain = () => {
       return;
     }
 
+    // Phase 2 性能预算：移动端 / 减少动效 不启矩阵雨
+    if (
+      window.matchMedia('(max-width: 767px)').matches ||
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ) {
+      return;
+    }
+
     const canvas = canvasRef.current;
     if (!canvas) {return;}
 

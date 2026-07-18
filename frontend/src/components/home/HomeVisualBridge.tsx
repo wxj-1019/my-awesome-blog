@@ -2,7 +2,8 @@
 
 import { useRef } from 'react'
 import { useGSAP } from '@gsap/react'
-import gsap from 'gsap'
+import { ensureGsapPlugins } from '@/lib/gsap/registry'
+import { SCROLL_VIEWPORT } from '@/lib/gsap/scroll-presets'
 
 const bridgeNodes = [
   { label: '01', className: 'left-[12%] top-[34%]' },
@@ -10,6 +11,9 @@ const bridgeNodes = [
   { label: '03', className: 'left-[62%] top-[28%]' },
   { label: '04', className: 'left-[82%] top-[62%]' },
 ]
+
+/** Phase 2：设 NEXT_PUBLIC_MOTION_L3=0 时仅保留入场、不做 scrub */
+const MOTION_L3_ENABLED = process.env.NEXT_PUBLIC_MOTION_L3 !== '0'
 
 export default function HomeVisualBridge() {
   const bridgeRef = useRef<HTMLElement>(null)
@@ -21,38 +25,85 @@ export default function HomeVisualBridge() {
         return
       }
 
+      const gsap = ensureGsapPlugins()
       const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      const isDesktop = window.matchMedia('(min-width: 768px)').matches
       const targets = gsap.utils.toArray<HTMLElement>('[data-bridge-animate]', root)
+      const scan = root.querySelector<HTMLElement>('[data-bridge-scan]')
 
       if (reduceMotion) {
         gsap.set(targets, { autoAlpha: 1, y: 0, scale: 1 })
+        if (scan) {
+          gsap.set(scan, { autoAlpha: 0 })
+        }
         return
       }
 
+      // 入场（所有断点）：轻量 timeline，无 pin
       gsap.set(targets, { autoAlpha: 0, y: 18, scale: 0.96 })
-      gsap
-        .timeline({ defaults: { ease: 'power3.out' } })
-        .to(targets, {
-          autoAlpha: 1,
-          y: 0,
-          scale: 1,
-          duration: 0.8,
-          stagger: 0.08,
-        })
-        .fromTo(
-          '[data-bridge-scan]',
+      const intro = gsap.timeline({ defaults: { ease: 'power3.out' } })
+      intro.to(targets, {
+        autoAlpha: 1,
+        y: 0,
+        scale: 1,
+        duration: 0.8,
+        stagger: 0.08,
+      })
+
+      if (scan) {
+        intro.fromTo(
+          scan,
           { xPercent: -120, autoAlpha: 0 },
           { xPercent: 120, autoAlpha: 0.75, duration: 1.4, ease: 'power2.inOut' },
           0.12
         )
+      }
+
+      // L3 桌面 scrub：仅水平线 / 竖线轻位移（不 pin，符合预算 pin≤1 且本段不用 pin）
+      if (MOTION_L3_ENABLED && isDesktop) {
+        const lines = gsap.utils.toArray<HTMLElement>(
+          '[data-bridge-line]',
+          root
+        )
+        lines.forEach((line, index) => {
+          gsap.fromTo(
+            line,
+            { scaleX: index % 2 === 0 ? 0.85 : 1, transformOrigin: 'center center' },
+            {
+              scaleX: index % 2 === 0 ? 1.05 : 0.9,
+              ease: 'none',
+              scrollTrigger: {
+                trigger: root,
+                ...SCROLL_VIEWPORT.SCRUB,
+              },
+            }
+          )
+        })
+
+        const nodes = gsap.utils.toArray<HTMLElement>('[data-bridge-node]', root)
+        gsap.fromTo(
+          nodes,
+          { y: 12 },
+          {
+            y: -12,
+            ease: 'none',
+            stagger: 0.04,
+            scrollTrigger: {
+              trigger: root,
+              ...SCROLL_VIEWPORT.SCRUB,
+            },
+          }
+        )
+      }
     },
-    { scope: bridgeRef }
+    { scope: bridgeRef, dependencies: [] }
   )
 
   return (
     <section
       ref={bridgeRef}
       aria-label="home-visual-bridge"
+      data-motion-l3={MOTION_L3_ENABLED ? 'on' : 'off'}
       className="relative overflow-hidden bg-background py-8 sm:py-10 lg:py-12"
     >
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
@@ -69,18 +120,21 @@ export default function HomeVisualBridge() {
         <div className="relative mx-auto h-28 max-w-5xl sm:h-32 lg:h-36">
           <div
             data-bridge-animate
-            className="absolute left-0 right-0 top-1/2 h-px bg-gradient-to-r from-transparent via-tech-cyan/60 to-transparent"
+            data-bridge-line
+            className="absolute left-0 right-0 top-1/2 h-px bg-gradient-to-r from-transparent via-tech-cyan/60 to-transparent will-change-transform"
           />
           <div
             data-bridge-animate
-            className="absolute left-1/2 top-0 h-full w-px bg-gradient-to-b from-transparent via-tech-sky/40 to-transparent"
+            data-bridge-line
+            className="absolute left-1/2 top-0 h-full w-px bg-gradient-to-b from-transparent via-tech-sky/40 to-transparent will-change-transform"
           />
 
           {bridgeNodes.map((node) => (
             <div
               key={node.label}
               data-bridge-animate
-              className={`absolute ${node.className} hidden sm:block`}
+              data-bridge-node
+              className={`absolute ${node.className} hidden sm:block will-change-transform`}
             >
               <div className="relative flex h-9 w-9 items-center justify-center rounded-full border border-tech-cyan/40 bg-glass/30 text-[10px] font-semibold text-tech-cyan shadow-[0_0_24px_rgba(6,182,212,.22)] backdrop-blur-xl">
                 <span>{node.label}</span>

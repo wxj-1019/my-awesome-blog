@@ -91,8 +91,9 @@ Hero 文案 stagger（Phase 2）
 | Phase | 范围 | 状态 |
 |-------|------|------|
 | **0 基建** | 目录、token、文档、原子组件 | **完成** |
-| **1 L1 收窄** | 首页 Featured / Tech / Timeline / Subscribe + MobileDrawer | **进行中** |
-| **2 首页 L3** | Hero + Bridge 滚动旗舰；不做 Stats 深度联动 | 待做 |
+| **1 L1 收窄** | 首页 Featured / Tech / Timeline / Subscribe + MobileDrawer | **完成** |
+| **1.1** | Featured 真数据、Drawer 稳定 exit、Timeline cap 12 | **完成** |
+| **2 首页 L3** | Hero + Bridge 滚动旗舰；不做 Stats 深度联动 | **完成** |
 | **3 内容页** | 文章/相册 layoutId、轻量 ScrollFloat | 按需 |
 
 ### Phase 1 验收（收窄）
@@ -128,16 +129,48 @@ Hero 文案 stagger（Phase 2）
 4. 系统开启「减少动态效果」：无大位移/缩放入场（允许极短 opacity）
 5. 网络断开精选 API：应降级 popular 或空态，不白屏崩溃
 
-#### 明确未做（防范围蔓延）
+#### 明确未做（Phase 1 边界，已移交 Phase 2）
 
-- Hero L3 / pin / 视频 zoom（Phase 2）
+- ~~Hero L3 / pin / 视频 zoom~~ → Phase 2 已做（无 pin）
 - StatsPanel 深度动效与拆分
 - 全站清除裸 `framer-motion`
-- `@/components/gsap` 业务接入（待 Phase 2 Hero/Bridge）
 
-### Phase 1 明确不做
+### Phase 2 验收（Hero + Bridge L3）
 
-- Hero L3 / pin / 视频 zoom  
+#### 功能 / 架构
+
+- [x] Hero **视频层**与**文案层**分节点（`data-hero-video-layer` / `data-hero-copy-layer`）
+- [x] Hero 进度源：`useScrollProgress(heroRef)`（非 ScrollTrigger）
+- [x] 桌面：视频 `scale` 随进度；文案 `opacity` + `translateY`
+- [x] 移动：无视频 zoom（scale=1），文案淡出减弱
+- [x] `prefers-reduced-motion` 或 `NEXT_PUBLIC_MOTION_L3=0`：静态（无 zoom/位移）
+- [x] Bridge：`ensureGsapPlugins()`；桌面 scrub 线条/节点；**无 pin**
+- [x] 移动 / reduced-motion：Bridge 仅入场或静态，无 scrub
+- [x] MatrixCodeRain：移动端与 reduced-motion 不启动
+
+#### 工程闸门
+
+- [x] `npm run type-check` — 通过（2026-07-19）
+- [x] `npm test` — 25 passed / 8 suites
+- [x] `npm run lint` — 0 errors（6 既有 warnings）
+
+#### 人工清单
+
+1. 桌面滚动首页：视频轻微放大、Hero 文案上移淡出，Bridge 线条有 scrub 感  
+2. 窄屏：视频不 zoom，抽屉与内容仍可用  
+3. 系统「减少动态效果」：Hero/Bridge 无滚动联动变形  
+4. `NEXT_PUBLIC_MOTION_L3=0` 重启 dev：Hero/Bridge 回退为无 L3 滚动  
+5. 控制台无 GSAP/代理新错误；不与 Stats 同 PR 大改  
+
+#### Phase 2 明确不做
+
+- Stats 图表与 scroll 联动  
+- pin 全屏区  
+- 全站清除裸 `motion`  
+- 文章/相册 layoutId（Phase 3）
+
+### Phase 1 明确不做（历史）
+
 - Stats 图表与 scroll 联动  
 - 全站清除裸 `motion`  
 - Navbar 已稳定纯 CSS 下拉：**不强行改**
@@ -161,5 +194,5 @@ import { EASE, TRANSITION, STAGGER } from '@/lib/animation-utils';
 
 ## 10. 回滚
 
-- L3 异常：去掉 Hero/Bridge 的 GSAP 接入，保留 L1  
-- 可用 env 后续扩展 `NEXT_PUBLIC_MOTION_L3=0`（Phase 2 再加）
+- L3 异常：设置 `NEXT_PUBLIC_MOTION_L3=0` 并重启前端，Hero/Bridge 跳过滚动联动  
+- 或回退 `HeroSection` / `HomeVisualBridge` 提交，保留 L1 区块动效

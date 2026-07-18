@@ -9,12 +9,24 @@ import { useTheme } from '../../context/theme-context';
 import WaveStack from '../ui/WaveStack';
 import ScrollIndicator from './ScrollIndicator';
 import logger from '@/utils/logger';
+import { useScrollProgress } from '@/hooks/useScrollProgress';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
+
+/** Phase 2 L3：默认开启；设 NEXT_PUBLIC_MOTION_L3=0 可回退静态 Hero */
+const MOTION_L3_ENABLED = process.env.NEXT_PUBLIC_MOTION_L3 !== '0';
 
 export default function HeroSection() {
   const { resolvedTheme } = useTheme();
+  const reducedMotion = useReducedMotion();
   const [mounted, setMounted] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
   useEffect(() => {
     setMounted(true);
+    const mq = window.matchMedia('(min-width: 768px)');
+    const sync = () => setIsDesktop(mq.matches);
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
   }, []);
   const backgroundVideo = mounted && resolvedTheme === 'dark'
     ? '/video/moonlit-clouds-field-HD-live.mp4'
@@ -27,6 +39,17 @@ export default function HeroSection() {
   const heroRef = useRef<HTMLElement>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  // 进度源：useScrollProgress（与 Bridge 的 ScrollTrigger 分离，且视频/文案分节点）
+  const scrollProgress = useScrollProgress(heroRef);
+  const l3Active = MOTION_L3_ENABLED && !reducedMotion;
+  const videoScale =
+    l3Active && isDesktop ? 1 + Math.min(scrollProgress, 1) * 0.12 : 1;
+  const copyOpacity = l3Active
+    ? Math.max(0, 1 - scrollProgress * (isDesktop ? 1.2 : 0.55))
+    : 1;
+  const copyY = l3Active
+    ? Math.min(scrollProgress, 1) * (isDesktop ? 36 : 12)
+    : 0;
 
   const handleIntersection = useCallback((entries: IntersectionObserverEntry[]) => {
     const [entry] = entries;
@@ -40,7 +63,8 @@ export default function HeroSection() {
     }
   }, [shouldLoadVideo]);
   useEffect(() => {
-    if (!heroRef.current) {return;}
+    const el = heroRef.current;
+    if (!el) {return;}
 
     const options = {
       root: null,
@@ -49,11 +73,12 @@ export default function HeroSection() {
     };
 
     observerRef.current = new IntersectionObserver(handleIntersection, options);
-    observerRef.current.observe(heroRef.current);
+    observerRef.current.observe(el);
 
     return () => {
-      if (observerRef.current && heroRef.current) {
-        observerRef.current.unobserve(heroRef.current);
+      if (observerRef.current) {
+        observerRef.current.unobserve(el);
+        observerRef.current.disconnect();
       }
     };
   }, [handleIntersection]);
@@ -63,7 +88,7 @@ export default function HeroSection() {
       setVideoLoaded(false);
       setVideoError(false);
     }
-  }, [mounted, backgroundVideo, retryCount, shouldLoadVideo]);
+  }, [mounted, backgroundVideo, retryCount, shouldLoadVideo, videoLoaded, videoError]);
 
   const handleVideoError = useCallback((e: React.SyntheticEvent<HTMLVideoElement>) => {
     logger.error('视频加载失败:', backgroundVideo, e);
@@ -104,7 +129,16 @@ export default function HeroSection() {
       <a href="#content" className="skip-link">
         跳转到主要内容
       </a>
-      <div className="absolute inset-0 z-0">
+      {/* L3 视频层：仅 CSS transform scale（不与文案层共用同一节点） */}
+      <div
+        className="absolute inset-0 z-0 will-change-transform"
+        data-hero-video-layer
+        style={{
+          transform: `scale(${videoScale})`,
+          transformOrigin: 'center center',
+        }}
+        aria-hidden="true"
+      >
         {/* 视频骨架屏 - 加载状态 */}
         {shouldLoadVideo && !videoLoaded && !videoError && (
           <motion.div
@@ -174,7 +208,15 @@ export default function HeroSection() {
         />
       </div>
 
-      <div className="relative z-20 flex flex-col w-full flex-1">
+      {/* L1 文案层：仅 opacity/translateY，不与视频层同节点 */}
+      <div
+        className="relative z-20 flex flex-col w-full flex-1 will-change-transform"
+        data-hero-copy-layer
+        style={{
+          opacity: copyOpacity,
+          transform: `translate3d(0, ${copyY}px, 0)`,
+        }}
+      >
         <div className="container mx-auto px-4 text-center flex-1 flex flex-col justify-center">
           <GlassCard
             padding="md"
