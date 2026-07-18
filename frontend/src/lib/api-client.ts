@@ -1,6 +1,24 @@
 import { env } from '@/lib/env';
 
-export const API_BASE_URL = env.NEXT_PUBLIC_API_URL || 'http://localhost:8989/api/v1';
+/**
+ * 浏览器：走公网/同域 API（NEXT_PUBLIC_*，构建期注入）。
+ * 服务端（RSC/SSR）：优先 INTERNAL_API_URL，在 Compose 内直连 backend:8989。
+ */
+function resolveApiBaseUrl(): string {
+  if (typeof window === 'undefined') {
+    const internal = process.env.INTERNAL_API_URL?.replace(/\/$/, '');
+    if (internal) {
+      return internal.endsWith('/api/v1') ? internal : `${internal}/api/v1`;
+    }
+  }
+  return (
+    env.NEXT_PUBLIC_API_URL ||
+    env.NEXT_PUBLIC_API_BASE_URL ||
+    'http://localhost:8989/api/v1'
+  );
+}
+
+export const API_BASE_URL = resolveApiBaseUrl();
 export const TOKEN_KEY = 'auth_token';
 export const USER_KEY = 'auth_user';
 
@@ -14,7 +32,8 @@ export async function apiFetch(
   retries = 1
 ): Promise<Response> {
   const token = typeof window !== 'undefined' ? localStorage.getItem(TOKEN_KEY) : null;
-  const url = input.startsWith('http') ? input : `${API_BASE_URL}${input}`;
+  const base = resolveApiBaseUrl();
+  const url = input.startsWith('http') ? input : `${base}${input}`;
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
     ...(token && { Authorization: `Bearer ${token}` }),
@@ -57,7 +76,8 @@ export async function apiRequest<T = unknown>(
   };
 
   try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+    const base = resolveApiBaseUrl();
+    const response = await fetch(`${base}${endpoint}`, config);
 
     if (!response.ok) {
       if (response.status === 401) {

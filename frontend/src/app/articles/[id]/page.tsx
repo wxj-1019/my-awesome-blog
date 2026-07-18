@@ -9,8 +9,26 @@ const getCachedArticle = cache(async (id: string) => {
   return getArticleById(id);
 });
 
-export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
-  const article = await getCachedArticle(params.id);
+type PageProps = {
+  /** Next.js 15+：params 为 Promise */
+  params: Promise<{ id: string }> | { id: string };
+};
+
+async function resolveId(
+  params: PageProps['params']
+): Promise<string | undefined> {
+  const resolved = await Promise.resolve(params);
+  return resolved?.id;
+}
+
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
+  const id = await resolveId(params);
+  if (!id) {
+    return { title: '文章未找到 - My Awesome Blog' };
+  }
+  const article = await getCachedArticle(id);
 
   if (!article) {
     return {
@@ -18,7 +36,9 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
     };
   }
 
-  const description = article.excerpt || `阅读 ${article.title}，作者 ${article.author.username}，预计阅读时间 ${article.read_time} 分钟。`;
+  const description =
+    article.excerpt ||
+    `阅读 ${article.title}，作者 ${article.author.username}，预计阅读时间 ${article.read_time} 分钟。`;
   const url = `${env.NEXT_PUBLIC_SITE_URL}/articles/${article.id}`;
   const images = article.cover_image ? [article.cover_image] : undefined;
 
@@ -46,9 +66,9 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   };
 }
 
-export default async function ArticleDetailPage({ params }: { params: { id: string } }) {
-  // 复用 generateMetadata 中的缓存结果，不再重复请求
-  const article = await getCachedArticle(params.id);
+export default async function ArticleDetailPage({ params }: PageProps) {
+  const id = await resolveId(params);
+  const article = id ? await getCachedArticle(id) : null;
   const jsonLd = article
     ? {
         '@context': 'https://schema.org',
@@ -75,7 +95,9 @@ export default async function ArticleDetailPage({ params }: { params: { id: stri
       {jsonLd && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c'),
+          }}
         />
       )}
       <ArticleDetailPageContent prefetchedArticle={article} />
