@@ -6,7 +6,11 @@ echo "=========================================="
 echo "  My Awesome Blog - 部署脚本"
 echo "=========================================="
 
-SERVER_IP="49.234.190.85"
+SERVER_IP="${DEPLOY_SERVER_IP:-}"
+if [ -z "$SERVER_IP" ]; then
+    echo "错误: 请设置环境变量 DEPLOY_SERVER_IP"
+    exit 1
+fi
 SERVER_USER="root"
 DEPLOY_PATH="/opt/my-awesome-blog"
 

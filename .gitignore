@@ -1,12 +1,16 @@
 # Dependencies
 node_modules/
 
-# Environment variables
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+# Environment variables & secrets（禁止提交真实密钥）
 .env
+.env.*
+!.env.example
+!**/.env.example
+!**/.env*.example
+**/.env.bak
+*.pem
+*.key
+!nginx/ssl/.gitkeep
 
 # Next.js
 .next/
@@ -115,9 +119,24 @@ ENV/
 env.bak/
 venv.bak/
 
-# IDE
+# IDE / local agent workspaces
 .vscode/
 .idea/
+*.swp
+*.swo
+.claude/
+.codebuddy/
+.qoder/
+.qwen/
+.trae/
+
+# Accidental dumps / local-only ops clutter
+how HEAD
+backend-err.log
+backend-out.log
+backend-start.log
+
+# IDE
 *.swp
 *.swo
 
@@ -126,8 +145,6 @@ venv.bak/
 *.sqlite3
 
 # Alembic
-alembic/versions/*.py
-!alembic/versions/__init__.py
 
 # Testing
 .pytest_cache/

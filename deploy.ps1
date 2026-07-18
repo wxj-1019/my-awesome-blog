@@ -4,7 +4,11 @@ Write-Host "=========================================="
 Write-Host "  My Awesome Blog - 部署脚本"
 Write-Host "=========================================="
 
-$SERVER_IP = "49.234.190.85"
+$SERVER_IP = $env:DEPLOY_SERVER_IP
+if (-not $SERVER_IP) {
+    Write-Host "错误: 请设置环境变量 DEPLOY_SERVER_IP" -ForegroundColor Red
+    exit 1
+}
 $SERVER_USER = "root"
 $DEPLOY_PATH = "/opt/my-awesome-blog"
 
@@ -37,7 +41,7 @@ if ($LASTEXITCODE -ne 0) {
     Write-Host "错误: 无法连接到服务器 ${SERVER_USER}@${SERVER_IP}" -ForegroundColor Red
     Write-Host "请确保:"
     Write-Host "  1. SSH 密钥已添加到服务器"
-    Write-Host "  2. 可以使用 'ssh root@49.234.190.85' 连接"
+    Write-Host "  2. 可以使用 'ssh root@${SERVER_IP}' 连接"
     exit 1
 }
 Write-Host "SSH 连接成功!"
