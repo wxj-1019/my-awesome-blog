@@ -43,7 +43,9 @@ const MessageReactionsComponent = function MessageReactions({
   };
 
   const createParticles = useCallback((x: number, y: number) => {
-    if (shouldReduceMotion) return;
+    if (shouldReduceMotion) {
+      return;
+    }
 
     const newParticles: Particle[] = Array.from({ length: 6 }, (_, i) => ({
       id: `${messageId}-${Date.now()}-${i}`,
