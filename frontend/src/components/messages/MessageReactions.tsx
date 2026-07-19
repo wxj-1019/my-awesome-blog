@@ -132,7 +132,7 @@ const MessageReactionsComponent = function MessageReactions({
 
         <motion.button
           type="button"
-          className="flex items-center gap-1 px-3 py-1 rounded-full text-xs text-white/50 border border-white/10 hover:bg-white/5 transition-colors"
+          className="flex items-center gap-1 px-3 py-1 rounded-full text-xs text-muted-foreground border border-border hover:bg-muted/40 hover:border-primary/30 transition-colors"
           {...addMotionScale}
         >
           <Sparkles className="w-3 h-3" />

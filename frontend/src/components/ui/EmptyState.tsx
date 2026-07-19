@@ -123,7 +123,13 @@ const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
     const descClass = isSm
       ? 'text-xs text-muted-foreground mb-4 max-w-md'
       : 'text-sm text-muted-foreground mb-6 max-w-md';
-    const paddingClass = compact ? 'py-8 px-4' : 'py-16 px-4';
+    const paddingClass = isSm
+      ? compact
+        ? 'py-6 px-3'
+        : 'py-10 px-4'
+      : compact
+        ? 'py-8 px-4'
+        : 'py-16 px-4';
 
     const ctaClass =
       'inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all duration-200 hover:scale-105 shadow-lg shadow-primary/20';
