@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Code, Star, GitFork, Eye, ExternalLink, FolderOpen, Filter } from 'lucide-react'
 import GlassCard from '@/components/ui/GlassCard'
+import EmptyState from '@/components/ui/EmptyState'
 import { cn } from '@/lib/utils'
 
 interface GitHubStats {
@@ -370,12 +371,12 @@ export default function Portfolio() {
         </div>
 
         {filteredProjects.length === 0 && (
-          <div className="text-center py-12">
-            <FolderOpen className="w-16 h-16 text-gray-500 mx-auto mb-4" />
-            <p className="text-lg text-muted-foreground">
-              该分类下暂无项目
-            </p>
-          </div>
+          <EmptyState
+            size="sm"
+            compact
+            icon={FolderOpen}
+            title="该分类下暂无项目"
+          />
         )}
       </div>
     </section>

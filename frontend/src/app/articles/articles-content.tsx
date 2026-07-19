@@ -9,6 +9,7 @@ import ArchiveDrawer from '@/components/articles/ArchiveDrawer';
 import Loader from '@/components/loading/Loader';
 import GlitchText from '@/components/ui/GlitchText';
 import { FocusCards } from '@/components/ui/FocusCards';
+import EmptyState from '@/components/ui/EmptyState';
 import ArticleCardSkeleton from '@/components/articles/ArticleCardSkeleton';
 import { BlurIn, FadeIn } from '@/components/motion';
 import {  Article, Category, Tag } from '@/types';
@@ -16,6 +17,7 @@ import logger from '@/utils/logger';
 import { mapArticlesToAlbums, getHotArticles } from '@/utils/articleHelpers';
 import { useArticleFilters } from '@/hooks/useArticleFilters';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
+import { BookOpen } from 'lucide-react';
 const ARTICLES_PER_PAGE = 12;
 function ArticlesPageContent() {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -214,20 +216,29 @@ function ArticlesPageContent() {
                 )}
               </>
             ) : (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-center py-20"
-              >
-                <div className="text-4xl font-bold mb-4 text-primary">
-                  暂无文章
-                </div>
-                <p className="text-lg text-muted-foreground">
-                  {filters.selectedCategory || filters.selectedTag || filters.searchQuery
+              <EmptyState
+                icon={BookOpen}
+                variant={
+                  filters.selectedCategory || filters.selectedTag || filters.searchQuery
+                    ? 'search'
+                    : 'default'
+                }
+                title={
+                  filters.selectedCategory || filters.selectedTag || filters.searchQuery
+                    ? '未找到结果'
+                    : '暂无文章'
+                }
+                description={
+                  filters.selectedCategory || filters.selectedTag || filters.searchQuery
                     ? '没有找到匹配的文章，请尝试其他筛选条件'
-                    : '暂无文章发布，请稍后再来'}
-                </p>
-              </motion.div>
+                    : '暂无文章发布，请稍后再来'
+                }
+                action={
+                  filters.selectedCategory || filters.selectedTag || filters.searchQuery
+                    ? { label: '清除筛选', onClick: filters.resetFilters }
+                    : { label: '返回首页', href: '/' }
+                }
+              />
             )}
           </div>
         </div>

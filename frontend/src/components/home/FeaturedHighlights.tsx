@@ -3,9 +3,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import type { Route } from 'next'
-import { Eye, Heart, MessageCircle, Pin, Sparkles, TrendingUp, Clock } from 'lucide-react'
+import { Eye, Heart, MessageCircle, Pin, Sparkles, TrendingUp, Clock, BookOpen } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { BlurIn, FadeIn, Stagger, StaggerItem, HoverLift } from '@/components/motion'
+import EmptyState from '@/components/ui/EmptyState'
 import { getFeaturedArticles, getPopularArticles } from '@/services/articleService'
 import type { Article } from '@/types'
 import logger from '@/utils/logger'
@@ -144,11 +145,12 @@ export default function FeaturedHighlights() {
     return (
       <section className="relative overflow-hidden py-6">
         <div className="container mx-auto px-4">
-          <FadeIn>
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">暂无精选文章</p>
-            </div>
-          </FadeIn>
+          <EmptyState
+            size="sm"
+            compact
+            icon={BookOpen}
+            title="暂无精选文章"
+          />
         </div>
       </section>
     )
