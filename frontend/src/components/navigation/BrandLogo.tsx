@@ -10,7 +10,9 @@ interface BrandLogoProps {
 }
 
 /**
- * 站点品牌 Logo：固定宽度 SVG + 字标，hover 只做色彩/透明度，不挤压导航项。
+ * 站点品牌 Logo：固定宽度 monogram + 字标。
+ * 深/浅色均用实心 primary 底 + primary-foreground 图标，保证对比度。
+ * 透明导航叠在视频上时，字标用实色 foreground + 轻阴影。
  */
 export default function BrandLogo({
   emphasized = false,
@@ -21,42 +23,46 @@ export default function BrandLogo({
       href="/"
       aria-label="Awesome Blog 首页"
       className={cn(
-        // 固定槽位：防止强调态动画改变占位
         'group flex items-center gap-2.5 h-10 w-[9.5rem] sm:w-[10.5rem] flex-shrink-0',
-        'text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg',
+        'rounded-lg px-1 -mx-1',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
         className
       )}
     >
-      {/* 固定 40×40 图标槽 */}
       <span
         className={cn(
           'relative flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl',
-          'bg-gradient-to-br from-primary/90 to-tech-lightcyan/80',
-          'shadow-sm shadow-primary/20 ring-1 ring-primary/30',
-          'transition-shadow duration-300',
-          emphasized && 'shadow-md shadow-primary/30'
+          // 实心品牌色（非半透明渐变）
+          'bg-primary text-primary-foreground',
+          // 与页面背景隔离的描边，深浅主题都清晰
+          'ring-2 ring-background shadow-md shadow-black/10 dark:shadow-black/40',
+          'transition-[box-shadow,transform] duration-300',
+          emphasized && 'shadow-lg shadow-primary/30',
+          'group-hover:scale-[1.03] group-hover:shadow-lg group-hover:shadow-primary/35'
         )}
       >
-        <BrandMark className="h-6 w-6 text-primary-foreground transition-transform duration-300 group-hover:scale-105" />
+        <BrandMark className="h-6 w-6" />
       </span>
 
-      {/* 固定宽度字标区：不因 hover 改变文案长度 */}
       <span className="flex min-w-0 flex-col justify-center leading-none">
         <span
           className={cn(
             'font-display text-sm font-bold tracking-tight truncate',
-            'transition-colors duration-300',
-            emphasized ? 'text-foreground' : 'text-foreground/90',
-            'group-hover:text-primary'
+            'text-foreground',
+            // 叠在亮/暗视频上时略提清晰度
+            '[text-shadow:0_1px_2px_color-mix(in_oklab,var(--background)_70%,transparent)]',
+            'transition-colors duration-300 group-hover:text-primary'
           )}
         >
           Awesome
         </span>
         <span
           className={cn(
-            'mt-0.5 text-[10px] font-medium uppercase tracking-[0.18em] truncate',
-            'text-muted-foreground transition-colors duration-300',
-            'group-hover:text-primary/80'
+            'mt-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] truncate',
+            // 比 muted-foreground 更易读
+            'text-foreground/75 dark:text-foreground/80',
+            '[text-shadow:0_1px_2px_color-mix(in_oklab,var(--background)_70%,transparent)]',
+            'transition-colors duration-300 group-hover:text-primary/90'
           )}
         >
           Blog
@@ -66,40 +72,29 @@ export default function BrandLogo({
   );
 }
 
-/** 字母 A + 底部横笔的 monogram，viewBox 固定，currentColor 着色 */
+/** monogram：纯 currentColor 实心路径，继承 primary-foreground */
 function BrandMark({ className }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 32 32"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className={className}
+      className={cn('text-primary-foreground', className)}
       aria-hidden
     >
-      {/* 抽象 A：两斜竖 + 中横 */}
       <path
-        d="M16 5.5L6.5 26.5h4.2l1.7-4.2h7.2l1.7 4.2H25.5L16 5.5Z"
-        fill="currentColor"
-        fillOpacity="0.22"
-      />
-      <path
-        d="M16 8.2 9.1 24.2h3.1l1.35-3.35h5.1L20 24.2h3.05L16 8.2Z"
+        d="M16 7.5 8.2 25.5h3.5l1.4-3.5h6.8l1.4 3.5h3.5L16 7.5Z"
         fill="currentColor"
       />
+      {/* 中空：用背景色挖空，保证任何主题下都是「底色洞」而非半透明糊在一起 */}
+      <path d="M13.2 18h5.6L16 11.2 13.2 18Z" className="fill-primary" />
       <path
-        d="M13.15 17.85h5.7l-2.85-7.05-2.85 7.05Z"
-        fill="currentColor"
-        fillOpacity="0.35"
-      />
-      {/* 底部强调弧：科技感 */}
-      <path
-        d="M8 27.2h16"
+        d="M8.5 27h15"
         stroke="currentColor"
-        strokeWidth="1.8"
+        strokeWidth="2"
         strokeLinecap="round"
-        opacity="0.9"
       />
-      <circle cx="24.5" cy="8.5" r="1.6" fill="currentColor" opacity="0.85" />
+      <circle cx="24.2" cy="9" r="1.8" fill="currentColor" />
     </svg>
   );
 }
