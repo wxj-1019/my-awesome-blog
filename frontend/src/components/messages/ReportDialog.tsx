@@ -1,7 +1,7 @@
 'use client';
 import { useState, useCallback, memo } from 'react';
 import { motion, AnimatePresence } from '@/lib/framer-motion';
-import { Flag, X, AlertCircle } from 'lucide-react';
+import { Flag, X, AlertCircle, Ban, Angry, AlertTriangle, FileWarning, FileText, type LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import GlassCard from '@/components/ui/GlassCard';
 import { cn } from '@/lib/utils';
@@ -13,12 +13,12 @@ interface ReportDialogProps {
   messageAuthor?: string;
   messageContent?: string;
 }
-const reportReasons = [
-  { id: 'spam', label: '垃圾信息', icon: '🚫' },
-  { id: 'harassment', label: '骚扰/辱骂', icon: '😡' },
-  { id: 'inappropriate', label: '不当内容', icon: '⚠️' },
-  { id: 'misleading', label: '误导信息', icon: '🤥' },
-  { id: 'other', label: '其他原因', icon: '📝' },
+const reportReasons: { id: string; label: string; icon: LucideIcon }[] = [
+  { id: 'spam', label: '垃圾信息', icon: Ban },
+  { id: 'harassment', label: '骚扰/辱骂', icon: Angry },
+  { id: 'inappropriate', label: '不当内容', icon: AlertTriangle },
+  { id: 'misleading', label: '误导信息', icon: FileWarning },
+  { id: 'other', label: '其他原因', icon: FileText },
 ];
 function ReportDialog({
   isOpen,
@@ -107,7 +107,9 @@ function ReportDialog({
                   请选择举报原因
                 </label>
                 <div className="grid grid-cols-2 gap-2">
-                  {reportReasons.map((reason) => (
+                  {reportReasons.map((reason) => {
+                    const Icon = reason.icon;
+                    return (
                     <button
                       key={reason.id}
                       onClick={() => setSelectedReason(reason.id)}
@@ -118,10 +120,11 @@ function ReportDialog({
                           : 'bg-muted/40 border-border text-muted-foreground hover:border-primary/50'
                       )}
                     >
-                      <span className="text-lg">{reason.icon}</span>
+                      <Icon className="w-5 h-5" />
                       <span className="text-sm font-medium">{reason.label}</span>
                     </button>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
               <div className="mb-6">
