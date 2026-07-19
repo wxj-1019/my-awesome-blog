@@ -5,6 +5,7 @@ import { motion } from '@/lib/framer-motion';
 import TextType from './TextType';
 import { useTheme } from '../../context/theme-context';
 import WaveStack from '../ui/WaveStack';
+import BubbleField from './BubbleField';
 import ScrollIndicator from './ScrollIndicator';
 import logger from '@/utils/logger';
 import { useScrollProgress } from '@/hooks/useScrollProgress';
@@ -333,6 +334,18 @@ export default function HeroSection() {
           aria-hidden
         />
       </motion.div>
+
+      {/*
+        气泡场：覆盖 hero 底部到 bridge 顶部，滚动进入视口时上浮，
+        桥接 hero 波浪与下方内容，增加「潜入水中」的趣味感。
+        放在外层 relative 容器内，z-20 在波浪之上、导航之下。
+      */}
+      <div
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-[320px]"
+        aria-hidden
+      >
+        <BubbleField count={16} />
+      </div>
     </div>
   );
 }

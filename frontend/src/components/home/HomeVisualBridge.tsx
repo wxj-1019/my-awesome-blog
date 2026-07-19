@@ -4,6 +4,7 @@ import { useRef } from 'react'
 import { useGSAP } from '@gsap/react'
 import { ensureGsapPlugins } from '@/lib/gsap/registry'
 import { SCROLL_VIEWPORT } from '@/lib/gsap/scroll-presets'
+import BubbleField from './BubbleField'
 
 const bridgeNodes = [
   { label: '01', className: 'left-[12%] top-[34%]' },
@@ -121,6 +122,8 @@ export default function HomeVisualBridge() {
         {/* 节点呼吸光晕：呼应浪尖反光 */}
         <div className="absolute left-[12%] top-[34%] h-24 w-24 -translate-x-1/2 rounded-full bg-tech-cyan/10 blur-2xl animate-pulse-slow" />
         <div className="absolute left-[62%] top-[28%] h-24 w-24 -translate-x-1/2 rounded-full bg-tech-sky/10 blur-2xl animate-pulse-slow" style={{ animationDelay: '1.2s' }} />
+        {/* 气泡延伸：从 hero 波浪继续上浮到 bridge 中部，形成「水中上升」连续感 */}
+        <BubbleField count={10} className="h-full" />
       </div>
 
       <div className="container relative mx-auto px-4 sm:px-6 lg:px-8">
