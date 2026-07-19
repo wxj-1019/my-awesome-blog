@@ -16,7 +16,8 @@ export default function LoginLayout({
   return (
     <ThemeWrapper>
       <AuthCookieSync />
-      <main className="min-h-screen">{children}</main>
+      {/* 不用 main：根 layout 已有 #main-content landmark */}
+      <div className="min-h-screen">{children}</div>
     </ThemeWrapper>
   );
 }

@@ -1,24 +1,32 @@
 'use client';
 
 import Link from 'next/link';
+import type { Route } from 'next';
 import { Music, Film, Gamepad2, ArrowRight, Home } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
+import PageShell from '@/components/layout/PageShell';
+import PageHeader from '@/components/layout/PageHeader';
 
-const items = [
+const items: {
+  href: Route;
+  title: string;
+  description: string;
+  icon: typeof Music;
+}[] = [
   {
-    href: '/music' as const,
+    href: '/music',
     title: '音乐馆',
     description: '歌单、播放与音乐相关内容',
     icon: Music,
   },
   {
-    href: '/videos' as const,
+    href: '/videos',
     title: '视频',
     description: '影视与追剧记录',
     icon: Film,
   },
   {
-    href: '/games' as const,
+    href: '/games',
     title: '游戏',
     description: '游戏相关页面与体验',
     icon: Gamepad2,
@@ -28,16 +36,13 @@ const items = [
 /** 导航「家」父级 /home：原先无路由会 404，提供聚合入口 */
 export default function HomeHubContent() {
   return (
-    <main className="min-h-[70vh] container mx-auto px-4 py-16 md:py-24">
-      <div className="max-w-2xl mx-auto text-center mb-10">
-        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/15 text-primary mb-4">
-          <Home className="w-7 h-7" aria-hidden />
-        </div>
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-3">家</h1>
-        <p className="text-muted-foreground text-sm md:text-base">
-          音乐、视频与游戏的入口
-        </p>
-      </div>
+    <PageShell density="narrow">
+      <PageHeader
+        title="家"
+        description="音乐、视频与游戏的入口"
+        icon={Home}
+        align="center"
+      />
 
       <div className="max-w-xl mx-auto grid gap-4">
         {items.map(({ href, title, description, icon: Icon }) => (
@@ -74,6 +79,6 @@ export default function HomeHubContent() {
           </Link>
         </p>
       </div>
-    </main>
+    </PageShell>
   );
 }

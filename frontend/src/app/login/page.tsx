@@ -9,7 +9,13 @@ export const metadata: Metadata = {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-white">加载中...</div>}>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-background text-muted-foreground">
+          加载中...
+        </div>
+      }
+    >
       <LoginPageContent />
     </Suspense>
   );

@@ -3,12 +3,6 @@ import Home from '@/app/page';
 import { ThemeProvider } from '@/context/theme-context';
 import { LoadingProvider } from '@/context/loading-context';
 
-// 全局装饰与浮动组件：避免在 Node 环境中渲染 canvas/动画/发起请求
-jest.mock('@/components/background/MatrixCodeRain', () => ({
-  __esModule: true,
-  default: () => <div data-testid="matrix-code-rain" aria-hidden="true" />,
-}));
-
 jest.mock('@/components/home/decorations/CursorGlow', () => ({
   __esModule: true,
   default: () => <div data-testid="cursor-glow" aria-hidden="true" />,
@@ -29,7 +23,6 @@ jest.mock('@/components/home/WeatherCard', () => ({
   default: () => <div data-testid="weather-card" />,
 }));
 
-// 页面级区块组件：只保留可识别的 section 外壳，用于断言渲染顺序
 jest.mock('@/components/home/HeroSection', () => ({
   __esModule: true,
   default: () => <section aria-label="hero">Hero</section>,
@@ -37,7 +30,11 @@ jest.mock('@/components/home/HeroSection', () => ({
 
 jest.mock('@/components/home/FeaturedHighlights', () => ({
   __esModule: true,
-  default: () => <section aria-label="featured-highlights">Featured Highlights</section>,
+  default: () => (
+    <section aria-label="featured-highlights">
+      <div data-testid="featured-reel">Featured Reel</div>
+    </section>
+  ),
 }));
 
 jest.mock('@/components/home/StatsPanel', () => ({
@@ -60,9 +57,14 @@ jest.mock('@/components/home/Timeline', () => ({
   default: () => <section aria-label="timeline">Timeline</section>,
 }));
 
-jest.mock('@/components/home/SubscribeCard', () => ({
+jest.mock('@/components/home/narrative/ShoreBeacon', () => ({
   __esModule: true,
-  default: () => <section aria-label="subscribe-card">Subscribe Card</section>,
+  default: () => <section aria-label="港口航标" data-testid="shore-beacon">Shore Beacon</section>,
+}));
+
+jest.mock('@/components/home/narrative/DiveTransition', () => ({
+  __esModule: true,
+  default: () => <div data-testid="dive-transition" aria-hidden="true" />,
 }));
 
 const HomeWithProvider = () => (
@@ -74,29 +76,43 @@ const HomeWithProvider = () => (
 );
 
 describe('Home Page', () => {
-  it('renders page sections in the correct order', () => {
+  it('renders Chinese act labels and page sections in narrative order', () => {
     render(<HomeWithProvider />);
+
+    expect(screen.getByText('第一幕 · 展厅')).toBeInTheDocument();
+    expect(screen.getByText('第二幕 · 仪表')).toBeInTheDocument();
+    expect(screen.getByText('第三幕 · 航迹')).toBeInTheDocument();
+    expect(screen.getByText('第三幕 · 洋流')).toBeInTheDocument();
+    expect(screen.getByText('第四幕 · 靠岸')).toBeInTheDocument();
 
     const sections = screen.getAllByRole('region');
     const labels = sections.map((section) => section.getAttribute('aria-label'));
 
     expect(labels).toEqual([
       'hero',
-      'home-visual-bridge',
       'featured-highlights',
       'stats-panel',
       'tech-stack',
       'reading-stats',
       'timeline',
-      'subscribe-card',
+      '港口航标',
     ]);
   });
 
-  it('renders homepage background decorations', () => {
+  it('renders homepage decorations without matrix rain or email subscribe UI', () => {
     render(<HomeWithProvider />);
 
-    expect(screen.getByTestId('matrix-code-rain')).toBeInTheDocument();
+    expect(screen.queryByTestId('matrix-code-rain')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('subscribe-band-layer')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /订阅/ })).not.toBeInTheDocument();
     expect(screen.getByTestId('cursor-glow')).toBeInTheDocument();
     expect(screen.getByTestId('scroll-progress')).toBeInTheDocument();
+    expect(screen.getByTestId('dive-transition')).toBeInTheDocument();
+    expect(screen.getByTestId('shore-beacon')).toBeInTheDocument();
+  });
+
+  it('renders featured film reel shell in act gallery', () => {
+    render(<HomeWithProvider />);
+    expect(screen.getByTestId('featured-reel')).toBeInTheDocument();
   });
 });

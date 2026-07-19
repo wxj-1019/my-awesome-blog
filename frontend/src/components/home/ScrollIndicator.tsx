@@ -17,9 +17,13 @@ export default function ScrollIndicator() {
     <motion.button
       onClick={scrollToContent}
       className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-2 group cursor-pointer"
-      initial={{ opacity: 0, y: -20 }}
+      initial={shouldReduceMotion ? false : { opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 1.5, duration: 0.6 }}
+      transition={
+        shouldReduceMotion
+          ? { duration: 0 }
+          : { delay: 1.5, duration: 0.6 }
+      }
       aria-label="向下滚动查看内容"
     >
       <span className="text-xs text-white/70 dark:text-white/70 font-medium tracking-wider uppercase">

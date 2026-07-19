@@ -7,6 +7,8 @@ import GlassCard from '@/components/ui/GlassCard'
 import { cn } from '@/lib/utils'
 import { timelineService, TimelineEvent as ApiTimelineEvent } from '@/services/timelineService'
 import { BlurIn } from '@/components/motion'
+import TimelineCurrentPath from '@/components/home/narrative/TimelineCurrentPath'
+import { HOME_TRANSITION } from '@/components/home/narrative/homeMotion'
 
 interface MediaItem {
   type: 'image' | 'video' | 'article'
@@ -126,35 +128,18 @@ const mediaIcons = {
   article: FileText
 }
 
-// 节点脉冲动画变体
+// 节点轻脉冲（scale，避免 boxShadow 持续重绘）
 const pulseVariants = {
-  initial: {
-    boxShadow: '0 0 0px rgba(6, 182, 212, 0.4)'
-  },
+  initial: { scale: 1, opacity: 0.5 },
   animate: {
-    boxShadow: [
-      '0 0 0px rgba(6, 182, 212, 0.4)',
-      '0 0 20px rgba(6, 182, 212, 0.8)',
-      '0 0 0px rgba(6, 182, 212, 0.4)'
-    ],
+    scale: [1, 1.45, 1],
+    opacity: [0.45, 0, 0.45],
     transition: {
-      duration: 2,
+      duration: 2.4,
       repeat: Infinity,
-      ease: 'easeInOut' as const
-    }
-  }
-}
-
-// 垂直线动画变体
-const lineVariants = {
-  hidden: { scaleY: 0 },
-  visible: {
-    scaleY: 1,
-    transition: {
-      duration: 1.5,
-      ease: 'easeOut' as const
-    }
-  }
+      ease: 'easeInOut' as const,
+    },
+  },
 }
 
 interface TimelineEventItemProps {
@@ -171,10 +156,10 @@ function TimelineEventItem({ event, index }: TimelineEventItemProps) {
 
   const slideVariants = {
     hidden: {
-      x: shouldReduceMotion ? 0 : (isLeft ? -80 : 80),
+      x: shouldReduceMotion ? 0 : (isLeft ? -36 : 36),
       opacity: shouldReduceMotion ? 1 : 0,
-      y: shouldReduceMotion ? 0 : 30,
-      scale: shouldReduceMotion ? 1 : 0.9
+      y: shouldReduceMotion ? 0 : 16,
+      scale: shouldReduceMotion ? 1 : 0.96
     },
     visible: {
       x: 0,
@@ -182,9 +167,9 @@ function TimelineEventItem({ event, index }: TimelineEventItemProps) {
       y: 0,
       scale: 1,
       transition: {
-        duration: 0.8,
-        ease: [0.25, 0.46, 0.45, 0.94] as const,
-        delay: index * 0.1
+        duration: HOME_TRANSITION.content.duration,
+        ease: HOME_TRANSITION.content.ease,
+        delay: Math.min(index * 0.06, 0.36),
       }
     }
   } as const
@@ -213,27 +198,22 @@ function TimelineEventItem({ event, index }: TimelineEventItemProps) {
       className={cn('relative flex items-start mb-8 sm:mb-10 lg:mb-12', isLeft ? 'flex-row' : 'flex-row-reverse')}
     >
       {/* 时间线节点 */}
+      {/* 时间线节点（与左侧洋流轴同列） */}
       <div className="relative z-20 w-12 h-16 sm:w-16 flex items-center justify-center flex-shrink-0">
         <motion.div
           variants={dotVariants}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, amount: 0.5 }}
-          animate={shouldReduceMotion ? {} : 'animate'}
-          className="w-4 h-4 sm:w-5 sm:h-5 bg-tech-cyan rounded-full relative"
-          style={{
-            backgroundColor: 'var(--tech-cyan)',
-            filter: 'blur(0.5px)'
-          }}
+          className="w-4 h-4 sm:w-5 sm:h-5 bg-primary rounded-full relative ring-4 ring-background"
         >
-          {/* 脉冲效果环 */}
-          {!shouldReduceMotion && (
+          {/* 仅前几项保留轻脉冲，降低持续动画预算 */}
+          {!shouldReduceMotion && index < 3 && (
             <motion.div
-              className="absolute inset-0 rounded-full bg-tech-cyan"
+              className="absolute inset-0 rounded-full bg-primary/40"
               variants={pulseVariants}
               initial="initial"
               animate="animate"
-              style={{ backgroundColor: 'var(--tech-cyan)' }}
             />
           )}
         </motion.div>
@@ -254,8 +234,8 @@ function TimelineEventItem({ event, index }: TimelineEventItemProps) {
         >
           <div className="flex items-start justify-between mb-2 sm:mb-3">
             <div className="flex items-center gap-2">
-              <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-tech-cyan" />
-              <span className="text-xs sm:text-sm text-tech-cyan font-medium">{event.date}</span>
+              <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
+              <span className="text-xs sm:text-sm text-primary font-medium">{event.date}</span>
             </div>
 
             {event.badge && BadgeIcon && (
@@ -385,8 +365,7 @@ function ChevronUp({ className }: { className?: string }) {
 export default function Timeline() {
   const [events, setEvents] = useState<TimelineEvent[]>([])
   const [loading, setLoading] = useState(true)
-  const shouldReduceMotion = useReducedMotion()
-  /** 方案 E：列表 stagger 桌面 ≤12，避免全量入场过重 */
+  /** 列表 stagger 上限，避免全量入场过重 */
   const TIMELINE_STAGGER_CAP = 12
 
   useEffect(() => {
@@ -408,12 +387,15 @@ export default function Timeline() {
   const visibleEvents = events.slice(0, TIMELINE_STAGGER_CAP)
 
   return (
-    <section className="py-12 sm:py-14 md:py-16 lg:py-20 relative overflow-hidden">
+    <section
+      className="py-12 sm:py-14 md:py-16 lg:py-20 relative overflow-hidden"
+      aria-label="历程时间线"
+    >
       <div data-testid="timeline-route-layer" className="absolute inset-0 pointer-events-none" aria-hidden="true">
-        <div className="absolute left-1/2 top-8 h-[calc(100%-4rem)] w-px bg-gradient-to-b from-transparent via-tech-cyan/15 to-transparent" />
-        <div className="absolute inset-x-0 top-1/3 h-px bg-gradient-to-r from-transparent via-tech-cyan/20 to-transparent" />
-        <div className="absolute left-[8%] top-24 h-24 w-24 rounded-full border border-tech-cyan/10 shadow-[0_0_60px_rgba(6,182,212,.1)]" />
-        <div className="absolute right-[10%] bottom-24 h-32 w-32 rounded-full border border-purple-500/10 shadow-[0_0_70px_rgba(168,85,247,.1)]" />
+        <div className="absolute left-1/2 top-8 h-[calc(100%-4rem)] w-px bg-gradient-to-b from-transparent via-primary/15 to-transparent" />
+        <div className="absolute inset-x-0 top-1/3 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+        <div className="absolute left-[8%] top-24 h-24 w-24 rounded-full border border-primary/10 shadow-[0_0_60px_color-mix(in_oklab,var(--primary)_12%,transparent)]" />
+        <div className="absolute right-[10%] bottom-24 h-32 w-32 rounded-full border border-primary/10 shadow-[0_0_70px_color-mix(in_oklab,var(--primary)_10%,transparent)]" />
       </div>
       <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
         <BlurIn className="mb-8 sm:mb-10 lg:mb-12">
@@ -428,21 +410,11 @@ export default function Timeline() {
           </div>
         ) : (
           <div className="relative max-w-4xl mx-auto px-2 sm:px-4">
-            {/* 垂直时间线 */}
-            <motion.div
-              variants={shouldReduceMotion ? undefined : lineVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.1 }}
-              className="absolute left-6 sm:left-8 top-0 bottom-0 w-0.5 origin-top"
-              style={{
-                background: 'linear-gradient(to bottom, transparent 0%, var(--tech-cyan) 10%, var(--tech-cyan) 90%, transparent 100%)',
-                filter: 'blur(0.5px)'
-              }}
-            />
+            {/* 洋流中轴：滚动描边 + 柔和底轨 */}
+            <TimelineCurrentPath />
 
-            {/* 发光效果背景 */}
-            <div className="absolute left-6 sm:left-8 top-0 h-full w-32 sm:w-40 -ml-16 sm:-ml-20 bg-gradient-to-r from-transparent via-tech-cyan/10 to-transparent opacity-30 pointer-events-none" />
+            {/* 弱发光背景，不替代 path */}
+            <div className="absolute left-6 sm:left-8 top-0 h-full w-32 sm:w-40 -ml-16 sm:-ml-20 bg-gradient-to-r from-transparent via-primary/10 to-transparent opacity-30 pointer-events-none" />
 
             {visibleEvents.map((event, index) => (
               <TimelineEventItem key={event.id} event={event} index={index} />

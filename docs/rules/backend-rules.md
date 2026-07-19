@@ -1,11 +1,12 @@
 # 后端框架规则
 
-> 适用于 `backend/app/` 下所有代码。修改后端代码前必须阅读本文件。
+> 适用于 `backend/app/` 下所有代码。修改后端代码前必须阅读本文件。  
+> 全局铁律见 [AGENTS.md](../../AGENTS.md)。最后更新：2026-07-20
 
 ## 1. 技术栈与版本
 
 - **框架**: FastAPI 0.115.6
-- **服务器**: Uvicorn 0.36.0
+- **服务器**: Uvicorn 0.36.0（开发端口 **8989**）
 - **语言**: Python 3.12+
 - **ORM**: SQLAlchemy 2.0（当前使用同步 Session）
 - **验证**: Pydantic v2 + pydantic-settings
@@ -20,30 +21,23 @@
 backend/app/
 ├── main.py                          # FastAPI 入口与生命周期
 ├── api/v1/
-│   ├── router.py                    # API 路由总线
-│   └── endpoints/                   # 各模块 API 端点
-│       ├── auth.py
-│       ├── articles.py
-│       ├── comments.py
-│       ├── messages.py
-│       ├── llm.py
-│       ├── conversations.py
-│       └── ...
-├── core/                            # 核心配置与基础设施
-│   ├── config.py                    # Settings（Pydantic）
-│   ├── database.py                  # 同步数据库引擎
-│   ├── dependencies.py              # 依赖注入（get_db, get_current_user）
-│   ├── security.py                  # 密码/JWT 工具
-│   └── exception_handlers.py        # 全局异常处理器
-├── models/                          # SQLAlchemy ORM 模型
-├── schemas/                         # Pydantic 请求/响应模型
-├── crud/                            # 数据库 CRUD 操作
-├── services/                        # 业务逻辑服务
-├── utils/                           # 工具函数
-├── exceptions/                      # 统一异常体系
-├── llm/                             # LLM 提供商适配
-├── prompts/                         # 提示词管理
-└── tests/                           # 测试
+│   ├── router.py                    # API 路由总线（注册权威清单）
+│   └── endpoints/                   # 各模块 API 端点（与 router 对齐）
+│       ├── auth.py, users.py, tenants.py
+│       ├── articles.py, comments.py, categories.py, tags.py
+│       ├── messages.py, albums.py, portfolio.py, friend_links.py
+│       ├── llm.py, conversations.py, memories.py, prompts.py
+│       ├── monitoring.py, audit_logs.py, statistics.py, weather.py
+│       └── ...（以 router.py include_router 为准）
+├── core/
+│   ├── config.py, database.py, dependencies.py
+│   ├── security.py, exception_handlers.py, types.py
+│   └── langchain/                   # LangChain 适配（可选）
+├── models/, schemas/, crud/, services/
+├── utils/, exceptions/, middleware/
+├── llm/                             # provider_factory.py + 各 provider
+├── prompts/, conversation/
+└── tests/
 ```
 
 ## 3. 应用启动与生命周期

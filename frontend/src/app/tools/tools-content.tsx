@@ -1,18 +1,26 @@
 'use client';
 
 import Link from 'next/link';
+import type { Route } from 'next';
 import { Cpu, MessageSquare, ArrowRight, Wrench } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
+import PageShell from '@/components/layout/PageShell';
+import PageHeader from '@/components/layout/PageHeader';
 
-const items = [
+const items: {
+  href: Route;
+  title: string;
+  description: string;
+  icon: typeof MessageSquare;
+}[] = [
   {
-    href: '/chat' as const,
+    href: '/chat',
     title: '模型对话',
     description: '多会话 AI 聊天，提示词与历史记录',
     icon: MessageSquare,
   },
   {
-    href: '/online-tools' as const,
+    href: '/online-tools' as Route,
     title: '在线工具',
     description: '实用小工具集合（持续完善中）',
     icon: Cpu,
@@ -22,16 +30,13 @@ const items = [
 /** 百宝箱聚合页：导航父级 /tools 原先无路由会 404 */
 export default function ToolsHubContent() {
   return (
-    <main className="min-h-[70vh] container mx-auto px-4 py-16 md:py-24">
-      <div className="max-w-2xl mx-auto text-center mb-10">
-        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/15 text-primary mb-4">
-          <Wrench className="w-7 h-7" aria-hidden />
-        </div>
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-3">百宝箱</h1>
-        <p className="text-muted-foreground text-sm md:text-base">
-          模型对话与在线工具入口
-        </p>
-      </div>
+    <PageShell density="narrow">
+      <PageHeader
+        title="百宝箱"
+        description="模型对话与在线工具入口"
+        icon={Wrench}
+        align="center"
+      />
 
       <div className="max-w-xl mx-auto grid gap-4">
         {items.map(({ href, title, description, icon: Icon }) => (
@@ -62,6 +67,6 @@ export default function ToolsHubContent() {
           </Link>
         ))}
       </div>
-    </main>
+    </PageShell>
   );
 }

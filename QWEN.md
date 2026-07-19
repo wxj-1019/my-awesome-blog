@@ -1,5 +1,8 @@
 # My Awesome Blog - Project Context
 
+> **权威规范（2026-07-20）**：编码与 Agent 规则以根目录 [`AGENTS.md`](./AGENTS.md) 与 [`docs/rules/`](./docs/rules/) 为准。  
+> 历史修复见 [`docs/changelog-agents.md`](./docs/changelog-agents.md)。本文档为兼容性项目上下文，可能滞后。
+
 ## Overview
 
 My Awesome Blog is a modern, enterprise-grade personal blog built with a monorepo architecture using Next.js (TypeScript) for the frontend and FastAPI (Python) for the backend. The project is designed with a microservices approach, featuring separate frontend and backend applications that communicate via RESTful APIs.

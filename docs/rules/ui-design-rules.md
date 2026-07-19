@@ -1,6 +1,8 @@
 # UI / 设计系统规则
 
-> 适用于所有前端 UI 组件、样式、动画、主题相关代码。新增或修改组件前必须阅读本文件。
+> 适用于所有前端 UI 组件、样式、动画、主题相关代码。新增或修改组件前必须阅读本文件。  
+> 全局铁律见 [AGENTS.md](../../AGENTS.md)；工程约定见 [frontend-rules.md](./frontend-rules.md)。  
+> 最后更新：2026-07-20
 
 ## 1. 设计语言
 
@@ -225,10 +227,29 @@ GlassCard.displayName = 'GlassCard';
 - ❌ 禁止破坏响应式布局
 - ❌ 禁止忽略暗色/浅色模式适配
 
-## 14. 示例参考
+## 14. 公开内容页壳
+
+- 内容型公开页（about、hubs、静态说明页等）优先使用：
+  - `frontend/src/components/layout/PageShell.tsx` — 背景、顶距、container
+  - `frontend/src/components/layout/PageHeader.tsx` — 图标 + 标题 + 描述
+- **PageShell 默认 `as="div"`**：根 `layout.tsx` 已有 `<main id="main-content">`，禁止再套一层 main。
+- 示例：`frontend/src/app/tools/tools-content.tsx`、`frontend/src/app/about/about-content.tsx`
+- 全屏居中页（login）可用 `PageShell contained={false}`。
+
+## 14.1 首页叙事（深海 × 电影）
+
+- 编排：`frontend/src/app/page.tsx` + `components/home/narrative/*`
+- 幕标中文（如「第一幕 · 展厅」）；`HomeActSection` 为普通 `div` + `data-act`，避免嵌套 landmark
+- 共享节奏：`homeMotion.ts`（act / dive / reel / current / 气泡 / 光晕）
+- 二期：`FeaturedReel` 胶片卷轴；`TimelineCurrentPath` 洋流描边（自动漂移默认关）
+- 三期：第四幕为 `ShoreBeacon` 港口航标（**无订阅表单**）；入口文章/留言/关于 + 回顶
+- 默认无矩阵雨；持续循环默认仅浪 + 气泡；须尊重 `prefers-reduced-motion`
+
+## 15. 示例参考
 
 - 玻璃卡片：`frontend/src/components/ui/GlassCard.tsx`
 - 按钮：`frontend/src/components/ui/Button.tsx`
 - 主题配置：`frontend/src/styles/globals.css`
 - Tailwind 扩展：`frontend/tailwind.config.js`
 - 首页应用：`frontend/src/app/page.tsx`
+

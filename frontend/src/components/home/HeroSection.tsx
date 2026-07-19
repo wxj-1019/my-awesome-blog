@@ -11,6 +11,7 @@ import logger from '@/utils/logger';
 import { useScrollProgress } from '@/hooks/useScrollProgress';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { cn } from '@/lib/utils';
+import { HOME_BUBBLE_COUNT, HOME_TRANSITION } from '@/components/home/narrative/homeMotion';
 
 /** Phase 2 L3：默认开启；设 NEXT_PUBLIC_MOTION_L3=0 可回退静态 Hero */
 const MOTION_L3_ENABLED = process.env.NEXT_PUBLIC_MOTION_L3 !== '0';
@@ -149,19 +150,21 @@ export default function HeroSection() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            {/* 骨架屏动画效果 */}
-            <div className="absolute inset-0 overflow-hidden">
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent dark:via-white/10"
-                initial={{ x: '-100%' }}
-                animate={{ x: '100%' }}
-                transition={{
-                  duration: 1.5,
-                  repeat: Infinity,
-                  ease: 'linear',
-                }}
-              />
-            </div>
+            {/* 骨架 shimmer：reduced-motion 时静态 */}
+            {!reducedMotion && (
+              <div className="absolute inset-0 overflow-hidden">
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent dark:via-white/10"
+                  initial={{ x: '-100%' }}
+                  animate={{ x: '100%' }}
+                  transition={{
+                    duration: 1.5,
+                    repeat: Infinity,
+                    ease: 'linear',
+                  }}
+                />
+              </div>
+            )}
           </motion.div>
         )}
 
@@ -191,7 +194,7 @@ export default function HeroSection() {
           />
         )}
 
-        {/* 后备渐变背景 */}
+        {/* 后备渐变背景：L0 时无循环动画（inline animation 不受 CSS media 约束） */}
         <div
           className={`absolute inset-0 w-full h-full transition-opacity duration-700 ${videoLoaded ? 'opacity-0' : 'opacity-100'}`}
           style={{
@@ -199,7 +202,7 @@ export default function HeroSection() {
               ? 'linear-gradient(135deg, var(--tech-darkblue), var(--tech-deepblue), var(--tech-cyan))'
               : 'linear-gradient(135deg, #e0f2fe, #bae6fd, #93c5fd)',
             backgroundSize: '400% 400%',
-            animation: 'gradient-move 8s ease infinite'
+            animation: reducedMotion ? undefined : 'gradient-move 8s ease infinite',
           }}
           aria-hidden="true"
         />
@@ -232,7 +235,6 @@ export default function HeroSection() {
             - 光标用月光/晨雾色，节奏略慢
           */}
           <div
-            role="banner"
             aria-label="欢迎信息"
             className={cn(
               'relative mx-auto max-w-3xl px-4 py-6 md:px-8 md:py-8',
@@ -314,37 +316,32 @@ export default function HeroSection() {
       </section>
 
       {/*
-        波浪溢出层：放在 hero section 之外，外层 overflow-visible，
-        向上盖住 hero 底部、向下伸入 HomeVisualBridge 顶部留白区，
-        避免 hero 的 overflow:hidden 把浪花截断。
-        pointer-events-none 不影响下方交互。
-        入场：从下方上浮 + 淡入，呼应 hero 文案 fade-in-up。
+        入水装置 · 波浪溢出层：
+        放在 hero section 外（避免 overflow:hidden 截断），
+        向下衔接 DiveTransition / 第一幕展厅。
       */}
       <motion.div
         className="pointer-events-none absolute inset-x-0 bottom-0 z-30 h-[150px] overflow-visible"
         aria-hidden="true"
-        initial={{ opacity: 0, y: 40 }}
+        initial={reducedMotion ? false : { opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5, duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
+        transition={HOME_TRANSITION.waveEnter}
       >
         <WaveStack className="wave-stack" waveCount={3} />
-        {/* 浪尖微光：像水面反光，随波浪缓慢漂移 */}
         <div
           className="pointer-events-none absolute inset-x-0 bottom-0 h-[60px] bg-gradient-to-t from-transparent via-white/5 to-transparent blur-md"
           aria-hidden
         />
       </motion.div>
 
-      {/*
-        气泡场：覆盖 hero 底部到 bridge 顶部，滚动进入视口时上浮，
-        桥接 hero 波浪与下方内容，增加「潜入水中」的趣味感。
-        放在外层 relative 容器内，z-20 在波浪之上、导航之下。
-      */}
+      {/* 气泡：L2 桌面 16 / L1 移动 8 */}
       <div
         className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-[320px]"
         aria-hidden
       >
-        <BubbleField count={16} />
+        <BubbleField
+          count={isDesktop ? HOME_BUBBLE_COUNT.desktop : HOME_BUBBLE_COUNT.mobile}
+        />
       </div>
     </div>
   );

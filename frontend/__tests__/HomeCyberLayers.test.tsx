@@ -2,7 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import TechStack from '@/components/home/TechStack'
 import ReadingStats from '@/components/home/ReadingStats'
 import Timeline from '@/components/home/Timeline'
-import SubscribeCard from '@/components/home/SubscribeCard'
+import ShoreBeacon from '@/components/home/narrative/ShoreBeacon'
 import { ThemeProvider } from '@/context/theme-context'
 import { LoadingProvider } from '@/context/loading-context'
 
@@ -17,14 +17,8 @@ jest.mock('@/services/timelineService', () => ({
   },
 }))
 
-jest.mock('@/services/subscriptionService', () => ({
-  subscriptionService: {
-    createSubscription: jest.fn(),
-  },
-}))
-
-jest.mock('@/components/ui/use-toast', () => ({
-  useToast: () => ({ toast: jest.fn() }),
+jest.mock('@/services/statisticsService', () => ({
+  getPublicStatistics: jest.fn().mockResolvedValue(null),
 }))
 
 jest.mock('@/components/home/decorations/ScrollReveal', () => ({
@@ -62,9 +56,12 @@ describe('Homepage cyber visual layers', () => {
     })
   })
 
-  it('renders the subscribe immersive band layer', () => {
-    renderWithProviders(<SubscribeCard />)
+  it('renders the shore beacon layer instead of subscribe band', () => {
+    renderWithProviders(<ShoreBeacon />)
 
-    expect(screen.getByTestId('subscribe-band-layer')).toBeInTheDocument()
+    expect(screen.getByTestId('shore-beacon-layer')).toBeInTheDocument()
+    expect(screen.getByTestId('shore-beacon')).toBeInTheDocument()
+    expect(screen.queryByTestId('subscribe-band-layer')).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /文章/ })).toBeInTheDocument()
   })
 })

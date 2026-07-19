@@ -28,11 +28,11 @@ const techItems: TechItem[] = [
 
 const logoLoopItems: LogoItem[] = techItems.map((item) => ({
   node: (
-    <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-glass/30 backdrop-blur-xl border border-glass-border hover:bg-glass/50 hover:border-tech-cyan/30 transition-all duration-300 group">
-      <div className="text-gray-400 group-hover:text-tech-cyan transition-colors">
+    <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-glass/30 backdrop-blur-xl border border-glass-border hover:bg-glass/50 hover:border-primary/30 transition-all duration-300 group">
+      <div className="text-muted-foreground group-hover:text-primary transition-colors">
         {item.icon}
       </div>
-      <span className="text-sm font-medium text-gray-300 group-hover:text-white transition-colors">
+      <span className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">
         {item.name}
       </span>
     </div>
@@ -89,8 +89,8 @@ export default function TechStack() {
               <div className="absolute inset-x-8 top-1/2 h-px bg-gradient-to-r from-transparent via-tech-cyan/25 to-transparent" />
               <div className="absolute left-1/2 top-8 bottom-8 w-px bg-gradient-to-b from-transparent via-tech-cyan/20 to-transparent" />
             </div>
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-tech-cyan to-transparent opacity-50 animate-pulse" />
-            <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-tech-cyan to-transparent opacity-50 animate-pulse" />
+            {/* 静态顶线：去掉 animate-pulse，降低中段持续动画 */}
+            <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent opacity-60" />
 
             <div className="relative mb-5">
               <p className="text-sm sm:text-base text-muted-foreground">
@@ -99,11 +99,13 @@ export default function TechStack() {
             </div>
 
             <div className="relative py-3 sm:py-4">
+              {/* 默认静止，悬停才滚动：避免与浪/气泡形成第三路持续循环 */}
               <LogoLoop
                 logos={logoLoopItems}
-                speed={80}
+                speed={0}
+                hoverSpeed={40}
                 direction="left"
-                pauseOnHover={true}
+                pauseOnHover={false}
                 ariaLabel="Technology stack logos"
                 className="w-full"
               />
@@ -121,11 +123,11 @@ export default function TechStack() {
                         className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg bg-glass/50 flex items-center justify-center mb-1.5 sm:mb-2 group-hover:bg-tech-cyan/20 transition-colors"
                         style={{ backgroundColor: `${item.color}20` }}
                       >
-                        <div className="text-gray-400 group-hover:text-tech-cyan transition-colors">
+                        <div className="text-muted-foreground group-hover:text-primary transition-colors">
                           {item.icon}
                         </div>
                       </div>
-                      <span className="text-[10px] sm:text-xs font-medium text-gray-300 group-hover:text-white transition-colors text-center truncate w-full">
+                      <span className="text-[10px] sm:text-xs font-medium text-muted-foreground group-hover:text-foreground transition-colors text-center truncate w-full">
                         {item.name}
                       </span>
                     </div>

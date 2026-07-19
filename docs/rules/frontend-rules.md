@@ -1,6 +1,8 @@
 # 前端框架规则
 
-> 适用于 `frontend/src/` 下所有代码。修改前端代码前必须阅读本文件。
+> 适用于 `frontend/src/` 下所有代码。修改前端代码前必须阅读本文件。  
+> UI/视觉专项另读 [ui-design-rules.md](./ui-design-rules.md)。全局铁律见 [AGENTS.md](../../AGENTS.md)。  
+> 最后更新：2026-07-20
 
 ## 1. 技术栈与版本
 
@@ -16,44 +18,29 @@
 
 ```
 frontend/src/
-├── app/                    # Next.js App Router 页面
-│   ├── page.tsx            # 首页
+├── app/                    # Next.js App Router
+│   ├── page.tsx            # 品牌首页 /
 │   ├── layout.tsx          # 根布局
-│   ├── admin/              # 管理后台页面
-│   ├── ai/                 # AI 相关页面
-│   ├── articles/           # 文章相关
+│   ├── home/               # 导航「家」多媒体 hub
+│   ├── admin/              # 管理后台
+│   ├── ai/                 # AI（chat / memories / prompts）
+│   ├── articles/           # 文章列表与详情
 │   ├── messages/           # 留言板
-│   ├── music/              # 音乐大厅
-│   ├── videos/             # 视频
-│   └── albums/             # 相册
+│   ├── albums/, music/, videos/, games/
+│   ├── tools/, online-tools/, chat/
+│   ├── about/, contact/, login/, profile/
+│   └── api/                # 少量 Next Route Handlers（改前确认是否与 FastAPI 双源）
 ├── components/
-│   ├── ui/                 # 通用 UI 组件（Button、Card、Dialog 等）
-│   ├── home/               # 首页专属组件
-│   ├── navigation/         # 导航相关
-│   ├── admin/              # 后台组件
-│   ├── messages/           # 留言板组件
-│   ├── music/              # 音乐组件
-│   ├── videos/             # 视频组件
-│   ├── articles/           # 文章组件
-│   ├── chat/               # AI 聊天组件
-│   ├── error/              # 错误边界
-│   └── layout/             # 布局组件
-├── lib/                    # 工具函数与通用客户端
-│   ├── utils.ts            # cn() 等
-│   ├── env.ts              # 环境变量封装
-│   ├── api-client.ts       # 统一 API 请求客户端（axios 封装）
-│   └── api/                # 按领域封装的 API 调用
-├── hooks/                  # 自定义 Hooks
-├── services/               # 业务服务层
-├── types/                  # TypeScript 类型定义
-├── context/                # React Context
-├── styles/
-│   ├── globals.css         # 全局样式 + CSS 变量
-│   ├── animations/         # 关键帧动画
-│   ├── components/         # 组件级样式
-│   └── utilities/          # 工具类样式
-├── mock/                   # Mock 数据
-└── constants/              # 常量
+│   ├── ui/                 # 通用 UI（GlassCard、Button、EmptyState 等）
+│   ├── home/, navigation/, admin/, messages/
+│   ├── music/, videos/, articles/, chat/, ai/
+│   ├── error/, layout/, live2d/, motion/
+│   └── ...
+├── lib/                    # utils、env、api-client、api/*
+├── hooks/, services/, types/, context/
+├── styles/                 # globals + base/variables.css + animations/components
+├── mock/, constants/
+└── ...
 ```
 
 ## 3. 页面规则

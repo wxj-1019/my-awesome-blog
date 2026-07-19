@@ -1,6 +1,7 @@
 # AI / LLM 模块框架规则
 
-> 适用于 `backend/app/llm/`、`backend/app/services/llm_service.py`、对话、记忆、提示词相关代码。修改 AI 功能前必须阅读本文件。
+> 适用于 `backend/app/llm/`、`backend/app/services/llm_service.py`、对话、记忆、提示词相关代码。修改 AI 功能前必须阅读本文件。  
+> 全局铁律见 [AGENTS.md](../../AGENTS.md)。最后更新：2026-07-20
 
 ## 1. 模块定位
 
@@ -21,18 +22,20 @@ backend/app/
 │   ├── deepseek_provider.py
 │   ├── glm_provider.py
 │   ├── qwen_provider.py
-│   ├── factory.py
+│   ├── provider_factory.py       # 工厂（权威文件名，非 factory.py）
 │   └── base.py
 ├── services/
-│   ├── llm_service.py            # LLM 业务服务
-│   ├── conversation_service.py   # 会话服务
-│   ├── memory_service.py         # 记忆服务
-│   ├── context_service.py        # 上下文管理服务
-│   └── prompt_service.py         # 提示词服务
-├── prompts/                      # 提示词模板与管理
+│   ├── llm_service.py
+│   ├── conversation_service.py
+│   ├── memory_service.py
+│   ├── context_service.py
+│   └── prompt_service.py
+├── prompts/
 │   ├── base.py
 │   ├── optimizer.py
 │   └── repository.py
+├── conversation/                 # 对话引擎
+│   └── engine.py
 ├── models/
 │   ├── conversation.py
 │   ├── memory.py
@@ -44,8 +47,7 @@ backend/app/
 │   ├── conversations.py
 │   ├── memories.py
 │   └── prompts.py
-└── core/langchain/               # LangChain 适配
-    └── llm_adapter.py
+└── core/langchain/               # LangChain 适配（若存在）
 ```
 
 ## 3. LLM 提供商规则

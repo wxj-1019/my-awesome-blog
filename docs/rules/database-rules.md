@@ -1,6 +1,9 @@
 # 数据库框架规则
 
-> 适用于 SQLAlchemy Model、Alembic 迁移、数据库查询优化。修改数据库相关代码前必须阅读本文件。
+> 适用于 SQLAlchemy Model、Alembic 迁移、数据库查询优化。修改数据库相关代码前必须阅读本文件。  
+> 全局铁律见 [AGENTS.md](../../AGENTS.md)。最后更新：2026-07-20
+
+> **注意**：`User.tenant_id` 为非空外键；新建用户与测试 fixture 必须提供 `tenant_id`。
 
 ## 1. 数据库选型
 
