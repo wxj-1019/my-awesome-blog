@@ -150,6 +150,7 @@ export default function FeaturedHighlights() {
             compact
             icon={BookOpen}
             title="暂无精选文章"
+            description="精选内容准备中，请稍后再来"
           />
         </div>
       </section>

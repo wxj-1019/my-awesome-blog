@@ -108,6 +108,9 @@ function ArticlesPageContent() {
   const handleViewToggle = useCallback((view: 'grid' | 'list') => {
     setViewMode(view);
   }, []);
+  const hasFilters = Boolean(
+    filters.selectedCategory || filters.selectedTag || filters.searchQuery
+  );
   return (
     <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/40 selection:text-primary-foreground">
       <div className="relative">
@@ -218,23 +221,15 @@ function ArticlesPageContent() {
             ) : (
               <EmptyState
                 icon={BookOpen}
-                variant={
-                  filters.selectedCategory || filters.selectedTag || filters.searchQuery
-                    ? 'search'
-                    : 'default'
-                }
-                title={
-                  filters.selectedCategory || filters.selectedTag || filters.searchQuery
-                    ? '未找到结果'
-                    : '暂无文章'
-                }
+                variant={hasFilters ? 'search' : 'default'}
+                title={hasFilters ? '未找到匹配文章' : '暂无文章'}
                 description={
-                  filters.selectedCategory || filters.selectedTag || filters.searchQuery
+                  hasFilters
                     ? '没有找到匹配的文章，请尝试其他筛选条件'
                     : '暂无文章发布，请稍后再来'
                 }
                 action={
-                  filters.selectedCategory || filters.selectedTag || filters.searchQuery
+                  hasFilters
                     ? { label: '清除筛选', onClick: filters.resetFilters }
                     : { label: '返回首页', href: '/' }
                 }

@@ -376,6 +376,7 @@ export default function Portfolio() {
             compact
             icon={FolderOpen}
             title="该分类下暂无项目"
+            description="试试其他分类或稍后再来"
           />
         )}
       </div>
