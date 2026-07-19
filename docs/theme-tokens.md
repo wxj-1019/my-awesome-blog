@@ -65,6 +65,16 @@ getThemeClass('bg-black text-white', 'bg-white text-black')
 3. `variables.css` 中 `.light` / `.dark` 覆盖变量
 4. 组件自动变色（无需重算 class 字符串）
 
+## 阶段 A · 柔和观感（2026-07-19）
+
+已做（无需业务改组件）：
+
+- 色：深色主色偏 teal（`#5eead4`）、弱描边/光晕、略抬背景；浅色背景微灰、边框更淡
+- 形：`--radius` → `0.85rem`
+- 动：`animation-utils` 默认 SMOOTH、软 spring、更小 hover/入场位移
+- 全局：去掉 `* { transition 300ms }`，仅控件 + `.theme-transition`
+- 饰：矩阵雨更稀/更淡；浅色粒子数量与透明度减半
+
 ## 以后加皮肤（预留，本迭代不做）
 
 ```css

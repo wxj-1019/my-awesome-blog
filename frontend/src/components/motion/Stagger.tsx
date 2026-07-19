@@ -25,11 +25,11 @@ interface StaggerItemProps {
 
 const itemVariants: Variants = {
   ...staggerItem,
-  hidden: { opacity: 0, y: 20 },
+  hidden: { opacity: 0, y: 10 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.45, ease: EASE.APPLE },
+    transition: { duration: 0.42, ease: EASE.SMOOTH },
   },
 };
 

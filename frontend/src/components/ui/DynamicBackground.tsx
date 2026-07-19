@@ -73,7 +73,7 @@ const DynamicBackground = memo(function DynamicBackground({ className }: Dynamic
     ];
 
     const particleTypes: ParticleType[] = ['bubble', 'star', 'heart', 'cloud', 'sparkle'];
-    const particleCount = Math.min(40, Math.floor(window.innerWidth / 35));
+    const particleCount = Math.min(18, Math.floor(window.innerWidth / 70)); // 阶段 A：减半
 
     particlesRef.current = Array.from({ length: particleCount }, () => {
       const type = particleTypes[Math.floor(Math.random() * particleTypes.length)];
@@ -91,7 +91,7 @@ const DynamicBackground = memo(function DynamicBackground({ className }: Dynamic
         vy: -0.3 - Math.random() * 0.8,
         radius: baseRadius,
         baseRadius,
-        opacity: 0.4 + Math.random() * 0.4,
+        opacity: 0.22 + Math.random() * 0.25,
         color: colorSet.fill,
         type,
         rotation: Math.random() * Math.PI * 2,

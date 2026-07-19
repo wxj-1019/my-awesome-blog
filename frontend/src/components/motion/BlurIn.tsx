@@ -23,11 +23,11 @@ export default function BlurIn({
   className,
   delay = 0,
   duration,
-  blur = 8,
+  blur = 5,
   once = true,
 }: BlurInProps) {
   const reduced = useReducedMotion();
-  const animDuration = duration ?? TRANSITION.DEFAULT.duration ?? 0.6;
+  const animDuration = duration ?? TRANSITION.DEFAULT.duration ?? 0.48;
 
   if (reduced) {
     return <div className={className}>{children}</div>;
@@ -36,10 +36,10 @@ export default function BlurIn({
   return (
     <motion.div
       className={cn(className)}
-      initial={{ opacity: 0, filter: `blur(${blur}px)`, y: 12 }}
+      initial={{ opacity: 0, filter: `blur(${blur}px)`, y: 8 }}
       whileInView={{ opacity: 1, filter: 'blur(0px)', y: 0 }}
       viewport={{ once, margin: '-40px' }}
-      transition={{ duration: animDuration, delay, ease: EASE.APPLE }}
+      transition={{ duration: animDuration, delay, ease: EASE.SMOOTH }}
       style={{ willChange: 'transform, opacity, filter' }}
     >
       {children}

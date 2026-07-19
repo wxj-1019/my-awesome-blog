@@ -25,8 +25,8 @@ export const DEFAULT_THEME_PACK: ThemePackId = 'default';
 
 /** theme-color meta 回退（优先读 CSS 变量 --background） */
 export const THEME_COLOR_FALLBACK: Record<ResolvedMode, string> = {
-  light: '#f8fafc',
-  dark: '#0a0f1a',
+  light: '#f4f6f8',
+  dark: '#0c1220',
 };
 
 export function isThemeMode(value: unknown): value is ThemeMode {

@@ -20,16 +20,42 @@
     @apply bg-background text-foreground bg-page;
   }
 
-  *,
-  *::before,
-  *::after {
-    transition-property: background-color, border-color, color, fill, stroke;
+  /*
+   * 阶段 A：取消全局 * 色变 transition（易「到处在动」）。
+   * 仅交互控件与显式 .theme-transition 过渡。
+   */
+  a,
+  button,
+  input,
+  textarea,
+  select,
+  summary,
+  [role='button'],
+  .theme-transition {
+    transition-property: background-color, border-color, color, fill, stroke,
+      opacity, box-shadow, transform;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-    transition-duration: 300ms;
+    transition-duration: 220ms;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    a,
+    button,
+    input,
+    textarea,
+    select,
+    summary,
+    [role='button'],
+    .theme-transition {
+      transition-duration: 0.01ms !important;
+    }
   }
 
   :focus-visible {
-    @apply outline-none ring-2 ring-tech-cyan ring-offset-2 ring-offset-background;
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
     transition: outline-offset 0.1s ease-out;
     outline-offset: 2px;
   }

@@ -26,7 +26,7 @@ const MatrixCodeRain = () => {
 
     // 字符集：英文字母、特殊符号和数字
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?';
-    const fontSize = 20;
+    const fontSize = 18;
     const frameCount = { current: 0 };
     let drops: number[] = [];
     let columnActive: boolean[] = [];
@@ -41,7 +41,7 @@ const MatrixCodeRain = () => {
       drops = Array(columns).fill(1);
       columnActive = Array(columns).fill(false).map((_, i) => {
         const distanceFromCenter = Math.abs(i - center) / center;
-        const probability = 0.2 + distanceFromCenter * 0.8;
+        const probability = 0.08 + distanceFromCenter * 0.35; // 阶段 A：更稀
         return Math.random() < probability;
       });
       columnChars = Array(columns).fill('').map(() => getRandomChar());
@@ -55,7 +55,7 @@ const MatrixCodeRain = () => {
       const width = canvas.width;
       const height = canvas.height;
 
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+      ctx.fillStyle = 'rgba(12, 18, 32, 0.08)';
       ctx.fillRect(0, 0, width, height);
       ctx.font = `${fontSize}px monospace`;
 
@@ -70,7 +70,7 @@ const MatrixCodeRain = () => {
         }
         const text = columnChars[i];
         const isHighlight = Math.random() > 0.9;
-        ctx.fillStyle = isHighlight ? '#10b981' : '#059669';
+        ctx.fillStyle = isHighlight ? 'rgba(94, 234, 212, 0.55)' : 'rgba(45, 212, 191, 0.28)';
 
         const x = i * fontSize;
         const y = drops[i] * fontSize;

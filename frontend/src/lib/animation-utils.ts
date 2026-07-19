@@ -12,61 +12,62 @@ import { Variants, Transition } from '@/lib/framer-motion'
 export const EASE = {
   // Apple 风格缓动 - 硬件加速友好
   APPLE: [0.25, 0.1, 0.25, 1] as const,
-  // 弹性缓动
+  // 弹性缓动（阶段 A：几乎不用于默认 UI）
   BOUNCE: [0.68, -0.55, 0.265, 1.55] as const,
-  // 平滑缓动
+  // 平滑缓动 — 默认入场/页面更自然
   SMOOTH: [0.4, 0, 0.2, 1] as const,
-  // 迅捷缓动
-  SNAPPY: [0.16, 1, 0.3, 1] as const,
-  // 弹簧效果 - 优化damping避免过度计算
-  SPRING: { type: 'spring', stiffness: 300, damping: 30 } as const,
+  // 迅捷缓动 — 仅微交互
+  SNAPPY: [0.22, 1, 0.36, 1] as const,
+  // 弹簧：更软、少回弹（阶段 A 柔和）
+  SPRING: { type: 'spring', stiffness: 220, damping: 32 } as const,
 }
 
 // ============================================
-// 过渡配置预设
+// 过渡配置预设（阶段 A：更短位移感、更软）
 // ============================================
 export const TRANSITION: Record<string, Transition> = {
   DEFAULT: {
-    duration: 0.6,
-    ease: EASE.APPLE,
+    duration: 0.48,
+    ease: EASE.SMOOTH,
   },
   FAST: {
-    duration: 0.3,
-    ease: EASE.SNAPPY,
+    duration: 0.28,
+    ease: EASE.SMOOTH,
   },
   SLOW: {
-    duration: 0.8,
+    duration: 0.7,
     ease: EASE.SMOOTH,
   },
   /** 微交互（按钮/菜单） */
   MICRO: {
-    duration: 0.2,
-    ease: EASE.SNAPPY,
+    duration: 0.24,
+    ease: EASE.SMOOTH,
   },
   SPRING: {
     type: 'spring',
-    stiffness: 300,
-    damping: 25,
+    stiffness: 220,
+    damping: 32,
   },
+  /** 慎用：仅特殊强调 */
   BOUNCE: {
     type: 'spring',
-    stiffness: 400,
-    damping: 15,
+    stiffness: 280,
+    damping: 22,
   },
 }
 
 // ============================================
-// 交错节奏（对齐 veloce / yacht 体感，单位秒）
+// 交错节奏（单位秒）— 更疏、总延迟更短
 // ============================================
 export const STAGGER = {
   /** 卡片网格 */
-  DEFAULT: 0.08,
+  DEFAULT: 0.07,
   /** 标题字级 */
-  TIGHT: 0.05,
+  TIGHT: 0.04,
   /** 大区块 */
-  LOOSE: 0.12,
+  LOOSE: 0.1,
   /** 列表项硬上限对应的最大延迟 */
-  MAX_DELAY: 0.5,
+  MAX_DELAY: 0.4,
 } as const
 
 // ============================================
@@ -344,20 +345,20 @@ export const VIEWPORT = {
 // 悬停效果
 // ============================================
 export const hover = {
-  // 轻微上浮
-  LIFT: { y: -4, transition: TRANSITION.SPRING },
+  // 轻微上浮（阶段 A：幅度更小）
+  LIFT: { y: -2, transition: TRANSITION.SPRING },
   // 缩放
-  SCALE: { scale: 1.02, transition: TRANSITION.SPRING },
-  // 发光
+  SCALE: { scale: 1.015, transition: TRANSITION.SPRING },
+  // 发光（弱）
   GLOW: {
-    boxShadow: '0 0 30px rgba(6, 182, 212, 0.3)',
+    boxShadow: '0 0 20px var(--shadow-tech-cyan)',
     transition: TRANSITION.DEFAULT,
   },
   // 卡片效果
   CARD: {
-    y: -8,
-    scale: 1.02,
-    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.2)',
+    y: -4,
+    scale: 1.012,
+    boxShadow: '0 12px 28px rgba(0, 0, 0, 0.12)',
     transition: TRANSITION.SPRING,
   },
 }

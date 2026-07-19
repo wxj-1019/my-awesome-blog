@@ -19,10 +19,10 @@ interface FadeInProps {
 }
 
 const offset: Record<Direction, { x?: number; y?: number }> = {
-  up: { y: 20 },
-  down: { y: -20 },
-  left: { x: 20 },
-  right: { x: -20 },
+  up: { y: 10 },
+  down: { y: -10 },
+  left: { x: 10 },
+  right: { x: -10 },
   none: {},
 };
 

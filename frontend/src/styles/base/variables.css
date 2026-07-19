@@ -10,9 +10,10 @@
  * 将来增加皮肤时：只新增 [data-theme="xxx"] 覆盖下列变量，不改组件。
  *
  * Mode 切换：html.light / html.dark（与 ThemeProvider + FOUC 脚本一致）
+ * 阶段 A 柔和：略降饱和/描边/光晕，增大 radius，深色主色偏 teal
  */
 :root {
-  --background: #f8fafc;
+  --background: #f4f6f8;
   --foreground: #0f172a;
   /* 统一品牌色：使用更现代的科技青 */
   --primary: #0ea5e9;
@@ -23,16 +24,16 @@
   --accent-foreground: #ffffff;
   --card: #ffffff;
   --card-foreground: #0f172a;
-  --border: #cbd5e1;
+  --border: #d8e0e8;
   --glass-light-border: rgba(14, 165, 233, 0.15);
-  --radius: 0.5rem;
+  --radius: 0.85rem;
 
   --muted: #64748b;
   --muted-foreground: #475569;
   --popover: #ffffff;
   --popover-foreground: #0f172a;
   --input: #e2e8f0;
-  --ring: #0ea5e9;
+  --ring: #7dd3fc;
 
   --success: #16a34a;
   --success-foreground: #f0fdf4;
@@ -47,9 +48,9 @@
   --destructive-foreground: #fef2f2;
 
   --glass-default: rgba(255, 255, 255, 0.92);
-  --glass-border: rgba(14, 165, 233, 0.25);
-  --glass-glow: rgba(14, 165, 233, 0.3);
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  --glass-border: rgba(14, 165, 233, 0.14);
+  --glass-glow: rgba(14, 165, 233, 0.16);
+  --glass-shadow: 0 12px 40px rgba(15, 23, 42, 0.06);
 
   /* 统一科技色系 - 使用青色系 */
   --tech-darkblue: #0c4a6e;
@@ -120,14 +121,14 @@
   --text-primary-high-contrast: #0f172a;
   --text-secondary-high-contrast: #475569;
 
-  --transition-duration: 0.3s;
+  --transition-duration: 0.22s;
   --transition-easing: cubic-bezier(0.4, 0, 0.2, 1);
 
   --ripple-color: rgba(14, 165, 233, 0.25);
 
   --texture-color: rgba(0, 0, 0, 0.06);
 
-  --shadow-tech-cyan: rgba(14, 165, 233, 0.35);
+  --shadow-tech-cyan: rgba(14, 165, 233, 0.18);
   --shadow-default: 0 4px 20px rgba(0, 0, 0, 0.08);
 
   --dynamic-bg-gradient-1: #e0f2fe;
@@ -152,9 +153,9 @@
 }
 
 .light {
-  --background: #f8fafc;
+  --background: #f4f6f8;
   --foreground: #0f172a;
-  --primary: #0ea5e9;
+  --primary: #0284c7;
   --primary-foreground: #ffffff;
   --secondary: #e2e8f0;
   --secondary-foreground: #1e3a8a;
@@ -162,7 +163,7 @@
   --accent-foreground: #ffffff;
   --card: #ffffff;
   --card-foreground: #0f172a;
-  --border: #cbd5e1;
+  --border: #d8e0e8;
   --glass-light-border: rgba(14, 165, 233, 0.15);
 
   --muted: #64748b;
@@ -170,7 +171,7 @@
   --popover: #ffffff;
   --popover-foreground: #0f172a;
   --input: #e2e8f0;
-  --ring: #0ea5e9;
+  --ring: #7dd3fc;
 
   --success: #16a34a;
   --success-foreground: #f0fdf4;
@@ -184,14 +185,14 @@
   --destructive-foreground: #fef2f2;
 
   --glass-default: rgba(255, 255, 255, 0.92);
-  --glass-border: rgba(14, 165, 233, 0.25);
-  --glass-glow: rgba(14, 165, 233, 0.3);
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  --glass-border: rgba(14, 165, 233, 0.14);
+  --glass-glow: rgba(14, 165, 233, 0.16);
+  --glass-shadow: 0 12px 40px rgba(15, 23, 42, 0.06);
 
   --tech-darkblue: #0c4a6e;
   --tech-deepblue: #075985;
-  --tech-cyan: #0ea5e9;
-  --tech-lightcyan: #38bdf8;
+  --tech-cyan: #0284c7;
+  --tech-lightcyan: #7dd3fc;
   --tech-sky: #7dd3fc;
   --tech-cyan-rgb: 14, 165, 233;
   --tech-lightcyan-rgb: 56, 189, 248;
@@ -260,7 +261,7 @@
 
   --texture-color: rgba(0, 0, 0, 0.06);
 
-  --shadow-tech-cyan: rgba(14, 165, 233, 0.35);
+  --shadow-tech-cyan: rgba(14, 165, 233, 0.18);
   --shadow-default: 0 4px 20px rgba(0, 0, 0, 0.08);
 
   --dynamic-bg-gradient-1: #e0f2fe;
@@ -284,18 +285,18 @@
 }
 
 .dark {
-  --background: #0a0f1a;
-  --foreground: #e2e8f0;
+  --background: #0c1220;
+  --foreground: #d8e0ea;
   /* 暗色主题使用统一的青色，而非绿色，保持品牌一致性 */
-  --primary: #22d3ee;
-  --primary-foreground: #0f172a;
+  --primary: #5eead4;
+  --primary-foreground: #042f2e;
   --secondary: #1e293b;
   --secondary-foreground: #e2e8f0;
   --accent: #8b5cf6;
   --accent-foreground: #ffffff;
-  --card: rgba(15, 23, 42, 0.85);
+  --card: rgba(15, 23, 42, 0.78);
   --card-foreground: #e2e8f0;
-  --border: rgba(34, 211, 238, 0.25);
+  --border: rgba(94, 234, 212, 0.14);
   --glass-light-border: rgba(34, 211, 238, 0.2);
 
   --muted: rgba(30, 41, 59, 0.6);
@@ -303,7 +304,7 @@
   --popover: rgba(15, 23, 42, 0.95);
   --popover-foreground: #e2e8f0;
   --input: rgba(30, 41, 59, 0.6);
-  --ring: #22d3ee;
+  --ring: #5eead4;
 
   --success: #22c55e;
   --success-foreground: #f0fdf4;
@@ -316,19 +317,19 @@
   --destructive: #ef4444;
   --destructive-foreground: #fef2f2;
 
-  --glass-default: rgba(15, 23, 42, 0.85);
-  --glass-border: rgba(34, 211, 238, 0.2);
-  --glass-glow: rgba(34, 211, 238, 0.35);
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --glass-default: rgba(15, 23, 42, 0.72);
+  --glass-border: rgba(94, 234, 212, 0.12);
+  --glass-glow: rgba(94, 234, 212, 0.18);
+  --glass-shadow: 0 16px 48px rgba(0, 0, 0, 0.28);
 
   /* 暗色主题科技色 - 更亮的青色确保对比度 */
   --tech-darkblue: #0c4a6e;
   --tech-deepblue: #075985;
-  --tech-cyan: #22d3ee;
-  --tech-lightcyan: #67e8f9;
-  --tech-sky: #a5f3fc;
-  --tech-cyan-rgb: 34, 211, 238;
-  --tech-lightcyan-rgb: 103, 232, 249;
+  --tech-cyan: #5eead4;
+  --tech-lightcyan: #99f6e4;
+  --tech-sky: #a7f3d0;
+  --tech-cyan-rgb: 94, 234, 212;
+  --tech-lightcyan-rgb: 153, 246, 228;
   --tech-sky-rgb: 165, 243, 252;
 
   /* 暗色下扩展科技色更亮，保证对比度 */
@@ -349,7 +350,7 @@
 
   --texture-color: rgba(255, 255, 255, 0.03);
 
-  --shadow-tech-cyan: rgba(34, 211, 238, 0.4);
+  --shadow-tech-cyan: rgba(94, 234, 212, 0.2);
   --shadow-default: 0 4px 20px rgba(0, 0, 0, 0.4);
 
   --dynamic-bg-gradient-1: #0f172a;
@@ -369,7 +370,7 @@
   --rope-mid: #c4956a;
 
   /* Wave 装饰：深色用科技青过渡到背景 */
-  --wave-fill-from: #22d3ee;
+  --wave-fill-from: #5eead4;
   --wave-fill-to: #0f172a;
 }
 
