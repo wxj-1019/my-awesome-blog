@@ -207,8 +207,8 @@ export default function HeroSection() {
           className={cn(
             'absolute inset-0 pointer-events-none',
             resolvedTheme === 'dark'
-              ? 'bg-gradient-to-b from-black/35 via-black/15 to-black/45'
-              : 'bg-gradient-to-b from-slate-900/25 via-slate-900/10 to-slate-900/35'
+              ? 'bg-gradient-to-b from-black/40 via-black/20 to-black/50'
+              : 'bg-gradient-to-b from-slate-950/45 via-slate-950/30 to-slate-950/50'
           )}
           aria-hidden="true"
         />
@@ -242,31 +242,31 @@ export default function HeroSection() {
               className={cn(
                 'pointer-events-none absolute inset-0 -z-10 rounded-[2rem] blur-2xl',
                 resolvedTheme === 'dark'
-                  ? 'bg-[radial-gradient(ellipse_at_center,rgba(15,23,42,0.55)_0%,rgba(15,23,42,0.12)_55%,transparent_75%)]'
-                  : 'bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.42)_0%,rgba(255,255,255,0.1)_55%,transparent_75%)]'
+                  ? 'bg-[radial-gradient(ellipse_at_center,rgba(15,23,42,0.6)_0%,rgba(15,23,42,0.15)_55%,transparent_75%)]'
+                  : 'bg-[radial-gradient(ellipse_at_center,rgba(15,23,42,0.5)_0%,rgba(15,23,42,0.15)_55%,transparent_75%)]'
               )}
               aria-hidden
             />
 
             <p
               className={cn(
-                'mb-3 text-[10px] sm:text-xs font-medium uppercase tracking-[0.35em]',
+                'mb-3 text-[10px] sm:text-xs font-medium tracking-[0.4em]',
                 resolvedTheme === 'dark'
-                  ? 'text-teal-100/70'
-                  : 'text-white/80 drop-shadow-sm'
+                  ? 'text-teal-100/80'
+                  : 'text-white/85 drop-shadow-sm'
               )}
             >
-              {resolvedTheme === 'dark' ? 'Moonlit field' : 'Fantasy trail'}
+              {resolvedTheme === 'dark' ? '月夜云海' : '林间晨光'}
             </p>
 
             <h1
               id="hero-title"
               className={cn(
-                'font-display text-3xl sm:text-4xl md:text-5xl lg:text-[3.25rem]',
+                'font-display text-3xl sm:text-4xl md:text-5xl',
                 'font-semibold tracking-wide leading-snug',
                 resolvedTheme === 'dark'
-                  ? 'text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.45),0_0_28px_rgba(94,234,212,0.28),0_0_48px_rgba(56,189,248,0.12)]'
-                  : 'text-white [text-shadow:0_2px_8px_rgba(15,23,42,0.35),0_0_24px_rgba(255,255,255,0.25)]'
+                  ? 'text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.5),0_0_28px_rgba(94,234,212,0.3),0_0_48px_rgba(56,189,248,0.14)]'
+                  : 'text-white [text-shadow:0_2px_10px_rgba(15,23,42,0.55),0_0_24px_rgba(255,255,255,0.28)]'
               )}
             >
               <TextType
