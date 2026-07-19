@@ -1,3 +1,8 @@
+/**
+ * @deprecated 色板历史文件。运行时主题以 CSS 变量为准：
+ *   `src/styles/base/variables.css` + `docs/theme-tokens.md`
+ * 请勿再向本文件新增主题色；新代码用 Tailwind 语义类（bg-background 等）。
+ */
 export type Theme = 'light' | 'dark';
 export type ColorVariant = 'primary' | 'secondary' | 'accent' | 'muted' | 'background' | 'foreground' | 'border' | 'card' | 'card-foreground' | 'popover' | 'popover-foreground' | 'destructive' | 'destructive-foreground' | 'ring';
 

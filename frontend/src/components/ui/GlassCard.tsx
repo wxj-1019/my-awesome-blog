@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 import { cn } from '@/lib/utils';
-import { useTheme } from '@/context/theme-context';
 
 export interface GlassCardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
@@ -12,40 +11,41 @@ export interface GlassCardProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string;
 }
 
+/**
+ * 玻璃卡片：只消费语义 token（bg-glass / border-glass-border / text-foreground）
+ * 不再按 light/dark 分支硬编码，便于后续换肤只改 CSS 变量。
+ */
 const GlassCard = React.forwardRef<HTMLDivElement, GlassCardProps>(
-  ({ children, padding = 'md', hoverEffect = false, glowEffect = false, className, ...props }, ref) => {
-    const { resolvedTheme } = useTheme();
-    
+  (
+    {
+      children,
+      padding = 'md',
+      hoverEffect = false,
+      glowEffect = false,
+      className,
+      ...props
+    },
+    ref
+  ) => {
     const paddingClasses = {
       none: '',
       sm: 'p-4',
       md: 'p-6',
       lg: 'p-8',
     };
-    
-    const isLight = resolvedTheme === 'light';
-    
+
     return (
       <div
         ref={ref}
         className={cn(
           'rounded-xl border shadow-lg transition-all duration-300',
           'backdrop-blur-xl',
+          'bg-glass border-glass-border text-foreground',
+          'shadow-[var(--glass-shadow)]',
           paddingClasses[padding],
-          isLight ? [
-            'bg-glass',
-            'border-glass-border',
-            'text-foreground',
-            'shadow-glass',
-            hoverEffect && 'hover:shadow-xl hover:-translate-y-1 hover:border-tech-cyan/30 cursor-pointer',
-            glowEffect && 'hover:shadow-[0_0_25px_rgba(59,130,246,0.2)]',
-          ] : [
-            'bg-glass',
-            'border-glass-border',
-            'text-foreground',
-            hoverEffect && 'hover:-translate-y-1 hover:shadow-2xl hover:border-glass-glow cursor-pointer',
-            glowEffect && 'hover:shadow-[0_0_30px_var(--shadow-tech-cyan)]',
-          ],
+          hoverEffect &&
+            'hover:-translate-y-1 hover:shadow-2xl hover:border-primary/40 cursor-pointer',
+          glowEffect && 'hover:shadow-[0_0_30px_var(--shadow-tech-cyan)]',
           className
         )}
         {...props}

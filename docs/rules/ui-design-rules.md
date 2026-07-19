@@ -14,30 +14,43 @@
 
 ## 2. 主题系统
 
+> 详细约定见 [docs/theme-tokens.md](../theme-tokens.md)。当前阶段：**统一 light/dark 语义 token，暂不第二套皮肤**。
+
 ### 2.1 主题模式
 - 支持 `light`、`dark`、`auto` 三种模式。
-- 主题通过 CSS class `light`/`dark` 切换。
+- 主题通过 CSS class `light`/`dark` 切换（`ThemeProvider` + FOUC 脚本）。
 - `darkMode: 'class'` 配置在 `tailwind.config.js`。
 - 初始化脚本在 `frontend/src/app/layout.tsx` 的 `<head>` 中。
 
-### 2.2 CSS 变量
-- 颜色变量定义在 `frontend/src/styles/globals.css`。
-- 关键变量：
-  - `--background`
-  - `--foreground`
-  - `--primary`
-  - `--glass-default`
-  - `--glass-border`
-  - `--glass-glow`
-  - `--tech-cyan`
-  - `--tech-darkblue`
+### 2.2 CSS 变量（权威来源）
+- 颜色变量定义在 **`frontend/src/styles/base/variables.css`**（`:root` / `.light` / `.dark`）。
+- Tailwind 映射在 `frontend/tailwind.config.js` 的 `theme.extend.colors`。
+- 关键语义变量：
+  - `--background` / `--foreground`
+  - `--primary` / `--primary-foreground`
+  - `--card` / `--card-foreground`
+  - `--muted` / `--muted-foreground`
+  - `--border` / `--ring` / `--input`
+  - `--destructive`（与 error 对齐）
+  - `--glass-default` / `--glass-border` / `--glass-glow`
+  - `--tech-cyan` 等品牌色（优先用 `primary`，tech-* 仅装饰）
 
 ### 2.3 使用方式
 ```tsx
+// ✅ 语义 token（推荐）
 <div className="bg-background text-foreground">
-  <GlassCard>内容</GlassCard>
+  <GlassCard className="bg-card border-border">内容</GlassCard>
+  <p className="text-muted-foreground">辅助文字</p>
 </div>
+
+// ❌ 禁止新代码再写亮暗双分支色值
+// isDark ? 'text-cyan-300' : 'text-blue-600'
 ```
+
+### 2.4 兼容与废弃
+- `useThemedClasses()`：存量 `cardBgClass` 等已映射到语义类；**新组件尽量不用**。
+- `getThemeClass(dark, light)`：迁移期可用，**禁止扩大使用面**。
+- 将来加皮肤：只加 CSS 变量覆盖（`data-theme-pack`），不改业务组件分支。
 
 ## 3. 颜色系统
 

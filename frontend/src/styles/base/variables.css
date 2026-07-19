@@ -1,3 +1,16 @@
+/**
+ * 语义 Token 契约（先统一 light/dark，暂不引入第二套皮肤）
+ *
+ * 组件应优先使用 Tailwind 语义色：
+ *   bg-background text-foreground bg-card text-card-foreground
+ *   bg-primary text-primary-foreground border-border bg-glass border-glass-border
+ *   text-muted-foreground ring-ring
+ *
+ * 禁止在新代码中写 isDark ? 'hex/classA' : 'classB' 色值分支。
+ * 将来增加皮肤时：只新增 [data-theme="xxx"] 覆盖下列变量，不改组件。
+ *
+ * Mode 切换：html.light / html.dark（与 ThemeProvider + FOUC 脚本一致）
+ */
 :root {
   --background: #f8fafc;
   --foreground: #0f172a;
@@ -29,6 +42,9 @@
   --error-foreground: #fef2f2;
   --info: #2563eb;
   --info-foreground: #eff6ff;
+  /* 与 shadcn/tailwind destructive 对齐，语义上等同 error */
+  --destructive: #dc2626;
+  --destructive-foreground: #fef2f2;
 
   --glass-default: rgba(255, 255, 255, 0.92);
   --glass-border: rgba(14, 165, 233, 0.25);
@@ -160,6 +176,8 @@
   --error-foreground: #fef2f2;
   --info: #0ea5e9;
   --info-foreground: #eff6ff;
+  --destructive: #dc2626;
+  --destructive-foreground: #fef2f2;
 
   --glass-default: rgba(255, 255, 255, 0.92);
   --glass-border: rgba(14, 165, 233, 0.25);
@@ -288,6 +306,8 @@
   --error-foreground: #fef2f2;
   --info: #22d3ee;
   --info-foreground: #cffafe;
+  --destructive: #ef4444;
+  --destructive-foreground: #fef2f2;
 
   --glass-default: rgba(15, 23, 42, 0.85);
   --glass-border: rgba(34, 211, 238, 0.2);
