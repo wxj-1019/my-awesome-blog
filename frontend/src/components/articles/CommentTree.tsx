@@ -3,6 +3,7 @@ import { useState, useCallback, memo } from 'react';
 import { motion, AnimatePresence } from '@/lib/framer-motion';
 import { Button } from '@/components/ui/Button';
 import GlassCard from '@/components/ui/GlassCard';
+import EmptyState from '@/components/ui/EmptyState';
 import { cn } from '@/lib/utils';
 import { ThumbsUp, MessageSquare, ChevronDown, ChevronUp, User, Clock } from 'lucide-react';
 import { useThemedClasses } from '@/hooks/useThemedClasses';
@@ -219,11 +220,14 @@ function CommentTree({
   const cardBgClass = themedClasses.cardBgClass;
   if (comments.length === 0) {
     return (
-      <GlassCard className={cn('p-8 text-center', cardBgClass)}>
-        <MessageSquare className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
-        <p className={cn('text-sm', themedClasses.mutedTextClass)}>
-          暂无评论，快来发表第一条评论吧！
-        </p>
+      <GlassCard className={cn(cardBgClass)}>
+        <EmptyState
+          size="sm"
+          compact
+          icon={MessageSquare}
+          title="暂无评论"
+          description="快来发表第一条评论吧！"
+        />
       </GlassCard>
     );
   }

@@ -5,6 +5,7 @@ import { formatDistanceToNow } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 import { Trash2, MessageSquare, Heart, Reply as ReplyIcon, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import EmptyState from '@/components/ui/EmptyState';
 import { deleteMessage, likeMessage, replyToMessage } from '@/services/messageService';
 import { useThemedClasses } from '@/hooks/useThemedClasses';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
@@ -97,14 +98,12 @@ export default function MessageList({
   }, []);
   if (messages.length === 0) {
     return (
-      <div className={cn(
-        "text-center py-12",
-        themedClasses.cardBgClass,
-        "rounded-xl"
-      )}>
-        <MessageSquare className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
-        <p className="text-muted-foreground">暂无留言，快来发表第一条吧！</p>
-      </div>
+      <EmptyState
+        icon={MessageSquare}
+        title="暂无留言"
+        description="快来发表第一条吧！"
+        className={cn(themedClasses.cardBgClass, "rounded-xl")}
+      />
     );
   }
   return (

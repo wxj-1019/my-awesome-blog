@@ -1,7 +1,7 @@
 'use client';
 import { useState, useCallback, useEffect, memo } from 'react';
 import {  motion } from '@/lib/framer-motion';
-import { Heart, Reply, Trash2, Flame, Flag, Edit2, Check, Pin, Star, Settings, MoreHorizontal } from 'lucide-react';
+import { Heart, Reply, Trash2, Flame, Flag, Edit2, Check, Pin, Star, Settings, MoreHorizontal, MessageSquare } from 'lucide-react';
 import { LazyAvatar } from '@/components/ui/LazyImage';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
@@ -13,6 +13,7 @@ import MessageEditDialog from './MessageEditDialog';
 import MessageReplies from './MessageReplies';
 import MessageManageDialog from './MessageManageDialog';
 import MarkdownRenderer from '@/components/ui/MarkdownRenderer';
+import EmptyState from '@/components/ui/EmptyState';
 interface VirtualMessageListProps {
   messages: Message[];
   currentUser: UserProfile | null;
@@ -350,10 +351,11 @@ export default function VirtualMessageList({
   }, [onMessageReply]);
   if (messages.length === 0) {
     return (
-      <div className="text-center py-20 text-white/30 font-mono">
-        <div className="w-12 h-12 mx-auto mb-4 rounded-full border-2 border-dashed border-white/20" />
-        暂无留言...
-      </div>
+      <EmptyState
+        icon={MessageSquare}
+        title="暂无留言"
+        description="快来发表第一条吧！"
+      />
     );
   }
   return (

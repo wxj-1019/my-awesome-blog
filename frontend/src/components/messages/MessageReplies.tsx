@@ -6,6 +6,7 @@ import { zhCN } from 'date-fns/locale';
 import { motion, AnimatePresence } from '@/lib/framer-motion';
 import { LazyAvatar } from '@/components/ui/LazyImage';
 import { Button } from '@/components/ui/Button';
+import EmptyState from '@/components/ui/EmptyState';
 import { cn } from '@/lib/utils';
 import MarkdownRenderer from '@/components/ui/MarkdownRenderer';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
@@ -285,9 +286,11 @@ export default function MessageReplies({
               />
             ))
           ) : (
-            <div className="text-xs text-white/30 py-2 text-center">
-              暂无回复，快来抢沙发吧~
-            </div>
+            <EmptyState
+              size="sm"
+              compact
+              title="暂无回复"
+            />
           )}
         </motion.div>
       </AnimatePresence>
