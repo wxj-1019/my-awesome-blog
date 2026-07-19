@@ -61,18 +61,18 @@ export default function ArticleHeroStage({
     return () => mq.removeEventListener('change', apply);
   }, []);
 
-  // 仅桌面、未减动效时做极轻位移（媒体节点专用，不与 Framer 叠）
+  // 阶段 B：封面视差再减半，降低滚动压迫感
   const parallaxY =
-    !reduced && isDesktop ? Math.min(progress, 1) * 24 : 0;
+    !reduced && isDesktop ? Math.min(progress, 1) * 12 : 0;
   const parallaxScale =
-    !reduced && isDesktop ? 1 + Math.min(progress, 1) * 0.04 : 1;
+    !reduced && isDesktop ? 1 + Math.min(progress, 1) * 0.02 : 1;
 
   return (
     <header className="mb-8">
       {mediaSlot ? (
         <div
           ref={mediaRef}
-          className="h-[28vh] md:h-[32vh] overflow-hidden relative z-10 mb-8 rounded-none md:rounded-xl"
+          className="h-[22vh] md:h-[26vh] overflow-hidden relative z-10 mb-8 rounded-none md:rounded-xl opacity-95"
         >
           <div
             className="h-full w-full will-change-transform"

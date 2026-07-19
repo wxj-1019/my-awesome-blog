@@ -291,7 +291,7 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
                 />
               </aside>
               {/* 主内容：lg 为全宽（TOC 浮层），xl 与侧栏并排 */}
-              <div className="flex-1 min-w-0 order-2 xl:max-w-3xl xl:mx-auto 2xl:max-w-none 2xl:mx-0">
+              <div className="flex-1 min-w-0 order-2 max-w-3xl mx-auto xl:mx-0 w-full">
                 {/* padding=none 避免与默认 md 内边距叠加；ref 绑在正文根 */}
                 <GlassCard
                   padding="none"
@@ -300,7 +300,7 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
                   <div ref={contentRef}>
                     <ArticleBodyReveal enabled>
                       <div
-                        className={`prose max-w-none dark:prose-invert ${textClass}`}
+                        className={`prose prose-base md:prose-lg max-w-none dark:prose-invert leading-relaxed md:leading-[1.8] ${textClass}`}
                       >
                         <MarkdownRenderer content={article.content} />
                       </div>

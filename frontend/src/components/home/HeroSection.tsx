@@ -42,13 +42,14 @@ export default function HeroSection() {
   // 进度源：useScrollProgress（与 Bridge 的 ScrollTrigger 分离，且视频/文案分节点）
   const scrollProgress = useScrollProgress(heroRef);
   const l3Active = MOTION_L3_ENABLED && !reducedMotion;
+  // 阶段 B：视频缩放与文案漂移减弱
   const videoScale =
-    l3Active && isDesktop ? 1 + Math.min(scrollProgress, 1) * 0.12 : 1;
+    l3Active && isDesktop ? 1 + Math.min(scrollProgress, 1) * 0.06 : 1;
   const copyOpacity = l3Active
-    ? Math.max(0, 1 - scrollProgress * (isDesktop ? 1.2 : 0.55))
+    ? Math.max(0.15, 1 - scrollProgress * (isDesktop ? 0.75 : 0.4))
     : 1;
   const copyY = l3Active
-    ? Math.min(scrollProgress, 1) * (isDesktop ? 36 : 12)
+    ? Math.min(scrollProgress, 1) * (isDesktop ? 18 : 8)
     : 0;
 
   const handleIntersection = useCallback((entries: IntersectionObserverEntry[]) => {
@@ -262,7 +263,7 @@ export default function HeroSection() {
               <a
                 href="#featured-highlights"
                 className="inline-flex items-center gap-2 px-6 py-3 bg-tech-cyan text-white rounded-full font-medium
-                  hover:bg-tech-lightcyan transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-tech-cyan/25"
+                  hover:bg-tech-lightcyan transition-all duration-300 hover:scale-[1.02] hover:shadow-md hover:shadow-tech-cyan/15"
               >
                 开始探索
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

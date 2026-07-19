@@ -123,7 +123,7 @@ function ArchiveDrawer({
               <div className="flex-1 overflow-y-auto p-6 space-y-6">
                 {activeTab === 'categories' && (
                   <motion.div
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="space-y-4"
                   >
@@ -154,7 +154,7 @@ function ArchiveDrawer({
 
                 {activeTab === 'tags' && (
                   <motion.div
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="space-y-4"
                   >
@@ -181,7 +181,7 @@ function ArchiveDrawer({
 
                 {activeTab === 'timeline' && (
                   <motion.div
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="space-y-6"
                   >

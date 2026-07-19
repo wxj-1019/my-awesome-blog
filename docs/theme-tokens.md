@@ -75,6 +75,13 @@ getThemeClass('bg-black text-white', 'bg-white text-black')
 - 全局：去掉 `* { transition 300ms }`，仅控件 + `.theme-transition`
 - 饰：矩阵雨更稀/更淡；浅色粒子数量与透明度减半
 
+## 阶段 B · 阅读与关键页（2026-07-19）
+
+- 文章详情：栏宽 `max-w-3xl`、prose 更大字号/行高 1.8、封面更矮、视差减半
+- 正文 reveal：最多 8 块、位移 8px
+- 首页 Hero：视频 scale / 文案漂移减弱，CTA hover 更轻
+- 弹层/搜索/抽屉：入场位移缩小，Modal 用 SMOOTH 短过渡
+
 ## 以后加皮肤（预留，本迭代不做）
 
 ```css

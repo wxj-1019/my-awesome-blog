@@ -90,7 +90,7 @@ function CommandBar({
     <>
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 hidden md:block">
         <motion.div
-          initial={{ y: 100, opacity: 0 }}
+          initial={{ y: 24, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ type: 'spring', stiffness: 260, damping: 20 }}
           className="
@@ -167,7 +167,7 @@ function CommandBar({
       <AnimatePresence>
         {searchOpen && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
+            initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
             onClick={() => setSearchOpen(false)}
@@ -178,7 +178,7 @@ function CommandBar({
           >
             <motion.div
               onClick={e => e.stopPropagation()}
-              initial={{ y: -50, opacity: 0 }}
+              initial={{ y: -12, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -50, opacity: 0 }}
               transition={{ type: 'spring', stiffness: 260, damping: 20 }}
@@ -243,7 +243,7 @@ function CommandBar({
       <AnimatePresence>
         {filterOpen && (
           <motion.div
-            initial={{ opacity: 0, x: 400 }}
+            initial={{ opacity: 0, x: 48 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 400 }}
             transition={{ type: 'spring', stiffness: 260, damping: 20 }}

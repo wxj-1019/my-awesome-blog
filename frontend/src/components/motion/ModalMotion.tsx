@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from '@/lib/framer-motion';
 import type { ReactNode } from 'react';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
-import { EASE } from '@/lib/animation-utils';
+import { EASE, TRANSITION } from '@/lib/animation-utils';
 import { cn } from '@/lib/utils';
 
 interface ModalMotionProps {
@@ -40,7 +40,7 @@ export default function ModalMotion({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: reduced ? 0.1 : 0.25 }}
+            transition={{ duration: reduced ? 0.08 : 0.2, ease: EASE.SMOOTH }}
             onClick={onOverlayClick}
             aria-hidden
           />
@@ -55,7 +55,7 @@ export default function ModalMotion({
             initial={
               reduced
                 ? { opacity: 0 }
-                : { opacity: 0, scale: 0.96, y: 12 }
+                : { opacity: 0, scale: 0.98, y: 8 }
             }
             animate={
               reduced
@@ -65,9 +65,12 @@ export default function ModalMotion({
             exit={
               reduced
                 ? { opacity: 0 }
-                : { opacity: 0, scale: 0.98, y: 8 }
+                : { opacity: 0, scale: 0.99, y: 4 }
             }
-            transition={{ duration: reduced ? 0.12 : 0.3, ease: EASE.APPLE }}
+            transition={{
+              duration: reduced ? 0.1 : (TRANSITION.FAST.duration as number) ?? 0.28,
+              ease: EASE.SMOOTH,
+            }}
           >
             {children}
           </motion.div>

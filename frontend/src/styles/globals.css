@@ -77,12 +77,22 @@
     @apply max-w-none;
   }
 
+  /* 阶段 B：阅读舒适 — 行高与段距 */
   .prose :where(p):not(:where([class~='not-prose'], [class~='not-prose'] *)) {
-    @apply leading-relaxed;
+    @apply leading-relaxed md:leading-[1.8];
+    margin-top: 0.85em;
+    margin-bottom: 0.85em;
   }
 
   .prose :where(h1, h2, h3, h4):not(:where([class~='not-prose'], [class~='not-prose'] *)) {
-    @apply font-bold;
+    @apply font-bold tracking-tight;
+    line-height: 1.35;
+    margin-top: 1.6em;
+    margin-bottom: 0.6em;
+  }
+
+  .prose :where(li):not(:where([class~='not-prose'], [class~='not-prose'] *)) {
+    @apply leading-relaxed;
   }
 
   .prose :where(img):not(:where([class~='not-prose'], [class~='not-prose'] *)) {

@@ -4,7 +4,8 @@ import { useEffect, useState, type RefObject, type ReactNode } from 'react';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 
 const SELECTOR = 'p, h2, h3, h4, pre, img, blockquote, table, ul, ol';
-const MAX_BLOCKS = 12;
+/** 阶段 B：更少入场块，降低长文滚动负担 */
+const MAX_BLOCKS = 8;
 
 interface ArticleBodyRevealProps {
   /** 可选：扫描该节点；不传则用组件自身 root */
@@ -61,9 +62,9 @@ export default function ArticleBodyReveal({
         const prevOpacity = el.style.opacity;
         const prevTransform = el.style.transform;
         el.style.opacity = '0';
-        el.style.transform = 'translate3d(0, 14px, 0)';
+        el.style.transform = 'translate3d(0, 8px, 0)';
         el.style.transition =
-          'opacity 0.45s cubic-bezier(0.22, 1, 0.36, 1), transform 0.45s cubic-bezier(0.22, 1, 0.36, 1)';
+          'opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
 
         const io = new IntersectionObserver(
           (entries) => {
