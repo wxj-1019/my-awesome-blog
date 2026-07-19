@@ -77,7 +77,7 @@ const MessageReactionsComponent = function MessageReactions({
 
   const motionScale = shouldReduceMotion
     ? undefined
-    : { whileHover: { scale: 1.1 }, whileTap: { scale: 0.95 } };
+    : { whileHover: { scale: 1.05 }, whileTap: { scale: 0.95 } };
   const addMotionScale = shouldReduceMotion
     ? undefined
     : { whileHover: { scale: 1.05 }, whileTap: { scale: 0.95 } };
@@ -102,21 +102,21 @@ const MessageReactionsComponent = function MessageReactions({
                 "text-sm transition-all duration-200",
                 isReacted
                   ? "bg-primary/20 text-primary border-primary/50"
-                  : "bg-black/40 text-white/70 border-white/10 hover:border-white/30"
+                  : "bg-muted/40 text-muted-foreground border-border hover:border-primary/30"
               )}
               {...motionScale}
             >
               <Icon className="w-4 h-4" aria-hidden />
               {count > 0 && (
                 <span className={cn(
-                  "text-xs font-medium",
+                  "text-xs font-medium tabular-nums",
                   isReacted ? "text-primary" : "text-muted-foreground"
                 )}>
                   {count}
                 </span>
               )}
 
-              {activeReaction === key && (
+              {activeReaction === key && !shouldReduceMotion && (
                 <motion.div
                   className="absolute -inset-2 rounded-full bg-primary/10"
                   initial={{ scale: 0, opacity: 0 }}
