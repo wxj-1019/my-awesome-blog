@@ -1,21 +1,47 @@
 import { env } from '@/lib/env';
 
 /**
- * 浏览器：走公网/同域 API（NEXT_PUBLIC_*，构建期注入）。
- * 服务端（RSC/SSR）：优先 INTERNAL_API_URL，在 Compose 内直连 backend:8989。
+ * API Base URL 解析：
+ * - 浏览器：优先同域相对路径 `/api/v1`（nginx 反代），避免 CORS / localhost 误注入
+ * - 服务端 RSC：INTERNAL_API_URL（Compose 内 backend:8989）
+ * - 开发：可用 NEXT_PUBLIC_* 指向本机
  */
 function resolveApiBaseUrl(): string {
+  // 服务端（RSC / SSR / Route Handler）
   if (typeof window === 'undefined') {
     const internal = process.env.INTERNAL_API_URL?.replace(/\/$/, '');
     if (internal) {
       return internal.endsWith('/api/v1') ? internal : `${internal}/api/v1`;
     }
+    const pub =
+      process.env.NEXT_PUBLIC_API_BASE_URL ||
+      process.env.NEXT_PUBLIC_API_URL ||
+      '';
+    if (pub && !pub.includes('localhost') && !pub.includes('127.0.0.1')) {
+      return pub.replace(/\/$/, '');
+    }
+    // 构建期 / 无 backend 时的兜底（仅服务端）
+    return 'http://backend:8989/api/v1';
   }
-  return (
-    env.NEXT_PUBLIC_API_URL ||
-    env.NEXT_PUBLIC_API_BASE_URL ||
-    'http://localhost:8989/api/v1'
-  );
+
+  // 浏览器：同域相对路径最稳（生产经 nginx；开发经 next rewrites）
+  const configured =
+    env.NEXT_PUBLIC_API_BASE_URL || env.NEXT_PUBLIC_API_URL || '';
+  if (
+    configured &&
+    !configured.includes('localhost') &&
+    !configured.includes('127.0.0.1') &&
+    !configured.includes('yourdomain') &&
+    !configured.includes('your-public-host')
+  ) {
+    // 绝对公网 URL（可选）或已是 /api/v1
+    if (configured.startsWith('/')) {
+      return configured.replace(/\/$/, '') || '/api/v1';
+    }
+    return configured.replace(/\/$/, '');
+  }
+
+  return '/api/v1';
 }
 
 export const API_BASE_URL = resolveApiBaseUrl();
@@ -31,7 +57,8 @@ export async function apiFetch(
   options: RequestInit = {},
   retries = 1
 ): Promise<Response> {
-  const token = typeof window !== 'undefined' ? localStorage.getItem(TOKEN_KEY) : null;
+  const token =
+    typeof window !== 'undefined' ? localStorage.getItem(TOKEN_KEY) : null;
   const base = resolveApiBaseUrl();
   const url = input.startsWith('http') ? input : `${base}${input}`;
   const headers: HeadersInit = {
@@ -49,7 +76,7 @@ export async function apiFetch(
     return response;
   } catch (error) {
     if (retries > 0) {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       return apiFetch(input, options, retries - 1);
     }
     throw error;
@@ -61,11 +88,12 @@ export async function apiRequest<T = unknown>(
   options: ApiClientOptions = {},
   retries = 1
 ): Promise<T> {
-  const token = typeof window !== 'undefined' ? localStorage.getItem(TOKEN_KEY) : null;
+  const token =
+    typeof window !== 'undefined' ? localStorage.getItem(TOKEN_KEY) : null;
 
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
-    ...(token && { 'Authorization': `Bearer ${token}` }),
+    ...(token && { Authorization: `Bearer ${token}` }),
     ...options.headers,
   };
 
@@ -91,52 +119,28 @@ export async function apiRequest<T = unknown>(
 
       if ((response.status >= 500 || response.status === 0) && retries > 0) {
         console.warn(`请求失败，正在重试 (${retries}次剩余): ${endpoint}`);
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
         return apiRequest<T>(endpoint, options, retries - 1);
       }
 
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `请求失败: ${response.status}`);
+      throw new Error(
+        (errorData as { message?: string }).message ||
+          `请求失败: ${response.status}`
+      );
     }
 
     if (response.status === 204) {
       return undefined as T;
     }
 
-    return response.json();
+    return response.json() as Promise<T>;
   } catch (error) {
-    if (retries > 0) {
+    if (retries > 0 && !(error instanceof Error && error.message === '认证失败')) {
       console.warn(`网络错误，正在重试 (${retries}次剩余): ${endpoint}`, error);
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       return apiRequest<T>(endpoint, options, retries - 1);
     }
     throw error;
   }
 }
-
-export const get = <T = unknown>(endpoint: string, options: RequestInit = {}) =>
-  apiRequest<T>(endpoint, { ...options, method: 'GET' });
-
-export const post = <T = unknown>(endpoint: string, data?: unknown, options: RequestInit = {}) =>
-  apiRequest<T>(endpoint, {
-    ...options,
-    method: 'POST',
-    body: data,
-  });
-
-export const put = <T = unknown>(endpoint: string, data?: unknown, options: RequestInit = {}) =>
-  apiRequest<T>(endpoint, {
-    ...options,
-    method: 'PUT',
-    body: data,
-  });
-
-export const del = <T = unknown>(endpoint: string, options: RequestInit = {}) =>
-  apiRequest<T>(endpoint, { ...options, method: 'DELETE' });
-
-export const patch = <T = unknown>(endpoint: string, data?: unknown, options: RequestInit = {}) =>
-  apiRequest<T>(endpoint, {
-    ...options,
-    method: 'PATCH',
-    body: data,
-  });

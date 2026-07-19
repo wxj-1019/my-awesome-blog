@@ -1,6 +1,5 @@
 import { getAuthHeaders } from '@/lib/auth-utils';
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8989/api/v1';
+import { API_BASE_URL } from '@/lib/api-client';
 
 interface ApiError {
   message: string;

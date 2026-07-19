@@ -1,66 +1,49 @@
 FROM node:20-alpine AS base
 
-# Clear injected proxy env vars (host 127.0.0.1:7890 unreachable from container)
 ENV HTTP_PROXY="" HTTPS_PROXY="" http_proxy="" https_proxy=""
 
-# Install dependencies only when needed
 FROM base AS deps
-# Check https://github.com/nodejs/docker-node/tree/18.17.1-alpine3.18 for the alpine version
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
-
-# Install dependencies based on the preferred package manager
 COPY package.json package-lock.json* ./
-# Use Chinese npm mirror for faster downloads, skip postinstall (scripts not copied yet)
 RUN npm config set registry https://registry.npmmirror.com && \
     npm ci --legacy-peer-deps --ignore-scripts
 
-
-# Rebuild the source code only when needed
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Next.js collects completely anonymous telemetry data about general usage.
-# Learn more here: https://nextjs.org/telemetry
-# Disable telemetry collection to respect privacy
-RUN npx next telemetry disable
+# 必须用 compose/build --build-arg 传入公网 URL；无默认 localhost，避免打进客户端
+ARG NEXT_PUBLIC_SITE_URL
+ARG NEXT_PUBLIC_API_BASE_URL
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
+ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
-# Generate the build
+# 去掉可能覆盖 build-arg 的 env 文件
+RUN rm -f .env.production .env.local .env.development .env || true \
+  && echo "BUILD SITE=$NEXT_PUBLIC_SITE_URL" \
+  && echo "BUILD API_BASE=$NEXT_PUBLIC_API_BASE_URL" \
+  && echo "BUILD API_URL=$NEXT_PUBLIC_API_URL" \
+  && test -n "$NEXT_PUBLIC_SITE_URL" \
+  && test -n "$NEXT_PUBLIC_API_BASE_URL" \
+  && test -n "$NEXT_PUBLIC_API_URL"
+
+RUN npx next telemetry disable
 RUN npm run build
 
-# Production image, copy all the files and run next
 FROM base AS runner
 WORKDIR /app
-
 ENV NODE_ENV=production
-
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-
-# Copy the prisma folder and generate prisma client
-# COPY --from=builder /app/prisma ./prisma
-# RUN npx prisma generate
-
-# You only need to copy next.config.js if you are NOT using the default config
-# COPY --from=builder /app/next.config.js ./
-
+RUN addgroup --system --gid 1001 nodejs \
+  && adduser --system --uid 1001 nextjs
 COPY --from=builder /app/public ./public
-
-# Set the correct permission for prerender cache
-RUN mkdir .next
-RUN chown nextjs:nodejs .next
-
-# Automatically leverage output traces to reduce image size
-# https://nextjs.org/docs/advanced-features/output-file-tracing
+RUN mkdir .next && chown nextjs:nodejs .next
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
 USER nextjs
-
 EXPOSE 3000
-
 ENV PORT=3000
-
 CMD ["node", "server.js"]

@@ -16,10 +16,8 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { env } from '@/lib/env';
+import { API_BASE_URL } from '@/lib/api-client';
 import type { SelectedPromptInfo } from './ChatSidebar';
-
-const API_BASE_URL = env.NEXT_PUBLIC_API_URL || 'http://localhost:8989/api/v1';
 
 export interface ChatMessage {
   id: string;
