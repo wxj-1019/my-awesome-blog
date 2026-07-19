@@ -751,6 +751,8 @@ export interface ThemeContextType {
   theme: Theme;
   resolvedTheme: 'light' | 'dark';
   setTheme: (theme: Theme) => void;
+  /** 是否完成客户端 hydrate */
+  isMounted?: boolean;
 }
 
 // 错误边界类型

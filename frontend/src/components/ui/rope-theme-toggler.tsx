@@ -60,16 +60,11 @@ export const RopeThemeToggler = ({
     // 触发绳子拉动动画
     setIsPulling(true);
 
-    // 获取当前主题状态
-    const currentIsDark = document.documentElement.classList.contains('dark');
-    const newTheme = currentIsDark ? 'light' : 'dark';
+    // 以 Context 解析结果为准（避免只读 class 与 state 短暂不一致）
+    // 拉动切换会固定为 light/dark（不再停留 auto），与显式选择一致
+    const newTheme: 'light' | 'dark' = resolvedTheme === 'dark' ? 'light' : 'dark';
 
-    // 保存到localStorage
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('theme', newTheme);
-    }
-
-    // 在动画结束后切换主题
+    // 在动画结束后切换主题（setTheme 内部会写 localStorage，勿双写）
     setTimeout(async () => {
       // 如果支持View Transitions API，使用动画切换
       if (hasViewTransitionSupport && !prefersReducedMotion) {
@@ -124,7 +119,7 @@ export const RopeThemeToggler = ({
         setIsPulling(false);
       }, 300);
     }, 150); // 等待下拉动画的一半时间后切换主题
-  }, [setTheme, animationDuration]);
+  }, [setTheme, animationDuration, resolvedTheme]);
 
   return (
     <div

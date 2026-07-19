@@ -2,12 +2,17 @@
 
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 
-type Theme = 'light' | 'dark' | 'auto';
+/** 用户偏好：含跟随系统 */
+export type Theme = 'light' | 'dark' | 'auto';
+/** 实际渲染主题（已解析 auto） */
+export type ResolvedTheme = 'light' | 'dark';
 
 interface ThemeContextType {
   theme: Theme;
   setTheme: (theme: Theme) => void;
-  resolvedTheme: 'light' | 'dark';
+  resolvedTheme: ResolvedTheme;
+  /** 是否完成客户端 hydrate（可读 localStorage） */
+  isMounted: boolean;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -73,17 +78,23 @@ export function ThemeProvider({
   storageKey?: string;
 }) {
   const [isMounted, setIsMounted] = useState(false);
+  // 默认 auto；首屏已由 layout 内联脚本写好 html.dark/light，此处 hydrate 后再对齐
   const [theme, setThemeState] = useState<Theme>(defaultTheme);
-  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('dark');
+  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>(() => {
+    if (typeof document !== 'undefined') {
+      return document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+    }
+    return 'dark';
+  });
 
   useEffect(() => {
     const initialTheme = getInitialTheme();
     const initialResolved = resolveTheme(initialTheme);
-    
+
     setThemeState(initialTheme);
     setResolvedTheme(initialResolved);
     applyThemeToDocument(initialResolved);
-    
+
     setIsMounted(true);
   }, []);
 
@@ -128,7 +139,8 @@ export function ThemeProvider({
   const value = {
     theme,
     setTheme,
-    resolvedTheme
+    resolvedTheme,
+    isMounted,
   };
 
   return (
