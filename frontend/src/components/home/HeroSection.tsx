@@ -3,13 +3,13 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from '@/lib/framer-motion';
 import TextType from './TextType';
-import GlassCard from '../ui/GlassCard';
 import { useTheme } from '../../context/theme-context';
 import WaveStack from '../ui/WaveStack';
 import ScrollIndicator from './ScrollIndicator';
 import logger from '@/utils/logger';
 import { useScrollProgress } from '@/hooks/useScrollProgress';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { cn } from '@/lib/utils';
 
 /** Phase 2 L3：默认开启；设 NEXT_PUBLIC_MOTION_L3=0 可回退静态 Hero */
 const MOTION_L3_ENABLED = process.env.NEXT_PUBLIC_MOTION_L3 !== '0';
@@ -202,8 +202,14 @@ export default function HeroSection() {
           aria-hidden="true"
         />
 
+        {/* 视频可读性遮罩：底部略重，中间留给文案，避免整块实心玻璃盖住画面 */}
         <div
-          className="absolute inset-0 bg-[color:var(--background)]/[.2]"
+          className={cn(
+            'absolute inset-0 pointer-events-none',
+            resolvedTheme === 'dark'
+              ? 'bg-gradient-to-b from-black/35 via-black/15 to-black/45'
+              : 'bg-gradient-to-b from-slate-900/25 via-slate-900/10 to-slate-900/35'
+          )}
           aria-hidden="true"
         />
       </div>
@@ -218,26 +224,69 @@ export default function HeroSection() {
         }}
       >
         <div className="container mx-auto px-4 text-center flex-1 flex flex-col justify-center">
-          {/* 精简 hero：对齐早期版本，仅小玻璃卡 + 打字机，去掉大副标题/描述/CTA */}
-          <GlassCard
-            padding="sm"
-            hoverEffect={false}
-            glowEffect={false}
-            className="max-w-xl md:max-w-2xl mx-auto text-center animate-fade-in-up px-5 py-4 md:px-8 md:py-5"
+          {/*
+            电影感打字机：融入月夜云海 / 奇幻鹿景视频
+            - 不用厚实 GlassCard，改用轻 vignette + 文字光晕
+            - 光标用月光/晨雾色，节奏略慢
+          */}
+          <div
             role="banner"
             aria-label="欢迎信息"
+            className={cn(
+              'relative mx-auto max-w-3xl px-4 py-6 md:px-8 md:py-8',
+              'animate-fade-in-up'
+            )}
           >
+            {/* 柔光托底：只让字区可读，不遮整幅视频 */}
+            <div
+              className={cn(
+                'pointer-events-none absolute inset-0 -z-10 rounded-[2rem] blur-2xl',
+                resolvedTheme === 'dark'
+                  ? 'bg-[radial-gradient(ellipse_at_center,rgba(15,23,42,0.55)_0%,rgba(15,23,42,0.12)_55%,transparent_75%)]'
+                  : 'bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.42)_0%,rgba(255,255,255,0.1)_55%,transparent_75%)]'
+              )}
+              aria-hidden
+            />
+
+            <p
+              className={cn(
+                'mb-3 text-[10px] sm:text-xs font-medium uppercase tracking-[0.35em]',
+                resolvedTheme === 'dark'
+                  ? 'text-teal-100/70'
+                  : 'text-white/80 drop-shadow-sm'
+              )}
+            >
+              {resolvedTheme === 'dark' ? 'Moonlit field' : 'Fantasy trail'}
+            </p>
+
             <h1
-              className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight leading-snug text-foreground"
               id="hero-title"
+              className={cn(
+                'font-display text-3xl sm:text-4xl md:text-5xl lg:text-[3.25rem]',
+                'font-semibold tracking-wide leading-snug',
+                resolvedTheme === 'dark'
+                  ? 'text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.45),0_0_28px_rgba(94,234,212,0.28),0_0_48px_rgba(56,189,248,0.12)]'
+                  : 'text-white [text-shadow:0_2px_8px_rgba(15,23,42,0.35),0_0_24px_rgba(255,255,255,0.25)]'
+              )}
             >
               <TextType
-                fetchFromApi={true}
-                typingSpeed={75}
-                pauseDuration={1500}
+                fetchFromApi
+                typingSpeed={88}
+                deletingSpeed={36}
+                pauseDuration={2200}
+                initialDelay={400}
                 showCursor
-                cursorCharacter="_"
-                loop={true}
+                cursorCharacter="▍
+                cursorClassName={cn(
+                  'ml-1.5 align-baseline text-[0.9em] font-light',
+                  resolvedTheme === 'dark'
+                    ? 'text-teal-200/95 drop-shadow-[0_0_10px_rgba(94,234,212,0.85)]'
+                    : 'text-amber-50/95 drop-shadow-[0_0_8px_rgba(255,255,255,0.7)]'
+                )}
+                cursorBlinkDuration={0.7}
+                loop
+                variableSpeed={{ min: 60, max: 110 }}
+                className="inline"
                 aria-live="polite"
                 aria-atomic="true"
               />
@@ -245,7 +294,16 @@ export default function HeroSection() {
                 欢迎来到我的博客，这里分享技术、设计与生活
               </span>
             </h1>
-          </GlassCard>
+
+            {/* 细装饰线：像地平线 / 薄雾分界 */}
+            <div
+              className={cn(
+                'mx-auto mt-5 h-px w-16 sm:w-24',
+                'bg-gradient-to-r from-transparent via-white/50 to-transparent'
+              )}
+              aria-hidden
+            />
+          </div>
         </div>
 
         <div
