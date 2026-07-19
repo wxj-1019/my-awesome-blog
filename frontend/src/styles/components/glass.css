@@ -72,14 +72,15 @@
 
 .bg-glass {
   background: var(--glass-default);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
+/* 使用 token，避免写死浅色半透明导致深色主题发灰发透 */
 .bg-glass\/90 {
-  background: rgba(255,255,255,0.9);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: var(--glass-default);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
 .border-glass-border {

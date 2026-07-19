@@ -47,10 +47,11 @@
   --destructive: #dc2626;
   --destructive-foreground: #fef2f2;
 
-  --glass-default: rgba(255, 255, 255, 0.92);
-  --glass-border: rgba(14, 165, 233, 0.14);
+  /* 提高不透明度，保证视频/复杂背景上正文可读 */
+  --glass-default: rgba(255, 255, 255, 0.96);
+  --glass-border: rgba(14, 165, 233, 0.2);
   --glass-glow: rgba(14, 165, 233, 0.16);
-  --glass-shadow: 0 12px 40px rgba(15, 23, 42, 0.06);
+  --glass-shadow: 0 12px 40px rgba(15, 23, 42, 0.08);
 
   /* 统一科技色系 - 使用青色系 */
   --tech-darkblue: #0c4a6e;
@@ -184,10 +185,11 @@
   --destructive: #dc2626;
   --destructive-foreground: #fef2f2;
 
-  --glass-default: rgba(255, 255, 255, 0.92);
-  --glass-border: rgba(14, 165, 233, 0.14);
+  /* 与 :root 同步：浅色玻璃略更实，避免衬底透出影响对比 */
+  --glass-default: rgba(255, 255, 255, 0.96);
+  --glass-border: rgba(14, 165, 233, 0.2);
   --glass-glow: rgba(14, 165, 233, 0.16);
-  --glass-shadow: 0 12px 40px rgba(15, 23, 42, 0.06);
+  --glass-shadow: 0 12px 40px rgba(15, 23, 42, 0.08);
 
   --tech-darkblue: #0c4a6e;
   --tech-deepblue: #075985;
@@ -294,16 +296,17 @@
   --secondary-foreground: #e2e8f0;
   --accent: #8b5cf6;
   --accent-foreground: #ffffff;
-  --card: rgba(15, 23, 42, 0.78);
+  /* 卡片略更实，避免暗底透出导致对比不足 */
+  --card: rgba(15, 23, 42, 0.9);
   --card-foreground: #e2e8f0;
-  --border: rgba(94, 234, 212, 0.14);
-  --glass-light-border: rgba(34, 211, 238, 0.2);
+  --border: rgba(94, 234, 212, 0.18);
+  --glass-light-border: rgba(34, 211, 238, 0.22);
 
-  --muted: rgba(30, 41, 59, 0.6);
-  --muted-foreground: #94a3b8;
-  --popover: rgba(15, 23, 42, 0.95);
+  --muted: rgba(30, 41, 59, 0.72);
+  --muted-foreground: #cbd5e1;
+  --popover: rgba(15, 23, 42, 0.97);
   --popover-foreground: #e2e8f0;
-  --input: rgba(30, 41, 59, 0.6);
+  --input: rgba(30, 41, 59, 0.72);
   --ring: #5eead4;
 
   --success: #22c55e;
@@ -317,10 +320,11 @@
   --destructive: #ef4444;
   --destructive-foreground: #fef2f2;
 
-  --glass-default: rgba(15, 23, 42, 0.72);
-  --glass-border: rgba(94, 234, 212, 0.12);
-  --glass-glow: rgba(94, 234, 212, 0.18);
-  --glass-shadow: 0 16px 48px rgba(0, 0, 0, 0.28);
+  /* 深色玻璃：0.72 → 0.9，Hero/视频背景下正文更易读，仍保留轻透感 */
+  --glass-default: rgba(15, 23, 42, 0.9);
+  --glass-border: rgba(94, 234, 212, 0.2);
+  --glass-glow: rgba(94, 234, 212, 0.2);
+  --glass-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
 
   /* 暗色主题科技色 - 更亮的青色确保对比度 */
   --tech-darkblue: #0c4a6e;
