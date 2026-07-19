@@ -1,7 +1,6 @@
 'use client'
 
 import HeroSection from '@/components/home/HeroSection'
-import HomeVisualBridge from '@/components/home/HomeVisualBridge'
 import FeaturedHighlights from '@/components/home/FeaturedHighlights'
 import StatsPanel from '@/components/home/StatsPanel'
 import TechStack from '@/components/home/TechStack'
@@ -25,7 +24,6 @@ export default function Home() {
 
       <div id="content" className="relative z-10 bg-background">
         <HeroSection />
-        <HomeVisualBridge />
 
         <section id="featured-highlights" className="bg-background">
           <FeaturedHighlights />
