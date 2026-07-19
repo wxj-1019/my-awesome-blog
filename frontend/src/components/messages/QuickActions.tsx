@@ -4,17 +4,11 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from '@/lib/framer-motion';
 import { Smile, BookOpen, Keyboard, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { COMPOSER_EMOJI_CATALOG } from '@/lib/emoji-icon-map';
 
 interface QuickEmojiProps {
   onEmojiSelect: (emoji: string) => void;
 }
-
-// 常用表情列表
-const EMOJIS = [
-  '😀', '😂', '🥰', '😍', '🤔', '😎', '👍', '👎',
-  '❤️', '🎉', '🔥', '✨', '💯', '🚀', '💪', '👏',
-  '🙏', '🤝', '💪', '🌟', '✅', '❌', '⭐', '🌈'
-];
 
 interface QuickPhraseProps {
   onPhraseSelect: (phrase: string) => void;
@@ -50,17 +44,19 @@ const SHORTCUTS = [
 export function QuickEmoji({ onEmojiSelect }: QuickEmojiProps) {
   return (
     <div className="grid grid-cols-6 gap-2 p-2">
-      {EMOJIS.map((emoji, index) => (
+      {COMPOSER_EMOJI_CATALOG.map(({ key, icon: Icon, label }, index) => (
         <motion.button
-          key={emoji}
+          key={key}
+          type="button"
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: index * 0.02 }}
-          onClick={() => onEmojiSelect(emoji)}
-          className="text-2xl p-2 rounded-lg hover:bg-white/10 transition-colors"
-          title={emoji}
+          onClick={() => onEmojiSelect(key)}
+          className="p-2 rounded-lg hover:bg-white/10 transition-colors text-white/80 hover:text-white"
+          title={label}
+          aria-label={label}
         >
-          {emoji}
+          <Icon className="w-5 h-5 mx-auto" aria-hidden="true" />
         </motion.button>
       ))}
     </div>

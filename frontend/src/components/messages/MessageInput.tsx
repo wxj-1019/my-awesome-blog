@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { createMessage, DANMAKU_COLORS, validateMessage } from '@/services/messageService';
 import { useThemedClasses } from '@/hooks/useThemedClasses';
 import { Send, Palette, MessageSquare, Sparkles, Smile, Bold, Italic, Link, AtSign } from 'lucide-react';
+import { COMPOSER_EMOJI_CATALOG } from '@/lib/emoji-icon-map';
 import { Message } from '@/types';
 
 interface MessageInputProps {
@@ -213,14 +214,16 @@ function MessageInput({
       {showEmojiPicker && (
         <div className="mt-2 p-3 bg-accent rounded-lg border border-input">
           <div className="grid grid-cols-8 gap-2">
-            {['😀', '😂', '😍', '🥰', '😎', '🤩', '🥳', '😭', '😡', '🤯', '🥶', '😱', '🤠', '🥴', '😈', '👻'].map((emoji) => (
+            {COMPOSER_EMOJI_CATALOG.map(({ key, icon: Icon, label }) => (
               <button
-                key={emoji}
+                key={key}
                 type="button"
-                onClick={() => insertEmoji(emoji)}
-                className="text-xl transition-transform"
+                onClick={() => insertEmoji(key)}
+                className="p-1.5 rounded-md hover:bg-background/50 transition-colors text-muted-foreground hover:text-foreground"
+                title={label}
+                aria-label={label}
               >
-                {emoji}
+                <Icon className="w-5 h-5 mx-auto" aria-hidden="true" />
               </button>
             ))}
           </div>
