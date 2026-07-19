@@ -16,7 +16,7 @@ interface HotArticlesProps {
   articles: Article[];
 }
 function HotArticles({ articles }: HotArticlesProps) {
-  const { themedClasses, getThemeClass } = useThemedClasses();
+  const { themedClasses } = useThemedClasses();
   const textClass = themedClasses.textClass;
   const mutedTextClass = themedClasses.mutedTextClass;
   // 取前6篇热门文章（按浏览量排序）
@@ -45,10 +45,7 @@ function HotArticles({ articles }: HotArticlesProps) {
                 className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
                   index < 3
                     ? 'bg-tech-cyan text-white'
-                    : getThemeClass(
-                        'bg-glass/20 text-foreground/70',
-                        'bg-gray-200 text-gray-600'
-                      )
+                    : 'bg-muted/50 text-muted-foreground'
                 }`}
               >
                 {index + 1}

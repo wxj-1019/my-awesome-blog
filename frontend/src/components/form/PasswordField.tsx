@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from '@/lib/framer-motion';
 import { Eye, EyeOff, Lock, Check, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useThemedClasses } from '@/hooks/useThemedClasses';
 
 export interface PasswordStrength {
   score: number;
@@ -88,7 +87,6 @@ export default function PasswordField({
   className
 }: PasswordFieldProps) {
   const [showPassword, setShowPassword] = useState(false);
-  const { getThemeClass } = useThemedClasses();
   const strength = calculateStrength(value);
 
   const requirements = [
@@ -118,12 +116,9 @@ export default function PasswordField({
           disabled={disabled}
           className={cn(
             'w-full pl-4 pr-12 py-3 rounded-lg border transition-all',
-            getThemeClass(
-              error
-                ? 'border-red-500 focus:ring-red-500/20 text-foreground'
-                : 'border-glass-border focus:ring-tech-cyan/20 text-foreground',
-              'border-gray-300 focus:ring-blue-500/20 text-gray-800'
-            ),
+            error
+              ? 'border-destructive focus:ring-destructive/20 text-foreground'
+              : 'border-border focus:ring-primary/20 text-foreground',
             'focus:outline-none focus:ring-2 focus:border-transparent',
             disabled && 'opacity-50 cursor-not-allowed'
           )}

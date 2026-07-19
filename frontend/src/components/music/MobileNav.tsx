@@ -58,7 +58,7 @@ export default function MobileNav({ activeSection, onSectionChange }: MobileNavP
   ];
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 h-16 bg-[#1a1a2e]/95 backdrop-blur-2xl border-t border-white/5">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 h-16 bg-card/95 backdrop-blur-2xl border-t border-white/5">
       <div className="flex items-center justify-around h-full px-4 pb-safe">
         {navItems.map((item) => (
           <NavItem

@@ -17,7 +17,7 @@ interface CategoryNavProps {
   onCategorySelect: (categoryId: string | null) => void;
 }
 function CategoryNav({ categories, selectedCategory, onCategorySelect }: CategoryNavProps) {
-  const { themedClasses, getThemeClass } = useThemedClasses();
+  const { themedClasses } = useThemedClasses();
   const mutedTextClass = themedClasses.mutedTextClass;
   if (!categories || categories.length === 0) {
     return null;
@@ -34,10 +34,7 @@ function CategoryNav({ categories, selectedCategory, onCategorySelect }: Categor
           className={`w-full text-left px-3 py-2.5 rounded-lg flex items-center justify-between transition-all duration-200 ${
             !selectedCategory
               ? 'bg-tech-cyan/20 text-tech-cyan font-medium'
-              : getThemeClass(
-                  'hover:bg-glass/20 text-foreground',
-                  'hover:bg-gray-100 text-gray-700'
-                )
+              : 'hover:bg-muted/40 text-foreground'
           }`}
         >
           <span className="flex items-center gap-2">
@@ -58,10 +55,7 @@ function CategoryNav({ categories, selectedCategory, onCategorySelect }: Categor
             className={`block w-full text-left px-3 py-2.5 rounded-lg flex items-center justify-between transition-all duration-200 ${
               selectedCategory === category.id
                 ? 'bg-tech-cyan/20 text-tech-cyan font-medium'
-                : getThemeClass(
-                    'hover:bg-glass/20 text-foreground',
-                    'hover:bg-gray-100 text-gray-700'
-                  )
+                : 'hover:bg-muted/40 text-foreground'
             }`}
           >
             <span className="flex items-center gap-2">

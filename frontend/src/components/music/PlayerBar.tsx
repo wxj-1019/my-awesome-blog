@@ -82,7 +82,7 @@ export default function PlayerBar({
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50">
       <div className={cn(
-        'h-20 bg-[#1a1a2e]/95 backdrop-blur-2xl border-t border-white/5 shadow-2xl shadow-black/50 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]',
+        'h-20 bg-card/95 backdrop-blur-2xl border-t border-white/5 shadow-2xl shadow-black/50 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]',
         isExpanded && 'h-screen'
       )}>
         <div className="flex items-center h-20 px-6 max-w-screen-2xl mx-auto">
@@ -110,7 +110,7 @@ export default function PlayerBar({
                   />
                   {/* Center hole for vinyl effect */}
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div className="w-3 h-3 bg-[#1a1a2e] rounded-full" />
+                    <div className="w-3 h-3 bg-card rounded-full" />
                   </div>
                   {/* Playing indicator glow */}
                   {isPlaying && (

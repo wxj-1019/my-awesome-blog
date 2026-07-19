@@ -73,7 +73,7 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
   const [newCommentContent, setNewCommentContent] = useState('');
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
-  const { themedClasses, getThemeClass } = useThemedClasses();
+  const { themedClasses } = useThemedClasses();
   const { showLoading, hideLoading } = useLoading();
   useCodeBlockEnhancement(contentRef);
   const readingProgress = useReadingProgress(contentRef);
@@ -207,10 +207,7 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
   // 主题相关样式
   const cardBgClass = themedClasses.cardBgClass;
   const textClass = themedClasses.textClass;
-  const accentClass = getThemeClass(
-    'text-tech-cyan',
-    'text-blue-600'
-  );
+  const accentClass = 'text-primary';
   const mutedTextClass = themedClasses.mutedTextClass;
   if (error) {
     return (
@@ -237,14 +234,8 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
         cardBgClass={cardBgClass}
         textClass={textClass}
         mutedTextClass={mutedTextClass}
-        accentActiveClass={getThemeClass(
-          'bg-tech-cyan/20 text-tech-cyan font-medium',
-          'bg-blue-100 text-blue-800 font-medium'
-        )}
-        idleLinkClass={getThemeClass(
-          'text-foreground/70 hover:text-tech-cyan',
-          'text-gray-600 hover:text-blue-600'
-        )}
+        accentActiveClass="bg-primary/20 text-primary font-medium"
+        idleLinkClass="text-muted-foreground hover:text-primary"
       />
       <div className="max-w-7xl mx-auto pb-8">
         {loading ? (
@@ -266,7 +257,6 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
               onBookmark={handleBookmark}
               formatDate={formatDate}
               textClass={textClass}
-              getThemeClass={getThemeClass}
               mediaSlot={
                 <MediaPlayer
                   mediaItems={[
@@ -296,14 +286,8 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
                   cardBgClass={cardBgClass}
                   textClass={textClass}
                   mutedTextClass={mutedTextClass}
-                  accentActiveClass={getThemeClass(
-                    'bg-tech-cyan/20 text-tech-cyan font-medium',
-                    'bg-blue-100 text-blue-800 font-medium'
-                  )}
-                  idleLinkClass={getThemeClass(
-                    'text-foreground/70 hover:text-tech-cyan',
-                    'text-gray-600 hover:text-blue-600'
-                  )}
+                  accentActiveClass="bg-primary/20 text-primary font-medium"
+                  idleLinkClass="text-muted-foreground hover:text-primary"
                 />
               </aside>
               {/* 主内容：lg 为全宽（TOC 浮层），xl 与侧栏并排 */}
@@ -316,7 +300,7 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
                   <div ref={contentRef}>
                     <ArticleBodyReveal enabled>
                       <div
-                        className={`prose max-w-none ${getThemeClass('prose-invert', '')} ${textClass}`}
+                        className={`prose max-w-none dark:prose-invert ${textClass}`}
                       >
                         <MarkdownRenderer content={article.content} />
                       </div>
@@ -330,10 +314,7 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
                       <Badge
                         key={tag.id}
                         variant="outline"
-                        className={getThemeClass(
-                          'border-glass-border text-foreground/80',
-                          'border-gray-300 text-gray-700'
-                        )}
+                        className="border-border text-muted-foreground"
                       >
                         <Tag className="h-3 w-3 mr-1" />
                         {tag.name}
@@ -375,14 +356,8 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
                           onClick={handleFollowAuthor}
                           className={
                             isFollowingAuthor
-                              ? getThemeClass(
-                                  'bg-tech-cyan hover:bg-tech-lightcyan text-black',
-                                  'bg-blue-600 hover:bg-blue-700 text-white'
-                                )
-                              : getThemeClass(
-                                  'border-glass-border hover:bg-glass/40 text-foreground',
-                                  'border-gray-300 hover:bg-gray-50 text-gray-800'
-                                )
+                              ? 'bg-primary hover:bg-primary/90 text-primary-foreground'
+                              : 'border-border hover:bg-muted/40 text-foreground'
                           }
                         >
                           {isFollowingAuthor ? '已关注' : '关注'}
@@ -439,10 +414,7 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
                       value={newCommentContent}
                       onChange={(e) => setNewCommentContent(e.target.value)}
                       disabled={isSubmittingComment}
-                      className={`w-full px-4 py-3 rounded-lg border ${getThemeClass(
-                        'bg-glass/20 border-glass-border text-foreground placeholder:text-foreground/50',
-                        'bg-white/80 border-gray-300 text-gray-800 placeholder:text-gray-500'
-                      )} focus:outline-none focus:ring-2 focus:ring-tech-cyan disabled:opacity-50`}
+                      className="w-full px-4 py-3 rounded-lg border bg-muted/40 border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
                     />
                     <div className="mt-4 flex justify-end">
                       <Button
@@ -470,10 +442,7 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
                         <HoverLift key={relatedArticle.id}>
                           <Link href={`/articles/${relatedArticle.id}`}>
                             <div
-                              className={`p-3 rounded-lg transition-colors ${getThemeClass(
-                                'bg-glass/20 hover:bg-glass/30',
-                                'bg-gray-100 hover:bg-gray-200'
-                              )}`}
+                              className="p-3 rounded-lg transition-colors bg-muted/40 hover:bg-muted"
                             >
                               <h4
                                 className={`font-medium line-clamp-2 ${textClass}`}

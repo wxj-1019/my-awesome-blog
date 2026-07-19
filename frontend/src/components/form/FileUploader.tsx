@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from '@/lib/framer-motion';
 import NextImage from 'next/image';
 import { Upload, X, File, Image, FileText, Film, Music, FileCode, Check, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useThemedClasses } from '@/hooks/useThemedClasses';
 
 export interface UploadedFile {
   id: string;
@@ -58,7 +57,6 @@ export default function FileUploader({
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [errors, setErrors] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
-  const { getThemeClass } = useThemedClasses();
 
   const validateFiles = (fileList: FileList) => {
     const newFiles: UploadedFile[] = [];
@@ -255,10 +253,7 @@ export default function FileUploader({
                 transition={{ delay: index * 0.05 }}
                 className={cn(
                   'relative group p-3 rounded-lg border transition-all',
-                  getThemeClass(
-                    'bg-glass/20 border-glass-border hover:border-tech-cyan/50',
-                    'bg-white border-gray-200 hover:border-blue-300'
-                  )
+                  'bg-muted/40 border-border hover:border-primary/50'
                 )}
               >
                 <div className="flex items-start gap-3">
@@ -275,7 +270,7 @@ export default function FileUploader({
                   ) : (
                     <div className={cn(
                       'w-16 h-16 rounded flex items-center justify-center flex-shrink-0',
-                      getThemeClass('bg-glass/30', 'bg-gray-100')
+                      'bg-muted/40'
                     )}>
                       <FileIcon className="w-8 h-8 text-foreground/50" />
                     </div>

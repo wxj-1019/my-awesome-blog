@@ -3,7 +3,6 @@
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
-import { useThemedClasses } from '@/hooks/useThemedClasses';
 import { motion } from '@/lib/framer-motion';
 
 interface MessagePaginationProps {
@@ -25,8 +24,6 @@ const MessagePagination = ({
 }: MessagePaginationProps) => {
   const currentPage = (typeof propCurrentPage === 'number' && !isNaN(propCurrentPage)) ? propCurrentPage : 1;
   const totalPages = (typeof propTotalPages === 'number' && !isNaN(propTotalPages)) ? propTotalPages : 1;
-
-  const { getThemeClass } = useThemedClasses();
 
   const getPageNumbers = () => {
     const pages: (number | string)[] = [];
@@ -68,6 +65,7 @@ const MessagePagination = ({
   if (totalPages <= 1) {return null;}
 
   const pageNumbers = getPageNumbers();
+  const outlineBtnClass = 'border-border text-foreground hover:bg-muted/40';
 
   return (
     <motion.div
@@ -84,13 +82,7 @@ const MessagePagination = ({
             size="sm"
             onClick={() => handlePageChange(1)}
             disabled={currentPage === 1}
-            className={cn(
-              'w-10 h-10 p-0',
-              getThemeClass(
-                'border-glass-border text-foreground hover:bg-glass/40',
-                'border-gray-300 text-gray-700 hover:bg-gray-100'
-              )
-            )}
+            className={cn('w-10 h-10 p-0', outlineBtnClass)}
             aria-label="首页"
           >
             <ChevronsLeft className="w-4 h-4" aria-hidden="true" />
@@ -104,13 +96,7 @@ const MessagePagination = ({
           size="sm"
           onClick={() => handlePageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className={cn(
-            'w-10 h-10 p-0',
-            getThemeClass(
-              'border-glass-border text-foreground hover:bg-glass/40',
-              'border-gray-300 text-gray-700 hover:bg-gray-100'
-            )
-          )}
+          className={cn('w-10 h-10 p-0', outlineBtnClass)}
           aria-label="上一页"
         >
           <ChevronLeft className="w-4 h-4" aria-hidden="true" />
@@ -136,23 +122,16 @@ const MessagePagination = ({
                   'w-10 h-10 p-0 font-medium',
                   currentPage === page
                     ? 'bg-tech-cyan text-black'
-                    : getThemeClass(
-                        'border-glass-border text-foreground hover:bg-glass/40',
-                        'border-gray-300 text-gray-700 hover:bg-gray-100'
-                      )
+                    : outlineBtnClass
                 )}
               >
                 {page}
               </Button>
             </motion.div>
           ) : (
-            // 省略号占位符：使用 index 作为 key
             <motion.span
               key={index}
-              className={cn(
-                'w-10 h-10 flex items-center justify-center text-sm',
-                getThemeClass('text-foreground/50', 'text-gray-400')
-              )}
+              className="w-10 h-10 flex items-center justify-center text-sm text-muted-foreground"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
             >
@@ -168,13 +147,7 @@ const MessagePagination = ({
           size="sm"
           onClick={() => handlePageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className={cn(
-            'w-10 h-10 p-0',
-            getThemeClass(
-              'border-glass-border text-foreground hover:bg-glass/40',
-              'border-gray-300 text-gray-700 hover:bg-gray-100'
-            )
-          )}
+          className={cn('w-10 h-10 p-0', outlineBtnClass)}
           aria-label="下一页"
         >
           <ChevronRight className="w-4 h-4" aria-hidden="true" />
@@ -188,13 +161,7 @@ const MessagePagination = ({
             size="sm"
             onClick={() => handlePageChange(totalPages)}
             disabled={currentPage === totalPages}
-            className={cn(
-              'w-10 h-10 p-0',
-              getThemeClass(
-                'border-glass-border text-foreground hover:bg-glass/40',
-                'border-gray-300 text-gray-700 hover:bg-gray-100'
-              )
-            )}
+            className={cn('w-10 h-10 p-0', outlineBtnClass)}
             aria-label="末页"
           >
             <ChevronsRight className="w-4 h-4" aria-hidden="true" />
@@ -203,13 +170,7 @@ const MessagePagination = ({
       )}
 
       <motion.div
-        className={cn(
-          'px-4 py-2 rounded-lg text-sm',
-          getThemeClass(
-            'bg-glass/20 text-foreground/70',
-            'bg-gray-100 text-gray-600'
-          )
-        )}
+        className="px-4 py-2 rounded-lg text-sm bg-muted/40 text-muted-foreground"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.2 }}

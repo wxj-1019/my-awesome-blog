@@ -38,7 +38,7 @@ export default function GamesPageContent() {
         onSectionChange={setActiveSection}
       />
 
-      <main className="flex-1 overflow-y-auto bg-white/50 dark:bg-[#000000] scrollbar-hide">
+      <main className="flex-1 overflow-y-auto bg-background/50 scrollbar-hide">
         <div className="max-w-[1600px] mx-auto p-8">
           {/* Only show Hero Section on 'All' or 'Recent' tab */}
           {(activeSection === 'all' || activeSection === 'recent') && (

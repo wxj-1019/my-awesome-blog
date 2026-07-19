@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from '@/lib/framer-motion';
 import { ChevronRight, Home, MoreHorizontal, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useThemedClasses } from '@/hooks/useThemedClasses';
 
 export interface BreadcrumbItem {
   label: string;
@@ -27,7 +26,6 @@ export default function BreadcrumbDropdown({
   className
 }: BreadcrumbDropdownProps) {
   const [showDropdown, setShowDropdown] = useState(false);
-  const { getThemeClass } = useThemedClasses();
 
   const visibleItems = items.slice(0, maxItems);
   const hiddenItems = items.slice(maxItems);
@@ -68,7 +66,7 @@ export default function BreadcrumbDropdown({
                   </span>
                   <button
                     onClick={() => setShowDropdown(false)}
-                    className="p-1 rounded hover:bg-glass/20 text-foreground/60 hover:text-foreground transition-colors"
+                    className="p-1 rounded hover:bg-muted/40 text-muted-foreground hover:text-foreground transition-colors"
                     aria-label="关闭"
                   >
                     <X className="w-4 h-4" aria-hidden="true" />
@@ -87,7 +85,7 @@ export default function BreadcrumbDropdown({
                       className={cn(
                         'w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-all',
                         'text-left text-sm',
-                        getThemeClass('hover:bg-glass/20 text-foreground', 'hover:bg-gray-100 text-gray-700')
+                        'hover:bg-muted/40 text-foreground'
                       )}
                     >
                       {item.icon || <Home className="w-4 h-4" />}
@@ -141,10 +139,7 @@ export default function BreadcrumbDropdown({
               onClick={() => setShowDropdown(!showDropdown)}
               className={cn(
                 'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all',
-                getThemeClass(
-                  'bg-glass/20 text-foreground hover:bg-glass/40',
-                  'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                )
+                'bg-muted/40 text-foreground hover:bg-muted'
               )}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}

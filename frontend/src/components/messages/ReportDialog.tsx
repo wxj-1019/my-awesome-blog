@@ -30,7 +30,7 @@ function ReportDialog({
   const [selectedReason, setSelectedReason] = useState('');
   const [details, setDetails] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { themedClasses, getThemeClass } = useThemedClasses();
+  const { themedClasses } = useThemedClasses();
   const textClass = themedClasses.textClass;
   const mutedTextClass = themedClasses.mutedTextClass;
   const handleClose = useCallback(() => {
@@ -80,10 +80,7 @@ function ReportDialog({
                   variant="ghost"
                   size="sm"
                   onClick={handleClose}
-                  className={cn(
-                    'text-white/50 hover:text-white',
-                    getThemeClass('', 'text-gray-500 hover:text-gray-700')
-                  )}
+                  className="text-muted-foreground hover:text-foreground"
                   aria-label="关闭"
                 >
                   <X className="w-5 h-5" aria-hidden="true" />
@@ -118,10 +115,7 @@ function ReportDialog({
                         'flex items-center gap-2 px-4 py-3 rounded-lg border transition-all text-left',
                         selectedReason === reason.id
                           ? 'bg-tech-pink/20 border-tech-pink text-tech-pink'
-                          : getThemeClass(
-                              'bg-glass/20 border-glass-border text-foreground/70 hover:border-tech-pink/50',
-                              'bg-gray-100 border-gray-200 text-gray-600 hover:border-pink-300'
-                            )
+                          : 'bg-muted/40 border-border text-muted-foreground hover:border-primary/50'
                       )}
                     >
                       <span className="text-lg">{reason.icon}</span>
@@ -141,10 +135,7 @@ function ReportDialog({
                   rows={4}
                   className={cn(
                     'w-full px-4 py-3 rounded-lg border resize-none',
-                    getThemeClass(
-                      'bg-glass/20 border-glass-border text-foreground placeholder:text-foreground/50',
-                      'bg-gray-50 border-gray-300 text-gray-800 placeholder:text-gray-400'
-                    ),
+                    'bg-muted/40 border-border text-foreground placeholder:text-muted-foreground',
                     'focus:outline-none focus:ring-2 focus:ring-tech-pink focus:border-transparent'
                   )}
                 />

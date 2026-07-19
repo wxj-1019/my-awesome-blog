@@ -6,7 +6,6 @@ import {  Clock, ArrowRight } from 'lucide-react'
 import Image from 'next/image'
 import { Album } from '@/types'
 import { cn } from '@/lib/utils'
-import { useThemedClasses } from '@/hooks/useThemedClasses'
 
 interface FocusCardsProps {
   cards: Album[]
@@ -14,8 +13,6 @@ interface FocusCardsProps {
 }
 
 export function FocusCards({ cards, className }: FocusCardsProps) {
-  const { getThemeClass } = useThemedClasses()
-
   if (cards.length === 0) {return null;}
 
   return (
@@ -33,10 +30,7 @@ export function FocusCards({ cards, className }: FocusCardsProps) {
               <div
                 className={cn(
                   'relative rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl',
-                  getThemeClass(
-                    'bg-glass/30 backdrop-blur-xl border border-glass-border',
-                    'bg-white/90 backdrop-blur-xl border-gray-300 shadow-gray-200/50'
-                  )
+                  'bg-card/90 backdrop-blur-xl border border-border'
                 )}
               >
                 <div className="relative aspect-video overflow-hidden">
@@ -54,7 +48,7 @@ export function FocusCards({ cards, className }: FocusCardsProps) {
                       <span
                         className={cn(
                           'px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-sm',
-                          getThemeClass('bg-tech-cyan/90 text-white', 'bg-tech-cyan/90 text-white')
+                          'bg-primary/90 text-primary-foreground'
                         )}
                       >
                         精选
@@ -69,7 +63,7 @@ export function FocusCards({ cards, className }: FocusCardsProps) {
                           key={tech}
                           className={cn(
                             'px-2 py-1 rounded text-xs backdrop-blur-sm',
-                            getThemeClass('bg-white/10 text-white', 'bg-white/80 text-gray-800')
+                            'bg-background/20 text-foreground'
                           )}
                         >
                           {tech}
@@ -88,12 +82,7 @@ export function FocusCards({ cards, className }: FocusCardsProps) {
                   >
                     {card.title}
                   </h3>
-                  <p
-                    className={cn(
-                      'text-sm text-gray-300 line-clamp-2 mb-4',
-                      getThemeClass('', 'text-gray-600')
-                    )}
-                  >
+                  <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
                     {card.description}
                   </p>
 

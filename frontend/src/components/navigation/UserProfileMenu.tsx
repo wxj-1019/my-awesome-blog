@@ -31,7 +31,7 @@ function OnlinePulse() {
 }
 
 const UserProfileMenu: React.FC<UserProfileMenuProps> = ({ mounted }) => {
-  const { themedClasses, isDark } = useThemedClasses();
+  const { themedClasses } = useThemedClasses();
   const [isOpen, setIsOpen] = useState(false);
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -86,7 +86,7 @@ const UserProfileMenu: React.FC<UserProfileMenuProps> = ({ mounted }) => {
         {/* 纯 CSS 出现动画，替代 AnimatePresence + motion.div */}
         <div className="space-y-1 animate-fade-in-up">
           <DropdownMenuLabel 
-            className={`text-xs font-semibold py-3 px-3 tracking-wide ${mounted && isDark ? 'text-foreground/70' : 'text-gray-500'}`}
+            className="text-xs font-semibold py-3 px-3 tracking-wide text-muted-foreground"
           >
             我的账户
           </DropdownMenuLabel>
@@ -150,19 +150,11 @@ const UserProfileMenu: React.FC<UserProfileMenuProps> = ({ mounted }) => {
           <DropdownMenuSeparator className={`my-1 ${themedClasses.separatorClass}`} />
           
           <DropdownMenuItem
-            className={`group cursor-pointer py-2.5 px-3 rounded-lg ${
-              mounted && isDark
-                ? 'focus:bg-red-500/15 hover:bg-red-500/20 transition-all duration-200'
-                : 'focus:bg-red-50 hover:bg-red-50 transition-all duration-200'
-            }`}
+            className="group cursor-pointer py-2.5 px-3 rounded-lg focus:bg-destructive/15 hover:bg-destructive/15 transition-all duration-200"
           >
             <div className="flex items-center w-full">
-              <LogOut className={`h-4 w-4 mr-3 ${
-                mounted && isDark ? 'text-red-400' : 'text-red-500'
-              } group-hover:scale-110 transition-transform duration-200 group-hover:text-red-600`} />
-              <span className={`${
-                mounted && isDark ? 'text-foreground/80' : 'text-gray-800'
-              } group-hover:text-red-600 transition-colors duration-200`}>退出登录</span>
+              <LogOut className="h-4 w-4 mr-3 text-destructive group-hover:scale-110 transition-transform duration-200" />
+              <span className="text-foreground group-hover:text-destructive transition-colors duration-200">退出登录</span>
             </div>
           </DropdownMenuItem>
         </div>

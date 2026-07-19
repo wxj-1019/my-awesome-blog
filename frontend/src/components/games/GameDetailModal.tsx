@@ -28,7 +28,7 @@ export default function GameDetailModal({ game, onClose }: GameDetailModalProps)
           {/* Modal */}
           <motion.div
             layoutId={`game-card-${game.id}`}
-            className="fixed inset-0 md:inset-10 md:max-w-4xl md:mx-auto md:h-fit bg-[#1C1C1E] rounded-2xl overflow-hidden shadow-2xl z-50 flex flex-col md:flex-row"
+            className="fixed inset-0 md:inset-10 md:max-w-4xl md:mx-auto md:h-fit bg-card rounded-2xl overflow-hidden shadow-2xl z-50 flex flex-col md:flex-row"
           >
             <button
               onClick={onClose}

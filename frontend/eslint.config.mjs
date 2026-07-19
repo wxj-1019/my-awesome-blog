@@ -37,7 +37,22 @@ export default defineConfig([
               message:
                 "禁止裸 import 'framer-motion'。请使用 `@/lib/framer-motion`，或优先 `@/components/motion`。",
             },
+            {
+              name: '@/constants/theme',
+              message:
+                'constants/theme 已废弃。请使用 CSS 变量 / Tailwind 语义色（见 docs/theme-tokens.md），Mode 用 @/context/theme-context。',
+            },
           ],
+        },
+      ],
+      // 禁止新增任意色值 class，主题色应走 token（存量逐步清理）
+      'no-restricted-syntax': [
+        'warn',
+        {
+          selector:
+            "Literal[value=/\\b(bg|text|border|from|to|via)-\\[#[0-9a-fA-F]{3,8}\\]/]",
+          message:
+            '避免 bg-[#hex] 等硬编码色。请使用语义 token（bg-background / text-primary / border-border 等）。见 docs/theme-tokens.md',
         },
       ],
     },
@@ -45,6 +60,13 @@ export default defineConfig([
   // 唯一允许直接依赖 framer-motion 的文件
   {
     files: ['src/lib/framer-motion.ts'],
+    rules: {
+      'no-restricted-imports': 'off',
+    },
+  },
+  // constants/theme 自身允许
+  {
+    files: ['src/constants/theme.ts'],
     rules: {
       'no-restricted-imports': 'off',
     },

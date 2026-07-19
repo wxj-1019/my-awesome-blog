@@ -17,7 +17,7 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 export default function ProfilePageContent() {
   const router = useRouter();
   const { showLoading, hideLoading } = useLoading();
-  const { themedClasses, getThemeClass } = useThemedClasses();
+  const { themedClasses } = useThemedClasses();
   const [activeTab, setActiveTab] = useState<'profile' | 'settings' | 'activity'>('profile');
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [stats, setStats] = useState<UserStats | null>(null);
@@ -165,15 +165,9 @@ export default function ProfilePageContent() {
     );
   }
   // 主题相关样式
-  const containerBgClass = getThemeClass(
-    'bg-gradient-to-br from-tech-darkblue/20 via-tech-deepblue/10 to-tech-cyan/5',
-    'bg-gradient-to-br from-gray-100 to-gray-50'
-  );
+  const containerBgClass = 'bg-gradient-to-br from-background via-muted/30 to-background';
   const cardBgClass = themedClasses.cardBgClass;
-  const accentClass = getThemeClass(
-    'text-tech-cyan',
-    'text-blue-600'
-  );
+  const accentClass = 'text-primary';
   return (
     <ProtectedRoute>
       <div className={`min-h-screen py-8 sm:py-12 transition-colors duration-300 ${containerBgClass}`}>
@@ -189,7 +183,7 @@ export default function ProfilePageContent() {
           )}
           <div className="mb-8 text-center">
             <h1 className={`text-4xl font-bold ${accentClass}`}>个人中心</h1>
-            <p className={`text-lg mt-2 ${getThemeClass('text-foreground/70', 'text-gray-600')}`}>管理您的个人资料、设置和活动</p>
+            <p className="text-lg mt-2 text-muted-foreground">管理您的个人资料、设置和活动</p>
           </div>
           <TabNavigation activeTab={activeTab} setActiveTab={(tab: string) => setActiveTab(tab as 'profile' | 'settings' | 'activity')} />
           <div className="mt-6">

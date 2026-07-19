@@ -27,7 +27,7 @@ function CommentItem({ comment, depth, maxDepth, onReply, onLike }: CommentItemP
   const [isExpanded, setIsExpanded] = useState(true);
   const [isReplying, setIsReplying] = useState(false);
   const [replyContent, setReplyContent] = useState('');
-  const { themedClasses, getThemeClass } = useThemedClasses();
+  const { themedClasses } = useThemedClasses();
   const textClass = themedClasses.textClass;
   const mutedTextClass = themedClasses.mutedTextClass;
   const cardBgClass = themedClasses.cardBgClass;
@@ -81,7 +81,7 @@ function CommentItem({ comment, depth, maxDepth, onReply, onLike }: CommentItemP
           <div className={cn(
             'flex-shrink-0 rounded-full flex items-center justify-center',
             depth === 0 ? 'w-10 h-10' : 'w-8 h-8',
-            getThemeClass('bg-tech-cyan/20', 'bg-blue-100')
+            'bg-primary/20'
           )}>
             <User className={cn(depth === 0 ? 'w-5 h-5' : 'w-4 h-4', 'text-tech-cyan')} />
           </div>
@@ -101,7 +101,7 @@ function CommentItem({ comment, depth, maxDepth, onReply, onLike }: CommentItemP
                   variant="ghost"
                   size="sm"
                   onClick={toggleExpanded}
-                  className={cn('text-xs h-6 px-2', getThemeClass('text-foreground/70 hover:text-tech-cyan', 'text-gray-600 hover:text-blue-600'))}
+                  className="text-xs h-6 px-2 text-muted-foreground hover:text-primary"
                 >
                   {isExpanded ? (
                     <>
@@ -125,7 +125,7 @@ function CommentItem({ comment, depth, maxDepth, onReply, onLike }: CommentItemP
                 variant="ghost"
                 size="sm"
                 onClick={handleLike}
-                className={cn('text-xs h-7 px-2', getThemeClass('text-foreground/70 hover:text-tech-cyan', 'text-gray-600 hover:text-blue-600'))}
+                className="text-xs h-7 px-2 text-muted-foreground hover:text-primary"
               >
                 <ThumbsUp className="w-3 h-3 mr-1" />
                 {comment.likes}
@@ -135,7 +135,7 @@ function CommentItem({ comment, depth, maxDepth, onReply, onLike }: CommentItemP
                   variant="ghost"
                   size="sm"
                   onClick={toggleReplying}
-                  className={cn('text-xs h-7 px-2', getThemeClass('text-foreground/70 hover:text-tech-cyan', 'text-gray-600 hover:text-blue-600'))}
+                  className="text-xs h-7 px-2 text-muted-foreground hover:text-primary"
                 >
                   <MessageSquare className="w-3 h-3 mr-1" />
                   {isReplying ? '取消' : '回复'}
@@ -156,11 +156,8 @@ function CommentItem({ comment, depth, maxDepth, onReply, onLike }: CommentItemP
                       rows={3}
                       className={cn(
                         'w-full px-3 py-2 rounded-lg text-sm resize-none',
-                        getThemeClass(
-                          'bg-glass/20 border-glass-border text-foreground placeholder:text-foreground/50',
-                          'bg-white/80 border-gray-300 text-gray-800 placeholder:text-gray-500'
-                        ),
-                        'focus:outline-none focus:ring-2 focus:ring-tech-cyan'
+                        'bg-muted/40 border border-border text-foreground placeholder:text-muted-foreground',
+                        'focus:outline-none focus:ring-2 focus:ring-primary'
                       )}
                     />
                     <div className="flex justify-end gap-2 mt-2">

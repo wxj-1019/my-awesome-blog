@@ -28,7 +28,6 @@ interface ArticleHeroStageProps {
   onBookmark: () => void;
   formatDate: (date: string) => string;
   textClass: string;
-  getThemeClass: (dark: string, light: string) => string;
   /** 可选顶部媒体区（封面/视频） */
   mediaSlot?: React.ReactNode;
 }
@@ -44,7 +43,6 @@ export default function ArticleHeroStage({
   onBookmark,
   formatDate,
   textClass,
-  getThemeClass,
   mediaSlot,
 }: ArticleHeroStageProps) {
   const mediaRef = useRef<HTMLDivElement>(null);
@@ -92,10 +90,7 @@ export default function ArticleHeroStage({
           {article.category && (
             <Badge
               variant="secondary"
-              className={getThemeClass(
-                'bg-tech-cyan/20 text-tech-cyan',
-                'bg-blue-100 text-blue-800'
-              )}
+              className="bg-primary/20 text-primary"
             >
               {article.category.name}
             </Badge>
@@ -143,10 +138,7 @@ export default function ArticleHeroStage({
                   className={cn(
                     'flex items-center',
                     isLiked ? 'text-red-500' : '',
-                    getThemeClass(
-                      'border-glass-border hover:bg-glass/40 text-foreground',
-                      'border-gray-300 hover:bg-gray-50 text-gray-800'
-                    )
+                    'border-border hover:bg-muted/40 text-foreground'
                   )}
                 >
                   <ThumbsUp
@@ -164,10 +156,7 @@ export default function ArticleHeroStage({
                   className={cn(
                     'flex items-center',
                     isBookmarked ? 'text-yellow-500' : '',
-                    getThemeClass(
-                      'border-glass-border hover:bg-glass/40 text-foreground',
-                      'border-gray-300 hover:bg-gray-50 text-gray-800'
-                    )
+                    'border-border hover:bg-muted/40 text-foreground'
                   )}
                 >
                   <Bookmark

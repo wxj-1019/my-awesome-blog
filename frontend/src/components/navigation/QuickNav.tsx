@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from '@/lib/framer-motion';
 import { LayoutGrid, X, Search, Command } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useThemedClasses } from '@/hooks/useThemedClasses';
 
 export interface QuickNavItem {
   id: string;
@@ -25,7 +24,6 @@ export default function QuickNav({ items, trigger, className }: QuickNavProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const { getThemeClass } = useThemedClasses();
 
   const filteredItems = items.filter(item =>
     item.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -77,10 +75,7 @@ export default function QuickNav({ items, trigger, className }: QuickNavProps) {
         onClick={() => setIsOpen(true)}
         className={cn(
           'flex items-center gap-2 px-4 py-2 rounded-lg transition-all',
-          getThemeClass(
-            'bg-glass/20 border-glass-border text-foreground hover:bg-glass/40',
-            'bg-gray-100 border-gray-200 text-gray-700 hover:bg-gray-200'
-          ),
+          'bg-muted/40 border border-border text-foreground hover:bg-muted',
           className
         )}
         whileHover={{ scale: 1.02 }}
@@ -136,7 +131,7 @@ export default function QuickNav({ items, trigger, className }: QuickNavProps) {
                   />
                   <button
                     onClick={() => setIsOpen(false)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded hover:bg-glass/20 text-foreground/50 hover:text-foreground transition-colors"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded hover:bg-muted/40 text-muted-foreground hover:text-foreground transition-colors"
                     aria-label="关闭"
                   >
                     <X className="w-4 h-4" aria-hidden="true" />
@@ -146,7 +141,7 @@ export default function QuickNav({ items, trigger, className }: QuickNavProps) {
 
               <div className="max-h-96 overflow-y-auto p-2">
                 {filteredItems.length === 0 ? (
-                  <div className="text-center py-12 text-foreground/50">
+                  <div className="text-center py-12 text-muted-foreground">
                     <Search className="w-12 h-12 mx-auto mb-3 opacity-50" />
                     <p className="text-sm">未找到匹配的结果</p>
                   </div>
@@ -160,7 +155,7 @@ export default function QuickNav({ items, trigger, className }: QuickNavProps) {
                           'relative flex items-start gap-3 p-3 rounded-lg text-left transition-all',
                           selectedIndex === index
                             ? 'bg-tech-cyan/20 border-tech-cyan/50'
-                            : getThemeClass('hover:bg-glass/20', 'hover:bg-gray-100'),
+                            : 'hover:bg-muted/40',
                           'border border-transparent'
                         )}
                         whileHover={{ scale: 1.01 }}
@@ -176,13 +171,13 @@ export default function QuickNav({ items, trigger, className }: QuickNavProps) {
                               {item.label}
                             </span>
                             {item.shortcut && (
-                              <span className="text-xs text-foreground/50 font-mono">
+                              <span className="text-xs text-muted-foreground font-mono">
                                 {item.shortcut}
                               </span>
                             )}
                           </div>
                           {item.description && (
-                            <p className="text-xs text-foreground/60 mt-0.5 line-clamp-1">
+                            <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
                               {item.description}
                             </p>
                           )}
@@ -202,7 +197,7 @@ export default function QuickNav({ items, trigger, className }: QuickNavProps) {
                 )}
               </div>
 
-              <div className="px-4 py-3 border-t border-glass-border text-xs text-foreground/50 flex items-center justify-between">
+              <div className="px-4 py-3 border-t border-border text-xs text-muted-foreground flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <span className="flex items-center gap-1">
                     <span className="font-mono">↑↓</span>

@@ -31,7 +31,7 @@ export default function ProfileView({
   onCancel,
   onAvatarChange
 }: ProfileViewProps) {
-  const { themedClasses, getThemeClass } = useThemedClasses();
+  const { themedClasses } = useThemedClasses();
   void _profile;
   
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -123,10 +123,7 @@ export default function ProfileView({
                 <Button 
                   variant="outline" 
                   onClick={onCancel}
-                  className={`cursor-pointer transition-all duration-200 hover:scale-105 flex items-center gap-2 ${getThemeClass(
-                    'border-glass-border text-foreground hover:bg-glass/40',
-                    'border-gray-300 text-gray-800 hover:bg-gray-50'
-                  )}`}
+                  className="cursor-pointer transition-all duration-200 hover:scale-105 flex items-center gap-2 border-border text-foreground hover:bg-muted/40"
                 >
                   <X className="w-4 h-4" />
                   取消

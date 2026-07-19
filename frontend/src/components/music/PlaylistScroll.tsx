@@ -30,10 +30,10 @@ export default function PlaylistScroll({
   return (
     <div className="relative group">
       {/* Left Gradient Mask */}
-      <div className="absolute left-0 top-0 bottom-4 w-12 bg-gradient-to-r from-[#0f0f23] to-transparent z-10 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      <div className="absolute left-0 top-0 bottom-4 w-12 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
       {/* Right Gradient Mask */}
-      <div className="absolute right-0 top-0 bottom-4 w-12 bg-gradient-to-l from-[#0f0f23] to-transparent z-10 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      <div className="absolute right-0 top-0 bottom-4 w-12 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
       {/* Scroll Left Button */}
       <button

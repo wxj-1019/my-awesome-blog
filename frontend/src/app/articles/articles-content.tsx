@@ -1,7 +1,6 @@
 'use client';
 import { useState, useEffect, Suspense, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from '@/lib/framer-motion';
-import { useThemedClasses } from '@/hooks/useThemedClasses';
 import { getArticles, getCategories, getTags, getFeaturedArticles } from '@/services/articleService';
 import { useLoading } from '@/context/loading-context';
 import HoloCard from '@/components/articles/HoloCard';
@@ -30,7 +29,6 @@ function ArticlesPageContent() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const { getThemeClass } = useThemedClasses();
   const { showLoading, hideLoading } = useLoading();
   const filters = useArticleFilters({ categories, tags });
   const hotArticles = useMemo(() => getHotArticles(articles, 10), [articles]);
@@ -109,7 +107,7 @@ function ArticlesPageContent() {
     setViewMode(view);
   }, []);
   return (
-    <div className="min-h-screen bg-[#18181B] text-white font-sans selection:bg-[#EC4899] selection:text-white">
+    <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/40 selection:text-primary-foreground">
       <div className="relative">
         <BlurIn>
           <div className="pt-20 pb-10 text-center">
@@ -141,18 +139,15 @@ function ArticlesPageContent() {
             {error ? (
               <FadeIn>
                 <div className="text-center py-20">
-                  <div className={`text-4xl font-bold mb-4 ${getThemeClass('text-red-500', 'text-red-600')}`}>
+                  <div className="text-4xl font-bold mb-4 text-destructive">
                     加载失败
                   </div>
-                  <p className={`text-lg mb-6 ${getThemeClass('text-gray-400', 'text-gray-600')}`}>
+                  <p className="text-lg mb-6 text-muted-foreground">
                     {error}
                   </p>
                   <button
                     onClick={() => fetchInitialData()}
-                    className={`px-6 py-3 rounded-lg font-medium ${getThemeClass(
-                      'bg-tech-cyan text-white hover:bg-tech-lightcyan',
-                      'bg-blue-600 text-white hover:bg-blue-700'
-                    )}`}
+                    className="px-6 py-3 rounded-lg font-medium bg-primary text-primary-foreground hover:bg-primary/90"
                   >
                     重新加载
                   </button>
@@ -210,10 +205,7 @@ function ArticlesPageContent() {
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={loadMore}
-                        className={`px-8 py-4 rounded-xl font-medium ${getThemeClass(
-                          'bg-tech-cyan text-white hover:bg-tech-lightcyan',
-                          'bg-blue-600 text-white hover:bg-blue-700'
-                        )}`}
+                        className="px-8 py-4 rounded-xl font-medium bg-primary text-primary-foreground hover:bg-primary/90"
                       >
                         加载更多 ({articles.length})
                       </motion.button>
@@ -227,10 +219,10 @@ function ArticlesPageContent() {
                 animate={{ opacity: 1, y: 0 }}
                 className="text-center py-20"
               >
-                <div className={`text-4xl font-bold mb-4 ${getThemeClass('text-tech-cyan', 'text-tech-cyan')}`}>
+                <div className="text-4xl font-bold mb-4 text-primary">
                   暂无文章
                 </div>
-                <p className={`text-lg ${getThemeClass('text-gray-400', 'text-gray-600')}`}>
+                <p className="text-lg text-muted-foreground">
                   {filters.selectedCategory || filters.selectedTag || filters.searchQuery
                     ? '没有找到匹配的文章，请尝试其他筛选条件'
                     : '暂无文章发布，请稍后再来'}

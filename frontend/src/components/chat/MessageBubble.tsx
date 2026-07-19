@@ -66,8 +66,8 @@ export function MessageBubble({ role, content, isTyping }: MessageBubbleProps) {
                   
                   if (!inline && match) {
                     return (
-                      <div className="my-4 overflow-hidden rounded-xl border border-white/10 bg-[#1e1e1e] shadow-lg">
-                        <div className="flex items-center justify-between bg-[#2d2d2d] px-4 py-2">
+                      <div className="my-4 overflow-hidden rounded-xl border border-white/10 bg-muted shadow-lg">
+                        <div className="flex items-center justify-between bg-muted/80 px-4 py-2">
                           <div className="flex gap-1.5">
                             <div className="h-3 w-3 rounded-full bg-[#ff5f56]" />
                             <div className="h-3 w-3 rounded-full bg-[#ffbd2e]" />

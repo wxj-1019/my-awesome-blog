@@ -13,8 +13,7 @@ import { useTheme } from '@/context/theme-context';
  *   className="bg-card text-foreground border-border"
  * 本 hook 仅为存量调用（cardBgClass 等）提供兼容层。
  *
- * getThemeClass(dark, light) 仍保留，用于迁移期双分支；
- * 新代码应避免使用，改为单一语义类。
+ * getThemeClass 已无业务调用，仅保留 API 兼容；新代码禁止使用。
  */
 export interface ThemedClassesMap {
   cardBgClass: string;

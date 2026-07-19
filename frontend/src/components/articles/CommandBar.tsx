@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback, memo } from 'react';
 import { motion, AnimatePresence } from '@/lib/framer-motion';
 import { Search, Filter, Grid, List, Sparkles, X, Keyboard } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
-import { useThemedClasses } from '@/hooks/useThemedClasses';
 
 interface CommandBarProps {
   categories: Array<{ id: string; name: string; slug: string }>;
@@ -31,7 +30,6 @@ function CommandBar({
   const [filterOpen, setFilterOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const searchParams = useSearchParams();
-  const { getThemeClass } = useThemedClasses();
 
   const handleSearch = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
@@ -95,65 +93,62 @@ function CommandBar({
           initial={{ y: 100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ type: 'spring', stiffness: 260, damping: 20 }}
-          className={`
-            backdrop-blur-xl border border-white/10 rounded-full px-6 py-3
+          className="
+            backdrop-blur-xl border border-border rounded-full px-6 py-3
             flex items-center gap-4 shadow-2xl
-            ${getThemeClass(
-              'bg-[#18181B]/80',
-              'bg-white/90'
-            )}
-          `}
+            bg-popover/90
+          "
           role="toolbar"
           aria-label="文章操作工具栏"
         >
           <button
             onClick={() => setSearchOpen(true)}
-            className="p-2 rounded-full hover:bg-white/10 transition-all active:scale-95"
+            className="p-2 rounded-full hover:bg-muted/40 transition-all active:scale-95"
             aria-label="搜索文章 (Ctrl+K)"
             title="搜索文章 (Ctrl+K)"
           >
-            <Search className={`w-5 h-5 ${getThemeClass('text-white', 'text-gray-800')}`} aria-hidden="true" />
+            <Search className="w-5 h-5 text-foreground" aria-hidden="true" />
           </button>
 
-          <div className="h-6 w-px bg-white/20" />
+          <div className="h-6 w-px bg-border" />
 
           <button
             onClick={() => setFilterOpen(true)}
-            className="p-2 rounded-full hover:bg-white/10 transition-all active:scale-95"
+            className="p-2 rounded-full hover:bg-muted/40 transition-all active:scale-95"
             aria-label="筛选文章 (Ctrl+F)"
             title="筛选文章 (Ctrl+F)"
           >
-            <Filter className={`w-5 h-5 ${getThemeClass('text-white', 'text-gray-800')}`} aria-hidden="true" />
+            <Filter className="w-5 h-5 text-foreground" aria-hidden="true" />
           </button>
 
-          <div className="h-6 w-px bg-white/20" />
+          <div className="h-6 w-px bg-border" />
 
           <button
             onClick={() => onViewToggle(currentView === 'grid' ? 'list' : 'grid')}
-            className="p-2 rounded-full hover:bg-white/10 transition-all active:scale-95"
+            className="p-2 rounded-full hover:bg-muted/40 transition-all active:scale-95"
             aria-label={`切换视图模式，当前为${currentView === 'grid' ? '网格' : '列表'} (Ctrl+V)`}
             title={`切换视图模式 (Ctrl+V)`}
           >
             {currentView === 'grid' ? (
-              <List className={`w-5 h-5 ${getThemeClass('text-white', 'text-gray-800')}`} aria-hidden="true" />
+              <List className="w-5 h-5 text-foreground" aria-hidden="true" />
             ) : (
-              <Grid className={`w-5 h-5 ${getThemeClass('text-white', 'text-gray-800')}`} aria-hidden="true" />
+              <Grid className="w-5 h-5 text-foreground" aria-hidden="true" />
             )}
           </button>
 
           {(activeCategory || activeTag) && (
             <>
-              <div className="h-6 w-px bg-white/20" />
+              <div className="h-6 w-px bg-border" />
               <div className="flex items-center gap-2">
-                <span className={`text-xs ${getThemeClass('text-gray-400', 'text-gray-500')}`}>
+                <span className="text-xs text-muted-foreground">
                   {activeCategory?.name || activeTag?.name}
                 </span>
                 <button
                   onClick={clearFilters}
-                  className="p-1 rounded-full hover:bg-white/10 transition-all"
+                  className="p-1 rounded-full hover:bg-muted/40 transition-all"
                   aria-label="清除筛选"
                 >
-                  <X className={`w-3 h-3 ${getThemeClass('text-white', 'text-gray-800')}`} aria-hidden="true" />
+                  <X className="w-3 h-3 text-foreground" aria-hidden="true" />
                 </button>
               </div>
             </>
@@ -161,7 +156,7 @@ function CommandBar({
 
           <button
             onClick={onOpenDrawer}
-            className="p-2 rounded-full bg-[#EC4899] hover:bg-[#EC4899]/90 transition-all active:scale-95 shadow-[0_0_15px_rgba(236,72,153,0.5)]"
+            className="p-2 rounded-full bg-primary hover:bg-primary/90 transition-all active:scale-95 shadow-[0_0_15px_var(--shadow-tech-cyan)]"
             aria-label="打开侧边栏查看更多选项"
           >
             <Sparkles className="w-5 h-5 text-white" aria-hidden="true" />
@@ -187,30 +182,27 @@ function CommandBar({
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -50, opacity: 0 }}
               transition={{ type: 'spring', stiffness: 260, damping: 20 }}
-              className={`
+              className="
                 w-full max-w-2xl mx-4 rounded-2xl p-6
-                ${getThemeClass(
-                  'bg-glass/90 border border-white/10',
-                  'bg-white/95 border border-gray-200'
-                )}
-              `}
+                bg-popover border border-border text-foreground
+              "
             >
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
-                  <h2 id="search-title" className={`text-xl font-bold ${getThemeClass('text-white', 'text-gray-900')}`}>
+                  <h2 id="search-title" className="text-xl font-bold text-foreground">
                     搜索文章
                   </h2>
-                  <div className="flex items-center gap-2 text-xs text-gray-400">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <Keyboard className="w-4 h-4" />
-                    <kbd className="px-2 py-1 rounded bg-white/20 font-mono">Ctrl+K</kbd>
+                    <kbd className="px-2 py-1 rounded bg-muted/50 font-mono">Ctrl+K</kbd>
                   </div>
                 </div>
                 <button
                   onClick={() => setSearchOpen(false)}
-                  className="p-2 rounded-full hover:bg-white/10 transition-all"
+                  className="p-2 rounded-full hover:bg-muted/40 transition-all"
                   aria-label="关闭搜索"
                 >
-                  <X className={`w-5 h-5 ${getThemeClass('text-white', 'text-gray-800')}`} aria-hidden="true" />
+                  <X className="w-5 h-5 text-foreground" aria-hidden="true" />
                 </button>
               </div>
 
@@ -221,28 +213,25 @@ function CommandBar({
                   value={searchQuery}
                   onChange={handleSearch}
                   autoFocus
-                  className={`
+                  className="
                     w-full px-5 py-4 rounded-xl text-lg
-                    ${getThemeClass(
-                      'bg-white/10 border-white/20 text-white placeholder:text-white/50',
-                      'bg-gray-100 border-gray-300 text-gray-900 placeholder:text-gray-500'
-                    )}
-                    focus:outline-none focus:ring-2 focus:ring-[#EC4899]
-                  `}
+                    bg-muted/40 border border-border text-foreground placeholder:text-muted-foreground
+                    focus:outline-none focus:ring-2 focus:ring-primary
+                  "
                   aria-label="搜索输入框"
                   id="search-input"
                 />
-                <Search className={`absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 ${getThemeClass('text-white/50', 'text-gray-500')}`} />
+                <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               </div>
 
               {searchQuery && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mt-4 p-4 rounded-xl bg-[#EC4899]/10 border border-[#EC4899]/30"
+                  className="mt-4 p-4 rounded-xl bg-primary/10 border border-primary/30"
                 >
-                  <p className={`text-sm ${getThemeClass('text-white', 'text-gray-800')}`}>
-                    按 <kbd className="px-2 py-1 rounded bg-white/20 text-[#EC4899] font-mono">Enter</kbd> 键开始搜索
+                  <p className="text-sm text-foreground">
+                    按 <kbd className="px-2 py-1 rounded bg-muted/50 text-primary font-mono">Enter</kbd> 键开始搜索
                   </p>
                 </motion.div>
               )}
@@ -263,36 +252,33 @@ function CommandBar({
             aria-modal="true"
             aria-labelledby="filter-title"
           >
-            <div className={`
+            <div className="
               h-full w-full backdrop-blur-xl
-              ${getThemeClass(
-                'bg-black/90 border-l border-white/10',
-                'bg-white/95 border-l border-gray-200'
-              )}
-            `}>
+              bg-popover border-l border-border text-foreground
+            ">
               <div className="p-6 h-full flex flex-col">
                 <div className="flex items-center justify-between mb-8">
                   <div className="flex items-center gap-3">
-                    <h2 id="filter-title" className={`text-2xl font-bold ${getThemeClass('text-white', 'text-gray-900')}`}>
+                    <h2 id="filter-title" className="text-2xl font-bold text-foreground">
                       筛选
                     </h2>
-                    <div className="flex items-center gap-2 text-xs text-gray-400">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <Keyboard className="w-4 h-4" />
-                      <kbd className="px-2 py-1 rounded bg-white/20 font-mono">Ctrl+F</kbd>
+                      <kbd className="px-2 py-1 rounded bg-muted/50 font-mono">Ctrl+F</kbd>
                     </div>
                   </div>
                   <button
                     onClick={() => setFilterOpen(false)}
-                    className="p-2 rounded-full hover:bg-white/10 transition-all"
+                    className="p-2 rounded-full hover:bg-muted/40 transition-all"
                     aria-label="关闭筛选"
                   >
-                    <X className={`w-5 h-5 ${getThemeClass('text-white', 'text-gray-800')}`} aria-hidden="true" />
+                    <X className="w-5 h-5 text-foreground" aria-hidden="true" />
                   </button>
                 </div>
 
                 <div className="flex-1 overflow-y-auto space-y-8">
                   <div>
-                    <h3 className={`text-sm font-semibold mb-4 uppercase tracking-wider ${getThemeClass('text-[#EC4899]', 'text-pink-600')}`}>
+                    <h3 className="text-sm font-semibold mb-4 uppercase tracking-wider text-primary">
                       分类
                     </h3>
                     <div className="space-y-2" role="radiogroup" aria-label="文章分类">
@@ -301,8 +287,8 @@ function CommandBar({
                         className={`
                           w-full text-left px-4 py-3 rounded-lg transition-all
                           ${!activeCategory
-                            ? 'bg-[#EC4899] text-white shadow-[0_0_10px_rgba(236,72,153,0.3)]'
-                            : getThemeClass('hover:bg-white/10 text-white', 'hover:bg-gray-200 text-gray-800')
+                            ? 'bg-primary text-primary-foreground shadow-[0_0_10px_rgba(236,72,153,0.3)]'
+                            : 'hover:bg-muted/40 text-foreground'
                           }
                         `}
                         role="radio"
@@ -318,8 +304,8 @@ function CommandBar({
                           className={`
                             w-full text-left px-4 py-3 rounded-lg transition-all
                             ${activeCategory?.id === category.id
-                              ? 'bg-[#EC4899] text-white shadow-[0_0_10px_rgba(236,72,153,0.3)]'
-                              : getThemeClass('hover:bg-white/10 text-white', 'hover:bg-gray-200 text-gray-800')
+                              ? 'bg-primary text-primary-foreground shadow-[0_0_10px_rgba(236,72,153,0.3)]'
+                              : 'hover:bg-muted/40 text-foreground'
                             }
                           `}
                           role="radio"
@@ -333,7 +319,7 @@ function CommandBar({
                   </div>
 
                   <div>
-                    <h3 className={`text-sm font-semibold mb-4 uppercase tracking-wider ${getThemeClass('text-[#EC4899]', 'text-pink-600')}`}>
+                    <h3 className="text-sm font-semibold mb-4 uppercase tracking-wider text-primary">
                       热门标签
                     </h3>
                     <div className="flex flex-wrap gap-2" role="group" aria-label="文章标签">
@@ -344,11 +330,8 @@ function CommandBar({
                           className={`
                             px-3 py-1.5 rounded-full text-sm transition-all
                             ${activeTag?.id === tag.id
-                              ? 'bg-[#EC4899] text-white shadow-[0_0_10px_rgba(236,72,153,0.3)]'
-                              : getThemeClass(
-                                  'bg-white/10 text-white hover:bg-white/20',
-                                  'bg-gray-200 text-gray-800 hover:bg-gray-300'
-                                )
+                              ? 'bg-primary text-primary-foreground shadow-[0_0_10px_rgba(236,72,153,0.3)]'
+                              : 'bg-muted/50 text-foreground hover:bg-muted'
                             }
                           `}
                           role="checkbox"
@@ -367,7 +350,7 @@ function CommandBar({
                     handleCategoryClick(null);
                     handleTagClick(null);
                   }}
-                  className="w-full py-3 rounded-lg border border-white/20 hover:bg-white/10 transition-all"
+                  className="w-full py-3 rounded-lg border border-border hover:bg-muted/40 transition-all text-foreground"
                   aria-label="清除所有筛选条件"
                 >
                   清除所有筛选

@@ -22,7 +22,7 @@ export function useCodeBlockEnhancement(contentRef: RefObject<HTMLDivElement>) {
           ?.replace('language-', '') || 'text';
 
         const wrapper = document.createElement('div');
-        wrapper.className = 'relative my-6 rounded-lg overflow-hidden bg-[#1e1e1e] dark:bg-[#1e1e1e] bg-gray-900 code-enhanced';
+        wrapper.className = 'relative my-6 rounded-lg overflow-hidden bg-muted code-enhanced';
 
         const header = document.createElement('div');
         header.className = 'flex items-center justify-between px-4 py-2 border-b border-gray-700/50';

@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 
 export default function MusicLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen bg-[#0a0a1a] transition-colors duration-300 relative overflow-hidden">
+    <div className="min-h-screen bg-background transition-colors duration-300 relative overflow-hidden">
       {/* Animated Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         {/* Gradient Orbs */}

@@ -2,115 +2,103 @@
 
 > 日期：2026-07-19  
 > 目标：主题内容统一管理，便于后续统一添加/修改  
-> 策略：先统一 token（本阶段完成骨架 + 高优先级修复），暂不第二套皮肤
+> 策略：统一 light/dark 语义 token，**暂不**第二套皮肤
 
-## 1. 统一管理架构（目标态）
+## 1. 统一管理架构（已落地）
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│  theme-config.ts     常量：STORAGE_KEY、fallback   │
-│  theme-context.tsx   Mode 状态 + 写 html class      │
-│  layout FOUC 脚本    与 STORAGE_KEY 一致            │
+│  theme-config.ts     STORAGE_KEY、fallback、readCssVar│
+│  theme-context.tsx   Mode 状态 + 写 html class/data  │
+│  layout FOUC 脚本    与 STORAGE_KEY 一致             │
 │  variables.css       色值唯一来源（:root/.light/.dark）│
-│  tailwind.config     colors → var(--*)              │
-│  theme-tokens.md     使用约定                        │
+│  tailwind.config     colors → var(--*)               │
+│  theme-tokens.md     使用约定                         │
+│  eslint              限制 constants/theme 与 bg-[#]  │
 └─────────────────────────────────────────────────────┘
-         ↑ 组件只读语义类 / useTheme.resolvedTheme（显隐）
+         ↑ 组件只读语义类 / useTheme（仅 mode / 装饰显隐）
 ```
 
-**改色 / 加 mode 变量**：只动 `variables.css`（+ 必要时 tailwind 映射）。  
+**改色 / 加变量**：只动 `variables.css`（+ 必要时 tailwind 映射）。  
 **改默认 mode / 存储键**：只动 `theme-config.ts` + FOUC 字符串。
 
-## 2. 扫描摘要（检查时点）
+## 2. 扫描对比
 
-| 类别 | 数量级 | 风险 |
-|------|--------|------|
-| `getThemeClass(` 调用 | ~120 | 双分支，阻碍换肤 |
-| `useThemedClasses` 引用 | ~20 文件 | 兼容层，应逐步减 |
-| `resolvedTheme ===` / `isDark ?` 分支 | ~20+ | 仅允许装饰显隐 |
-| 组件内 `bg-[#…]` 硬编码 | 导航/音乐/文章多处 | 绕过 token |
-| `Theme` 类型双定义 | context / types / constants | 已部分统一 |
-| `ThemeCustomizer` | 仅自身引用 | 半成品，未挂路由 |
+| 类别 | 迁移前 | 迁移后（审查时） |
+|------|--------|------------------|
+| 业务 `getThemeClass(` 调用 | ~120 | **0**（仅 hook 定义保留） |
+| `useThemedClasses` | 字符串表错位 | 映射语义 token |
+| 导航/文章/表单双分支色 | 大量 | **已清** |
+| 音乐/游戏 `bg-[#1a1a2e]` 等 | 多处 | **改为 card/background** |
+| Wave 硬编码 stopColor | 有 | **CSS 变量 --wave-fill-*** |
+| `constants/theme.ts` | 完整色板 | **仅类型 re-export** |
+| Admin 外观 | 本地假设置 | **接线 setTheme** |
+| ESLint 护栏 | 仅 framer | **+ 禁 constants/theme 引用 + warn bg-[#]** |
 
-## 3. 本轮已落地的统一项
+## 3. 完成清单（对照原 §4）
 
-- [x] `lib/theme-config.ts`：STORAGE_KEY、fallback、`readCssVar`
-- [x] `ThemeProvider` 使用 `THEME_STORAGE_KEY`；meta theme-color 读 `--background`
-- [x] FOUC 写 `data-mode` + `data-theme`（解析后的 light/dark）
-- [x] `variables.css` 语义 token 契约 + `--destructive`
-- [x] `GlassCard` / `FriendLinkCard` / `PostGrid` 去掉亮暗色分支
-- [x] `useThemedClasses` 映射到语义 Tailwind 类
-- [x] 高频硬编码：`QuickNav` / `BreadcrumbDropdown` / `ReportDialog` 面板 → `bg-popover`
-- [x] `HoloCard` 粉红硬编码 → `primary` token
-- [x] 文档：`theme-tokens.md`、本审计文件、ui-design-rules §2
+### P0 — 消除 getThemeClass（高流量）
 
-## 4. 待清理清单（按优先级，分批 PR）
+- [x] `CommandBar.tsx` / `ArchiveDrawer.tsx` / `HoloCard` / `FeaturedCarousel` / `CommentTree` / `ArticleHeroStage`
+- [x] `MessagePagination` / `ReportDialog`
+- [x] `FocusCards` / `QuickNav` / `BreadcrumbDropdown`
+- [x] `PasswordField` / `FileUploader`
+- [x] `articles-content` / 文章侧栏 / `article-detail-content`
+- [x] `profile-content` / `ProfileView`
 
-### P0 — 继续消 `getThemeClass`（高流量页）
+### P1 — 消灭面板硬编码
 
-- [ ] `components/articles/CommandBar.tsx`（调用最多）
-- [ ] `components/messages/MessagePagination.tsx`
-- [ ] `app/articles/**` 侧栏组件（HotArticles、CategoryNav…）
-- [ ] `app/profile/**`
-- [ ] `components/form/PasswordField.tsx`、`FileUploader.tsx`
+- [x] `music/*` → `bg-card` / `bg-background` / `music-primary`
+- [x] `games/*` / `contact` sidebar → 语义背景
+- [x] `chat` ModelSelector / MessageBubble 面板 → `popover`/`muted`（交通灯装饰色保留）
+- [x] `useCodeBlockEnhancement` → `bg-muted`
 
-替换模式：
+### P2 — 装饰分支
 
-```tsx
-// before
-getThemeClass('text-white', 'text-gray-800')
-// after
-'text-foreground'
-```
-
-### P1 — 消灭 `bg-[#…]` 面板色
-
-- [ ] `components/music/*`（`#1a1a2e` / `#0f0f23`）→ `bg-card` / `bg-background` 或 music 专用 token
-- [ ] 若 music 需要独立品牌红：在 `variables.css` 增加 `--music-primary` 并映射 tailwind `music.primary`（已有部分）
-
-### P2 — 装饰分支收敛
-
-允许保留（非色值）：
-
-- `theme-wrapper`：dark → Matrix / light → DynamicBackground  
-- `HeroSection` 换视频源  
-
-应收敛：
-
-- [ ] `Wave.tsx` / `WaveStack.tsx` 硬编码 stopColor → CSS 变量  
-- [ ] `UserProfileMenu` 红字用 `text-destructive`
+- [x] `Wave.tsx` / `WaveStack.tsx` → `--wave-fill-from/to`
+- [x] `UserProfileMenu` 退出 → `text-destructive`
+- [x] `theme-wrapper` Matrix/DynamicBackground **保留**（显隐非色值）
 
 ### P3 — 工程收敛
 
-- [ ] `constants/theme.ts` 仅保留类型 re-export 或删除  
-- [ ] 删除未使用的 `ThemeCustomizer` 或挂到 settings 并只调 `setTheme`  
-- [ ] ESLint 规则（可选）：限制 `getThemeClass` 新增、限制 `bg-[#`  
-- [ ] 留言用户色板（`messageService` 彩虹色）保持「内容色」而非「主题色」，文档标明边界
+- [x] `constants/theme.ts` 收成 re-export
+- [x] Admin 外观设置 → `useTheme().setTheme`
+- [x] ESLint：禁 `@/constants/theme` 新引用；warn 任意 `bg-[#hex]`
+- [x] 文档同步（本文件 + theme-tokens）
 
-## 5. 如何统一修改主题色（操作手册）
+### 明确保留（边界）
 
-1. 打开 `frontend/src/styles/base/variables.css`  
-2. 改 `.light` / `.dark` 中的 `--primary`、`--background`、`--glass-*` 等  
-3. 刷新页面；**无需**改业务 TSX  
-4. 若 Tailwind 没有对应 key，再在 `tailwind.config.js` 增加 `colors.xxx: 'var(--xxx)'`
+- 留言用户彩虹色（`messageService`）= **内容色**，非主题 token
+- macOS 设计 token 在 tailwind（可选后续并入变量）
+- `ThemeCustomizer.tsx` 组件仍闲置；Admin 已用内联 mode 切换，无需强制删除
 
-## 6. 验证命令
+## 4. 如何统一修改主题色
+
+1. 编辑 `frontend/src/styles/base/variables.css` 中 `.light` / `.dark`
+2. 改 `--primary`、`--background`、`--glass-*`、`--wave-fill-*` 等
+3. 刷新即可；**无需**改业务 TSX
+4. 新 key：先加 CSS 变量，再在 `tailwind.config.js` 映射
+
+## 5. 验证命令
 
 ```bash
 cd frontend
 npx tsc --noEmit
-# 反模式计数（应随迁移下降）
-rg -n "getThemeClass\(" src -g'*.{ts,tsx}' | wc -l
-rg -n "bg-\[#" src -g'*.{ts,tsx}' | wc -l
+# 应为 0 业务调用：
+rg -n "getThemeClass\(" src -g'*.{ts,tsx}' | rg -v "useThemedClasses"
+# 硬编码色（存量 warn，应持续下降）：
+rg -n "bg-\[#|text-\[#" src -g'*.{ts,tsx}' | rg -v "constants/theme" | wc -l
 ```
 
-## 7. 结论
+## 6. 审查迭代记录（2026-07-19）
 
-| 问题 | 状态 |
-|------|------|
-| 是否有唯一色值来源 | **是**：`variables.css` |
-| Mode 状态是否集中 | **是**：`theme-context` + `theme-config` |
-| 组件是否全部 token 化 | **进行中**：核心路径已改，~100+ `getThemeClass` 待消 |
-| 能否方便加/改主题 | **改色可以**；加第二皮肤需再引入 `theme-pack`（刻意未做） |
+| 检查项 | 结果 |
+|--------|------|
+| getThemeClass 业务调用 | 0 |
+| tsc | 通过 |
+| 暗色 wave 变量 | 已写入 `.dark` |
+| FOUC / Provider 同源 | `theme` + `data-mode` |
+| 单一色值来源 | `variables.css` |
+| 新代码护栏 | ESLint |
 
-后续建议：按 §4 P0 每批清 3–5 个文件的 `getThemeClass`，计数归零后主题即可「只改 CSS」。
+**结论：** theme-audit 所列 P0–P3 **已完成**。主题可统一改 CSS 维护；后续仅需按 ESLint warn 继续消零星 `bg-[#]`，以及可选删除闲置 `ThemeCustomizer.tsx`。

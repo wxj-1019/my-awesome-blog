@@ -20,6 +20,8 @@ import Button from '@/components/admin/Button'
 import FormInput from '@/components/admin/FormInput'
 import { useToast } from '@/components/admin/Toast'
 import GlassCardAdmin from '@/components/ui/GlassCardAdmin'
+import { useTheme } from '@/context/theme-context'
+import type { ThemeMode } from '@/lib/theme-config'
 
 interface SiteSettings {
   siteName: string
@@ -78,6 +80,7 @@ const SECTIONS: { id: SettingsSection; label: string; icon: typeof Globe }[] = [
 
 export default function SettingsPage() {
   const { success, error } = useToast()
+  const { theme, setTheme } = useTheme()
   const [activeSection, setActiveSection] = useState<SettingsSection>('site')
   const [loading, setLoading] = useState(false)
   const [hasChanges, setHasChanges] = useState(false)
@@ -495,64 +498,83 @@ export default function SettingsPage() {
         return (
           <div className="space-y-6">
             <div>
-              <h3 className="text-lg font-semibold text-foreground mb-4">主题设置</h3>
+              <h3 className="text-lg font-semibold text-foreground mb-4">主题模式</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                即时生效，写入 localStorage（与导航绳切换同源）。色值见 variables.css 语义 token。
+              </p>
               <div className="grid grid-cols-3 gap-4">
-                {['light', 'dark', 'system'].map((theme) => (
+                {(
+                  [
+                    { id: 'light' as ThemeMode, label: '浅色' },
+                    { id: 'dark' as ThemeMode, label: '深色' },
+                    { id: 'auto' as ThemeMode, label: '跟随系统' },
+                  ] as const
+                ).map((opt) => (
                   <motion.button
-                    key={theme}
-                    onClick={() => { setAppearanceSettings({ ...appearanceSettings, defaultTheme: theme }); setHasChanges(true) }}
+                    key={opt.id}
+                    type="button"
+                    onClick={() => {
+                      setTheme(opt.id)
+                      setAppearanceSettings({
+                        ...appearanceSettings,
+                        defaultTheme: opt.id === 'auto' ? 'system' : opt.id,
+                      })
+                      setHasChanges(true)
+                    }}
                     className={cn(
-                      "p-4 rounded-lg border-2 transition-all",
-                      appearanceSettings.defaultTheme === theme
-                        ? "border-tech-cyan bg-tech-cyan/10"
-                        : "border-glass-border bg-glass/20 hover:border-glass-border/70"
+                      'p-4 rounded-lg border-2 transition-all',
+                      theme === opt.id
+                        ? 'border-primary bg-primary/10'
+                        : 'border-border bg-card/40 hover:border-primary/40'
                     )}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    <p className="font-medium text-foreground capitalize">{theme === 'system' ? '跟随系统' : theme === 'light' ? '浅色' : '深色'}</p>
+                    <p className="font-medium text-foreground">{opt.label}</p>
                   </motion.button>
                 ))}
               </div>
             </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-foreground/70 mb-2">主题色</label>
-              <div className="flex items-center gap-4">
-                <input
-                  type="color"
-                  value={appearanceSettings.primaryColor}
-                  onChange={(e) => { setAppearanceSettings({ ...appearanceSettings, primaryColor: e.target.value }); setHasChanges(true) }}
-                  className="w-12 h-12 rounded-lg cursor-pointer border-2 border-glass-border"
-                />
-                <FormInput
-                  type="text"
-                  value={appearanceSettings.primaryColor}
-                  onChange={(e) => { setAppearanceSettings({ ...appearanceSettings, primaryColor: e.target.value }); setHasChanges(true) }}
-                  className="flex-1"
-                />
-              </div>
+
+            <div className="p-4 bg-muted/30 rounded-lg border border-border text-sm text-muted-foreground">
+              自定义主题色 / 第二套皮肤尚未启用。请在{' '}
+              <code className="text-primary">frontend/src/styles/base/variables.css</code>{' '}
+              修改 <code className="text-primary">--primary</code> 等 token。详见{' '}
+              <code className="text-primary">docs/theme-tokens.md</code>。
             </div>
-            
-            <div className="flex items-center justify-between p-4 bg-glass/20 rounded-lg border border-glass-border/50">
+
+            <div className="flex items-center justify-between p-4 bg-card/40 rounded-lg border border-border">
               <div className="flex items-center gap-3">
-                <Palette className="w-5 h-5 text-tech-cyan" />
+                <Palette className="w-5 h-5 text-primary" />
                 <div>
-                  <p className="font-medium text-foreground">启用动画</p>
-                  <p className="text-sm text-foreground/50">界面过渡和交互动画</p>
+                  <p className="font-medium text-foreground">启用动画（本地偏好）</p>
+                  <p className="text-sm text-muted-foreground">
+                    仅保存设置草稿；系统「减少动态效果」仍优先生效
+                  </p>
                 </div>
               </div>
               <motion.button
-                onClick={() => { setAppearanceSettings({ ...appearanceSettings, animationsEnabled: !appearanceSettings.animationsEnabled }); setHasChanges(true) }}
+                type="button"
+                onClick={() => {
+                  setAppearanceSettings({
+                    ...appearanceSettings,
+                    animationsEnabled: !appearanceSettings.animationsEnabled,
+                  })
+                  setHasChanges(true)
+                }}
                 className={cn(
-                  "relative w-12 h-6 rounded-full transition-colors duration-200",
-                  appearanceSettings.animationsEnabled ? "bg-tech-cyan" : "bg-glass-border"
+                  'relative w-12 h-6 rounded-full transition-colors duration-200',
+                  appearanceSettings.animationsEnabled
+                    ? 'bg-primary'
+                    : 'bg-border'
                 )}
                 whileTap={{ scale: 0.95 }}
               >
                 <motion.div
-                  className="absolute top-1 w-4 h-4 bg-white rounded-full shadow-md"
-                  animate={{ left: appearanceSettings.animationsEnabled ? 28 : 4 }}
+                  className="absolute top-1 w-4 h-4 bg-primary-foreground rounded-full shadow-md"
+                  animate={{
+                    left: appearanceSettings.animationsEnabled ? 28 : 4,
+                  }}
                   transition={{ duration: 0.2 }}
                 />
               </motion.button>

@@ -37,7 +37,7 @@ export default function HeroSection({ game, onPlayClick, onInfoClick }: HeroSect
                 {p}
               </span>
             ))}
-            <span className="px-2 py-1 bg-[#fa2d2f] text-white text-xs font-bold rounded-md uppercase tracking-wider">
+            <span className="px-2 py-1 bg-music-primary text-white text-xs font-bold rounded-md uppercase tracking-wider">
               Featured
             </span>
           </div>

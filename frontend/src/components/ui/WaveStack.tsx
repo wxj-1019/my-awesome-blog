@@ -1,6 +1,3 @@
-import { useTheme } from '@/context/theme-context';
-import { useState, useEffect } from 'react';
-
 interface WaveStackProps {
   className?: string;
   waveCount?: number;
@@ -11,25 +8,22 @@ function pseudoRandom(index: number, seed: number = 12345): number {
   return x - Math.floor(x);
 }
 
-export default function WaveStack({ className = '', waveCount = 3 }: WaveStackProps) {
-  const { resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  // 防止 hydration 错误
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const waveColor = mounted && resolvedTheme === 'dark' ? 'url(#waveStackGradient)' : '#ffffff';
-
-  // 多峰谷波浪路径
-  const wavePath = "M0,64 C120,32 240,96 360,64 S480,32 600,64 S720,96 840,64 S960,32 1080,64 S1200,96 1200,64 L1200,120 L0,120 Z";
+/**
+ * 多层波浪装饰；颜色来自 --wave-fill-from/to（variables.css）。
+ */
+export default function WaveStack({
+  className = '',
+  waveCount = 3,
+}: WaveStackProps) {
+  const wavePath =
+    'M0,64 C120,32 240,96 360,64 S480,32 600,64 S720,96 840,64 S960,32 1080,64 S1200,96 1200,64 L1200,120 L0,120 Z';
 
   return (
     <>
       <style jsx>{`
         @keyframes wave-float-0 {
-          0%, 100% {
+          0%,
+          100% {
             transform: translateX(-10px) scaleY(1) scaleX(1);
           }
           50% {
@@ -37,7 +31,8 @@ export default function WaveStack({ className = '', waveCount = 3 }: WaveStackPr
           }
         }
         @keyframes wave-float-1 {
-          0%, 100% {
+          0%,
+          100% {
             transform: translateX(8px) scaleY(1) scaleX(1.1);
           }
           50% {
@@ -45,7 +40,8 @@ export default function WaveStack({ className = '', waveCount = 3 }: WaveStackPr
           }
         }
         @keyframes wave-float-2 {
-          0%, 100% {
+          0%,
+          100% {
             transform: translateX(-5px) scaleY(1) scaleX(1.2);
           }
           50% {
@@ -54,16 +50,20 @@ export default function WaveStack({ className = '', waveCount = 3 }: WaveStackPr
         }
       `}</style>
       <div className={`relative w-full h-[150px] overflow-hidden ${className}`}>
-        {mounted && resolvedTheme === 'dark' && (
-          <svg style={{ position: 'absolute', width: 0, height: 0 }}>
-            <defs>
-              <linearGradient id="waveStackGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#000000" stopOpacity="1" />
-                <stop offset="100%" stopColor="#000000" stopOpacity="1" />
-              </linearGradient>
-            </defs>
-          </svg>
-        )}
+        <svg style={{ position: 'absolute', width: 0, height: 0 }} aria-hidden>
+          <defs>
+            <linearGradient
+              id="waveStackGradient"
+              x1="0%"
+              y1="0%"
+              x2="0%"
+              y2="100%"
+            >
+              <stop offset="0%" stopColor="var(--wave-fill-from)" />
+              <stop offset="100%" stopColor="var(--wave-fill-to)" />
+            </linearGradient>
+          </defs>
+        </svg>
         {Array.from({ length: waveCount }).map((_, index) => {
           const randomDelay = pseudoRandom(index, 1) * 2;
           const randomDuration = 3 + pseudoRandom(index, 2) * 3;
@@ -87,10 +87,7 @@ export default function WaveStack({ className = '', waveCount = 3 }: WaveStackPr
               viewBox="0 0 1200 120"
               preserveAspectRatio="none"
             >
-              <path
-                d={wavePath}
-                style={{ fill: waveColor }}
-              />
+              <path d={wavePath} style={{ fill: 'url(#waveStackGradient)' }} />
             </svg>
           );
         })}

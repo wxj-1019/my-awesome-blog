@@ -145,6 +145,10 @@
   --rope-from: #d4a574;
   --rope-to: #8b4513;
   --rope-mid: #c4956a;
+
+  /* Wave 装饰填充（Wave.tsx / WaveStack.tsx） */
+  --wave-fill-from: #e2e8f0;
+  --wave-fill-to: #ffffff;
 }
 
 .light {
@@ -274,6 +278,9 @@
   --rope-from: #d4a574;
   --rope-to: #8b4513;
   --rope-mid: #c4956a;
+
+  --wave-fill-from: #e2e8f0;
+  --wave-fill-to: #ffffff;
 }
 
 .dark {
@@ -360,6 +367,10 @@
   --rope-from: #d4a574;
   --rope-to: #8b4513;
   --rope-mid: #c4956a;
+
+  /* Wave 装饰：深色用科技青过渡到背景 */
+  --wave-fill-from: #22d3ee;
+  --wave-fill-to: #0f172a;
 }
 
 @media (prefers-contrast: high) {

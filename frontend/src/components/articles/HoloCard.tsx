@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from '@/lib/framer-motion';
 import Link from 'next/link';
 import { Eye, Heart, Clock, ArrowRight } from 'lucide-react';
 import Image from 'next/image';
-import { useThemedClasses } from '@/hooks/useThemedClasses';
 import type { Article } from '@/types';
 
 interface HoloCardProps {
@@ -15,7 +14,6 @@ interface HoloCardProps {
 }
 
 function HoloCard({ article, isFeatured = false, className }: HoloCardProps) {
-  const { getThemeClass } = useThemedClasses();
   const [isExpanded, setIsExpanded] = useState(false);
 
   const cardSize = isFeatured ? 'lg:col-span-2 lg:row-span-2' : '';
@@ -33,10 +31,7 @@ function HoloCard({ article, isFeatured = false, className }: HoloCardProps) {
       <div
         className={`
           relative group rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 hover:scale-[1.02] shadow-lg
-          ${getThemeClass(
-            'bg-glass/30 backdrop-blur-xl border border-glass-border shadow-inner before:absolute before:inset-0 before:rounded-2xl before:pointer-events-none before:bg-gradient-to-br before:from-white/5 before:to-transparent',
-            'bg-white/90 backdrop-blur-xl border-gray-300 shadow-gray-200/50 before:absolute before:inset-0 before:rounded-2xl before:pointer-events-none before:bg-gradient-to-br before:from-black/5 before:to-transparent'
-          )}
+          bg-card/90 backdrop-blur-xl border border-border shadow-inner before:absolute before:inset-0 before:rounded-2xl before:pointer-events-none before:bg-gradient-to-br before:from-white/5 before:to-transparent
           ${cardSize}
           ${className || ''}
         `}
@@ -55,13 +50,10 @@ function HoloCard({ article, isFeatured = false, className }: HoloCardProps) {
 
           {article.categories && article.categories.length > 0 && (
             <div className="absolute top-4 left-4">
-              <span className={`
+              <span className="
                 px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-sm
-                ${getThemeClass(
-                  'bg-primary/90 text-primary-foreground',
-                  'bg-primary/90 text-primary-foreground'
-                )}
-              `}>
+                bg-primary/90 text-primary-foreground
+              ">
                 {article.categories[0]?.name}
               </span>
             </div>
@@ -72,13 +64,10 @@ function HoloCard({ article, isFeatured = false, className }: HoloCardProps) {
               {article.tags.slice(0, 2).map((tag) => (
                 <span
                   key={tag.id}
-                  className={`
+                  className="
                     px-2 py-1 rounded text-xs backdrop-blur-sm
-                    ${getThemeClass(
-                      'bg-white/10 text-white',
-                      'bg-white/80 text-gray-800'
-                    )}
-                  `}
+                    bg-background/20 text-foreground
+                  "
                 >
                   {tag.name}
                 </span>
@@ -89,17 +78,16 @@ function HoloCard({ article, isFeatured = false, className }: HoloCardProps) {
           <div className="absolute bottom-0 left-0 right-0 p-6">
             <motion.h3
               layoutId={`article-title-${article.id}`}
-              className={`
+              className="
               text-xl font-bold text-white mb-2 line-clamp-2
               group-hover:text-primary transition-colors
-            `}
+            "
             >
               {article.title}
             </motion.h3>
-            <p className={`
-              text-sm text-gray-300 line-clamp-2 mb-4
-              ${getThemeClass('', 'text-gray-600')}
-            `}>
+            <p className="
+              text-sm text-gray-300 line-clamp-2 mb-4 text-muted-foreground
+            ">
               {article.excerpt}
             </p>
 
@@ -148,15 +136,12 @@ function HoloCard({ article, isFeatured = false, className }: HoloCardProps) {
               exit={{ scale: 0.9, y: 50 }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
               onClick={e => e.stopPropagation()}
-              className={`
+              className="
                 w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl
-                ${getThemeClass(
-                  'bg-glass/95 border border-glass-border shadow-inner backdrop-blur-xl',
-                  'bg-white/95 border border-gray-300 shadow-gray-200/50 backdrop-blur-xl'
-                )}
-              `}
+                bg-popover border border-border text-foreground backdrop-blur-xl
+              "
             >
-                <div className="sticky top-0 z-10 flex items-center justify-between p-6 backdrop-blur-lg border-b border-white/10">
+                <div className="sticky top-0 z-10 flex items-center justify-between p-6 backdrop-blur-lg border-b border-border">
                   <div className="flex items-center gap-3">
                     {article.cover_image && (
                       <div className="relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
@@ -170,19 +155,19 @@ function HoloCard({ article, isFeatured = false, className }: HoloCardProps) {
                       </div>
                     )}
                     <div>
-                      <h2 className={`text-xl font-bold ${getThemeClass('text-white', 'text-gray-900')}`}>
+                      <h2 className="text-xl font-bold text-foreground">
                         {article.title}
                       </h2>
-                      <p className={`text-sm ${getThemeClass('text-gray-400', 'text-gray-600')}`}>
+                      <p className="text-sm text-muted-foreground">
                         {article.author.username} · {new Date(article.published_at).toLocaleDateString('zh-CN')}
                       </p>
                     </div>
                   </div>
                   <button
                     onClick={handleCollapse}
-                    className="p-2 rounded-full hover:bg-white/10 transition-all"
+                    className="p-2 rounded-full hover:bg-muted/40 transition-all"
                   >
-                    <svg className={`w-6 h-6 ${getThemeClass('text-white', 'text-gray-800')}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="w-6 h-6 text-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </button>
@@ -191,33 +176,27 @@ function HoloCard({ article, isFeatured = false, className }: HoloCardProps) {
                 <div className="p-6 space-y-6">
                   <div className="flex flex-wrap gap-2">
                     {article.categories && article.categories.length > 0 && (
-                      <span className={`
+                      <span className="
                         px-3 py-1 rounded-full text-sm font-medium
-                        ${getThemeClass(
-                          'bg-primary/90 text-primary-foreground',
-                          'bg-primary/90 text-primary-foreground'
-                        )}
-                      `}>
+                        bg-primary/90 text-primary-foreground
+                      ">
                         {article.categories[0]?.name}
                       </span>
                     )}
                     {article.tags?.map(tag => (
                       <span
                         key={tag.id}
-                        className={`
+                        className="
                           px-3 py-1 rounded-full text-sm
-                          ${getThemeClass(
-                            'bg-white/10 text-white',
-                            'bg-gray-200 text-gray-800'
-                          )}
-                        `}
+                          bg-muted/50 text-foreground
+                        "
                       >
                         {tag.name}
                       </span>
                     ))}
                   </div>
 
-                  <p className={`text-lg leading-relaxed ${getThemeClass('text-white', 'text-gray-800')}`}>
+                  <p className="text-lg leading-relaxed text-foreground">
                     {article.excerpt}
                   </p>
 
@@ -225,15 +204,15 @@ function HoloCard({ article, isFeatured = false, className }: HoloCardProps) {
                     <div className="flex items-center gap-6">
                       <div className="flex items-center gap-2">
                         <Eye className="w-5 h-5 text-primary" />
-                        <span className={getThemeClass('text-white', 'text-gray-800')}>{article.view_count}</span>
+                        <span className="text-foreground">{article.view_count}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Heart className="w-5 h-5 text-primary" />
-                        <span className={getThemeClass('text-white', 'text-gray-800')}>{article.likes_count}</span>
+                        <span className="text-foreground">{article.likes_count}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Clock className="w-5 h-5 text-gray-400" />
-                        <span className={getThemeClass('text-white', 'text-gray-800')}>{article.read_time} min</span>
+                        <Clock className="w-5 h-5 text-muted-foreground" />
+                        <span className="text-foreground">{article.read_time} min</span>
                       </div>
                     </div>
 

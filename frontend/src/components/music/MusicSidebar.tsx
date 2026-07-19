@@ -24,7 +24,7 @@ export default function MusicSidebar({ activeSection, onSectionChange, playlists
   return (
     <aside className={cn(
       'hidden md:flex flex-col h-full flex-shrink-0 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]',
-      'bg-[#1a1a2e]/95 backdrop-blur-2xl',
+      'bg-card/95 backdrop-blur-2xl',
       'border-r border-white/5',
       'shadow-lg shadow-black/20 z-20',
       isCollapsed ? 'w-20' : 'w-64'
@@ -146,7 +146,7 @@ export default function MusicSidebar({ activeSection, onSectionChange, playlists
                 className={cn(
                   'w-10 h-10 flex items-center justify-center rounded-lg transition-all duration-200',
                   activeSection === item.id 
-                    ? 'bg-[#fa2d2f] text-white shadow-md shadow-[#fa2d2f]/20' 
+                    ? 'bg-music-primary text-white shadow-md shadow-music-primary/20' 
                     : 'hover:bg-black/5 dark:hover:bg-white/10 text-black/60 dark:text-white/60'
                 )}
                 title={item.label}

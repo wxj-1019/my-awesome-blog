@@ -23,7 +23,7 @@ export default function ContactSidebar({ activeSection, onSectionChange }: Conta
   ];
 
   return (
-    <aside className="w-64 h-full hidden md:flex flex-col bg-white/50 dark:bg-[#1C1C1E]/50 backdrop-blur-2xl border-r border-black/5 dark:border-white/5 pt-6 pb-4 px-4 flex-shrink-0">
+    <aside className="w-64 h-full hidden md:flex flex-col bg-card/50 backdrop-blur-2xl border-r border-black/5 dark:border-white/5 pt-6 pb-4 px-4 flex-shrink-0">
       <div className="flex-1 overflow-y-auto scrollbar-hide">
         <div className="mb-8">
           <h2 className="px-3 text-xs font-semibold text-black/40 dark:text-white/40 uppercase tracking-wider mb-2">

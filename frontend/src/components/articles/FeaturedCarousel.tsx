@@ -3,7 +3,6 @@ import { useState, useCallback, memo } from 'react';
 import { motion, AnimatePresence } from '@/lib/framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useThemedClasses } from '@/hooks/useThemedClasses';
 import { ArrowRight, Clock, Eye, Heart } from 'lucide-react';
 import type { Article } from '@/types';
 interface FeaturedCarouselProps {
@@ -12,7 +11,6 @@ interface FeaturedCarouselProps {
 function FeaturedCarousel({ articles }: FeaturedCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(0);
-  const { getThemeClass } = useThemedClasses();
   const paginate = useCallback((newDirection: number) => {
     setDirection(newDirection);
     setCurrentIndex((prevIndex) => {
@@ -87,26 +85,26 @@ function FeaturedCarousel({ articles }: FeaturedCarouselProps) {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 }}
-                  className={`text-lg ${getThemeClass('text-gray-300', 'text-gray-700')} mb-6 line-clamp-3`}
+                  className="text-lg text-muted-foreground mb-6 line-clamp-3"
                 >
                   {currentArticle.excerpt}
                 </motion.p>
                 <div className="flex items-center gap-4 mb-6">
                   <div className="flex items-center gap-2">
                     <Eye className="w-4 h-4 text-tech-cyan" />
-                    <span className={`text-sm ${getThemeClass('text-gray-400', 'text-gray-600')}`}>
+                    <span className="text-sm text-muted-foreground">
                       {currentArticle.view_count}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Heart className="w-4 h-4 text-pink-500" />
-                    <span className={`text-sm ${getThemeClass('text-gray-400', 'text-gray-600')}`}>
+                    <span className="text-sm text-muted-foreground">
                       {currentArticle.likes_count}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Clock className="w-4 h-4 text-tech-deepblue" />
-                    <span className={`text-sm ${getThemeClass('text-gray-400', 'text-gray-600')}`}>
+                    <span className="text-sm text-muted-foreground">
                       {currentArticle.read_time} min
                     </span>
                   </div>
@@ -144,7 +142,7 @@ function FeaturedCarousel({ articles }: FeaturedCarouselProps) {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
                   <div className="absolute top-4 left-4">
-                    <span className={`px-4 py-2 rounded-full text-sm font-semibold ${getThemeClass('bg-tech-cyan/90 text-white', 'bg-blue-600/90 text-white')}`}>
+                    <span className="px-4 py-2 rounded-full text-sm font-semibold bg-primary/90 text-primary-foreground">
                       {currentArticle.category?.name || '未分类'}
                     </span>
                   </div>
@@ -176,7 +174,7 @@ function FeaturedCarousel({ articles }: FeaturedCarouselProps) {
         ))}
       </div>
       <div className="absolute bottom-8 right-8 hidden md:flex items-center gap-2 z-20">
-        <span className={`text-sm ${getThemeClass('text-gray-400', 'text-gray-600')}`}>
+        <span className="text-sm text-muted-foreground">
           {currentIndex + 1} / {articles.length}
         </span>
       </div>

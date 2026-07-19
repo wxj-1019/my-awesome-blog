@@ -55,7 +55,7 @@ export function ModelSelector({ models, currentModel, onSelect, disabled }: Mode
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 5, scale: 0.95 }}
             transition={{ duration: 0.1 }}
-            className="absolute left-0 top-full z-50 mt-2 w-64 origin-top-left overflow-hidden rounded-xl border border-white/10 bg-[#1a1a1a]/95 p-1 shadow-2xl backdrop-blur-xl ring-1 ring-black/5"
+            className="absolute left-0 top-full z-50 mt-2 w-64 origin-top-left overflow-hidden rounded-xl border border-white/10 bg-popover/95 p-1 shadow-2xl backdrop-blur-xl ring-1 ring-black/5"
           >
             <div className="px-2 py-1.5 text-xs font-semibold text-zinc-500">Available Models</div>
             <div className="space-y-0.5">
