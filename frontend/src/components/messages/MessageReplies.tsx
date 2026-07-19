@@ -1,6 +1,6 @@
 'use client';
 import { useState, useCallback, memo } from 'react';
-import { Reply as ReplyIcon } from 'lucide-react';
+import { Reply as ReplyIcon, MessageSquare } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { motion, AnimatePresence } from '@/lib/framer-motion';
@@ -290,6 +290,8 @@ export default function MessageReplies({
               size="sm"
               compact
               title="暂无回复"
+              description="快来抢沙发吧"
+              icon={MessageSquare}
             />
           )}
         </motion.div>
