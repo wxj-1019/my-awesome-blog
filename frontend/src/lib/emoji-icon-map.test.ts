@@ -5,7 +5,7 @@ import {
   getReactionLabel,
   getComposerEntry,
 } from './emoji-icon-map';
-import { Heart, ThumbsUp } from 'lucide-react';
+import { Heart, Meh, ThumbsUp } from 'lucide-react';
 
 describe('emoji-icon-map', () => {
   it('maps known reaction keys to lucide icons', () => {
@@ -19,7 +19,7 @@ describe('emoji-icon-map', () => {
   });
 
   it('falls back safely for unknown keys', () => {
-    expect(getReactionIcon('🦄')).toBeDefined();
+    expect(getReactionIcon('🦄')).toBe(Meh);
     expect(getReactionLabel('🦄')).toBe('反应');
   });
 

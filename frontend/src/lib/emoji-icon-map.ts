@@ -31,7 +31,7 @@ export type EmojiIconEntry = {
 };
 
 /** 消息反应目录（7 项），key 与后端 API 一致 */
-export const REACTION_CATALOG: EmojiIconEntry[] = [
+export const REACTION_CATALOG: readonly EmojiIconEntry[] = [
   { key: '❤️', icon: Heart, label: '喜欢' },
   { key: '👍', icon: ThumbsUp, label: '赞同' },
   { key: '👎', icon: ThumbsDown, label: '不赞同' },
@@ -41,28 +41,32 @@ export const REACTION_CATALOG: EmojiIconEntry[] = [
   { key: '✨', icon: Sparkles, label: '亮点' },
 ];
 
-/** 输入框快捷表情目录（16–24 项） */
-export const COMPOSER_EMOJI_CATALOG: EmojiIconEntry[] = [
-  { key: '😊', icon: Smile, label: '微笑' },
+/** 输入框快捷表情目录（16–24 项），key 为插入消息的 unicode */
+export const COMPOSER_EMOJI_CATALOG: readonly EmojiIconEntry[] = [
+  { key: '😀', icon: Smile, label: '微笑' },
   { key: '😂', icon: Laugh, label: '大笑' },
-  { key: '❤️', icon: Heart, label: '爱心' },
-  { key: '❓', icon: CircleHelp, label: '疑问' },
-  { key: '👍', icon: ThumbsUp, label: '点赞' },
+  { key: '🥰', icon: Heart, label: '喜爱' },
+  { key: '😍', icon: Heart, label: '喜欢' },
+  { key: '🤔', icon: CircleHelp, label: '思考' },
+  { key: '😎', icon: Smile, label: '酷' },
+  { key: '👍', icon: ThumbsUp, label: '赞同' },
+  { key: '👎', icon: ThumbsDown, label: '不赞同' },
+  { key: '❤️', icon: Heart, label: '红心' },
   { key: '🎉', icon: PartyPopper, label: '庆祝' },
-  { key: '🔥', icon: Flame, label: '火热' },
+  { key: '🔥', icon: Flame, label: '火焰' },
   { key: '✨', icon: Sparkles, label: '闪亮' },
-  { key: '🚀', icon: Rocket, label: '起飞' },
-  { key: '🤘', icon: HandMetal, label: '摇滚' },
-  { key: '🤝', icon: Handshake, label: '握手' },
+  { key: '🚀', icon: Rocket, label: '火箭' },
+  { key: '💪', icon: HandMetal, label: '加油' },
+  { key: '👏', icon: ThumbsUp, label: '鼓掌' },
+  { key: '🙏', icon: Handshake, label: '感谢' },
   { key: '⭐', icon: Star, label: '星星' },
   { key: '✅', icon: Check, label: '完成' },
   { key: '❌', icon: X, label: '否定' },
-  { key: '😠', icon: Angry, label: '生气' },
-  { key: '☹️', icon: Frown, label: '难过' },
+  { key: '😡', icon: Angry, label: '生气' },
+  { key: '😭', icon: Frown, label: '难过' },
   { key: '👻', icon: Ghost, label: '幽灵' },
   { key: '⚡', icon: Zap, label: '闪电' },
   { key: '🏆', icon: Trophy, label: '奖杯' },
-  { key: '👎', icon: ThumbsDown, label: '踩' },
 ];
 
 const reactionByKey = new Map(REACTION_CATALOG.map((entry) => [entry.key, entry]));
