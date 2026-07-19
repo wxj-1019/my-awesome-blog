@@ -108,13 +108,19 @@ export default function HomeVisualBridge() {
       className="relative overflow-x-hidden bg-background pt-20 sm:pt-24 lg:pt-28 pb-8 sm:pb-10 lg:pb-12"
     >
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+        {/* 顶部流光：与 hero 波浪衔接，像水面延伸下来的光带 */}
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-tech-cyan/70 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-tech-sky/40 to-transparent" />
+        {/* 顶部柔光：从波浪过渡到 bridge 背景，避免硬接 */}
+        <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-tech-cyan/[0.06] to-transparent" />
         <div className="absolute inset-0 opacity-[0.08] [background-image:linear-gradient(rgba(6,182,212,.45)_1px,transparent_1px),linear-gradient(90deg,rgba(6,182,212,.45)_1px,transparent_1px)] [background-size:42px_42px]" />
         <div
           data-bridge-scan
           className="absolute top-0 h-full w-1/3 bg-gradient-to-r from-transparent via-tech-cyan/20 to-transparent blur-xl"
         />
+        {/* 节点呼吸光晕：呼应浪尖反光 */}
+        <div className="absolute left-[12%] top-[34%] h-24 w-24 -translate-x-1/2 rounded-full bg-tech-cyan/10 blur-2xl animate-pulse-slow" />
+        <div className="absolute left-[62%] top-[28%] h-24 w-24 -translate-x-1/2 rounded-full bg-tech-sky/10 blur-2xl animate-pulse-slow" style={{ animationDelay: '1.2s' }} />
       </div>
 
       <div className="container relative mx-auto px-4 sm:px-6 lg:px-8">

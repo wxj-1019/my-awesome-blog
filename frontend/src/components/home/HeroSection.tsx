@@ -317,13 +317,22 @@ export default function HeroSection() {
         向上盖住 hero 底部、向下伸入 HomeVisualBridge 顶部留白区，
         避免 hero 的 overflow:hidden 把浪花截断。
         pointer-events-none 不影响下方交互。
+        入场：从下方上浮 + 淡入，呼应 hero 文案 fade-in-up。
       */}
-      <div
+      <motion.div
         className="pointer-events-none absolute inset-x-0 bottom-0 z-30 h-[150px] overflow-visible"
         aria-hidden="true"
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5, duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
       >
         <WaveStack className="wave-stack" waveCount={3} />
-      </div>
+        {/* 浪尖微光：像水面反光，随波浪缓慢漂移 */}
+        <div
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-[60px] bg-gradient-to-t from-transparent via-white/5 to-transparent blur-md"
+          aria-hidden
+        />
+      </motion.div>
     </div>
   );
 }

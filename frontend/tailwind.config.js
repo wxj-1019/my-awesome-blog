@@ -238,6 +238,11 @@ export default {
           '0%': { filter: 'hue-rotate(0deg)' },
           '100%': { filter: 'hue-rotate(360deg)' },
         },
+        // 节点呼吸光晕：与 hero 波浪浪尖反光呼应
+        'pulse-slow': {
+          '0%, 100%': { opacity: '0.4', transform: 'translateX(-50%) scale(1)' },
+          '50%': { opacity: '0.8', transform: 'translateX(-50%) scale(1.15)' },
+        },
       },
       // 统一定义animation（与keyframes一一对应，避免重复键）
       animation: {
@@ -256,6 +261,7 @@ export default {
         'vertical-scroll': 'vertical-scroll 20s linear infinite',
         'scanline': 'scanline 2s linear infinite',
         'rainbow-shift': 'rainbow-shift 3s linear infinite',
+        'pulse-slow': 'pulse-slow 4s ease-in-out infinite',
       },
       transitionProperty: {
         'height': 'height',
