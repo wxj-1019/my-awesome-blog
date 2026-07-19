@@ -276,17 +276,7 @@ export default function HeroSection() {
                 pauseDuration={2200}
                 initialDelay={400}
                 showCursor
-                cursorCharacter="▍
-                cursorClassName={cn(
-                  'ml-1.5 align-baseline text-[0.9em] font-light',
-                  resolvedTheme === 'dark'
-                    ? 'text-teal-200/95 drop-shadow-[0_0_10px_rgba(94,234,212,0.85)]'
-                    : 'text-amber-50/95 drop-shadow-[0_0_8px_rgba(255,255,255,0.7)]'
-                )}
-                cursorBlinkDuration={0.7}
-                loop
-                variableSpeed={{ min: 60, max: 110 }}
-                className="inline"
+                cursorCharacter="|"
                 aria-live="polite"
                 aria-atomic="true"
               />
