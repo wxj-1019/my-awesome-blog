@@ -750,6 +750,11 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
                         variant={searchQuery ? 'search' : 'default'}
                         title={searchQuery ? '未找到匹配的提示词' : '暂无提示词'}
                         description={searchQuery ? '试试其他关键词' : '创建或导入提示词后在此显示'}
+                        action={
+                          searchQuery
+                            ? { label: '清除搜索', onClick: () => setSearchQuery('') }
+                            : undefined
+                        }
                       />
                     ) : (
                       <div className="space-y-3">
