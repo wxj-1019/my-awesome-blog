@@ -1,6 +1,6 @@
 'use client';
 
-import { Camera, Mail, Globe, Twitter, Github, Linkedin, MapPin, ExternalLink, Edit3, Save, X, UserRound } from 'lucide-react';
+import { Camera, Mail, Globe, Twitter, Github, Linkedin, MapPin, ExternalLink, Edit3, Save, X, UserRound, User, Users } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/input';
@@ -149,7 +149,7 @@ export default function ProfileView({
               <div className="space-y-2">
                 <Label htmlFor="username" className={`text-foreground flex items-center gap-2 ${textClass}`}>
                   <span className="w-5 h-5 flex items-center justify-center bg-tech-cyan/20 rounded-full text-tech-cyan">
-                    👤
+                    <User className="w-3 h-3" />
                   </span>
                   用户名
                 </Label>
@@ -300,7 +300,7 @@ export default function ProfileView({
               <div>
                 <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
                   <span className="w-4 h-4 flex items-center justify-center bg-tech-cyan/20 rounded-full text-tech-cyan">
-                    👥
+                    <Users className="w-3 h-3" />
                   </span>
                   社交媒体
                 </h3>

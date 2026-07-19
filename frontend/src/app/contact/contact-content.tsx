@@ -46,7 +46,7 @@ export default function ContactPageContent() {
       >
         <div className="container mx-auto px-4 sm:px-6 text-center">
           <p className="font-sf-pro-text text-foreground/50 text-sm">
-            期待与你的交流 ✨
+            期待与你的交流
           </p>
         </div>
       </motion.section>

@@ -572,7 +572,7 @@ export default function TimelinePage() {
                       type="text"
                       value={formData.icon}
                       onChange={(e) => setFormData(prev => ({ ...prev, icon: e.target.value }))}
-                      placeholder="例如: 🚀, 🎉, ✨"
+                      placeholder="例如: rocket、party 或短标签"
                     />
                   </div>
 
