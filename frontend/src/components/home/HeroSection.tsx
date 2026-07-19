@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from '@/lib/framer-motion';
-import Link from 'next/link';
 import TextType from './TextType';
 import GlassCard from '../ui/GlassCard';
 import { useTheme } from '../../context/theme-context';
@@ -219,69 +218,33 @@ export default function HeroSection() {
         }}
       >
         <div className="container mx-auto px-4 text-center flex-1 flex flex-col justify-center">
+          {/* 精简 hero：对齐早期版本，仅小玻璃卡 + 打字机，去掉大副标题/描述/CTA */}
           <GlassCard
-            padding="md"
+            padding="sm"
             hoverEffect={false}
-            glowEffect={true}
-            className="max-w-3xl mx-auto text-center animate-fade-in-up"
+            glowEffect={false}
+            className="max-w-xl md:max-w-2xl mx-auto text-center animate-fade-in-up px-5 py-4 md:px-8 md:py-5"
             role="banner"
+            aria-label="欢迎信息"
           >
-            {/* 副标题 */}
-            <p className="text-sm md:text-base text-tech-cyan font-medium mb-3 tracking-wide uppercase">
-              技术 · 设计 · 生活
-            </p>
-
             <h1
-              className="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-6 tracking-tight leading-tight"
+              className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight leading-snug text-foreground"
               id="hero-title"
             >
               <TextType
                 fetchFromApi={true}
-                typingSpeed={120}
-                pauseDuration={2000}
+                typingSpeed={75}
+                pauseDuration={1500}
                 showCursor
                 cursorCharacter="_"
                 loop={true}
                 aria-live="polite"
                 aria-atomic="true"
               />
-              {/* 屏幕阅读器备用文本 */}
               <span className="sr-only">
                 欢迎来到我的博客，这里分享技术、设计与生活
               </span>
             </h1>
-
-            {/* 描述文本 */}
-            <p className="text-base md:text-lg text-muted-foreground max-w-xl mx-auto mb-6 leading-relaxed">
-              探索前沿技术，分享设计灵感，记录生活点滴。
-              <br className="hidden sm:block" />
-              与你一起构建更美好的数字世界。
-            </p>
-
-            {/* CTA按钮 */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <a
-                href="#featured-highlights"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-tech-cyan text-white rounded-full font-medium
-                  hover:bg-tech-lightcyan transition-all duration-300 hover:scale-[1.02] hover:shadow-md hover:shadow-tech-cyan/15"
-              >
-                开始探索
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </a>
-              <Link
-                href="/articles"
-                className="inline-flex items-center gap-2 px-6 py-3 border border-border rounded-full font-medium
-                  hover:bg-glass hover:border-tech-cyan/50 transition-all duration-300"
-              >
-                浏览文章
-              </Link>
-            </div>
-
-            <p className="text-sm text-muted-foreground sr-only">
-              按Tab键继续浏览网站内容
-            </p>
           </GlassCard>
         </div>
 
