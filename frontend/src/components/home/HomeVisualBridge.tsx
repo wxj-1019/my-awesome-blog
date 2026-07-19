@@ -104,7 +104,8 @@ export default function HomeVisualBridge() {
       ref={bridgeRef}
       aria-label="home-visual-bridge"
       data-motion-l3={MOTION_L3_ENABLED ? 'on' : 'off'}
-      className="relative overflow-hidden bg-background py-8 sm:py-10 lg:py-12"
+      // 顶部留白让 hero 波浪可以压上来不被截断；overflow-x 仍隐藏网格扫描
+      className="relative overflow-x-hidden bg-background pt-20 sm:pt-24 lg:pt-28 pb-8 sm:pb-10 lg:pb-12"
     >
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-tech-cyan/70 to-transparent" />

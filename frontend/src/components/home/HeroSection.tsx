@@ -120,15 +120,16 @@ export default function HeroSection() {
   }, []);
 
   return (
-    <section
-      ref={heroRef}
-      className="relative h-screen flex flex-col items-center justify-start overflow-hidden"
-      aria-label="首屏欢迎区域"
-    >
-      {/* 跳过链接 - 无障碍导航 */}
-      <a href="#content" className="skip-link">
-        跳转到主要内容
-      </a>
+    <div className="relative">
+      <section
+        ref={heroRef}
+        className="relative h-screen flex flex-col items-center justify-start overflow-hidden"
+        aria-label="首屏欢迎区域"
+      >
+        {/* 跳过链接 - 无障碍导航 */}
+        <a href="#content" className="skip-link">
+          跳转到主要内容
+        </a>
       {/* L3 视频层：仅 CSS transform scale（不与文案层共用同一节点） */}
       <div
         className="absolute inset-0 z-0 will-change-transform"
@@ -305,17 +306,24 @@ export default function HeroSection() {
             />
           </div>
         </div>
-
-        <div
-          className="relative w-full"
-          aria-hidden="true"
-        >
-          <WaveStack className="wave-stack" waveCount={3} />
-        </div>
       </div>
 
       {/* 向下滚动指示器 */}
-      <ScrollIndicator />
-    </section>
+        <ScrollIndicator />
+      </section>
+
+      {/*
+        波浪溢出层：放在 hero section 之外，外层 overflow-visible，
+        向上盖住 hero 底部、向下伸入 HomeVisualBridge 顶部留白区，
+        避免 hero 的 overflow:hidden 把浪花截断。
+        pointer-events-none 不影响下方交互。
+      */}
+      <div
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-30 h-[150px] overflow-visible"
+        aria-hidden="true"
+      >
+        <WaveStack className="wave-stack" waveCount={3} />
+      </div>
+    </div>
   );
 }
