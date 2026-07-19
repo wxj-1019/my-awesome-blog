@@ -161,10 +161,12 @@ export default function VideosPageContent() {
 
           <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-tech-darkblue to-[#0b1221] border border-glass-border shadow-2xl">
             <div className="absolute top-0 right-0 w-1/2 h-full opacity-30 pointer-events-none">
-               <LottieAnimation 
-                 src="https://lottie.host/embed/9860471d-1033-4043-a616-1f6356779836/2K2C2b2V2d.json" 
-                 className="w-full h-full object-cover"
-               />
+              {/* 远程 embed 地址常返回 HTML，失败时静默回退，避免破坏布局 */}
+              <LottieAnimation
+                src="https://assets5.lottiefiles.com/packages/lf20_qp1q7mct.json"
+                className="w-full h-full object-cover"
+                fallback={null}
+              />
             </div>
             
             <div className="relative z-10 p-8 md:p-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">

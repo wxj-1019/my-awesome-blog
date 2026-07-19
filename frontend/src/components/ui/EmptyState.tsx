@@ -13,6 +13,7 @@ import {
   RefreshCw,
   ArrowRight,
 } from 'lucide-react';
+import LottieAnimation from '@/components/ui/LottieAnimation';
 
 export interface EmptyStateProps {
   title?: string;
@@ -30,6 +31,11 @@ export interface EmptyStateProps {
   /** 减少垂直内边距 */
   compact?: boolean;
   className?: string;
+  /**
+   * 可选本地/远程 Lottie JSON（如 `/lottie/empty-inbox.json`）。
+   * reduced-motion 或加载失败时回退到 lucide 图标。
+   */
+  lottieSrc?: string | object;
 }
 
 type VariantDefaults = {
@@ -96,6 +102,7 @@ const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
       size = 'md',
       compact = false,
       className,
+      lottieSrc,
     },
     ref
   ) => {
@@ -117,6 +124,7 @@ const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
     const isSm = size === 'sm';
     const iconWrapClass = isSm ? 'w-14 h-14' : 'w-20 h-20';
     const iconClass = isSm ? 'w-7 h-7' : 'w-10 h-10';
+    const lottieBoxClass = isSm ? 'w-24 h-24' : 'w-32 h-32';
     const titleClass = isSm
       ? 'text-base font-semibold text-foreground mb-1.5'
       : 'text-lg font-semibold text-foreground mb-2';
@@ -133,6 +141,17 @@ const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
 
     const ctaClass =
       'inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all duration-200 hover:scale-105 shadow-lg shadow-primary/20';
+
+    const iconFallback = (
+      <div
+        className={cn(
+          iconWrapClass,
+          'rounded-full bg-muted/40 backdrop-blur-lg border border-border/40 flex items-center justify-center'
+        )}
+      >
+        <ResolvedIcon className={cn(iconClass, 'text-muted-foreground')} />
+      </div>
+    );
 
     return (
       <motion.div
@@ -160,28 +179,33 @@ const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
                 transition: { delay: 0.1, duration: 0.5 },
               })}
         >
-          <div
-            className={cn(
-              iconWrapClass,
-              'rounded-full bg-muted/40 backdrop-blur-lg border border-border/40 flex items-center justify-center'
-            )}
-          >
-            <ResolvedIcon className={cn(iconClass, 'text-muted-foreground')} />
-          </div>
-          {/* reduced-motion 时跳过循环光晕 */}
-          {!reducedMotion && (
-            <motion.div
-              className="absolute inset-0 rounded-full bg-primary/10 blur-xl"
-              animate={{
-                scale: [1, 1.2, 1],
-                opacity: [0.3, 0.5, 0.3],
-              }}
-              transition={{
-                duration: 3,
-                repeat: Infinity,
-                ease: 'easeInOut',
-              }}
+          {lottieSrc ? (
+            <LottieAnimation
+              src={lottieSrc}
+              loop
+              autoplay
+              className={cn(lottieBoxClass, 'mx-auto')}
+              fallback={iconFallback}
             />
+          ) : (
+            <>
+              {iconFallback}
+              {/* reduced-motion 时跳过循环光晕 */}
+              {!reducedMotion && (
+                <motion.div
+                  className="absolute inset-0 rounded-full bg-primary/10 blur-xl pointer-events-none"
+                  animate={{
+                    scale: [1, 1.2, 1],
+                    opacity: [0.3, 0.5, 0.3],
+                  }}
+                  transition={{
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: 'easeInOut',
+                  }}
+                />
+              )}
+            </>
           )}
         </motion.div>
 

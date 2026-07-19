@@ -228,6 +228,10 @@ function ArticlesPageContent() {
                     ? '没有找到匹配的文章，请尝试其他筛选条件'
                     : '暂无文章发布，请稍后再来'
                 }
+                // 仅无筛选的「真·空库」用本地 Lottie 试点；筛选空结果保持简洁图标
+                lottieSrc={
+                  hasFilters ? undefined : '/lottie/empty-inbox.json'
+                }
                 action={
                   hasFilters
                     ? { label: '清除筛选', onClick: filters.resetFilters }
