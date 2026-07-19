@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import type { Route } from 'next';
-import AnimatedLogo from './AnimatedLogo';
+import BrandLogo from './BrandLogo';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Home, BookOpen, Mail, Camera, Wrench, Search, X, Menu, Music, Film, Gamepad2, ChevronDown, MessageSquare, Cpu } from 'lucide-react';
@@ -168,14 +168,9 @@ export default function Navbar() {
         )}
       >
         <div className="w-full h-16 flex items-center justify-between px-4 md:px-6 lg:px-8">
-          {/* Logo */}
-          <div className={cn(
-            "flex items-center flex-shrink-0 transition-all duration-300",
-            isHovered ? "opacity-100 translate-x-0 scale-105" : "opacity-100 translate-x-0"
-          )}>
-            <div className="flex items-center group">
-              <AnimatedLogo isNavbarHovered={isHovered || scrolled} />
-            </div>
+          {/* Logo：固定槽位，强调态不挤压导航 */}
+          <div className="flex items-center flex-shrink-0">
+            <BrandLogo emphasized={isHovered || scrolled} />
           </div>
 
           {/* 桌面端导航 */}
