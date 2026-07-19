@@ -13,10 +13,12 @@
 
 | 层 | 路径 |
 |----|------|
+| 运行时常量 | `frontend/src/lib/theme-config.ts`（STORAGE_KEY、fallback） |
 | CSS 变量 | `frontend/src/styles/base/variables.css` |
 | Tailwind 映射 | `frontend/tailwind.config.js` → `colors.*` |
 | Mode 状态 | `frontend/src/context/theme-context.tsx` |
-| FOUC | `frontend/src/app/layout.tsx` 内联脚本 |
+| FOUC | `frontend/src/app/layout.tsx` 内联脚本（key 必须与 `THEME_STORAGE_KEY` 一致） |
+| 审计清单 | `docs/theme-audit.md` |
 
 ## 语义 Token 清单（组件优先用这些）
 

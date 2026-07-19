@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 import { cn } from '@/lib/utils';
-import { useTheme } from '@/context/theme-context';
 
 export interface FriendLinkCardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
@@ -23,13 +22,6 @@ const FriendLinkCard = React.forwardRef<HTMLDivElement, FriendLinkCardProps>(
     cornerAnimation = false,
     ...props
   }, ref) => {
-    const { resolvedTheme } = useTheme();
-    const [mounted, setMounted] = React.useState(false);
-
-    React.useEffect(() => {
-      setMounted(true);
-    }, []);
-
     const paddingClasses = {
       none: '',
       sm: 'p-4',
@@ -37,16 +29,12 @@ const FriendLinkCard = React.forwardRef<HTMLDivElement, FriendLinkCardProps>(
       lg: 'p-8',
     };
 
-    const backgroundClass = mounted && resolvedTheme === 'dark'
-      ? 'bg-glass/30 backdrop-blur-xl'
-      : 'bg-white/80 backdrop-blur-xl';
-
     return (
       <div
         ref={ref}
         className={cn(
           'relative rounded-xl border border-glass-border shadow-lg text-foreground transition-all duration-300 overflow-hidden',
-          backgroundClass,
+          'bg-glass backdrop-blur-xl',
           hoverEffect && 'hover:-translate-y-1 hover:shadow-2xl hover:border-glass-glow',
           glowEffect && 'hover:shadow-[0_0_30px_var(--shadow-tech-cyan)]',
           cornerAnimation && 'friend-link-corner',

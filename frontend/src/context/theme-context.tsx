@@ -1,32 +1,43 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from 'react';
+import {
+  THEME_STORAGE_KEY,
+  THEME_COLOR_FALLBACK,
+  isThemeMode,
+  readCssVar,
+  type ThemeMode,
+  type ResolvedMode,
+} from '@/lib/theme-config';
 
-/** 用户偏好：含跟随系统 */
-export type Theme = 'light' | 'dark' | 'auto';
-/** 实际渲染主题（已解析 auto） */
-export type ResolvedTheme = 'light' | 'dark';
+/** @deprecated 请使用 ThemeMode；保留别名避免破坏外部 import */
+export type Theme = ThemeMode;
+export type ResolvedTheme = ResolvedMode;
 
 interface ThemeContextType {
-  theme: Theme;
-  setTheme: (theme: Theme) => void;
-  resolvedTheme: ResolvedTheme;
+  theme: ThemeMode;
+  setTheme: (theme: ThemeMode) => void;
+  resolvedTheme: ResolvedMode;
   /** 是否完成客户端 hydrate（可读 localStorage） */
   isMounted: boolean;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-const STORAGE_KEY = 'theme';
-
-function getInitialTheme(): Theme {
+function getInitialTheme(): ThemeMode {
   if (typeof window === 'undefined') {
     return 'auto';
   }
 
   try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored === 'light' || stored === 'dark' || stored === 'auto') {
+    const stored = localStorage.getItem(THEME_STORAGE_KEY);
+    if (isThemeMode(stored)) {
       return stored;
     }
     return 'auto';
@@ -35,35 +46,42 @@ function getInitialTheme(): Theme {
   }
 }
 
-function getSystemTheme(): 'light' | 'dark' {
+function getSystemTheme(): ResolvedMode {
   if (typeof window === 'undefined') {
     return 'dark';
   }
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  return window.matchMedia('(prefers-color-scheme: dark)').matches
+    ? 'dark'
+    : 'light';
 }
 
-function resolveTheme(theme: Theme): 'light' | 'dark' {
+function resolveTheme(theme: ThemeMode): ResolvedMode {
   if (theme === 'auto') {
     return getSystemTheme();
   }
   return theme;
 }
 
-function applyThemeToDocument(theme: 'light' | 'dark') {
+function applyThemeToDocument(mode: ResolvedMode) {
   const root = document.documentElement;
-  
+
   root.classList.remove('light', 'dark');
-  root.classList.add(theme);
-  
-  root.setAttribute('data-theme', theme);
-  
+  root.classList.add(mode);
+  // data-theme 表示当前解析 mode；未来皮肤用 data-theme-pack
+  root.setAttribute('data-theme', mode);
+  root.setAttribute('data-mode', mode);
+
+  const themeColor =
+    readCssVar('--background', THEME_COLOR_FALLBACK[mode]) ||
+    THEME_COLOR_FALLBACK[mode];
+
   const metaThemeColor = document.querySelector('meta[name="theme-color"]');
   if (metaThemeColor) {
-    metaThemeColor.setAttribute('content', theme === 'dark' ? '#0a0a0a' : '#f8fafc');
+    metaThemeColor.setAttribute('content', themeColor);
   } else {
     const meta = document.createElement('meta');
     meta.name = 'theme-color';
-    meta.content = theme === 'dark' ? '#0a0a0a' : '#f8fafc';
+    meta.content = themeColor;
     document.head.appendChild(meta);
   }
 }
@@ -71,18 +89,19 @@ function applyThemeToDocument(theme: 'light' | 'dark') {
 export function ThemeProvider({
   children,
   defaultTheme = 'auto',
-  storageKey = STORAGE_KEY
+  storageKey = THEME_STORAGE_KEY,
 }: {
   children: React.ReactNode;
-  defaultTheme?: Theme;
+  defaultTheme?: ThemeMode;
   storageKey?: string;
 }) {
   const [isMounted, setIsMounted] = useState(false);
-  // 默认 auto；首屏已由 layout 内联脚本写好 html.dark/light，此处 hydrate 后再对齐
-  const [theme, setThemeState] = useState<Theme>(defaultTheme);
-  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>(() => {
+  const [theme, setThemeState] = useState<ThemeMode>(defaultTheme);
+  const [resolvedTheme, setResolvedTheme] = useState<ResolvedMode>(() => {
     if (typeof document !== 'undefined') {
-      return document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+      return document.documentElement.classList.contains('dark')
+        ? 'dark'
+        : 'light';
     }
     return 'dark';
   });
@@ -98,23 +117,29 @@ export function ThemeProvider({
     setIsMounted(true);
   }, []);
 
-  const updateTheme = useCallback((newTheme: Theme) => {
-    const resolved = resolveTheme(newTheme);
-    
-    setThemeState(newTheme);
-    setResolvedTheme(resolved);
-    applyThemeToDocument(resolved);
-    
-    try {
-      localStorage.setItem(storageKey, newTheme);
-    } catch (e) {
-      console.error('Failed to save theme to localStorage:', e);
-    }
-  }, [storageKey]);
+  const updateTheme = useCallback(
+    (newTheme: ThemeMode) => {
+      const resolved = resolveTheme(newTheme);
 
-  const setTheme = useCallback((newTheme: Theme) => {
-    updateTheme(newTheme);
-  }, [updateTheme]);
+      setThemeState(newTheme);
+      setResolvedTheme(resolved);
+      applyThemeToDocument(resolved);
+
+      try {
+        localStorage.setItem(storageKey, newTheme);
+      } catch (e) {
+        console.error('Failed to save theme to localStorage:', e);
+      }
+    },
+    [storageKey]
+  );
+
+  const setTheme = useCallback(
+    (newTheme: ThemeMode) => {
+      updateTheme(newTheme);
+    },
+    [updateTheme]
+  );
 
   useEffect(() => {
     if (!isMounted || theme !== 'auto') {
@@ -122,9 +147,9 @@ export function ThemeProvider({
     }
 
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    
+
     const handleChange = (e: MediaQueryListEvent) => {
-      const systemTheme = e.matches ? 'dark' : 'light';
+      const systemTheme: ResolvedMode = e.matches ? 'dark' : 'light';
       setResolvedTheme(systemTheme);
       applyThemeToDocument(systemTheme);
     };
@@ -144,9 +169,7 @@ export function ThemeProvider({
   };
 
   return (
-    <ThemeContext.Provider value={value}>
-      {children}
-    </ThemeContext.Provider>
+    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
   );
 }
 

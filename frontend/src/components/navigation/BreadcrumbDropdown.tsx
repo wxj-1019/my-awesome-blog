@@ -57,7 +57,7 @@ export default function BreadcrumbDropdown({
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
               className={cn(
                 'absolute top-full left-0 mt-2 min-w-64 rounded-lg shadow-2xl z-50',
-                getThemeClass('bg-[#1a1a2e] border-glass-border', 'bg-white border-gray-200'),
+                'bg-popover border-border',
                 'border overflow-hidden'
               )}
             >

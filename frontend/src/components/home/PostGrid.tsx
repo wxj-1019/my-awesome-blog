@@ -3,7 +3,6 @@
 import type { Post } from '@/types';
 import React, { useState, useCallback, useEffect } from 'react';
 import ArticleCard, { ArticleCardSkeleton } from '@/components/ui/ArticleCard';
-import { useTheme } from '@/context/theme-context';
 import { useLoading } from '@/context/loading-context';
 
 interface PostCardItemProps {
@@ -43,18 +42,11 @@ interface PostGridProps {
 }
 
 export default function PostGrid({ posts, loading = false, hasMore = true, onLoadMore }: PostGridProps) {
-  const { resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
   const { showLoading, hideLoading } = useLoading();
 
-  // 防止 hydration 错误
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const glassCardClass = mounted && resolvedTheme === 'dark'
-    ? 'glass-card'
-    : 'bg-muted/80 shadow-lg border border-border';
+  // 语义 token：light/dark 由 CSS 变量区分
+  const glassCardClass =
+    'bg-card/90 backdrop-blur-xl shadow-lg border border-border';
 
   const [loadingLocal, setLoadingLocal] = useState(loading);
 

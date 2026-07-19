@@ -57,17 +57,21 @@ export default function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
+            // 必须与 @/lib/theme-config THEME_STORAGE_KEY (= 'theme') 一致
             __html: `
               (function() {
                 try {
                   var theme = localStorage.getItem('theme') || 'auto';
                   var isDark = theme === 'dark' || (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                  var mode = isDark ? 'dark' : 'light';
                   var root = document.documentElement;
                   root.classList.remove('light', 'dark');
-                  root.classList.add(isDark ? 'dark' : 'light');
-                  root.setAttribute('data-theme', isDark ? 'dark' : 'light');
+                  root.classList.add(mode);
+                  root.setAttribute('data-theme', mode);
+                  root.setAttribute('data-mode', mode);
                 } catch (e) {
                   document.documentElement.classList.add('dark');
+                  document.documentElement.setAttribute('data-mode', 'dark');
                 }
               })();
             `,

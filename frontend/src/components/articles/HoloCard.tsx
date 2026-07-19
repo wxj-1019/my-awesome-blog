@@ -58,8 +58,8 @@ function HoloCard({ article, isFeatured = false, className }: HoloCardProps) {
               <span className={`
                 px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-sm
                 ${getThemeClass(
-                  'bg-[#EC4899]/90 text-white',
-                  'bg-[#EC4899]/90 text-white'
+                  'bg-primary/90 text-primary-foreground',
+                  'bg-primary/90 text-primary-foreground'
                 )}
               `}>
                 {article.categories[0]?.name}
@@ -91,7 +91,7 @@ function HoloCard({ article, isFeatured = false, className }: HoloCardProps) {
               layoutId={`article-title-${article.id}`}
               className={`
               text-xl font-bold text-white mb-2 line-clamp-2
-              group-hover:text-[#EC4899] transition-colors
+              group-hover:text-primary transition-colors
             `}
             >
               {article.title}
@@ -106,11 +106,11 @@ function HoloCard({ article, isFeatured = false, className }: HoloCardProps) {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-1">
-                  <Eye className="w-4 h-4 text-[#EC4899]" />
+                  <Eye className="w-4 h-4 text-primary" />
                   <span className="text-xs text-gray-300">{article.view_count}</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Heart className="w-4 h-4 text-[#EC4899]" />
+                  <Heart className="w-4 h-4 text-primary" />
                   <span className="text-xs text-gray-300">{article.likes_count}</span>
                 </div>
                 <div className="flex items-center gap-1">
@@ -194,8 +194,8 @@ function HoloCard({ article, isFeatured = false, className }: HoloCardProps) {
                       <span className={`
                         px-3 py-1 rounded-full text-sm font-medium
                         ${getThemeClass(
-                          'bg-[#EC4899]/90 text-white',
-                          'bg-[#EC4899]/90 text-white'
+                          'bg-primary/90 text-primary-foreground',
+                          'bg-primary/90 text-primary-foreground'
                         )}
                       `}>
                         {article.categories[0]?.name}
@@ -224,11 +224,11 @@ function HoloCard({ article, isFeatured = false, className }: HoloCardProps) {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-6">
                       <div className="flex items-center gap-2">
-                        <Eye className="w-5 h-5 text-[#EC4899]" />
+                        <Eye className="w-5 h-5 text-primary" />
                         <span className={getThemeClass('text-white', 'text-gray-800')}>{article.view_count}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Heart className="w-5 h-5 text-[#EC4899]" />
+                        <Heart className="w-5 h-5 text-primary" />
                         <span className={getThemeClass('text-white', 'text-gray-800')}>{article.likes_count}</span>
                       </div>
                       <div className="flex items-center gap-2">
@@ -239,7 +239,7 @@ function HoloCard({ article, isFeatured = false, className }: HoloCardProps) {
 
                     <Link
                       href={`/articles/${article.id}`}
-                      className="inline-flex items-center gap-2 px-6 py-3 bg-[#EC4899] text-white rounded-full font-semibold hover:bg-[#EC4899]/90 transition-all active:scale-95"
+                      className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-full font-semibold hover:bg-primary/90 transition-all active:scale-95"
                     >
                       阅读全文
                       <ArrowRight className="w-5 h-5" />

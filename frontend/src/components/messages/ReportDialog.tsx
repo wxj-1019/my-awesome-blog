@@ -65,7 +65,7 @@ function ReportDialog({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className={cn('w-full max-w-md', getThemeClass('bg-[#1a1a2e]', 'bg-white'))}
+            className={cn('w-full max-w-md', 'bg-popover text-popover-foreground')}
             onClick={(e) => e.stopPropagation()}
           >
             <GlassCard className="p-6 border border-tech-pink/30">

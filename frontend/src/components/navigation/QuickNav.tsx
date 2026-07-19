@@ -116,13 +116,12 @@ export default function QuickNav({ items, trigger, className }: QuickNavProps) {
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
               className={cn(
                 'fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl rounded-2xl shadow-2xl z-50',
-                getThemeClass('bg-[#1a1a2e] border-glass-border', 'bg-white border-gray-200'),
-                'border overflow-hidden'
+                'bg-popover border-border border overflow-hidden'
               )}
             >
-              <div className="p-4 border-b border-glass-border">
+              <div className="p-4 border-b border-border">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/50" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <input
                     type="text"
                     value={searchQuery}
@@ -131,11 +130,8 @@ export default function QuickNav({ items, trigger, className }: QuickNavProps) {
                     autoFocus
                     className={cn(
                       'w-full pl-10 pr-4 py-3 rounded-lg text-sm',
-                      getThemeClass(
-                        'bg-glass/20 border-glass-border text-foreground placeholder:text-foreground/50',
-                        'bg-gray-100 border-gray-200 text-gray-800 placeholder:text-gray-400'
-                      ),
-                      'focus:outline-none focus:ring-2 focus:ring-tech-cyan/20 focus:border-tech-cyan'
+                      'bg-background/80 border border-border text-foreground placeholder:text-muted-foreground',
+                      'focus:outline-none focus:ring-2 focus:ring-ring/30 focus:border-primary'
                     )}
                   />
                   <button
