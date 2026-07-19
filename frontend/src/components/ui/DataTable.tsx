@@ -13,6 +13,7 @@ import {
   ChevronLeft, 
   ChevronRight
 } from 'lucide-react';
+import EmptyState from '@/components/ui/EmptyState';
 
 export interface Column<T> {
   key: string;
@@ -239,22 +240,12 @@ function DataTable<T>({
 
   if (data.length === 0) {
     return (
-      <motion.div
-        className={cn('flex flex-col items-center justify-center py-16 text-center', className)}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="w-16 h-16 rounded-full bg-glass/20 backdrop-blur-lg border border-glass-border/30 flex items-center justify-center mb-4">
-          <Search className="w-8 h-8 text-foreground/40" />
-        </div>
-        <h3 className="text-lg font-semibold text-foreground mb-2">
-          {empty?.title || '暂无数据'}
-        </h3>
-        <p className="text-sm text-foreground/60 max-w-md">
-          {empty?.description || '这里暂时没有任何内容'}
-        </p>
-      </motion.div>
+      <EmptyState
+        className={className}
+        icon={Search}
+        title={empty?.title || '暂无数据'}
+        description={empty?.description || '这里暂时没有任何内容'}
+      />
     );
   }
 

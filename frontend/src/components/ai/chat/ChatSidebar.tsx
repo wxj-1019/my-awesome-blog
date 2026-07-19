@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from '@/lib/framer-motion';
 import { Search, Plus, Trash2, MessageSquare, Archive } from 'lucide-react';
 import type { Conversation } from '@/types';
+import EmptyState from '@/components/ui/EmptyState';
 
 
 interface ChatSidebarProps {
@@ -145,11 +146,13 @@ export default function ChatSidebar({
         </AnimatePresence>
 
         {filteredConversations.length === 0 && (
-          <div className="text-center py-12">
-            <MessageSquare className="w-12 h-12 mx-auto text-muted-foreground/50 dark:text-muted-foreground/30 mb-3" />
-            <p className="text-sm text-muted-foreground dark:text-muted-foreground/50">暂无对话</p>
-            <p className="text-xs text-muted-foreground/50 dark:text-muted-foreground/30 mt-1">创建一个新对话开始聊天</p>
-          </div>
+          <EmptyState
+            size="sm"
+            compact
+            icon={MessageSquare}
+            title="暂无对话"
+            description="创建一个新对话开始聊天"
+          />
         )}
       </div>
     </motion.div>

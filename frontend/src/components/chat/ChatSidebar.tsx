@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import type { Prompt } from '@/types';
 import PromptSettings from './PromptSettings';
+import EmptyState from '@/components/ui/EmptyState';
 
 export interface ChatSession {
   id: string;
@@ -159,9 +160,14 @@ export function ChatSidebar({
             ))}
             
             {sessions.length === 0 && (
-              <div className="px-4 py-8 text-center text-sm text-zinc-600">
-                暂无历史记录
-              </div>
+              <EmptyState
+                size="sm"
+                compact
+                icon={MessageSquare}
+                title="暂无历史记录"
+                description="开始一段新对话吧"
+                className="px-2"
+              />
             )}
           </div>
         </div>

@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
+import EmptyState from '@/components/ui/EmptyState';
 import { promptService, type PromptFolder, type PromptWithFolder } from '@/services/promptService';
 import type { Prompt } from '@/types';
 
@@ -743,12 +744,13 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
                         <Loader2 className="animate-spin text-cyan-400" size={24} />
                       </div>
                     ) : filteredPrompts.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center h-32 text-zinc-500">
-                        <AlertCircle size={32} className="mb-2" />
-                        <p className="text-sm">
-                          {searchQuery ? '未找到匹配的提示词' : '暂无提示词'}
-                        </p>
-                      </div>
+                      <EmptyState
+                        size="sm"
+                        compact
+                        variant={searchQuery ? 'search' : 'default'}
+                        title={searchQuery ? '未找到匹配的提示词' : '暂无提示词'}
+                        description={searchQuery ? '试试其他关键词' : '创建或导入提示词后在此显示'}
+                      />
                     ) : (
                       <div className="space-y-3">
                         {filteredPrompts.map(renderPromptItem)}

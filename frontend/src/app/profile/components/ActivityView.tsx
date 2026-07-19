@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Calendar, Clock, MessageCircle, Heart, Eye, ExternalLink } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
 import { Button } from '@/components/ui/Button';
+import EmptyState from '@/components/ui/EmptyState';
 import { useLoading } from '@/context/loading-context';
 
 interface ActivityItem {
@@ -130,9 +131,12 @@ export default function ActivityView() {
                 </div>
               ))
             ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                暂无活动记录
-              </div>
+              <EmptyState
+                size="sm"
+                compact
+                title="暂无活动记录"
+                description="互动与动态会显示在这里"
+              />
             )}
           </div>
         )}

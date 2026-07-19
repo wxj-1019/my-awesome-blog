@@ -1,6 +1,7 @@
 'use client';
 import { Globe, Twitter, Github, Linkedin, Link as LinkIcon } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
+import EmptyState from '@/components/ui/EmptyState';
 interface SocialLink {
   type: 'website' | 'twitter' | 'github' | 'linkedin';
   value: string;
@@ -58,8 +59,17 @@ export default function SocialLinksCard({ socialLinks, isEditing = false }: Soci
           );
         })}
         {validLinks.length === 0 && (
-          <div className="col-span-full text-center py-8 text-muted-foreground">
-            {isEditing ? '添加社交链接以展示您的社交网络' : '暂无社交链接'}
+          <div className="col-span-full">
+            <EmptyState
+              size="sm"
+              compact
+              title={isEditing ? '添加社交链接' : '暂无社交链接'}
+              description={
+                isEditing
+                  ? '添加社交链接以展示您的社交网络'
+                  : '还没有公开的社交链接'
+              }
+            />
           </div>
         )}
       </div>

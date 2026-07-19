@@ -3,6 +3,7 @@
 import SongRow from './SongRow';
 import type { Song } from '@/types/music';
 import { Music } from 'lucide-react';
+import EmptyState from '@/components/ui/EmptyState';
 
 interface SongListProps {
   songs: Song[];
@@ -78,12 +79,13 @@ export default function SongList({
       </div>
 
       {songs.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-20 opacity-50">
-          <Music className="w-16 h-16 text-white/20 mb-4" />
-          <p className="text-sm text-white/40">
-            暂无歌曲
-          </p>
-        </div>
+        <EmptyState
+          size="sm"
+          compact
+          icon={Music}
+          title="暂无歌曲"
+          description="曲库空空如也"
+        />
       )}
     </div>
   );
