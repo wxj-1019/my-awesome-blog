@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react';
 import { motion } from '@/lib/framer-motion';
 import { cn } from '@/lib/utils';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { Play, Headphones } from 'lucide-react';
 import type { Playlist } from '@/types/music';
 
@@ -24,6 +25,8 @@ export default function PlaylistCard({
   const cardRef = useRef<HTMLDivElement>(null);
   const [transform, setTransform] = useState({ rotateX: 0, rotateY: 0 });
   const [glarePosition, setGlarePosition] = useState({ x: 50, y: 50, opacity: 0 });
+  // 减少动画偏好：入场动效回退为直接呈现
+  const reducedMotion = useReducedMotion();
 
   const sizeClasses = {
     small: 'w-40',
@@ -71,7 +74,7 @@ export default function PlaylistCard({
     <motion.div
       className={cn('group relative cursor-pointer perspective-1000', sizeClasses[size])}
       onClick={onPlay}
-      initial={{ opacity: 0, y: 30 }}
+      initial={reducedMotion ? false : { opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ 
         duration: 0.5, 
@@ -84,9 +87,9 @@ export default function PlaylistCard({
         ref={cardRef}
         className={cn(
           'relative rounded-2xl overflow-hidden preserve-3d',
-          'bg-gradient-to-br from-white/[0.1] to-white/[0.02]',
-          'backdrop-blur-xl border border-white/[0.08]',
-          'shadow-xl shadow-indigo-500/10',
+          'bg-gradient-to-br from-foreground/[0.08] to-foreground/[0.02]',
+          'backdrop-blur-xl border border-foreground/10',
+          'shadow-xl shadow-tech-cyan/20',
           coverSize[size]
         )}
         onMouseMove={handleMouseMove}
@@ -97,8 +100,8 @@ export default function PlaylistCard({
         }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
         whileHover={{ 
-          boxShadow: '0 25px 50px -12px rgba(99, 102, 241, 0.25)',
-          borderColor: 'rgba(255, 255, 255, 0.2)'
+          boxShadow: '0 25px 50px -12px color-mix(in srgb, var(--primary) 25%, transparent)',
+          borderColor: 'color-mix(in srgb, var(--foreground) 20%, transparent)'
         }}
       >
         {/* Glare effect */}
@@ -126,19 +129,19 @@ export default function PlaylistCard({
         <motion.button
           className={cn(
             'absolute bottom-4 right-4 w-14 h-14 rounded-full',
-            'bg-gradient-to-r from-indigo-500 to-pink-500',
+            'bg-gradient-to-r from-tech-cyan to-tech-sky',
             'flex items-center justify-center',
-            'shadow-lg shadow-indigo-500/40'
+            'shadow-lg shadow-tech-cyan'
           )}
           aria-label="播放"
           onClick={(e) => {
             e.stopPropagation();
             onPlay?.();
           }}
-          initial={{ opacity: 0, y: 20, scale: 0.8 }}
+          initial={reducedMotion ? false : { opacity: 0, y: 20, scale: 0.8 }}
           whileHover={{ 
             scale: 1.15, 
-            boxShadow: '0 0 30px rgba(99, 102, 241, 0.6)'
+            boxShadow: '0 0 30px color-mix(in srgb, var(--primary) 60%, transparent)'
           }}
           whileTap={{ scale: 0.9 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -153,18 +156,18 @@ export default function PlaylistCard({
             <div className="flex items-center gap-2 mb-2">
               <motion.div 
                 className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/50 backdrop-blur-sm"
-                initial={{ opacity: 0, x: -10 }}
+                initial={reducedMotion ? false : { opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.08 + 0.2 }}
               >
-                <Headphones className="w-3.5 h-3.5 text-indigo-300" />
+                <Headphones className="w-3.5 h-3.5 text-tech-lightcyan" />
                 <span className="text-xs font-medium text-white/90">
                   {formatNumber(playlist.playCount)}
                 </span>
               </motion.div>
               <motion.div 
                 className="px-2 py-1 rounded-full bg-black/50 backdrop-blur-sm"
-                initial={{ opacity: 0, x: -10 }}
+                initial={reducedMotion ? false : { opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.08 + 0.25 }}
               >
@@ -180,15 +183,15 @@ export default function PlaylistCard({
       {/* Info Section - Outside card */}
       <motion.div 
         className="mt-4 px-1"
-        initial={{ opacity: 0, y: 10 }}
+        initial={reducedMotion ? false : { opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: index * 0.08 + 0.15, duration: 0.4 }}
       >
-        <h3 className="font-bold text-white text-base truncate mb-1.5 group-hover:text-indigo-300 transition-colors duration-300">
+        <h3 className="font-bold text-foreground text-base truncate mb-1.5 group-hover:text-primary transition-colors duration-300">
           {playlist.name}
         </h3>
         {playlist.creator && (
-          <p className="text-sm text-white/40 truncate group-hover:text-white/60 transition-colors duration-300">
+          <p className="text-sm text-muted-foreground truncate group-hover:text-foreground/60 transition-colors duration-300">
             {playlist.creator}
           </p>
         )}

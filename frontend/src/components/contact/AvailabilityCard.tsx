@@ -1,24 +1,35 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from '@/lib/framer-motion';
+import { motion } from '@/lib/framer-motion';
 import { CheckCircle, XCircle, Clock, Calendar, MessageSquare, AlertCircle } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { cn } from '@/lib/utils';
+
 type AvailabilityStatus = 'available' | 'busy' | 'offline' | 'away';
 interface AvailabilityInfo {
   status: AvailabilityStatus;
   label: string;
   description: string;
   responseTime: string;
+  /** 图标/文字颜色 token 类 */
   color: string;
+  /** 状态圆点背景 token 类（完整类名，保证 Tailwind 可扫描） */
+  dotClass: string;
+  /** 图标容器渐变起点 token 类 */
+  gradientClass: string;
   icon: React.ReactNode;
 }
 export default function AvailabilityCard() {
+  const reducedMotion = useReducedMotion();
   const [availability, setAvailability] = useState<AvailabilityInfo>({
     status: 'available',
     label: '在线',
     description: '现在可以回复消息',
     responseTime: '通常在 24 小时内回复',
-    color: 'text-green-500',
+    color: 'text-success',
+    dotClass: 'bg-success',
+    gradientClass: 'from-success',
     icon: <CheckCircle className="w-5 h-5" />,
   });
   useEffect(() => {
@@ -34,7 +45,9 @@ export default function AvailabilityCard() {
           label: '在线',
           description: '现在可以回复消息',
           responseTime: '通常在 2 小时内回复',
-          color: 'text-green-500',
+          color: 'text-success',
+          dotClass: 'bg-success',
+          gradientClass: 'from-success',
           icon: <CheckCircle className="w-5 h-5" />,
         };
       } else if (isWeekday && hour >= 18 && hour < 22) {
@@ -43,7 +56,9 @@ export default function AvailabilityCard() {
           label: '忙碌',
           description: '正在处理紧急任务',
           responseTime: '可能在 24 小时内回复',
-          color: 'text-yellow-500',
+          color: 'text-warning',
+          dotClass: 'bg-warning',
+          gradientClass: 'from-warning',
           icon: <AlertCircle className="w-5 h-5" />,
         };
       } else if (hour >= 22 || hour < 9) {
@@ -52,7 +67,9 @@ export default function AvailabilityCard() {
           label: '离线',
           description: '非工作时间',
           responseTime: '下一个工作日回复',
-          color: 'text-gray-500',
+          color: 'text-muted-foreground',
+          dotClass: 'bg-muted-foreground',
+          gradientClass: 'from-muted-foreground',
           icon: <Clock className="w-5 h-5" />,
         };
       } else {
@@ -61,7 +78,9 @@ export default function AvailabilityCard() {
           label: '离线',
           description: '周末休息',
           responseTime: '周一回复',
-          color: 'text-gray-500',
+          color: 'text-muted-foreground',
+          dotClass: 'bg-muted-foreground',
+          gradientClass: 'from-muted-foreground',
           icon: <XCircle className="w-5 h-5" />,
         };
       }
@@ -76,6 +95,7 @@ export default function AvailabilityCard() {
     nextMonday.setDate(now.getDate() + daysUntilMonday);
     return nextMonday.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'long' });
   };
+  const isOffline = availability.status === 'offline';
   return (
     <section className="w-full py-12">
       <div className="container mx-auto px-4 sm:px-6">
@@ -90,8 +110,9 @@ export default function AvailabilityCard() {
           </div>
           <GlassCard padding="lg">
             <div className="flex items-center gap-6 mb-8">
+              {/* 呼吸循环动画：reduced-motion 时回退为静态 */}
               <motion.div
-                animate={{
+                animate={reducedMotion ? undefined : {
                   scale: [1, 1.1, 1],
                   opacity: [1, 0.7, 1],
                 }}
@@ -100,7 +121,7 @@ export default function AvailabilityCard() {
                   repeat: Infinity,
                   ease: 'easeInOut',
                 }}
-                className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${availability.color.replace('text-', 'from-')} to-white/20 dark:to-black/20 flex items-center justify-center`}
+                className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${availability.gradientClass} to-foreground/10 flex items-center justify-center`}
               >
                 <div className={availability.color}>
                   {availability.icon}
@@ -112,7 +133,7 @@ export default function AvailabilityCard() {
                     {availability.label}
                   </h3>
                   <motion.div
-                    animate={{
+                    animate={reducedMotion ? undefined : {
                       scale: [1, 1.2, 1],
                       opacity: [0.5, 1, 0.5],
                     }}
@@ -121,7 +142,7 @@ export default function AvailabilityCard() {
                       repeat: Infinity,
                       ease: 'easeInOut',
                     }}
-                    className={`w-3 h-3 rounded-full ${availability.color.replace('text-', 'bg-')}`}
+                    className={`w-3 h-3 rounded-full ${availability.dotClass}`}
                   />
                 </div>
                 <p className="font-sf-pro-text text-foreground/70">
@@ -130,7 +151,7 @@ export default function AvailabilityCard() {
               </div>
             </div>
             <div className="space-y-4">
-              <div className="flex items-start gap-4 p-4 bg-foreground/5 dark:bg-foreground/10 rounded-2xl">
+              <div className="flex items-start gap-4 p-4 bg-foreground/5 rounded-2xl">
                 <div className="w-10 h-10 rounded-xl bg-tech-cyan/10 flex items-center justify-center flex-shrink-0">
                   <MessageSquare className="w-5 h-5 text-tech-cyan" />
                 </div>
@@ -143,9 +164,9 @@ export default function AvailabilityCard() {
                   </p>
                 </div>
               </div>
-              <div className="flex items-start gap-4 p-4 bg-foreground/5 dark:bg-foreground/10 rounded-2xl">
-                <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center flex-shrink-0">
-                  <Calendar className="w-5 h-5 text-purple-500" />
+              <div className="flex items-start gap-4 p-4 bg-foreground/5 rounded-2xl">
+                <div className="w-10 h-10 rounded-xl bg-tech-purple/10 flex items-center justify-center flex-shrink-0">
+                  <Calendar className="w-5 h-5 text-tech-purple" />
                 </div>
                 <div>
                   <h4 className="font-sf-pro-display font-semibold text-foreground mb-1">
@@ -156,9 +177,9 @@ export default function AvailabilityCard() {
                   </p>
                 </div>
               </div>
-              <div className="flex items-start gap-4 p-4 bg-foreground/5 dark:bg-foreground/10 rounded-2xl">
-                <div className="w-10 h-10 rounded-xl bg-pink-500/10 flex items-center justify-center flex-shrink-0">
-                  <AlertCircle className="w-5 h-5 text-pink-500" />
+              <div className="flex items-start gap-4 p-4 bg-foreground/5 rounded-2xl">
+                <div className="w-10 h-10 rounded-xl bg-tech-pink/10 flex items-center justify-center flex-shrink-0">
+                  <AlertCircle className="w-5 h-5 text-tech-pink" />
                 </div>
                 <div>
                   <h4 className="font-sf-pro-display font-semibold text-foreground mb-1">
@@ -170,20 +191,26 @@ export default function AvailabilityCard() {
                 </div>
               </div>
             </div>
-            <AnimatePresence mode="wait">
-              {availability.status === 'offline' && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="mt-6 p-4 bg-foreground/5 dark:bg-foreground/10 rounded-2xl"
+            {/* 展开动画：grid-rows 0fr→1fr + opacity，不触发布局属性动画 */}
+            <div
+              className={cn(
+                'grid transition-[grid-template-rows] duration-300 ease-out',
+                isOffline ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+              )}
+            >
+              <div className="overflow-hidden min-h-0">
+                <div
+                  className={cn(
+                    'mt-6 p-4 bg-foreground/5 rounded-2xl transition-opacity duration-300',
+                    isOffline ? 'opacity-100' : 'opacity-0'
+                  )}
                 >
                   <p className="font-sf-pro-text text-foreground/70 text-center">
                     下一个工作日：<span className="text-tech-cyan font-semibold">{getNextWorkingDay()}</span>
                   </p>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                </div>
+              </div>
+            </div>
           </GlassCard>
         </div>
       </div>

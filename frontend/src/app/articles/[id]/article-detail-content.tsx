@@ -343,7 +343,19 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
                 <GlassCard padding="none" className={`mb-8 p-6 ${cardBgClass}`}>
                   <div className="flex flex-col md:flex-row items-start">
                     <div className="mr-4 mb-4 md:mb-0">
-                      <div className="bg-gray-200 border-2 border-dashed rounded-xl w-16 h-16" />
+                      {article.author.avatar ? (
+                        /* 作者头像来源可控性不一，保留 <img> 并给首字母兜底 */
+                        <img
+                          src={article.author.avatar}
+                          alt={`${article.author.username} 的头像`}
+                          className="w-16 h-16 rounded-xl object-cover"
+                        />
+                      ) : (
+                        /* 无头像时用首字母占位，token 化避免深色下亮灰补丁 */
+                        <div className="w-16 h-16 rounded-xl bg-primary/15 text-primary flex items-center justify-center text-2xl font-bold">
+                          {article.author.username.charAt(0).toUpperCase()}
+                        </div>
+                      )}
                     </div>
                     <div className="flex-1">
                       <div className="flex flex-wrap items-center justify-between">
@@ -398,7 +410,7 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
                     </div>
                   ) : commentsError ? (
                     <div className="text-center py-8">
-                      <p className="text-sm text-red-500">{commentsError}</p>
+                      <p className="text-sm text-destructive">{commentsError}</p>
                     </div>
                   ) : (
                     <CommentTree
@@ -407,7 +419,7 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
                       onLike={() => {}}
                     />
                   )}
-                  <div className="pt-6 mt-6 border-t border-dashed border-opacity-30">
+                  <div className="pt-6 mt-6 border-t border-dashed border-border">
                     <textarea
                       rows={4}
                       placeholder="写下你的评论..."

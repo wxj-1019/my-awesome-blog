@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from '@/lib/framer-motion';
 import Image from 'next/image';
 import { Camera, Upload, X, AlertCircle, CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 interface AvatarUploaderProps {
   avatar?: string;
   name?: string;
@@ -21,6 +22,8 @@ export default function AvatarUploader({
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropZoneRef = useRef<HTMLDivElement>(null);
+  // 循环脉冲动画在 prefers-reduced-motion 下回退为静态
+  const reducedMotion = useReducedMotion();
   const handleFileUpload = (file: File) => {
     if (!file.type.startsWith('image/')) {
       setUploadStatus('error');
@@ -94,15 +97,23 @@ export default function AvatarUploader({
         {/* 脉冲光环动画 */}
         <motion.div
           className="absolute inset-0 rounded-full bg-gradient-to-r from-tech-cyan to-tech-sky opacity-20"
-          animate={{
-            scale: isDragging ? [1, 1.1, 1] : [1, 1.05, 1],
-            opacity: isDragging ? [0.2, 0.4, 0.2] : [0.2, 0.3, 0.2],
-          }}
-          transition={{
-            duration: 2,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
+          animate={
+            reducedMotion
+              ? { scale: 1, opacity: 0.2 }
+              : {
+                  scale: isDragging ? [1, 1.1, 1] : [1, 1.05, 1],
+                  opacity: isDragging ? [0.2, 0.4, 0.2] : [0.2, 0.3, 0.2],
+                }
+          }
+          transition={
+            reducedMotion
+              ? { duration: 0 }
+              : {
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                }
+          }
         />
         {/* 主头像容器 */}
         <motion.div
@@ -137,8 +148,8 @@ export default function AvatarUploader({
               animate={{ opacity: 1 }}
               className="absolute inset-0 bg-tech-cyan/80 flex flex-col items-center justify-center backdrop-blur-sm"
             >
-              <Upload className="w-8 h-8 text-white mb-2" />
-              <span className="text-white text-sm font-medium">释放以上传</span>
+              <Upload className="w-8 h-8 text-primary-foreground mb-2" />
+              <span className="text-primary-foreground text-sm font-medium">释放以上传</span>
             </motion.div>
           )}
         </motion.div>
@@ -152,18 +163,18 @@ export default function AvatarUploader({
               className={cn(
                 'absolute bottom-0 right-0 p-3 rounded-full cursor-pointer transition-all duration-300 shadow-lg',
                 uploadStatus === 'uploading'
-                  ? 'bg-gray-400 cursor-not-allowed'
+                  ? 'bg-muted cursor-not-allowed'
                   : 'bg-tech-cyan hover:bg-tech-sky hover:scale-110 hover:rotate-180'
               )}
             >
               {uploadStatus === 'uploading' ? (
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
               ) : uploadStatus === 'success' ? (
-                <CheckCircle className="w-5 h-5 text-white" />
+                <CheckCircle className="w-5 h-5 text-primary-foreground" />
               ) : uploadStatus === 'error' ? (
-                <AlertCircle className="w-5 h-5 text-white" />
+                <AlertCircle className="w-5 h-5 text-primary-foreground" />
               ) : (
-                <Camera className="w-5 h-5 text-white" />
+                <Camera className="w-5 h-5 text-primary-foreground" />
               )}
               <input
                 ref={fileInputRef}
@@ -186,7 +197,7 @@ export default function AvatarUploader({
                 e.stopPropagation();
                 handleRemoveAvatar();
               }}
-              className="absolute top-0 left-0 p-2 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-lg transition-all hover:scale-110"
+              className="absolute top-0 left-0 p-2 rounded-full bg-destructive hover:bg-destructive/90 text-primary-foreground shadow-lg transition-all hover:scale-110"
               title="删除头像"
             >
               <X className="w-4 h-4" />
@@ -212,10 +223,10 @@ export default function AvatarUploader({
               className={cn(
                 'absolute -bottom-8 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap',
                 uploadStatus === 'success'
-                  ? 'bg-green-500 text-white'
+                  ? 'bg-success text-primary-foreground'
                   : uploadStatus === 'error'
-                  ? 'bg-red-500 text-white'
-                  : 'bg-gray-500 text-white'
+                  ? 'bg-destructive text-primary-foreground'
+                  : 'bg-muted text-muted-foreground'
               )}
             >
               {uploadStatus === 'uploading' && '上传中...'}

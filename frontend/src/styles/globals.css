@@ -1,9 +1,7 @@
 @import './base/variables.css';
-@import './base/reset.css';
 @import './animations/keyframes.css';
 @import './components/navigation.css';
 @import './components/effects.css';
-@import './components/cards.css';
 @import './components/glass.css';
 @import './utilities/colors.css';
 @import './utilities/scrollbar.css';
@@ -114,18 +112,6 @@
   ::view-transition-new(root) {
     animation: none;
     mix-blend-mode: normal;
-  }
-}
-
-@layer components {
-  .glass-card-primary {
-    @apply backdrop-blur-xl border border-glass-border rounded-2xl;
-    background: var(--glass-default);
-  }
-
-  .glass-card-secondary {
-    @apply backdrop-blur-lg border border-glass-border rounded-xl;
-    background: var(--glass-default);
   }
 }
 

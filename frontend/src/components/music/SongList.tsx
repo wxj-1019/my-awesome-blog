@@ -29,33 +29,33 @@ export default function SongList({
   return (
     <div className="w-full">
       {showHeader && (
-        <div className="flex items-center h-10 px-4 border-b border-white/5 mx-2">
+        <div className="flex items-center h-10 px-4 border-b border-border mx-2">
           <div className="w-8 flex-shrink-0">
-            <span className="text-xs font-medium text-white/40">
+            <span className="text-xs font-medium text-muted-foreground">
               #
             </span>
           </div>
           {showAlbum && (
             <div className="w-10 flex-shrink-0 mr-4">
-              <span className="text-xs font-medium text-white/40">
+              <span className="text-xs font-medium text-muted-foreground">
                 封面
               </span>
             </div>
           )}
           <div className="flex-1 min-w-0 mr-4">
-            <span className="text-xs font-medium text-white/40">
+            <span className="text-xs font-medium text-muted-foreground">
               歌曲标题
             </span>
           </div>
           {showAlbum && !showAlbum && (
             <div className="w-40 flex-shrink-0 hidden md:block">
-              <span className="text-xs font-medium text-white/40">
+              <span className="text-xs font-medium text-muted-foreground">
                 专辑
               </span>
             </div>
           )}
           <div className="w-24 flex-shrink-0 text-right pr-4">
-             <span className="text-xs font-medium text-white/40">
+             <span className="text-xs font-medium text-muted-foreground">
                时长
              </span>
           </div>

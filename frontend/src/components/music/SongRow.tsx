@@ -32,8 +32,8 @@ export default function SongRow({
       className={cn(
         'group flex items-center h-14 px-4 transition-all duration-300 cursor-pointer rounded-xl mx-2',
         isCurrentSong
-          ? 'bg-indigo-500/10 text-indigo-400'
-          : 'hover:bg-white/5 text-white/80'
+          ? 'bg-primary/10 text-primary'
+          : 'hover:bg-foreground/5 text-foreground/80'
       )}
       onClick={() => onSongClick?.(song)}
       onDoubleClick={() => onDoubleClick?.(song)}
@@ -43,24 +43,24 @@ export default function SongRow({
       <div className="w-8 flex-shrink-0 flex items-center justify-center">
         {isCurrentSong && isPlaying ? (
           <div className="flex items-end gap-[3px] h-5">
-            <div className="w-[3px] bg-gradient-to-t from-indigo-500 to-pink-400 rounded-full animate-sound-wave-1"></div>
-            <div className="w-[3px] bg-gradient-to-t from-indigo-500 to-pink-400 rounded-full animate-sound-wave-2"></div>
-            <div className="w-[3px] bg-gradient-to-t from-indigo-500 to-pink-400 rounded-full animate-sound-wave-3"></div>
-            <div className="w-[3px] bg-gradient-to-t from-indigo-500 to-pink-400 rounded-full animate-sound-wave-4"></div>
+            <div className="w-[3px] bg-gradient-to-t from-tech-cyan to-tech-lightcyan rounded-full animate-sound-wave-1"></div>
+            <div className="w-[3px] bg-gradient-to-t from-tech-cyan to-tech-lightcyan rounded-full animate-sound-wave-2"></div>
+            <div className="w-[3px] bg-gradient-to-t from-tech-cyan to-tech-lightcyan rounded-full animate-sound-wave-3"></div>
+            <div className="w-[3px] bg-gradient-to-t from-tech-cyan to-tech-lightcyan rounded-full animate-sound-wave-4"></div>
           </div>
         ) : (
           <>
             <span className={cn(
-              'text-[13px] font-medium text-white/40 tabular-nums',
+              'text-[13px] font-medium text-muted-foreground tabular-nums',
               'group-hover:hidden',
-              isCurrentSong && 'text-indigo-400'
+              isCurrentSong && 'text-primary'
             )}>
               {String(index + 1).padStart(2, '0')}
             </span>
             <button 
               className={cn(
                 'hidden group-hover:flex items-center justify-center transition-colors',
-                isCurrentSong ? 'text-indigo-400' : 'text-white/60 hover:text-white'
+                isCurrentSong ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
               )}
               aria-label="播放"
             >
@@ -84,19 +84,19 @@ export default function SongRow({
       <div className="flex-1 min-w-0 mr-4">
         <h4 className={cn(
           'text-sm font-medium truncate mb-0.5',
-          isCurrentSong ? 'text-indigo-400' : 'text-white'
+          isCurrentSong ? 'text-primary' : 'text-foreground'
         )}>
           {song.name}
         </h4>
         <div className="flex items-center gap-2">
           {song.sq && (
-            <span className="px-1 py-[1px] rounded-[3px] border border-pink-400 text-pink-400 text-[9px] font-medium leading-none">
+            <span className="px-1 py-[1px] rounded-[3px] border border-tech-cyan text-tech-cyan text-[9px] font-medium leading-none">
               SQ
             </span>
           )}
           <p className={cn(
             "text-xs truncate",
-            isCurrentSong ? "text-indigo-400/70" : "text-white/50"
+            isCurrentSong ? "text-primary/70" : "text-muted-foreground"
           )}>
             {song.artists.map(artist => artist.name).join(', ')}
           </p>
@@ -105,7 +105,7 @@ export default function SongRow({
 
       {showAlbum && !showAlbum && (
         <div className="w-40 flex-shrink-0 hidden md:block">
-          <p className="text-[13px] text-white/60 truncate">
+          <p className="text-[13px] text-muted-foreground truncate">
             {song.album.name}
           </p>
         </div>
@@ -114,7 +114,7 @@ export default function SongRow({
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
           <button
-            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/5 text-white/40 hover:text-pink-400 transition-all duration-300"
+            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-foreground/5 text-muted-foreground hover:text-primary transition-all duration-300"
             aria-label="喜欢"
             onClick={(e) => {
               e.stopPropagation();
@@ -124,7 +124,7 @@ export default function SongRow({
             <Heart className="w-4 h-4" />
           </button>
           <button
-            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/5 text-white/40 hover:text-white transition-all duration-300"
+            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-foreground/5 text-muted-foreground hover:text-foreground transition-all duration-300"
             aria-label="更多"
             onClick={(e) => {
               e.stopPropagation();
@@ -137,7 +137,7 @@ export default function SongRow({
 
         {showDuration && (
           <div className="w-12 flex-shrink-0 text-right">
-            <p className="text-xs font-medium text-white/30 tabular-nums">
+            <p className="text-xs font-medium text-muted-foreground/70 tabular-nums">
               {formatDuration(song.duration)}
             </p>
           </div>

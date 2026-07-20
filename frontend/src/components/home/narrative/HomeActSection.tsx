@@ -1,7 +1,7 @@
 'use client';
 
-import type { ReactNode } from 'react';
-import { motion } from '@/lib/framer-motion';
+import { useRef, type ReactNode } from 'react';
+import { motion, useScroll, useTransform } from '@/lib/framer-motion';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { cn } from '@/lib/utils';
 import DepthAmbience from './DepthAmbience';
@@ -44,6 +44,16 @@ export default function HomeActSection({
   depth,
 }: HomeActSectionProps) {
   const reduced = useReducedMotion();
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  // 滚动叙事：幕标随滚动轻微上浮，接续引线在幕入画时垂落
+  const { scrollYProgress } = useScroll({
+    target: rootRef,
+    offset: ['start end', 'end start'],
+  });
+  const headerY = useTransform(scrollYProgress, [0, 1], [28, -28]);
+  const threadScaleY = useTransform(scrollYProgress, [0, 0.22], [0, 1]);
+  const threadOpacity = useTransform(scrollYProgress, [0, 0.12, 0.9, 1], [0, 1, 1, 0.4]);
 
   const headerInner = (
     <>
@@ -70,9 +80,10 @@ export default function HomeActSection({
     <div className="mb-6 sm:mb-8">{headerInner}</div>
   ) : (
     <motion.div
-      className="mb-6 sm:mb-8"
-      initial={{ opacity: 0, y: 10 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      className="mb-6 sm:mb-8 will-change-transform"
+      style={{ y: headerY }}
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
       viewport={{
         once: HOME_VIEWPORT.once,
         amount: HOME_VIEWPORT.amount,
@@ -84,14 +95,30 @@ export default function HomeActSection({
     </motion.div>
   );
 
+  // 幕间接续引线：从幕顶垂下的细光丝，随滚动垂落，串联各幕
+  const thread = reduced ? null : (
+    <motion.div
+      aria-hidden
+      className="pointer-events-none absolute -top-2 left-1/2 z-10 h-16 sm:h-20 w-px origin-top"
+      style={{
+        scaleY: threadScaleY,
+        opacity: threadOpacity,
+        background:
+          'linear-gradient(to bottom, transparent, color-mix(in srgb, var(--primary) 45%, transparent))',
+      }}
+    />
+  );
+
   return (
     <div
+      ref={rootRef}
       id={id}
       data-act={actLabel}
       className={cn('relative scroll-mt-20', className)}
     >
       {/* 四期：分幕环境层（装饰，置于内容之下） */}
       {depth ? <DepthAmbience depth={depth} /> : null}
+      {thread}
       {contained ? (
         <div
           className={cn(

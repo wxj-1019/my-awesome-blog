@@ -10,75 +10,12 @@
   animation: pulse-glow 2s ease-in-out infinite;
 }
 
-.animate-trail {
-  animation: logo-trail 1s ease-in-out;
-}
-
-.float-circle {
-  animation: float-circle 4s ease-in-out infinite;
-}
-
-.sweep-beam-main {
-  animation: sweep-main 5s ease-in-out infinite;
-}
-
-.sweep-beam-fast {
-  animation: sweep-fast 3s ease-in-out infinite;
-}
-
-.sweep-beam-reverse {
-  animation: sweep-reverse 4s ease-in-out infinite;
-}
-
-.animate-sweep {
-  animation: sweep 3s ease-in-out infinite;
-}
-
-.animate-danmaku {
-  animation-name: danmaku-move;
-  animation-timing-function: linear;
-  animation-iteration-count: infinite;
-}
-
-.animate-danmaku.paused {
-  animation-play-state: paused;
-}
-
 .animate-glitch-1 {
   animation: glitch-1 2.5s infinite linear alternate-reverse;
 }
 
 .animate-glitch-2 {
   animation: glitch-2 3s infinite linear alternate-reverse;
-}
-
-.animate-delay-50 { animation-delay: 50ms; }
-.animate-delay-100 { animation-delay: 100ms; }
-.animate-delay-150 { animation-delay: 150ms; }
-.animate-delay-200 { animation-delay: 200ms; }
-.animate-delay-250 { animation-delay: 250ms; }
-.animate-delay-300 { animation-delay: 300ms; }
-.animate-delay-400 { animation-delay: 400ms; }
-.animate-delay-500 { animation-delay: 500ms; }
-
-.animation-delay-1000 {
-  animation-delay: 1000ms;
-}
-
-.animation-delay-2000 {
-  animation-delay: 2000ms;
-}
-
-.animation-delay-3000 {
-  animation-delay: 3000ms;
-}
-
-.theme-transition {
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-}
-
-.theme-switch-animation {
-  animation: theme-switch-fade 0.3s ease-in-out;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -110,9 +47,5 @@
   .glass-hover,
   .glass-hover-subtle {
     transition: none;
-  }
-
-  .animate-danmaku {
-    animation: none;
   }
 }

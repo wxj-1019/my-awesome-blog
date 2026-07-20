@@ -2,6 +2,7 @@
 
 import { motion, useInView, Variants } from '@/lib/framer-motion';
 import { useRef, ReactNode } from 'react';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 
 interface AnimatedSectionProps {
   children: ReactNode;
@@ -26,8 +27,11 @@ export default function AnimatedSection({
 }: AnimatedSectionProps) {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once, amount: threshold });
+  // 减少动画偏好：跳过入场位移，直接呈现终态
+  const reducedMotion = useReducedMotion();
 
   const getInitialPosition = () => {
+    if (reducedMotion) {return { x: 0, y: 0 };}
     switch (direction) {
       case 'up':
         return { y: distance, x: 0 };
@@ -54,8 +58,8 @@ export default function AnimatedSection({
       x: 0,
       y: 0,
       transition: {
-        duration,
-        delay,
+        duration: reducedMotion ? 0 : duration,
+        delay: reducedMotion ? 0 : delay,
         ease: [0.25, 0.1, 0.25, 1],
       },
     },
@@ -92,15 +96,19 @@ export function StaggerContainer({
 }: StaggerContainerProps) {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once, amount: threshold });
+  // 减少动画偏好：跳过交错入场
+  const reducedMotion = useReducedMotion();
 
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: {
-        staggerChildren: staggerDelay,
-        delayChildren: 0.1,
-      },
+      transition: reducedMotion
+        ? { duration: 0 }
+        : {
+            staggerChildren: staggerDelay,
+            delayChildren: 0.1,
+          },
     },
   };
 
@@ -131,7 +139,11 @@ export function StaggerItem({
   direction = 'up',
   distance = 30,
 }: StaggerItemProps) {
+  // 减少动画偏好：跳过入场位移
+  const reducedMotion = useReducedMotion();
+
   const getInitialPosition = () => {
+    if (reducedMotion) {return { x: 0, y: 0 };}
     switch (direction) {
       case 'up':
         return { y: distance, x: 0 };
@@ -156,7 +168,7 @@ export function StaggerItem({
       x: 0,
       y: 0,
       transition: {
-        duration: 0.5,
+        duration: reducedMotion ? 0 : 0.5,
         ease: [0.25, 0.1, 0.25, 1],
       },
     },
@@ -176,11 +188,14 @@ interface PageLoadAnimationProps {
 }
 
 export function PageLoadAnimation({ children, className = '' }: PageLoadAnimationProps) {
+  // 减少动画偏好：页面加载淡入回退为瞬时呈现
+  const reducedMotion = useReducedMotion();
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.5, ease: 'easeOut' }}
+      transition={{ duration: reducedMotion ? 0 : 0.5, ease: 'easeOut' }}
       className={className}
     >
       {children}

@@ -1,258 +1,242 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* 注意：全局 src/styles/globals.css 已注入 @tailwind base/components/utilities，
+   本文件不再重复注入，避免样式污染。 */
 
 :root {
   --macos-animation-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
   --macos-animation-ease-out: cubic-bezier(0.0, 0.0, 0.2, 1);
   --macos-animation-ease-in-out: cubic-bezier(0.4, 0.0, 0.2, 1);
 
-  /* Music Theme Colors */
-  --music-bg-primary: #0f0f23;
-  --music-bg-secondary: #1a1a2e;
-  --music-bg-tertiary: #252542;
-  --music-primary: #6366f1;
-  --music-primary-hover: #4f46e5;
-  --music-accent: #ec4899;
-  --music-accent-warm: #f59e0b;
+  /* Music 主题色：引用全局 token，双主题自适应（保留 --music-* 名字以免改组件） */
+  --music-bg-primary: var(--background);
+  --music-bg-secondary: var(--card);
+  --music-bg-tertiary: var(--secondary);
+  --music-primary: var(--primary);
+  --music-primary-hover: var(--primary-600);
+  --music-accent: var(--tech-pink);
+  --music-accent-warm: var(--warning);
 }
 
-@layer utilities {
-  /* Hide Scrollbar */
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-  }
-
-  /* Custom Scrollbar */
-  .scrollbar-thin {
-    scrollbar-width: thin;
-  }
-  .scrollbar-thin::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  .scrollbar-thin::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 3px;
-  }
-  .scrollbar-thin::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 3px;
-  }
-  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.25);
-  }
-
-  /* Glass Effect */
-  .glass {
-    background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-  }
-
-  .glass-hover:hover {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(255, 255, 255, 0.12);
-  }
-
-  /* Text Gradient */
-  .text-gradient {
-    background: linear-gradient(135deg, #6366f1 0%, #ec4899 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  /* Safe Area for Mobile */
-  .pb-safe {
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-  }
+/* Hide Scrollbar */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
 
-@layer utilities {
-  .perspective-1000 {
-    perspective: 1000px;
-  }
-  .preserve-3d {
-    transform-style: preserve-3d;
-  }
+/* Custom Scrollbar */
+.scrollbar-thin {
+  scrollbar-width: thin;
+}
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: color-mix(in srgb, var(--foreground) 5%, transparent);
+  border-radius: 3px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--foreground) 15%, transparent);
+  border-radius: 3px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--foreground) 25%, transparent);
 }
 
+/* Glass Effect */
+.glass {
+  background: color-mix(in srgb, var(--foreground) 3%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid color-mix(in srgb, var(--foreground) 6%, transparent);
+}
+
+.glass-hover:hover {
+  background: color-mix(in srgb, var(--foreground) 6%, transparent);
+  border-color: color-mix(in srgb, var(--foreground) 12%, transparent);
+}
+
+/* Text Gradient */
+.text-gradient {
+  background: linear-gradient(135deg, var(--music-primary) 0%, var(--music-accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Safe Area for Mobile */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.perspective-1000 {
+  perspective: 1000px;
+}
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+/* 声波动画：只动 transform（scaleY），基准高度写在工具类上 */
 @keyframes soundWave {
   0%, 100% {
-    height: 4px;
+    transform: scaleY(0.25);
   }
   50% {
-    height: 16px;
+    transform: scaleY(1);
   }
 }
 
 @keyframes soundWaveBar1 {
   0%, 100% {
-    height: 4px;
+    transform: scaleY(0.333);
   }
   50% {
-    height: 12px;
+    transform: scaleY(1);
   }
 }
 
 @keyframes soundWaveBar2 {
   0%, 100% {
-    height: 8px;
+    transform: scaleY(0.5);
   }
   50% {
-    height: 16px;
+    transform: scaleY(1);
   }
 }
 
 @keyframes soundWaveBar3 {
   0%, 100% {
-    height: 6px;
+    transform: scaleY(0.4286);
   }
   50% {
-    height: 14px;
+    transform: scaleY(1);
   }
 }
 
 @keyframes soundWaveBar4 {
   0%, 100% {
-    height: 10px;
+    transform: scaleY(0.5556);
   }
-    50% {
-      height: 18px;
-    }
-}
-
-@layer utilities {
-  .animate-sound-wave {
-    animation: soundWave 0.8s ease-in-out infinite;
-  }
-  .animate-sound-wave-bar-1 {
-    animation: soundWaveBar1 0.8s ease-in-out infinite;
-  }
-  .animate-sound-wave-bar-2 {
-    animation: soundWaveBar2 0.8s ease-in-out infinite 0.2s;
-  }
-  .animate-sound-wave-bar-3 {
-    animation: soundWaveBar3 0.8s ease-in-out infinite 0.4s;
-  }
-  .animate-sound-wave-bar-4 {
-    animation: soundWaveBar4 0.8s ease-in-out infinite 0.6s;
+  50% {
+    transform: scaleY(1);
   }
 }
 
-@layer utilities {
-  .glass-card-hover {
-    transition: transform 0.2s var(--macos-animation-ease-out),
-                box-shadow 0.2s var(--macos-animation-ease-out);
-  }
-  .glass-card-hover:hover {
-    transform: translateY(-4px) scale(1.02);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
-  }
+.animate-sound-wave {
+  height: 16px;
+  transform-origin: bottom;
+  animation: soundWave 0.8s ease-in-out infinite;
+}
+.animate-sound-wave-bar-1 {
+  height: 12px;
+  transform-origin: bottom;
+  animation: soundWaveBar1 0.8s ease-in-out infinite;
+}
+.animate-sound-wave-bar-2 {
+  height: 16px;
+  transform-origin: bottom;
+  animation: soundWaveBar2 0.8s ease-in-out infinite 0.2s;
+}
+.animate-sound-wave-bar-3 {
+  height: 14px;
+  transform-origin: bottom;
+  animation: soundWaveBar3 0.8s ease-in-out infinite 0.4s;
+}
+.animate-sound-wave-bar-4 {
+  height: 18px;
+  transform-origin: bottom;
+  animation: soundWaveBar4 0.8s ease-in-out infinite 0.6s;
 }
 
-@layer utilities {
-  .macos-range-input {
-    -webkit-appearance: none;
-    appearance: none;
-    background: transparent;
-    cursor: pointer;
-  }
-  .macos-range-input::-webkit-slider-runnable-track {
-    height: 4px;
-    background: rgba(0, 0, 0, 0.1);
-    border-radius: 2px;
-  }
-  .macos-range-input::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 12px;
-    height: 12px;
-    background: #fff;
-    border-radius: 50%;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    margin-top: -4px;
-    transition: transform 0.15s var(--macos-animation-spring);
-  }
-  .macos-range-input:hover::-webkit-slider-thumb {
-    transform: scale(1.2);
-  }
-  .macos-range-input::-moz-range-track {
-    height: 4px;
-    background: rgba(0, 0, 0, 0.1);
-    border-radius: 2px;
-  }
-  .macos-range-input::-moz-range-thumb {
-    width: 12px;
-    height: 12px;
-    background: #fff;
-    border: none;
-    border-radius: 50%;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    cursor: pointer;
-  }
-
-  .dark .macos-range-input::-webkit-slider-runnable-track {
-    background: rgba(255, 255, 255, 0.1);
-  }
-  .dark .macos-range-input::-moz-range-track {
-    background: rgba(255, 255, 255, 0.1);
-  }
+.glass-card-hover {
+  transition: transform 0.2s var(--macos-animation-ease-out),
+              box-shadow 0.2s var(--macos-animation-ease-out);
+}
+.glass-card-hover:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
 }
 
-@layer utilities {
-  .macos-range-input-filled {
-    -webkit-appearance: none;
-    appearance: none;
-    background: transparent;
-    cursor: pointer;
-  }
-  .macos-range-input-filled::-webkit-slider-runnable-track {
-    height: 4px;
-    background: linear-gradient(to right, #fa2d2f 0%, #fa2d2f var(--progress, 0%), rgba(0, 0, 0, 0.1) var(--progress, 0%), rgba(0, 0, 0, 0.1) 100%);
-    border-radius: 2px;
-  }
-  .macos-range-input-filled::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 12px;
-    height: 12px;
-    background: #fa2d2f;
-    border-radius: 50%;
-    box-shadow: 0 2px 4px rgba(250, 45, 47, 0.4);
-    margin-top: -4px;
-    transition: transform 0.15s var(--macos-animation-spring);
-  }
-  .macos-range-input-filled:hover::-webkit-slider-thumb {
-    transform: scale(1.2);
-  }
-  .macos-range-input-filled::-moz-range-track {
-    height: 4px;
-    background: linear-gradient(to right, #fa2d2f 0%, #fa2d2f var(--progress, 0%), rgba(0, 0, 0, 0.1) var(--progress, 0%), rgba(0, 0, 0, 0.1) 100%);
-    border-radius: 2px;
-  }
-  .macos-range-input-filled::-moz-range-thumb {
-    width: 12px;
-    height: 12px;
-    background: #fa2d2f;
-    border: none;
-    border-radius: 50%;
-    box-shadow: 0 2px 4px rgba(250, 45, 47, 0.4);
-    cursor: pointer;
-  }
+.macos-range-input {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+.macos-range-input::-webkit-slider-runnable-track {
+  height: 4px;
+  background: color-mix(in srgb, var(--foreground) 10%, transparent);
+  border-radius: 2px;
+}
+.macos-range-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  background: var(--card);
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  margin-top: -4px;
+  transition: transform 0.15s var(--macos-animation-spring);
+}
+.macos-range-input:hover::-webkit-slider-thumb {
+  transform: scale(1.2);
+}
+.macos-range-input::-moz-range-track {
+  height: 4px;
+  background: color-mix(in srgb, var(--foreground) 10%, transparent);
+  border-radius: 2px;
+}
+.macos-range-input::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  background: var(--card);
+  border: none;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+}
 
-  .dark .macos-range-input-filled::-webkit-slider-runnable-track {
-    background: linear-gradient(to right, #fa2d2f 0%, #fa2d2f var(--progress, 0%), rgba(255, 255, 255, 0.1) var(--progress, 0%), rgba(255, 255, 255, 0.1) 100%);
-  }
-  .dark .macos-range-input-filled::-moz-range-track {
-    background: linear-gradient(to right, #fa2d2f 0%, #fa2d2f var(--progress, 0%), rgba(255, 255, 255, 0.1) var(--progress, 0%), rgba(255, 255, 255, 0.1) 100%);
-  }
+.macos-range-input-filled {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+.macos-range-input-filled::-webkit-slider-runnable-track {
+  height: 4px;
+  background: linear-gradient(to right, var(--music-primary) 0%, var(--music-primary) var(--progress, 0%), color-mix(in srgb, var(--foreground) 10%, transparent) var(--progress, 0%), color-mix(in srgb, var(--foreground) 10%, transparent) 100%);
+  border-radius: 2px;
+}
+.macos-range-input-filled::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  background: var(--music-primary);
+  border-radius: 50%;
+  box-shadow: 0 2px 4px color-mix(in srgb, var(--music-primary) 40%, transparent);
+  margin-top: -4px;
+  transition: transform 0.15s var(--macos-animation-spring);
+}
+.macos-range-input-filled:hover::-webkit-slider-thumb {
+  transform: scale(1.2);
+}
+.macos-range-input-filled::-moz-range-track {
+  height: 4px;
+  background: linear-gradient(to right, var(--music-primary) 0%, var(--music-primary) var(--progress, 0%), color-mix(in srgb, var(--foreground) 10%, transparent) var(--progress, 0%), color-mix(in srgb, var(--foreground) 10%, transparent) 100%);
+  border-radius: 2px;
+}
+.macos-range-input-filled::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  background: var(--music-primary);
+  border: none;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px color-mix(in srgb, var(--music-primary) 40%, transparent);
+  cursor: pointer;
 }
 
 @keyframes fadeInUp {
@@ -288,10 +272,10 @@
 
 @keyframes pulse-glow {
   0%, 100% {
-    box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+    box-shadow: 0 0 20px color-mix(in srgb, var(--music-primary) 30%, transparent);
   }
   50% {
-    box-shadow: 0 0 40px rgba(99, 102, 241, 0.5);
+    box-shadow: 0 0 40px color-mix(in srgb, var(--music-primary) 50%, transparent);
   }
 }
 
@@ -304,42 +288,36 @@
   }
 }
 
-@layer utilities {
-  .animate-fade-in-up {
-    animation: fadeInUp 0.4s var(--macos-animation-ease-out) forwards;
-  }
-  .animate-fade-in-scale {
-    animation: fadeInScale 0.3s var(--macos-animation-spring) forwards;
-  }
-  .animate-float {
-    animation: float 6s ease-in-out infinite;
-  }
-  .animate-pulse-glow {
-    animation: pulse-glow 2s ease-in-out infinite;
-  }
-  .animate-shimmer {
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-    background-size: 200% 100%;
-    animation: shimmer 2s infinite;
-  }
+.animate-fade-in-up {
+  animation: fadeInUp 0.4s var(--macos-animation-ease-out) forwards;
+}
+.animate-fade-in-scale {
+  animation: fadeInScale 0.3s var(--macos-animation-spring) forwards;
+}
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--foreground) 10%, transparent), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
 }
 
-@layer utilities {
-  .macos-button {
-    transition: all 0.15s var(--macos-animation-ease-out);
-  }
-  .macos-button:active {
-    transform: scale(0.95);
-  }
+.macos-button {
+  transition: all 0.15s var(--macos-animation-ease-out);
+}
+.macos-button:active {
+  transform: scale(0.95);
 }
 
-@layer utilities {
-  .macos-input-focus {
-    transition: box-shadow 0.2s var(--macos-animation-ease-out);
-  }
-  .macos-input-focus:focus {
-    box-shadow: 0 0 0 3px rgba(250, 45, 47, 0.2);
-  }
+.macos-input-focus {
+  transition: box-shadow 0.2s var(--macos-animation-ease-out);
+}
+.macos-input-focus:focus {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--music-primary) 20%, transparent);
 }
 
 @keyframes pulse {
@@ -351,10 +329,8 @@
   }
 }
 
-@layer utilities {
-  .animate-pulse-slow {
-    animation: pulse 2s ease-in-out infinite;
-  }
+.animate-pulse-slow {
+  animation: pulse 2s ease-in-out infinite;
 }
 
 /* ============================================
@@ -380,49 +356,53 @@
   }
 }
 
-@layer utilities {
-  .animate-album-spin {
-    animation: albumSpin 8s linear infinite;
-  }
-  .animate-album-spin-slow {
-    animation: albumSpin 12s linear infinite;
-  }
+.animate-album-spin {
+  animation: albumSpin 8s linear infinite;
+}
+.animate-album-spin-slow {
+  animation: albumSpin 12s linear infinite;
 }
 
-/* Enhanced Sound Wave Animation */
+/* Enhanced Sound Wave Animation（只动 transform scaleY） */
 @keyframes soundWave1 {
-  0%, 100% { height: 4px; }
-  50% { height: 16px; }
+  0%, 100% { transform: scaleY(0.25); }
+  50% { transform: scaleY(1); }
 }
 
 @keyframes soundWave2 {
-  0%, 100% { height: 8px; }
-  50% { height: 20px; }
+  0%, 100% { transform: scaleY(0.4); }
+  50% { transform: scaleY(1); }
 }
 
 @keyframes soundWave3 {
-  0%, 100% { height: 6px; }
-  50% { height: 14px; }
+  0%, 100% { transform: scaleY(0.4286); }
+  50% { transform: scaleY(1); }
 }
 
 @keyframes soundWave4 {
-  0%, 100% { height: 10px; }
-  50% { height: 18px; }
+  0%, 100% { transform: scaleY(0.5556); }
+  50% { transform: scaleY(1); }
 }
 
-@layer utilities {
-  .animate-sound-wave-1 {
-    animation: soundWave1 0.6s ease-in-out infinite;
-  }
-  .animate-sound-wave-2 {
-    animation: soundWave2 0.7s ease-in-out infinite 0.1s;
-  }
-  .animate-sound-wave-3 {
-    animation: soundWave3 0.5s ease-in-out infinite 0.2s;
-  }
-  .animate-sound-wave-4 {
-    animation: soundWave4 0.8s ease-in-out infinite 0.15s;
-  }
+.animate-sound-wave-1 {
+  height: 16px;
+  transform-origin: bottom;
+  animation: soundWave1 0.6s ease-in-out infinite;
+}
+.animate-sound-wave-2 {
+  height: 20px;
+  transform-origin: bottom;
+  animation: soundWave2 0.7s ease-in-out infinite 0.1s;
+}
+.animate-sound-wave-3 {
+  height: 14px;
+  transform-origin: bottom;
+  animation: soundWave3 0.5s ease-in-out infinite 0.2s;
+}
+.animate-sound-wave-4 {
+  height: 18px;
+  transform-origin: bottom;
+  animation: soundWave4 0.8s ease-in-out infinite 0.15s;
 }
 
 /* Card Glare Effect */
@@ -435,103 +415,89 @@
   }
 }
 
-@layer utilities {
-  .card-glare {
-    position: relative;
-    overflow: hidden;
-  }
-  .card-glare::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 50%;
-    height: 100%;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(255, 255, 255, 0.1),
-      transparent
-    );
-    transform: translateX(-100%) rotate(45deg);
-    transition: none;
-    pointer-events: none;
-    z-index: 10;
-  }
-  .card-glare:hover::before {
-    animation: glareSweep 0.8s ease-out;
-  }
+.card-glare {
+  position: relative;
+  overflow: hidden;
+}
+.card-glare::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--foreground) 10%, transparent),
+    transparent
+  );
+  transform: translateX(-100%) rotate(45deg);
+  transition: none;
+  pointer-events: none;
+  z-index: 10;
+}
+.card-glare:hover::before {
+  animation: glareSweep 0.8s ease-out;
 }
 
 /* 3D Card Transform */
-@layer utilities {
-  .perspective-1000 {
-    perspective: 1000px;
-  }
-  .preserve-3d {
-    transform-style: preserve-3d;
-  }
-  .backface-hidden {
-    backface-visibility: hidden;
-  }
+.perspective-1000 {
+  perspective: 1000px;
+}
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+.backface-hidden {
+  backface-visibility: hidden;
 }
 
 /* Stagger Animation Delays */
-@layer utilities {
-  .stagger-1 { animation-delay: 0.05s; }
-  .stagger-2 { animation-delay: 0.1s; }
-  .stagger-3 { animation-delay: 0.15s; }
-  .stagger-4 { animation-delay: 0.2s; }
-  .stagger-5 { animation-delay: 0.25s; }
-  .stagger-6 { animation-delay: 0.3s; }
-  .stagger-7 { animation-delay: 0.35s; }
-  .stagger-8 { animation-delay: 0.4s; }
-  .stagger-9 { animation-delay: 0.45s; }
-  .stagger-10 { animation-delay: 0.5s; }
-}
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.1s; }
+.stagger-3 { animation-delay: 0.15s; }
+.stagger-4 { animation-delay: 0.2s; }
+.stagger-5 { animation-delay: 0.25s; }
+.stagger-6 { animation-delay: 0.3s; }
+.stagger-7 { animation-delay: 0.35s; }
+.stagger-8 { animation-delay: 0.4s; }
+.stagger-9 { animation-delay: 0.45s; }
+.stagger-10 { animation-delay: 0.5s; }
 
 /* Glow Effects */
-@layer utilities {
-  .glow-indigo {
-    box-shadow: 0 0 20px rgba(99, 102, 241, 0.4),
-                0 0 40px rgba(99, 102, 241, 0.2);
-  }
-  .glow-pink {
-    box-shadow: 0 0 20px rgba(236, 72, 153, 0.4),
-                0 0 40px rgba(236, 72, 153, 0.2);
-  }
-  .glow-gradient {
-    box-shadow: 0 0 30px rgba(99, 102, 241, 0.3),
-                0 0 60px rgba(236, 72, 153, 0.2);
-  }
+.glow-indigo {
+  box-shadow: 0 0 20px color-mix(in srgb, var(--music-primary) 40%, transparent),
+              0 0 40px color-mix(in srgb, var(--music-primary) 20%, transparent);
+}
+.glow-pink {
+  box-shadow: 0 0 20px color-mix(in srgb, var(--music-accent) 40%, transparent),
+              0 0 40px color-mix(in srgb, var(--music-accent) 20%, transparent);
+}
+.glow-gradient {
+  box-shadow: 0 0 30px color-mix(in srgb, var(--music-primary) 30%, transparent),
+              0 0 60px color-mix(in srgb, var(--music-accent) 20%, transparent);
 }
 
 /* Smooth spring transition */
-@layer utilities {
-  .transition-spring {
-    transition-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  }
-  .transition-smooth {
-    transition-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);
-  }
+.transition-spring {
+  transition-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.transition-smooth {
+  transition-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 /* Parallax container */
-@layer utilities {
-  .parallax-container {
-    transform-style: preserve-3d;
-    perspective: 1000px;
-  }
-  .parallax-layer {
-    will-change: transform;
-  }
+.parallax-container {
+  transform-style: preserve-3d;
+  perspective: 1000px;
+}
+.parallax-layer {
+  will-change: transform;
 }
 
-@layer utilities {
-  .glass-blur {
-    backdrop-filter: blur(40px) saturate(180%);
-    -webkit-backdrop-filter: blur(40px) saturate(180%);
-  }
+.glass-blur {
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
 }
 
 @keyframes slideInFromLeft {
@@ -556,11 +522,107 @@
   }
 }
 
-@layer utilities {
-  .animate-slide-in-left {
-    animation: slideInFromLeft 0.3s var(--macos-animation-ease-out) forwards;
+.animate-slide-in-left {
+  animation: slideInFromLeft 0.3s var(--macos-animation-ease-out) forwards;
+}
+.animate-slide-in-right {
+  animation: slideInFromRight 0.3s var(--macos-animation-ease-out) forwards;
+}
+
+/* ============================================
+   音乐厅氛围背景（music/layout.tsx 使用）
+   光斑颜色 token 化 color-mix，浅色主题减淡
+   ============================================ */
+
+/* 光斑缓慢呼吸：只动 transform / opacity */
+@keyframes music-orb-drift {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.7;
   }
-  .animate-slide-in-right {
-    animation: slideInFromRight 0.3s var(--macos-animation-ease-out) forwards;
+  50% {
+    transform: translate3d(2vw, -2vh, 0) scale(1.05);
+    opacity: 1;
+  }
+}
+
+.music-orb {
+  animation: music-orb-drift 10s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+.music-orb-primary {
+  background: radial-gradient(circle, color-mix(in srgb, var(--primary) 22%, transparent), transparent 70%);
+}
+
+.music-orb-accent {
+  background: radial-gradient(circle, color-mix(in srgb, var(--music-accent) 16%, transparent), transparent 70%);
+  animation-delay: 1s;
+}
+
+.music-orb-purple {
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 12%, transparent), transparent 70%);
+  animation-delay: 2s;
+}
+
+/* 浅色主题下光斑减淡，避免喧宾夺主 */
+.light .music-orb-primary {
+  background: radial-gradient(circle, color-mix(in srgb, var(--primary) 10%, transparent), transparent 70%);
+}
+
+.light .music-orb-accent {
+  background: radial-gradient(circle, color-mix(in srgb, var(--music-accent) 7%, transparent), transparent 70%);
+}
+
+.light .music-orb-purple {
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 5%, transparent), transparent 70%);
+}
+
+/* 网格纹理：随前景色自适应双主题 */
+.music-grid-pattern {
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--foreground) 3%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--foreground) 3%, transparent) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+/* ============================================
+   prefers-reduced-motion 回退：循环动画静态化
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  .music-orb,
+  .animate-float,
+  .animate-pulse-glow,
+  .animate-shimmer,
+  .animate-pulse-slow,
+  .animate-album-spin,
+  .animate-album-spin-slow,
+  .animate-fade-in-up,
+  .animate-fade-in-scale,
+  .animate-slide-in-left,
+  .animate-slide-in-right,
+  .animate-sound-wave,
+  .animate-sound-wave-bar-1,
+  .animate-sound-wave-bar-2,
+  .animate-sound-wave-bar-3,
+  .animate-sound-wave-bar-4,
+  .animate-sound-wave-1,
+  .animate-sound-wave-2,
+  .animate-sound-wave-3,
+  .animate-sound-wave-4 {
+    animation: none;
+  }
+
+  /* 声波条回退为静态中等高度（仍表示“播放中”） */
+  .animate-sound-wave,
+  .animate-sound-wave-bar-1,
+  .animate-sound-wave-bar-2,
+  .animate-sound-wave-bar-3,
+  .animate-sound-wave-bar-4,
+  .animate-sound-wave-1,
+  .animate-sound-wave-2,
+  .animate-sound-wave-3,
+  .animate-sound-wave-4 {
+    transform: scaleY(0.6);
   }
 }

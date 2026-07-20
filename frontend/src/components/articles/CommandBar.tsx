@@ -159,7 +159,7 @@ function CommandBar({
             className="p-2 rounded-full bg-primary hover:bg-primary/90 transition-all active:scale-95 shadow-[0_0_15px_var(--shadow-tech-cyan)]"
             aria-label="打开侧边栏查看更多选项"
           >
-            <Sparkles className="w-5 h-5 text-white" aria-hidden="true" />
+            <Sparkles className="w-5 h-5 text-primary-foreground" aria-hidden="true" />
           </button>
         </motion.div>
       </div>
@@ -287,7 +287,7 @@ function CommandBar({
                         className={`
                           w-full text-left px-4 py-3 rounded-lg transition-all
                           ${!activeCategory
-                            ? 'bg-primary text-primary-foreground shadow-[0_0_10px_rgba(236,72,153,0.3)]'
+                            ? 'bg-primary text-primary-foreground shadow-tech-pink'
                             : 'hover:bg-muted/40 text-foreground'
                           }
                         `}
@@ -304,7 +304,7 @@ function CommandBar({
                           className={`
                             w-full text-left px-4 py-3 rounded-lg transition-all
                             ${activeCategory?.id === category.id
-                              ? 'bg-primary text-primary-foreground shadow-[0_0_10px_rgba(236,72,153,0.3)]'
+                              ? 'bg-primary text-primary-foreground shadow-tech-pink'
                               : 'hover:bg-muted/40 text-foreground'
                             }
                           `}
@@ -330,7 +330,7 @@ function CommandBar({
                           className={`
                             px-3 py-1.5 rounded-full text-sm transition-all
                             ${activeTag?.id === tag.id
-                              ? 'bg-primary text-primary-foreground shadow-[0_0_10px_rgba(236,72,153,0.3)]'
+                              ? 'bg-primary text-primary-foreground shadow-tech-pink'
                               : 'bg-muted/50 text-foreground hover:bg-muted'
                             }
                           `}

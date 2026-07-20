@@ -15,6 +15,7 @@ import { friendLinkService, FriendLink } from '@/services/friendLinkService';
 import GlassCard from '@/components/ui/GlassCard';
 import PageShell from '@/components/layout/PageShell';
 import PageHeader from '@/components/layout/PageHeader';
+import { FadeIn, Stagger, StaggerItem } from '@/components/motion';
 
 export default function AboutPageContent() {
   const [friendLinks, setFriendLinks] = useState<FriendLink[]>([]);
@@ -74,96 +75,105 @@ export default function AboutPageContent() {
       />
 
       <div className="max-w-4xl mx-auto space-y-6">
-        <GlassCard padding="lg">
-          <p className="text-base md:text-lg text-muted-foreground leading-relaxed">
-            凭借多年的软件开发经验，我专注于为复杂问题创建优雅的解决方案。
-            我的专业知识涵盖前后端技术，特别关注现代 JavaScript 框架和云架构。
-          </p>
-        </GlassCard>
+        <FadeIn>
+          <GlassCard padding="lg">
+            <p className="text-base md:text-lg text-muted-foreground leading-relaxed">
+              凭借多年的软件开发经验，我专注于为复杂问题创建优雅的解决方案。
+              我的专业知识涵盖前后端技术，特别关注现代 JavaScript 框架和云架构。
+            </p>
+          </GlassCard>
+        </FadeIn>
 
-        <GlassCard padding="lg">
-          <h2 className="text-xl md:text-2xl font-bold text-foreground mb-4">
-            在这里你会发现
-          </h2>
-          <p className="text-muted-foreground mb-6">这个博客涵盖广泛的主题，包括：</p>
+        <FadeIn delay={0.1}>
+          <GlassCard padding="lg">
+            <h2 className="text-xl md:text-2xl font-bold text-foreground mb-4">
+              在这里你会发现
+            </h2>
+            <p className="text-muted-foreground mb-6">这个博客涵盖广泛的主题，包括：</p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {features.map((feature) => {
-              const IconComponent = feature.icon;
-              return (
-                <div
-                  key={feature.title}
-                  className="flex gap-4 p-4 rounded-lg bg-muted/40 border border-border/60 hover:bg-muted/60 hover:border-primary/30 transition-all duration-200 group"
-                >
-                  <IconComponent className="w-6 h-6 text-primary flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform duration-200" />
-                  <div>
-                    <h3 className="font-semibold text-foreground mb-1 group-hover:text-primary transition-colors">
-                      {feature.title}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">{feature.description}</p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </GlassCard>
+            <Stagger className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {features.map((feature) => {
+                const IconComponent = feature.icon;
+                return (
+                  <StaggerItem
+                    key={feature.title}
+                    className="flex gap-4 p-4 rounded-lg bg-muted/40 border border-border/60 hover:bg-muted/60 hover:border-primary/30 transition-all duration-200 group"
+                  >
+                    <IconComponent className="w-6 h-6 text-primary flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform duration-200" />
+                    <div>
+                      <h3 className="font-semibold text-foreground mb-1 group-hover:text-primary transition-colors">
+                        {feature.title}
+                      </h3>
+                      <p className="text-sm text-muted-foreground">{feature.description}</p>
+                    </div>
+                  </StaggerItem>
+                );
+              })}
+            </Stagger>
+          </GlassCard>
+        </FadeIn>
 
-        <GlassCard padding="lg">
-          <h2 className="text-xl md:text-2xl font-bold text-foreground mb-3">联系方式</h2>
-          <p className="text-muted-foreground leading-relaxed">
-            有问题或想要联系？欢迎通过
-            <Link
-              href="/contact"
-              className="mx-1 text-primary underline-offset-2 hover:underline"
-            >
-              联系页面
-            </Link>
-            与我取得联系，或在社交媒体上关注我。
-          </p>
-        </GlassCard>
+        <FadeIn delay={0.15}>
+          <GlassCard padding="lg">
+            <h2 className="text-xl md:text-2xl font-bold text-foreground mb-3">联系方式</h2>
+            <p className="text-muted-foreground leading-relaxed">
+              有问题或想要联系？欢迎通过
+              <Link
+                href="/contact"
+                className="mx-1 text-primary underline-offset-2 hover:underline"
+              >
+                联系页面
+              </Link>
+              与我取得联系，或在社交媒体上关注我。
+            </p>
+          </GlassCard>
+        </FadeIn>
 
         {(loadingLinks || friendLinks.length > 0) && (
-          <GlassCard padding="lg">
-            <h2 className="text-xl md:text-2xl font-bold text-foreground mb-6">友情链接</h2>
-            {loadingLinks ? (
-              <div className="flex justify-center items-center py-8">
-                <Loader2 className="w-8 h-8 text-primary animate-spin" aria-label="加载中" />
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {friendLinks.map((link) => (
-                  <a
-                    key={link.id}
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-4 rounded-lg bg-muted/40 border border-border/60 hover:bg-muted/60 hover:border-primary/30 hover:scale-[1.01] transition-all duration-200 group"
-                  >
-                    {link.favicon ? (
-                      <>
-                        {/* 友链 favicon 来自外部任意域名，不可控，保留 <img> */}
-                        <img
-                          src={link.favicon}
-                          alt=""
-                          className="w-10 h-10 rounded-md group-hover:scale-110 transition-transform duration-200"
-                        />
-                      </>
-                    ) : null}
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-foreground mb-1 truncate group-hover:text-primary transition-colors">
-                        {link.name}
-                      </h3>
-                      {link.description ? (
-                        <p className="text-sm text-muted-foreground line-clamp-2">
-                          {link.description}
-                        </p>
-                      ) : null}
-                    </div>
-                  </a>
-                ))}
-              </div>
-            )}
-          </GlassCard>
+          <FadeIn delay={0.2}>
+            <GlassCard padding="lg">
+              <h2 className="text-xl md:text-2xl font-bold text-foreground mb-6">友情链接</h2>
+              {loadingLinks ? (
+                <div className="flex justify-center items-center py-8">
+                  <Loader2 className="w-8 h-8 text-primary animate-spin" aria-label="加载中" />
+                </div>
+              ) : (
+                <Stagger className="grid grid-cols-1 md:grid-cols-2 gap-4" itemCount={friendLinks.length}>
+                  {friendLinks.map((link) => (
+                    <StaggerItem key={link.id}>
+                      <a
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 p-4 rounded-lg bg-muted/40 border border-border/60 hover:bg-muted/60 hover:border-primary/30 hover:scale-[1.01] transition-all duration-200 group"
+                      >
+                        {link.favicon ? (
+                          <>
+                            {/* 友链 favicon 来自外部任意域名，不可控，保留 <img> */}
+                            <img
+                              src={link.favicon}
+                              alt=""
+                              className="w-10 h-10 rounded-md group-hover:scale-110 transition-transform duration-200"
+                            />
+                          </>
+                        ) : null}
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-foreground mb-1 truncate group-hover:text-primary transition-colors">
+                            {link.name}
+                          </h3>
+                          {link.description ? (
+                            <p className="text-sm text-muted-foreground line-clamp-2">
+                              {link.description}
+                            </p>
+                          ) : null}
+                        </div>
+                      </a>
+                    </StaggerItem>
+                  ))}
+                </Stagger>
+              )}
+            </GlassCard>
+          </FadeIn>
         )}
       </div>
     </PageShell>

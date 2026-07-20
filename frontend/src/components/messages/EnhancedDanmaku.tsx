@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from '@/lib/framer-motion';
 import { Play, Pause, Rainbow, Layers, Zap, Copy, Flag, Info, MessageSquare, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 import type { Message } from '@/types';
 
 interface DanmakuMessage {
@@ -51,6 +52,8 @@ export default function EnhancedDanmaku({
 }: EnhancedDanmakuProps) {
   const [activeMessages, setActiveMessages] = useState<DanmakuMessage[]>([]);
   const [maxDanmakuCount, setMaxDanmakuCount] = useState(50);
+  // 减少动态偏好：reduced 时不启动弹幕循环与循环动画
+  const reducedMotion = useReducedMotion();
   const containerRef = useRef<HTMLDivElement>(null);
   const timersRef = useRef<NodeJS.Timeout[]>([]);
   const processedIndexRef = useRef(0);
@@ -126,6 +129,8 @@ export default function EnhancedDanmaku({
   useEffect(() => {
     const container = containerRef.current;
     if (!container) {return;}
+    // 减少动态：不启动弹幕生成循环
+    if (reducedMotion) {return;}
 
     processedIndexRef.current = 0;
 
@@ -182,7 +187,7 @@ export default function EnhancedDanmaku({
       timersRef.current.forEach(clearTimeout);
       timersRef.current = [];
     };
-  }, [limitedMessages, getRandomPosition, getRandomLayer, getRandomSpeed, checkCollision, maxDanmakuCount]);
+  }, [limitedMessages, reducedMotion, getRandomPosition, getRandomLayer, getRandomSpeed, checkCollision, maxDanmakuCount]);
 
   const handleMessageComplete = useCallback((id: string) => {
     setActiveMessages(prev => prev.filter(msg => msg.id !== id));
@@ -291,7 +296,7 @@ export default function EnhancedDanmaku({
                     "text-lg font-bold px-4 py-1.5 rounded-full backdrop-blur-md border",
                     "inline-block transition-all duration-200",
                     "hover:scale-105 hover:shadow-lg",
-                    rainbowMode ? "animate-rainbow-shift" : ""
+                    rainbowMode && !reducedMotion ? "animate-rainbow-shift" : ""
                   )}
                   style={{
                     color: rainbowMode ? 'hsl(var(--rainbow-hue), 80%, 60%)' : msg.color,
@@ -322,36 +327,36 @@ export default function EnhancedDanmaku({
       <AnimatePresence>
         {hoveredMessage && hoveredMessage.message && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
+            initial={reducedMotion ? false : { opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: reducedMotion ? 0 : 0.2 }}
             className="fixed z-[10001] pointer-events-none"
             style={{
               left: Math.min(hoverPosition.x + 15, window.innerWidth - 280),
               top: Math.min(hoverPosition.y + 15, window.innerHeight - 200)
             }}
           >
-            <div className="bg-slate-900/95 backdrop-blur-md border border-tech-cyan/30 rounded-lg p-3 shadow-xl min-w-[260px]">
+            <div className="bg-card/95 backdrop-blur-md border border-tech-cyan/30 rounded-lg p-3 shadow-xl min-w-[260px]">
               <div className="flex items-center gap-2 mb-2">
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-tech-cyan/20 to-tech-purple/20 flex items-center justify-center border border-tech-cyan/30">
-                  <span className="text-xs font-bold text-white">
+                  <span className="text-xs font-bold text-foreground">
                     {hoveredMessage.message.author.username[0]?.toUpperCase()}
                   </span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-semibold text-white truncate">
+                  <div className="text-sm font-semibold text-foreground truncate">
                     @{hoveredMessage.message.author.username}
                   </div>
-                  <div className="text-xs text-white/50">
+                  <div className="text-xs text-muted-foreground">
                     {new Date(hoveredMessage.message.created_at).toLocaleString('zh-CN')}
                   </div>
                 </div>
               </div>
-              <div className="text-sm text-white/80 break-words mb-2">
+              <div className="text-sm text-foreground/80 break-words mb-2">
                 {hoveredMessage.message.content}
               </div>
-              <div className="flex items-center gap-3 text-xs text-white/40">
+              <div className="flex items-center gap-3 text-xs text-muted-foreground">
                 {hoveredMessage.message.likes !== undefined && (
                   <span className="flex items-center gap-1">
                     <Info className="w-3 h-3" />
@@ -374,11 +379,11 @@ export default function EnhancedDanmaku({
       <AnimatePresence>
         {contextMenu && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
+            initial={reducedMotion ? false : { opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.15 }}
-            className="fixed z-[10002] bg-slate-900/98 backdrop-blur-md border border-white/10 rounded-lg shadow-2xl py-2 min-w-[160px]"
+            transition={{ duration: reducedMotion ? 0 : 0.15 }}
+            className="fixed z-[10002] bg-card/95 backdrop-blur-md border border-glass-border rounded-lg shadow-2xl py-2 min-w-[160px]"
             style={{
               left: Math.min(contextMenu.x, window.innerWidth - 180),
               top: Math.min(contextMenu.y, window.innerHeight - 200)
@@ -386,21 +391,21 @@ export default function EnhancedDanmaku({
           >
             <button
               onClick={handleCopy}
-              className="w-full px-4 py-2 text-left text-sm text-white/80 hover:bg-white/5 hover:text-white flex items-center gap-3 transition-colors"
+              className="w-full px-4 py-2 text-left text-sm text-foreground/80 hover:bg-glass hover:text-foreground flex items-center gap-3 transition-colors"
             >
               <Copy className="w-4 h-4" />
               复制内容
             </button>
             <button
               onClick={handleReport}
-              className="w-full px-4 py-2 text-left text-sm text-white/80 hover:bg-white/5 hover:text-white flex items-center gap-3 transition-colors"
+              className="w-full px-4 py-2 text-left text-sm text-foreground/80 hover:bg-glass hover:text-foreground flex items-center gap-3 transition-colors"
             >
               <Flag className="w-4 h-4" />
               举报
             </button>
             <button
               onClick={handleBlockUser}
-              className="w-full px-4 py-2 text-left text-sm text-red-400/80 hover:bg-red-500/10 hover:text-red-400 flex items-center gap-3 transition-colors"
+              className="w-full px-4 py-2 text-left text-sm text-destructive/80 hover:bg-destructive/10 hover:text-destructive flex items-center gap-3 transition-colors"
             >
               <X className="w-4 h-4" />
               屏蔽用户
@@ -416,7 +421,7 @@ export default function EnhancedDanmaku({
             className={cn(
               "flex items-center gap-2 px-3 py-1.5 rounded-full border backdrop-blur-md transition-all duration-300",
               isPaused
-                ? "bg-yellow-500/20 text-yellow-400 border-yellow-500/50"
+                ? "bg-warning/20 text-warning border-warning/50"
                 : "bg-tech-cyan/20 text-tech-cyan border-tech-cyan/50"
             )}
           >
@@ -431,35 +436,31 @@ export default function EnhancedDanmaku({
             className={cn(
               "flex items-center gap-2 px-3 py-1.5 rounded-full border backdrop-blur-md transition-all duration-300",
               rainbowMode
-                ? "bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 text-white border-white/50"
-                : "bg-black/40 text-white/70 border-white/10 hover:border-white/30"
+                ? "bg-primary/20 text-primary border-primary/50"
+                : "bg-glass text-muted-foreground border-glass-border hover:border-primary/30"
             )}
           >
-            <Rainbow className={cn("w-4 h-4", rainbowMode && "animate-spin")} />
+            <Rainbow className={cn("w-4 h-4", rainbowMode && !reducedMotion && "animate-spin")} />
             <span className="text-xs font-medium">
               {rainbowMode ? '彩虹模式' : '标准模式'}
             </span>
           </button>
         </div>
 
-        <div className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-black/40 border border-white/10">
-          <Layers className="w-3 h-3 text-white/50" />
-          <span className="text-xs text-white/50">
+        <div className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-glass border border-glass-border">
+          <Layers className="w-3 h-3 text-muted-foreground" />
+          <span className="text-xs text-muted-foreground">
             {activeMessages.length}/{limitedMessages.length}
           </span>
         </div>
       </div>
 
       <motion.div
-        className="fixed top-20 left-4 z-[10000] flex items-center gap-2 px-3 py-1.5 rounded-full border backdrop-blur-md"
-        style={{
-          borderColor: 'rgba(0,217,255,0.3)',
-          background: 'rgba(0,217,255,0.05)'
-        }}
-        animate={isPaused ? { scale: [1, 1.05, 1] } : { scale: 1 }}
-        transition={{ duration: 1, repeat: Infinity }}
+        className="fixed top-20 left-4 z-[10000] flex items-center gap-2 px-3 py-1.5 rounded-full border border-tech-cyan/30 bg-tech-cyan/5 backdrop-blur-md"
+        animate={!reducedMotion && isPaused ? { scale: [1, 1.05, 1] } : { scale: 1 }}
+        transition={{ duration: 1, repeat: reducedMotion ? 0 : Infinity }}
       >
-        <Zap className="w-4 h-4 text-tech-cyan animate-pulse" />
+        <Zap className={cn("w-4 h-4 text-tech-cyan", !reducedMotion && "animate-pulse")} />
         <span className="text-xs font-medium text-tech-cyan">
           {isPaused ? '已暂停' : '运行中'}
         </span>

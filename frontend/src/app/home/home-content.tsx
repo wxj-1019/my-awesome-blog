@@ -6,6 +6,7 @@ import { Music, Film, Gamepad2, ArrowRight, Home } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
 import PageShell from '@/components/layout/PageShell';
 import PageHeader from '@/components/layout/PageHeader';
+import { Stagger, StaggerItem } from '@/components/motion';
 
 const items: {
   href: Route;
@@ -44,41 +45,44 @@ export default function HomeHubContent() {
         align="center"
       />
 
-      <div className="max-w-xl mx-auto grid gap-4">
+      <Stagger className="max-w-xl mx-auto grid gap-4">
         {items.map(({ href, title, description, icon: Icon }) => (
-          <Link
-            key={href}
-            href={href}
-            className="block group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xl"
-          >
-            <GlassCard
-              padding="md"
-              hoverEffect
-              className="text-left group-hover:border-primary/40"
+          <StaggerItem key={href}>
+            <Link
+              href={href}
+              className="block group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xl"
             >
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-primary/15 text-primary">
-                  <Icon className="w-5 h-5" aria-hidden />
+              <GlassCard
+                padding="md"
+                hoverEffect
+                className="text-left group-hover:border-primary/40"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/15 text-primary">
+                    <Icon className="w-5 h-5" aria-hidden />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h2 className="font-semibold text-foreground mb-0.5">{title}</h2>
+                    <p className="text-sm text-muted-foreground">{description}</p>
+                  </div>
+                  <ArrowRight
+                    className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors shrink-0"
+                    aria-hidden
+                  />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h2 className="font-semibold text-foreground mb-0.5">{title}</h2>
-                  <p className="text-sm text-muted-foreground">{description}</p>
-                </div>
-                <ArrowRight
-                  className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors shrink-0"
-                  aria-hidden
-                />
-              </div>
-            </GlassCard>
-          </Link>
+              </GlassCard>
+            </Link>
+          </StaggerItem>
         ))}
 
-        <p className="text-center text-xs text-muted-foreground pt-2">
-          <Link href="/" className="underline-offset-2 hover:underline hover:text-primary">
-            返回首页
-          </Link>
-        </p>
-      </div>
+        <StaggerItem>
+          <p className="text-center text-xs text-muted-foreground pt-2">
+            <Link href="/" className="underline-offset-2 hover:underline hover:text-primary">
+              返回首页
+            </Link>
+          </p>
+        </StaggerItem>
+      </Stagger>
     </PageShell>
   );
 }

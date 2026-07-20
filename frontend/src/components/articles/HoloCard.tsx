@@ -40,7 +40,8 @@ function HoloCard({ article, isFeatured = false, className }: HoloCardProps) {
           style={{
             backgroundImage: article.cover_image
               ? `linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.8) 100%), url(${article.cover_image})`
-              : 'linear-gradient(135deg, #18181B 0%, #27272A 100%)',
+              // 无封面时使用主题变量渐变占位，双主题自适应
+              : 'linear-gradient(135deg, var(--card) 0%, var(--muted) 100%)',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
           }}
@@ -79,14 +80,14 @@ function HoloCard({ article, isFeatured = false, className }: HoloCardProps) {
             <motion.h3
               layoutId={`article-title-${article.id}`}
               className="
-              text-xl font-bold text-white mb-2 line-clamp-2
+              text-xl font-bold text-card-foreground mb-2 line-clamp-2
               group-hover:text-primary transition-colors
             "
             >
               {article.title}
             </motion.h3>
             <p className="
-              text-sm text-gray-300 line-clamp-2 mb-4 text-muted-foreground
+              text-sm line-clamp-2 mb-4 text-muted-foreground
             ">
               {article.excerpt}
             </p>
@@ -95,15 +96,15 @@ function HoloCard({ article, isFeatured = false, className }: HoloCardProps) {
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-1">
                   <Eye className="w-4 h-4 text-primary" />
-                  <span className="text-xs text-gray-300">{article.view_count}</span>
+                  <span className="text-xs text-muted-foreground">{article.view_count}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Heart className="w-4 h-4 text-primary" />
-                  <span className="text-xs text-gray-300">{article.likes_count}</span>
+                  <span className="text-xs text-muted-foreground">{article.likes_count}</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Clock className="w-4 h-4 text-gray-400" />
-                  <span className="text-xs text-gray-300">{article.read_time} min</span>
+                  <Clock className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground">{article.read_time} min</span>
                 </div>
               </div>
 
@@ -112,9 +113,9 @@ function HoloCard({ article, isFeatured = false, className }: HoloCardProps) {
                   e.preventDefault();
                   handleExpand();
                 }}
-                className="p-2 rounded-full bg-white/20 hover:bg-white/30 hover:scale-110 active:scale-95 backdrop-blur-sm transition-all duration-200"
+                className="p-2 rounded-full bg-glass hover:bg-muted/40 hover:scale-110 active:scale-95 backdrop-blur-sm transition-all duration-200"
               >
-                <ArrowRight className="w-5 h-5 text-white" />
+                <ArrowRight className="w-5 h-5 text-foreground" />
               </button>
             </div>
           </div>

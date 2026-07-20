@@ -117,7 +117,11 @@ function ArticlesPageContent() {
         <BlurIn>
           <div className="pt-20 pb-10 text-center">
             <GlitchText text="ARTICLES" size="lg" className="mb-4 font-display" />
-            <p className="text-gray-400 font-mono text-sm tracking-widest uppercase">
+            {/* 幕标 kicker：呼应首页幕标式头部，收敛故障风的赛博感 */}
+            <p className="mb-2 text-xs font-mono tracking-[0.28em] uppercase text-primary/90">
+              文库 · ARTICLES
+            </p>
+            <p className="text-muted-foreground font-mono text-sm tracking-widest uppercase">
               Explore digital frontier
             </p>
           </div>
@@ -203,7 +207,7 @@ function ArticlesPageContent() {
                     {loadingMore ? (
                       <div className="flex items-center justify-center space-x-2">
                         <Loader />
-                        <span className="text-sm text-gray-400">加载更多...</span>
+                        <span className="text-sm text-muted-foreground">加载更多...</span>
                       </div>
                     ) : (
                       <motion.button
@@ -267,7 +271,7 @@ function ArticlesPageContent() {
 }
 export default function ArticlesPageClient() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-white">加载中...</div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-foreground">加载中...</div>}>
       <ArticlesPageContent />
     </Suspense>
   );

@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react';
 import { motion } from '@/lib/framer-motion';
 import { cn } from '@/lib/utils';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 import type { Artist } from '@/types/music';
 
 interface ArtistCardProps {
@@ -15,6 +16,8 @@ interface ArtistCardProps {
 export default function ArtistCard({ artist, size = 'medium', onClick, index = 0 }: ArtistCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [transform, setTransform] = useState({ rotateX: 0, rotateY: 0 });
+  // 减少动画偏好：入场动效回退为直接呈现
+  const reducedMotion = useReducedMotion();
 
   const sizeClasses = {
     small: 'w-20 h-20',
@@ -46,7 +49,7 @@ export default function ArtistCard({ artist, size = 'medium', onClick, index = 0
         'group cursor-pointer perspective-1000',
       )}
       onClick={onClick}
-      initial={{ opacity: 0, y: 20 }}
+      initial={reducedMotion ? false : { opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ 
         duration: 0.5, 
@@ -69,7 +72,7 @@ export default function ArtistCard({ artist, size = 'medium', onClick, index = 0
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
         whileHover={{ 
           scale: 1.08,
-          boxShadow: '0 20px 40px rgba(99, 102, 241, 0.3)'
+          boxShadow: '0 20px 40px color-mix(in srgb, var(--primary) 30%, transparent)'
         }}
       >
         <motion.img 
@@ -83,15 +86,15 @@ export default function ArtistCard({ artist, size = 'medium', onClick, index = 0
 
       <motion.div 
         className="mt-3 text-center"
-        initial={{ opacity: 0 }}
+        initial={reducedMotion ? false : { opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: index * 0.06 + 0.1 }}
       >
-        <h3 className="text-sm font-semibold text-white truncate group-hover:text-indigo-300 transition-colors duration-300">
+        <h3 className="text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors duration-300">
           {artist.name}
         </h3>
         {artist.fans && (
-          <p className="text-xs text-white/50">
+          <p className="text-xs text-muted-foreground">
             {formatFans(artist.fans)}
           </p>
         )}

@@ -12,11 +12,6 @@ jest.mock('next/navigation', () => ({
   usePathname: jest.fn(() => '/'),
 }));
 
-jest.mock('@/components/navigation/AnimatedLogo', () => ({
-  __esModule: true,
-  default: () => <div data-testid="animated-logo">Logo</div>,
-}));
-
 jest.mock('@/components/ui/rope-theme-toggler', () => ({
   RopeThemeToggler: () => <button type="button">主题切换</button>,
 }));

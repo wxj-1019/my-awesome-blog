@@ -52,6 +52,7 @@ my-awesome-blog/
 | [docs/rules/database-rules.md](./docs/rules/database-rules.md) | Model / migration | 改模型或建迁移 |
 | [docs/rules/ai-rules.md](./docs/rules/ai-rules.md) | LLM / 对话 / 记忆 / 提示词 | 改 AI 相关 |
 | [docs/rules/ui-design-rules.md](./docs/rules/ui-design-rules.md) | 样式、动画、主题、UI 组件 | 改视觉与组件样式 |
+| [docs/rules/frontend-uiux-design-spec.md](./docs/rules/frontend-uiux-design-spec.md) | UI/UX 设计规范（项目版）：设计哲学、令牌、动效预算、交付清单 | 新页面/新组件设计决策 |
 | [docs/rules/.cursorrules](./docs/rules/.cursorrules) | 通用编码风格 | 任意编码任务（冲突时服从上表更高项） |
 | [docs/rules/README.md](./docs/rules/README.md) | 规则索引 | 不确定读哪份时 |
 

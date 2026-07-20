@@ -19,7 +19,8 @@ import {
 
 /**
  * 首页 · 深海 × 电影
- * 片头 → 入水 → 分幕 → 港口航标收束（无订阅）。
+ * 片头 → 入水 → 分幕（展厅 → 仪表 → 洋流）→ 港口航标收束（无订阅）。
+ * 「航迹」已并入「洋流」幕，数据航迹与历程共用同一深层环境。
  */
 export default function Home() {
   return (
@@ -51,30 +52,24 @@ export default function Home() {
           description="航行读数与舱内工具"
           contained={false}
           depth="cabin"
+          className="mt-10 sm:mt-14"
         >
           <StatsPanel />
           <TechStack />
         </HomeActSection>
 
         <HomeActSection
-          id="act-trail"
-          actLabel="第三幕 · 航迹"
-          description="公开阅读与发布的数据航迹"
-          contained={false}
-          depth="current"
-        >
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-            <ReadingStats />
-          </div>
-        </HomeActSection>
-
-        <HomeActSection
           id="act-current"
           actLabel="第三幕 · 洋流"
-          description="历程随潮汐展开"
+          description="数据航迹与历程随潮汐展开"
           contained={false}
           depth="current"
+          className="mt-10 sm:mt-14"
         >
+          {/* 原「航迹」幕并入：阅读统计收进洋流的深层水域 */}
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+            <ReadingStats />
+          </div>
           <Timeline />
         </HomeActSection>
 

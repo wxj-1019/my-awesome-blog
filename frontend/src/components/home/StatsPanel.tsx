@@ -106,7 +106,7 @@ export default function StatsPanel() {
   }
 
   return (
-    <section className="relative overflow-hidden py-8 sm:py-10 md:py-12 lg:py-16">
+    <section className="relative overflow-hidden py-6 sm:py-8">
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
         <div className="absolute inset-x-8 top-8 h-px bg-gradient-to-r from-transparent via-tech-cyan/25 to-transparent" />
         <div className="absolute inset-0 opacity-[0.04] [background-image:linear-gradient(rgba(6,182,212,.45)_1px,transparent_1px),linear-gradient(90deg,rgba(6,182,212,.45)_1px,transparent_1px)] [background-size:56px_56px]" />

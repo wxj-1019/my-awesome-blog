@@ -41,9 +41,9 @@ export default function PlaylistScroll({
         className={cn(
           'absolute left-2 top-1/2 -translate-y-1/2 z-20',
           'w-10 h-10 rounded-full',
-          'bg-white/10 backdrop-blur-xl border border-white/10',
+          'bg-glass backdrop-blur-xl border border-glass-border',
           'flex items-center justify-center',
-          'text-white/70 hover:text-white hover:bg-white/20',
+          'text-foreground/70 hover:text-foreground hover:bg-foreground/10',
           'transition-all duration-300 ease-out',
           'opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0',
           'hover:scale-110 active:scale-95'
@@ -59,9 +59,9 @@ export default function PlaylistScroll({
         className={cn(
           'absolute right-2 top-1/2 -translate-y-1/2 z-20',
           'w-10 h-10 rounded-full',
-          'bg-white/10 backdrop-blur-xl border border-white/10',
+          'bg-glass backdrop-blur-xl border border-glass-border',
           'flex items-center justify-center',
-          'text-white/70 hover:text-white hover:bg-white/20',
+          'text-foreground/70 hover:text-foreground hover:bg-foreground/10',
           'transition-all duration-300 ease-out',
           'opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0',
           'hover:scale-110 active:scale-95'

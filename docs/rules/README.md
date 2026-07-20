@@ -21,6 +21,7 @@
 | [database-rules.md](./database-rules.md) | 数据库：Model、Index、CRUD、Alembic |
 | [ai-rules.md](./ai-rules.md) | AI/LLM：提供商、对话、记忆、提示词 |
 | [ui-design-rules.md](./ui-design-rules.md) | UI：玻璃拟态、token、动画、a11y |
+| [frontend-uiux-design-spec.md](./frontend-uiux-design-spec.md) | UI/UX 设计规范（项目版 v2.0）：设计哲学、令牌、主题背景、布局、动效预算、组件、交付清单 |
 | [.cursorrules](./.cursorrules) | 通用编码风格（冲突时服从上级） |
 
 ## 如何阅读
@@ -36,3 +37,4 @@
 |------|------|
 | 2026-07-11 | 创建模块化规则体系：frontend/backend/database/ai/ui |
 | 2026-07-20 | 对齐 AGENTS 优先级；标明 changelog；轻量路径对齐说明 |
+| 2026-07-20 | 新增 frontend-uiux-design-spec.md：通用 UI/UX 规范的项目定制版 |
