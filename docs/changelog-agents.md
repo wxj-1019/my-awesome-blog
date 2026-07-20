@@ -37,6 +37,11 @@
 | 2026-07-12 | 客户端页面缺少独立 metadata | 已修复：公开路由拆分为 Server `page.tsx`（导出 metadata）+ Client `*-content.tsx`；`npm run build` 通过 |
 | 2026-07-12 | `docs/rules/frontend-rules.md` 未涵盖 Image/key/metadata/a11y 规范 | 已更新：新增/完善页面 metadata、Next.js Image、列表 key、可访问性章节 |
 | 2026-07-20 | AGENTS 历史表过长、文档与代码路径漂移 | 已处理：历史迁至本文件；rules 轻量对齐；README 必要同步 |
+| 2026-07-20 | 首页四期氛围优化（深海×电影） | 已实施：`DiveTransition` 多层入水（色带/折光/光柱 scrub/减半气泡）、`DepthAmbience` 分幕环境（全静态）、`HomeActSection.depth`、展厅顶光+暗角+齿孔；审查修补：主折光与光柱 **opacity 仅 GSAP**（去 class 叠乘）；文档承认 **多源稀疏气泡**（Hero/Dive/Ambient 分级） |
+| 2026-07-20 | `BubbleField` 气泡几乎不上浮 | 已修复：keyframes 的 translate 百分比相对气泡自身尺寸，改为按容器高度注入 `--rise` 像素行程；新增 `withHighlight` prop 供水下稀疏段减半 DOM |
+| 2026-07-20 | `FeaturedHighlights.test.tsx` 断言过时 testid `featured-satellite-card` | 已修复：改为与 `ReelCard` 实际一致的 `featured-reel-card`（改动前复现确认） |
+| 2026-07-20 | `jest-axe` 在 devDependencies 声明但未安装，全部前端测试无法启动 | 已安装；`home` / `DiveTransition` / `HomeCyberLayers` / `FeaturedHighlights` 4 套件 13 用例通过 |
+| 2026-07-20 | 全局动态背景缺失；浅色模式挂 pastel 风 Canvas 粒子（`DynamicBackground`）与深海叙事冲突，且 `PageDecorations` / `FloatingParticles` 为无引用死代码 | 已处理：新建 `components/visual/AmbientBackground.tsx`（渐变基底 + 双光斑 CSS 漂移 + 稀疏气泡 + 噪点，全 token / 双主题 / RM 静态），经 `theme-wrapper` 全局挂载；`layout.tsx` 内层容器去 `bg-background` 让氛围透出（body 保留底色）；删除 `DynamicBackground` / `PageDecorations` / `FloatingParticles` 三个被替代/死代码组件 |
 
 ## 仍影响开发的约定（摘要）
 

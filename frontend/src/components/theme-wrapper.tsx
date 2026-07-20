@@ -1,23 +1,16 @@
 'use client';
 
-import { ThemeProvider, useTheme } from '@/context/theme-context';
-import DynamicBackground from '@/components/ui/DynamicBackground';
-
-function ThemeBackground() {
-  const { resolvedTheme } = useTheme();
-
-  return (
-    <>
-      {/* 矩阵雨已从全局卸下（首页深海×电影叙事，避免赛博与电影气质冲突） */}
-      {resolvedTheme === 'light' && <DynamicBackground />}
-    </>
-  );
-}
+import { ThemeProvider } from '@/context/theme-context';
+import AmbientBackground from '@/components/visual/AmbientBackground';
 
 export default function ThemeWrapper({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider>
-      <ThemeBackground />
+      {/*
+        全局环境背景：深海氛围，token 自适应 light / dark。
+        替代原浅色专用 Canvas 粒子（DynamicBackground）：气质与深海叙事统一，零 rAF 成本。
+      */}
+      <AmbientBackground />
       {children}
     </ThemeProvider>
   );

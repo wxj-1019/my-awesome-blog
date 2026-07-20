@@ -42,7 +42,8 @@ const ClientLayout = ({ children }: { children: React.ReactNode }) => {
     <LoadingProvider>
       <ThemeWrapper>
         <AuthCookieSync />
-        <div className="flex flex-col min-h-screen bg-background overflow-hidden">
+        {/* 背景色在 body 上；本层保持透明，让 AmbientBackground 的全局氛围透出 */}
+        <div className="flex flex-col min-h-screen overflow-hidden">
           <Navbar />
           <main id="main-content" className="flex-1" tabIndex={-1}>
             <LoadingHandler>{children}</LoadingHandler>

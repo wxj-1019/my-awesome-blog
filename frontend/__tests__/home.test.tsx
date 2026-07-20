@@ -115,4 +115,21 @@ describe('Home Page', () => {
     render(<HomeWithProvider />);
     expect(screen.getByTestId('featured-reel')).toBeInTheDocument();
   });
+
+  it('renders per-act depth ambience layers', () => {
+    const { container } = render(<HomeWithProvider />);
+
+    expect(
+      container.querySelector('[data-depth-ambience="shallow"]')
+    ).toBeInTheDocument();
+    expect(
+      container.querySelector('[data-depth-ambience="cabin"]')
+    ).toBeInTheDocument();
+    expect(
+      container.querySelectorAll('[data-depth-ambience="current"]')
+    ).toHaveLength(2);
+    expect(
+      container.querySelector('[data-depth-ambience="shore"]')
+    ).toBeInTheDocument();
+  });
 });

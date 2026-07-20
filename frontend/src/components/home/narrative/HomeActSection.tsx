@@ -4,7 +4,8 @@ import type { ReactNode } from 'react';
 import { motion } from '@/lib/framer-motion';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { cn } from '@/lib/utils';
-import { HOME_TRANSITION, HOME_VIEWPORT } from './homeMotion';
+import DepthAmbience from './DepthAmbience';
+import { HOME_TRANSITION, HOME_VIEWPORT, type HomeDepth } from './homeMotion';
 
 export interface HomeActSectionProps {
   /** 中文幕标，如「第一幕 · 展厅」 */
@@ -20,6 +21,11 @@ export interface HomeActSectionProps {
    * 子组件自带 container/section 时设 false，仅渲染幕标条。
    */
   contained?: boolean;
+  /**
+   * 四期：分幕环境深度（shallow 展厅 / cabin 舱内 / current 洋流 / shore 靠岸）。
+   * 不传则不渲染装饰层，行为与三期一致。
+   */
+  depth?: HomeDepth;
 }
 
 /**
@@ -35,6 +41,7 @@ export default function HomeActSection({
   containerClassName,
   children,
   contained = true,
+  depth,
 }: HomeActSectionProps) {
   const reduced = useReducedMotion();
 
@@ -83,10 +90,12 @@ export default function HomeActSection({
       data-act={actLabel}
       className={cn('relative scroll-mt-20', className)}
     >
+      {/* 四期：分幕环境层（装饰，置于内容之下） */}
+      {depth ? <DepthAmbience depth={depth} /> : null}
       {contained ? (
         <div
           className={cn(
-            'container mx-auto px-4 sm:px-6 lg:px-8',
+            'relative z-10 container mx-auto px-4 sm:px-6 lg:px-8',
             containerClassName
           )}
         >
@@ -95,8 +104,10 @@ export default function HomeActSection({
         </div>
       ) : (
         <>
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">{header}</div>
-          {children}
+          <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
+            {header}
+          </div>
+          <div className="relative z-10">{children}</div>
         </>
       )}
     </div>

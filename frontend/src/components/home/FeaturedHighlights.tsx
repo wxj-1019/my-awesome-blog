@@ -119,7 +119,40 @@ export default function FeaturedHighlights() {
 
   return (
     <section className="relative overflow-hidden py-6" aria-label="精选推荐">
-      <div className="container mx-auto px-4">
+      {/* 展厅光影：顶光 + 暗角 + 胶片齿孔，纯装饰 */}
+      <div className="pointer-events-none absolute inset-0" aria-hidden>
+        {/* 浅色模式暗角降强度，避免发灰压字 */}
+        <style jsx>{`
+          :global(.light) .gallery-vignette {
+            opacity: 0.55;
+          }
+        `}</style>
+        {/* 顶缝光：像展厅射灯从顶部打下 */}
+        <div
+          className="absolute inset-x-0 top-0 h-48"
+          style={{
+            background:
+              'radial-gradient(ellipse 55% 100% at 50% 0%, color-mix(in srgb, var(--primary) 14%, transparent), transparent 75%)',
+          }}
+        />
+        {/* 四角暗角：收拢视线到卷轴 */}
+        <div
+          className="gallery-vignette absolute inset-0"
+          style={{
+            background:
+              'radial-gradient(ellipse 125% 100% at 50% 50%, transparent 60%, color-mix(in srgb, var(--tech-darkblue) 16%, transparent) 100%)',
+          }}
+        />
+        {/* 胶片齿孔：顶部一条极淡的打孔线，强化「卷轴展厅」 */}
+        <div
+          className="absolute inset-x-8 top-1 h-1.5 opacity-15"
+          style={{
+            background:
+              'repeating-linear-gradient(to right, var(--primary) 0 8px, transparent 8px 26px)',
+          }}
+        />
+      </div>
+      <div className="relative z-10 container mx-auto px-4">
         <BlurIn>
           <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-2">
             精选推荐
