@@ -23,13 +23,15 @@ import {
  */
 export default function Home() {
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    // 底色由 body 提供；本页不再铺 bg-background，让全局 AmbientBackground 透出，
+    // 与四期 DepthAmbience 叠加（全局水感 + 分幕变化）
+    <div className="min-h-screen text-foreground">
       <CursorGlow color={HOME_GLOW.color} size={HOME_GLOW.size} />
       <ScrollProgress />
       <MobileDrawer />
       <WeatherCard />
 
-      <div id="content" className="relative z-10 bg-background">
+      <div id="content" className="relative z-10">
         <HeroSection />
         <DiveTransition />
 
@@ -38,6 +40,7 @@ export default function Home() {
           actLabel="第一幕 · 展厅"
           description="从浪线之下开始，拾起值得停留的篇章"
           contained={false}
+          depth="shallow"
         >
           <FeaturedHighlights />
         </HomeActSection>
@@ -47,6 +50,7 @@ export default function Home() {
           actLabel="第二幕 · 仪表"
           description="航行读数与舱内工具"
           contained={false}
+          depth="cabin"
         >
           <StatsPanel />
           <TechStack />
@@ -57,6 +61,7 @@ export default function Home() {
           actLabel="第三幕 · 航迹"
           description="公开阅读与发布的数据航迹"
           contained={false}
+          depth="current"
         >
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
             <ReadingStats />
@@ -68,6 +73,7 @@ export default function Home() {
           actLabel="第三幕 · 洋流"
           description="历程随潮汐展开"
           contained={false}
+          depth="current"
         >
           <Timeline />
         </HomeActSection>
@@ -77,6 +83,7 @@ export default function Home() {
           actLabel="第四幕 · 靠岸"
           description="航标已亮，下一段航程任选"
           className="pb-8 sm:pb-12"
+          depth="shore"
         >
           {/* contained 默认 true：由 Act 提供 container，ShoreBeacon 不再套一层 */}
           <ShoreBeacon />

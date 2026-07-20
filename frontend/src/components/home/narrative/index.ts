@@ -1,5 +1,6 @@
 export { default as HomeActSection } from './HomeActSection';
 export { default as DiveTransition } from './DiveTransition';
+export { default as DepthAmbience } from './DepthAmbience';
 export { default as FeaturedReel } from './FeaturedReel';
 export { default as ReelCard } from './ReelCard';
 export { default as TimelineCurrentPath } from './TimelineCurrentPath';
@@ -11,7 +12,11 @@ export {
   HOME_VIEWPORT,
   HOME_TRANSITION,
   HOME_BUBBLE_COUNT,
+  HOME_BUBBLE_COUNT_UNDERWATER,
   HOME_GLOW,
   HOME_REEL,
   HOME_CURRENT,
+  HOME_DIVE,
+  HOME_DEPTH,
 } from './homeMotion';
+export type { HomeDepth } from './homeMotion';

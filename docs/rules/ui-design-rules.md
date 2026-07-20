@@ -240,10 +240,15 @@ GlassCard.displayName = 'GlassCard';
 
 - 编排：`frontend/src/app/page.tsx` + `components/home/narrative/*`
 - 幕标中文（如「第一幕 · 展厅」）；`HomeActSection` 为普通 `div` + `data-act`，避免嵌套 landmark
-- 共享节奏：`homeMotion.ts`（act / dive / reel / current / 气泡 / 光晕）
+- 共享节奏：`homeMotion.ts`（act / dive / reel / current / depth / 气泡分级 / 光晕）
 - 二期：`FeaturedReel` 胶片卷轴；`TimelineCurrentPath` 洋流描边（自动漂移默认关）
 - 三期：第四幕为 `ShoreBeacon` 港口航标（**无订阅表单**）；入口文章/留言/关于 + 回顶
-- 默认无矩阵雨；持续循环默认仅浪 + 气泡；须尊重 `prefers-reduced-motion`
+- 四期：`DiveTransition` 多层入水；`DepthAmbience` 分幕环境；展厅顶光/暗角；全局 `AmbientBackground`（`components/visual/`）
+- 默认无矩阵雨、无 Reel 自动漂移；须尊重 `prefers-reduced-motion`
+- **持续循环预算（多源稀疏气泡，已承认分级）**：
+  - 浪：`WaveStack`（Hero 出口，唯一「浪」循环）
+  - 气泡：`BubbleField` 多源分级——Hero 出口（桌 16 / 移 8）+ Dive 入水（桌 8 / 移 4，无高光）+ 全局 Ambient（桌 6 / 移 3，无高光）
+  - 禁止再增加第四路无限循环（如矩阵雨、每幕光扫、Reel drift）
 
 ## 15. 示例参考
 

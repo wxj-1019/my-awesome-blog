@@ -56,7 +56,7 @@ describe('FeaturedHighlights', () => {
     })
 
     expect(screen.getByTestId('featured-hero-card')).toHaveTextContent('文章 1')
-    expect(screen.getAllByTestId('featured-satellite-card')).toHaveLength(3)
+    expect(screen.getAllByTestId('featured-reel-card')).toHaveLength(3)
     expect(getPopularArticles).not.toHaveBeenCalled()
   })
 
