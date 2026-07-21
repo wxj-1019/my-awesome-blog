@@ -50,27 +50,16 @@ services:
         HTTPS_PROXY: ""
         http_proxy: ""
         https_proxy: ""
+    # CORS/LLM/OSS 等含 JSON 引号的值经 environment 插值易被剥引号；env_file 原样注入
+    env_file:
+      - .env.production
     environment:
+      # 仅覆盖容器内网连接（env_file 中 localhost 不可用）
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-my_awesome_blog}
       SECRET_KEY: ${SECRET_KEY}
       DEBUG: "False"
-      # 用单引号包插值：env 里是 JSON 数组 ["http://..."] 时，双引号会与 YAML 引号冲突被剥成非法值
-      BACKEND_CORS_ORIGINS: '${BACKEND_CORS_ORIGINS:?BACKEND_CORS_ORIGINS must be set}'
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      # 可选能力：未配置时对应功能降级/报 400，需在 .env.production 填写后才会进容器
-      ALAPI_TOKEN: ${ALAPI_TOKEN:-}
-      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
-      DEEPSEEK_BASE_URL: ${DEEPSEEK_BASE_URL:-}
-      DEEPSEEK_MODEL: ${DEEPSEEK_MODEL:-}
-      GLM_API_KEY: ${GLM_API_KEY:-}
-      QWEN_API_KEY: ${QWEN_API_KEY:-}
-      ALIBABA_CLOUD_ACCESS_KEY_ID: ${ALIBABA_CLOUD_ACCESS_KEY_ID:-}
-      ALIBABA_CLOUD_ACCESS_KEY_SECRET: ${ALIBABA_CLOUD_ACCESS_KEY_SECRET:-}
-      ALIBABA_CLOUD_OSS_ENDPOINT: ${ALIBABA_CLOUD_OSS_ENDPOINT:-}
-      ALIBABA_CLOUD_OSS_BUCKET_NAME: ${ALIBABA_CLOUD_OSS_BUCKET_NAME:-}
-      ALIBABA_CLOUD_OSS_REGION: ${ALIBABA_CLOUD_OSS_REGION:-}
-      ALIBABA_CLOUD_OSS_CDN_DOMAIN: ${ALIBABA_CLOUD_OSS_CDN_DOMAIN:-}
     depends_on:
       postgres:
         condition: service_healthy
