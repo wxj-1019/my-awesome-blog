@@ -4,6 +4,7 @@
 返回给模型的文本结果。异常由注册表捕获并转为错误文本回喂模型。
 """
 
+import inspect
 from typing import Any, Callable, Dict, List
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -46,10 +47,12 @@ class ToolRegistry:
         if tool is None:
             return f"错误：未知工具「{name}」，请从可用工具列表中选择。"
         try:
-            return tool.func(db=db, **arguments)
+            inspect.signature(tool.func).bind(db=db, **arguments)
         except TypeError as e:
             app_logger.warning(f"Agent 工具参数错误: {name}({arguments}) -> {e}")
             return f"错误：工具「{name}」参数不合法：{e}"
+        try:
+            return tool.func(db=db, **arguments)
         except Exception as e:
             app_logger.error(f"Agent 工具执行失败: {name}({arguments}) -> {e}")
-            return f"错误：工具「{name}」执行失败：{e}"
+            return f"错误：工具「{name}」执行失败：{str(e)[:200]}"

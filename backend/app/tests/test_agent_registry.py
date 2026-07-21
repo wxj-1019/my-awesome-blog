@@ -45,3 +45,22 @@ def test_execute_tool_exception_is_caught(test_session):
     registry = _make_registry()
     result = registry.execute(test_session, "boom", {})
     assert "执行失败" in result
+
+
+def test_execute_invalid_arguments(test_session):
+    """缺必填参数时返回「参数不合法」（绑定校验在调用前拦截）"""
+    registry = _make_registry()
+    result = registry.execute(test_session, "echo", {})
+    assert "参数不合法" in result
+
+
+def test_execute_internal_type_error_is_execution_failure(test_session):
+    """工具内部 bug 抛出的 TypeError 归类为「执行失败」而非「参数不合法」"""
+    def _bad_tool(db) -> str:
+        return len(None)  # 内部 bug：TypeError
+
+    registry = ToolRegistry()
+    registry.register(AgentTool(name="bad", description="内部炸", parameters={"type": "object"}, func=_bad_tool))
+    result = registry.execute(test_session, "bad", {})
+    assert "执行失败" in result
+    assert "参数不合法" not in result
