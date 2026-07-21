@@ -64,7 +64,7 @@ class AgentService:
         return AgentChatResponse(
             reply=result.reply,
             provider=provider.get_provider_name(),
-            model=provider.get_model_name(),
+            model=request.model or provider.get_model_name(),
             iterations=result.iterations,
             stop_reason=result.stop_reason,
             tool_calls=[AgentToolCallInfo(**t) for t in result.tool_trace],
@@ -72,19 +72,20 @@ class AgentService:
         )
 
     async def polish(self, request: AgentPolishRequest) -> AgentPolishResponse:
-        """Writer-Critic 循环润色：评审 → 修改 → 再评审，直到 PASS 或达到轮数上限。"""
+        """Writer-Critic 循环润色：评审 → 修改 → 再评审，直到 PASS 或达到轮数上限。
+        达到 max_rounds 后最后一轮改写不再送评审，直接返回。"""
         provider = self._get_provider_or_raise(None)
         draft = request.content
         critiques: list[str] = []
         requirements_block = f"\n【附加要求】{request.requirements}\n" if request.requirements else ""
 
-        for _ in range(request.max_rounds):
+        for round_idx in range(request.max_rounds):
             critique = await self._ask(
                 provider, CRITIC_PROMPT.format(draft=draft, requirements_block=requirements_block),
                 temperature=0.3,
             )
             if critique.strip().upper().rstrip("。").rstrip(".") == "PASS":
-                app_logger.info(f"Agent polish 第 {_ + 1} 轮评审通过（PASS）")
+                app_logger.info(f"Agent polish 第 {round_idx + 1} 轮评审通过（PASS）")
                 break
             critiques.append(critique)
             draft = await self._ask(provider, WRITER_PROMPT.format(draft=draft, critique=critique))

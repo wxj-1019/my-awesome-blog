@@ -89,6 +89,7 @@ class AgentLoop:
                     result = arguments
                     args_for_trace: Any = tool_call.arguments[:TRACE_PREVIEW_CHARS]
                 else:
+                    # 注意：Session 仅顺序跨线程使用；若未来并行执行多 tool_calls 需改为每线程独立 Session
                     result = await asyncio.to_thread(
                         self.registry.execute, db, tool_call.name, arguments)
                     args_for_trace = arguments
