@@ -18,7 +18,11 @@ MAX_DETAIL_CHARS = 2000
 
 def search_articles(db: Session, query: str, limit: int = 5) -> str:
     """按关键词搜索站内已发布文章（标题/摘要/正文 ilike 匹配）。"""
-    limit = max(1, min(int(limit), 10))
+    try:
+        limit = int(limit)
+    except (TypeError, ValueError):
+        limit = 5  # 模型幻觉出非法 limit 时落回默认值
+    limit = max(1, min(limit, 10))
     articles = article_crud.get_articles(
         db, skip=0, limit=limit, published_only=True, search=query, with_relationships=False,
     )
@@ -42,7 +46,7 @@ def get_article_detail(db: Session, slug: str) -> str:
     return (
         f"《{article.title}》(slug: {article.slug})\n"
         f"摘要：{article.excerpt or '无'}\n"
-        f"发布时间：{article.published_at}\n"
+        f"发布时间：{article.published_at or '未知'}\n"
         f"浏览量：{article.view_count or 0}\n"
         f"正文：{content}"
     )
