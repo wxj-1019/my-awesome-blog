@@ -126,3 +126,29 @@ def test_deepseek_parse_response_delegates_tool_calls():
     resp = provider._parse_response(data, "deepseek-chat")
     assert resp.message.tool_calls[0].name == "get_site_stats"
     assert resp.finish_reason == "tool_calls"
+
+
+
+def test_glm_and_qwen_parse_response_tool_calls():
+    """GLM / Qwen provider 同样能解析 tool_calls"""
+    from app.llm.glm_provider import GLMProvider
+    from app.llm.qwen_provider import QwenProvider
+
+    data = {
+        "choices": [{
+            "message": {
+                "role": "assistant", "content": None,
+                "tool_calls": [{"id": "c1", "type": "function",
+                                "function": {"name": "search_articles", "arguments": '{"query":"a"}'}}],
+            },
+            "finish_reason": "tool_calls",
+        }],
+    }
+    for cls, base_url in [
+        (GLMProvider, "https://open.bigmodel.cn/api/paas/v4"),
+        (QwenProvider, "https://dashscope.aliyuncs.com/compatible-mode/v1"),
+    ]:
+        provider = cls(api_key="fake", base_url=base_url, model="m")
+        resp = provider._parse_response(data, "m")
+        assert resp.message.tool_calls[0].name == "search_articles", cls.__name__
+        assert resp.finish_reason == "tool_calls", cls.__name__
