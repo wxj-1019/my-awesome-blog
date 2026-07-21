@@ -106,3 +106,23 @@ def test_parse_openai_response_usage_null():
     resp = parse_openai_response(data, "deepseek-chat")
     assert resp.message.content == "你好"
     assert resp.usage is None
+
+
+def test_deepseek_parse_response_delegates_tool_calls():
+    """DeepSeekProvider._parse_response 能解析 tool_calls"""
+    from app.llm.deepseek_provider import DeepSeekProvider
+
+    provider = DeepSeekProvider(api_key="fake", base_url="https://api.deepseek.com/v1", model="deepseek-chat")
+    data = {
+        "choices": [{
+            "message": {
+                "role": "assistant", "content": None,
+                "tool_calls": [{"id": "call_9", "type": "function",
+                                "function": {"name": "get_site_stats", "arguments": "{}"}}],
+            },
+            "finish_reason": "tool_calls",
+        }],
+    }
+    resp = provider._parse_response(data, "deepseek-chat")
+    assert resp.message.tool_calls[0].name == "get_site_stats"
+    assert resp.finish_reason == "tool_calls"
