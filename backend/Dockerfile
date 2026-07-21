@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.7
 FROM python:3.12-slim
 
 # Create non-root user early
@@ -6,7 +7,9 @@ RUN useradd -m -u 1000 appuser
 WORKDIR /app
 
 # Clear injected proxy env vars (host 127.0.0.1:7890 unreachable from container)
-ENV HTTP_PROXY="" HTTPS_PROXY="" http_proxy="" https_proxy=""
+ENV HTTP_PROXY="" HTTPS_PROXY="" http_proxy="" https_proxy="" \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PYTHONDONTWRITEBYTECODE=1
 
 # 使用国内镜像加速 apt / pip（海外官方源在部分云主机上极慢）
 RUN sed -i 's|deb.debian.org|mirrors.aliyun.com|g; s|security.debian.org|mirrors.aliyun.com|g' /etc/apt/sources.list.d/debian.sources 2>/dev/null \
@@ -23,7 +26,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Copy requirements first for better caching
 COPY --chown=appuser:appuser requirements.txt .
-RUN pip install --no-cache-dir -i https://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com -r requirements.txt && \
+# BuildKit pip cache：requirements 未变时跳过大量下载
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install -i https://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com -r requirements.txt && \
     rm requirements.txt
 
 # Copy application code

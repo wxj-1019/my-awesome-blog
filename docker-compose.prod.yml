@@ -50,11 +50,14 @@ services:
         HTTPS_PROXY: ""
         http_proxy: ""
         https_proxy: ""
+    # CORS/LLM/OSS 等含 JSON 引号的值经 environment 插值易被剥引号；env_file 原样注入
+    env_file:
+      - .env.production
     environment:
+      # 仅覆盖容器内网连接（env_file 中 localhost 不可用）
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-my_awesome_blog}
       SECRET_KEY: ${SECRET_KEY}
       DEBUG: "False"
-      BACKEND_CORS_ORIGINS: ${BACKEND_CORS_ORIGINS:?BACKEND_CORS_ORIGINS must be set}
       REDIS_HOST: redis
       REDIS_PORT: 6379
     depends_on:

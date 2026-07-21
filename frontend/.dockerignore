@@ -1,13 +1,23 @@
 # Dependencies
 node_modules
 
-# Environment variables
-.env*
-!.env.production
+# Environment variables（构建用 compose build-arg，不依赖镜像内 .env）
+.env
+.env.*
 
-# Testing
+# Testing / stories
 __tests__
+**/__tests__
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
 coverage
+coverage/
+*.lcov
+playwright*
+e2e
+storybook-static
 
 # IDE and editor
 .vscode
@@ -37,25 +47,23 @@ pids
 *.seed
 *.pid.lock
 
-# Coverage directory used by tools like istanbul
-coverage/
-*.lcov
-
 # Temporary folders
 tmp/
 temp/
 
-# Next.js
+# Next.js / build outputs
 .next
 out
-
-# Git
-.git
-.gitignore
-
-# Documentation
-docs
-
-# Build outputs
 dist
 build
+
+# Git / docs（不进前端镜像）
+.git
+.gitignore
+docs
+*.md
+!public/**/*.md
+
+# Docker meta
+Dockerfile
+.dockerignore

@@ -50,7 +50,11 @@ const navLinks: NavLink[] = [
   { href: '/contact', label: '联系我', icon: Mail },
 ];
 
-/** 桌面端下拉菜单组件（纯 CSS 过渡，无 framer-motion） */
+/**
+ * 桌面端下拉菜单（纯 CSS 过渡）。
+ * 注意：触发器与面板之间禁止用 margin 留空——空隙不属于任何子节点，
+ * 鼠标移入时会先触发父级 mouseleave，菜单瞬间收起。用 pt-* 作可命中桥接。
+ */
 function DropdownMenu({
   isOpen,
   id,
@@ -65,19 +69,56 @@ function DropdownMenu({
   return (
     <div
       id={id}
-      role="menu"
-      aria-label={label}
       className={cn(
-        'absolute top-full left-0 mt-2 w-48 py-2 bg-glass backdrop-blur-3xl rounded-xl border border-glass-border shadow-2xl overflow-hidden z-50',
-        'transition-all duration-200 ease-out',
-        isOpen
-          ? 'opacity-100 translate-y-0 scale-100 pointer-events-auto'
-          : 'opacity-0 -translate-y-2 scale-95 pointer-events-none'
+        'absolute top-full left-0 z-50 w-48 pt-2',
+        isOpen ? 'pointer-events-auto' : 'pointer-events-none'
       )}
     >
-      {children}
+      <div
+        role="menu"
+        aria-label={label}
+        className={cn(
+          'w-full py-2 bg-glass backdrop-blur-3xl rounded-xl border border-glass-border shadow-2xl overflow-hidden',
+          'transition-all duration-200 ease-out origin-top',
+          isOpen
+            ? 'opacity-100 translate-y-0 scale-100'
+            : 'opacity-0 -translate-y-1 scale-95'
+        )}
+      >
+        {children}
+      </div>
     </div>
   );
+}
+
+/** hover 打开 / 延迟关闭，避免移入菜单途中闪关 */
+function useHoverDropdown(closeDelayMs = 120) {
+  const [open, setOpen] = useState(false);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearCloseTimer = useCallback(() => {
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+  }, []);
+
+  const openMenu = useCallback(() => {
+    clearCloseTimer();
+    setOpen(true);
+  }, [clearCloseTimer]);
+
+  const scheduleClose = useCallback(() => {
+    clearCloseTimer();
+    closeTimerRef.current = setTimeout(() => {
+      setOpen(false);
+      closeTimerRef.current = null;
+    }, closeDelayMs);
+  }, [clearCloseTimer, closeDelayMs]);
+
+  useEffect(() => () => clearCloseTimer(), [clearCloseTimer]);
+
+  return { open, openMenu, scheduleClose, setOpen };
 }
 
 export default function Navbar() {
@@ -87,8 +128,8 @@ export default function Navbar() {
   const [mounted, setMounted] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [homeDropdownOpen, setHomeDropdownOpen] = useState(false);
-  const [toolsDropdownOpen, setToolsDropdownOpen] = useState(false);
+  const homeDropdown = useHoverDropdown();
+  const toolsDropdown = useHoverDropdown();
   const homeDropdownRef = useRef<HTMLDivElement>(null);
   const toolsDropdownRef = useRef<HTMLDivElement>(null);
   const navbarRef = useRef<HTMLElement>(null);
@@ -159,7 +200,8 @@ export default function Navbar() {
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         className={cn(
-          'fixed top-0 left-0 right-0 z-[100] w-full transition-all duration-300',
+          // overflow-visible：桌面下拉从 h-16 顶栏向下展开，不可裁剪
+          'fixed top-0 left-0 right-0 z-[100] w-full overflow-visible transition-all duration-300',
           reducedMotion ? 'transition-none' : '',
           scrolled || isHovered || mobileMenuOpen
             ? 'bg-glass backdrop-blur-3xl shadow-2xl'
@@ -167,7 +209,7 @@ export default function Navbar() {
           mobileMenuOpen ? 'h-64' : 'h-16'
         )}
       >
-        <div className="w-full h-16 flex items-center justify-between px-4 md:px-6 lg:px-8">
+        <div className="relative z-[101] w-full h-16 flex items-center justify-between px-4 md:px-6 lg:px-8 overflow-visible">
           {/* Logo：固定槽位，强调态不挤压导航 */}
           <div className="flex items-center flex-shrink-0">
             <BrandLogo emphasized={isHovered || scrolled} />
@@ -189,17 +231,18 @@ export default function Navbar() {
                         key={link.href}
                         className="relative"
                         ref={homeDropdownRef}
-                        onMouseEnter={() => setHomeDropdownOpen(true)}
-                        onMouseLeave={() => setHomeDropdownOpen(false)}
+                        onMouseEnter={homeDropdown.openMenu}
+                        onMouseLeave={homeDropdown.scheduleClose}
                       >
                         <button
+                          type="button"
                           className={cn(
                             'nav-link relative text-sm font-medium transition-colors flex items-center py-2 px-3 space-x-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-tech-cyan rounded-lg overflow-hidden group',
                             pathname === link.href
                               ? "text-tech-cyan"
                               : "text-foreground/80 hover:text-tech-cyan"
                           )}
-                          aria-expanded={homeDropdownOpen}
+                          aria-expanded={homeDropdown.open}
                           aria-haspopup="true"
                           aria-controls="home-dropdown"
                         >
@@ -210,12 +253,12 @@ export default function Navbar() {
                           </span>
                           <ChevronDown className={cn(
                             "h-3 w-3 ml-1 transition-transform duration-200",
-                            homeDropdownOpen && "rotate-180"
+                            homeDropdown.open && "rotate-180"
                           )} />
                         </button>
 
                         <DropdownMenu
-                          isOpen={homeDropdownOpen}
+                          isOpen={homeDropdown.open}
                           id="home-dropdown"
                           label="探索菜单"
                         >
@@ -235,7 +278,7 @@ export default function Navbar() {
                                     ? "text-tech-cyan bg-tech-cyan/10"
                                     : "text-foreground/80 hover:text-tech-cyan"
                                 )}
-                                onClick={() => setHomeDropdownOpen(false)}
+                                onClick={() => homeDropdown.setOpen(false)}
                               >
                                 <ChildIcon className="h-4 w-4" />
                                 <span>{child.label}</span>
@@ -253,17 +296,18 @@ export default function Navbar() {
                         key={link.href}
                         className="relative"
                         ref={toolsDropdownRef}
-                        onMouseEnter={() => setToolsDropdownOpen(true)}
-                        onMouseLeave={() => setToolsDropdownOpen(false)}
+                        onMouseEnter={toolsDropdown.openMenu}
+                        onMouseLeave={toolsDropdown.scheduleClose}
                       >
                         <button
+                          type="button"
                           className={cn(
                             'nav-link relative text-sm font-medium transition-colors flex items-center py-2 px-3 space-x-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-tech-cyan rounded-lg overflow-hidden group',
                             pathname === link.href
                               ? "text-tech-cyan"
                               : "text-foreground/80 hover:text-tech-cyan"
                           )}
-                          aria-expanded={toolsDropdownOpen}
+                          aria-expanded={toolsDropdown.open}
                           aria-haspopup="true"
                           aria-controls="tools-dropdown"
                         >
@@ -274,12 +318,12 @@ export default function Navbar() {
                           </span>
                           <ChevronDown className={cn(
                             "h-3 w-3 ml-1 transition-transform duration-200",
-                            toolsDropdownOpen && "rotate-180"
+                            toolsDropdown.open && "rotate-180"
                           )} />
                         </button>
 
                         <DropdownMenu
-                          isOpen={toolsDropdownOpen}
+                          isOpen={toolsDropdown.open}
                           id="tools-dropdown"
                           label="工具菜单"
                         >
@@ -299,7 +343,7 @@ export default function Navbar() {
                                     ? "text-tech-cyan bg-tech-cyan/10"
                                     : "text-foreground/80 hover:text-tech-cyan"
                                 )}
-                                onClick={() => setToolsDropdownOpen(false)}
+                                onClick={() => toolsDropdown.setOpen(false)}
                               >
                                 <ChildIcon className="h-4 w-4" />
                                 <span>{child.label}</span>

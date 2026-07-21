@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.7
 FROM node:20-alpine AS base
 
 ENV HTTP_PROXY="" HTTPS_PROXY="" http_proxy="" https_proxy=""
@@ -6,7 +7,9 @@ FROM base AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 COPY package.json package-lock.json* ./
-RUN npm config set registry https://registry.npmmirror.com && \
+# BuildKit cache：依赖未变时 npm ci 几乎秒过；仍用国内 registry
+RUN --mount=type=cache,target=/root/.npm \
+    npm config set registry https://registry.npmmirror.com && \
     npm ci --legacy-peer-deps --ignore-scripts
 
 FROM base AS builder
@@ -32,7 +35,9 @@ RUN rm -f .env.production .env.local .env.development .env || true \
   && test -n "$NEXT_PUBLIC_API_URL"
 
 RUN npx next telemetry disable
-RUN npm run build
+# Next 编译缓存挂载：源码小改时显著加速 rebuild
+RUN --mount=type=cache,target=/app/.next/cache \
+    npm run build
 
 FROM base AS runner
 WORKDIR /app
