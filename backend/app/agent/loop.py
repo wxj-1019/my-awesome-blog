@@ -5,6 +5,7 @@
 无工具调用强制收尾（max_iterations）。
 """
 
+import asyncio
 import json
 from typing import Any, Dict, List, Optional
 
@@ -27,7 +28,7 @@ class AgentRunResult(BaseModel):
     """一次 agent 运行的结果。"""
 
     reply: str
-    iterations: int
+    iterations: int  # 循环轮数（不含达到上限后的收尾调用）
     stop_reason: str  # finished | max_iterations
     tool_trace: List[Dict[str, Any]] = Field(default_factory=list)
     total_tokens: int = 0
@@ -50,6 +51,7 @@ class AgentLoop:
         temperature: float = 0.7,
         max_tokens: Optional[int] = None,
     ) -> AgentRunResult:
+        """工具通过 asyncio.to_thread 执行以避免阻塞事件循环，Session 顺序使用不并发共享。"""
         history: List[ChatMessage] = list(messages)
         tool_trace: List[Dict[str, Any]] = []
         total_tokens = 0
@@ -57,10 +59,17 @@ class AgentLoop:
 
         for iteration in range(1, self.max_iterations + 1):
             app_logger.info(f"AgentLoop 第 {iteration}/{self.max_iterations} 轮")
-            response = await self.provider.chat(ChatCompletionRequest(
-                messages=history, model=model, temperature=temperature,
-                max_tokens=max_tokens, tools=tools,
-            ))
+            try:
+                response = await self.provider.chat(ChatCompletionRequest(
+                    messages=history, model=model, temperature=temperature,
+                    max_tokens=max_tokens, tools=tools,
+                ))
+            except Exception as e:
+                app_logger.error(
+                    f"AgentLoop 第 {iteration} 轮 LLM 调用失败: {e} "
+                    f"(已执行工具 {len(tool_trace)} 个, 累计 {total_tokens} tokens)"
+                )
+                raise
             if response.usage:
                 total_tokens += response.usage.total_tokens
 
@@ -78,9 +87,10 @@ class AgentLoop:
                 arguments = self._parse_arguments(tool_call.arguments)
                 if isinstance(arguments, str):  # JSON 解析失败，错误文本直接回喂
                     result = arguments
-                    args_for_trace: Any = tool_call.arguments
+                    args_for_trace: Any = tool_call.arguments[:TRACE_PREVIEW_CHARS]
                 else:
-                    result = self.registry.execute(db, tool_call.name, arguments)
+                    result = await asyncio.to_thread(
+                        self.registry.execute, db, tool_call.name, arguments)
                     args_for_trace = arguments
                 result = result[:MAX_TOOL_RESULT_CHARS]
                 app_logger.info(f"AgentLoop 工具调用: {tool_call.name} -> {result[:100]}")
@@ -94,9 +104,16 @@ class AgentLoop:
 
         # 达到迭代上限：不带 tools 再调一次，强制模型用已有信息收尾
         app_logger.warning(f"AgentLoop 达到最大迭代数 {self.max_iterations}，强制收尾")
-        final = await self.provider.chat(ChatCompletionRequest(
-            messages=history, model=model, temperature=temperature, max_tokens=max_tokens,
-        ))
+        try:
+            final = await self.provider.chat(ChatCompletionRequest(
+                messages=history, model=model, temperature=temperature, max_tokens=max_tokens,
+            ))
+        except Exception as e:
+            app_logger.error(
+                f"AgentLoop 收尾 LLM 调用失败: {e} "
+                f"(已执行工具 {len(tool_trace)} 个, 累计 {total_tokens} tokens)"
+            )
+            raise
         if final.usage:
             total_tokens += final.usage.total_tokens
         return AgentRunResult(

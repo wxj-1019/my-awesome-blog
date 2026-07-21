@@ -127,3 +127,38 @@ async def test_loop_bad_arguments_json_fed_back(test_session):
     tool_msg = provider.requests[1].messages[-1]
     assert "参数不是合法 JSON" in tool_msg.content
     assert result.reply == "参数错了"
+
+
+async def test_loop_multiple_tool_calls_single_round(test_session):
+    """单轮多个 tool_calls：assistant 一条 + tool 两条，顺序配对"""
+    resp = ChatCompletionResponse(
+        message=ChatMessage(role="assistant", content="", tool_calls=[
+            ToolCall(id="c1", name="echo", arguments='{"text": "a"}'),
+            ToolCall(id="c2", name="echo", arguments='{"text": "b"}'),
+        ]),
+        model="fake-model", usage=Usage(prompt_tokens=5, completion_tokens=5, total_tokens=10),
+        finish_reason="tool_calls",
+    )
+    provider = FakeProvider([resp, _text_resp("两个都调完了")])
+    loop = AgentLoop(provider, _registry(), max_iterations=5)
+    result = await loop.run(test_session, [ChatMessage(role="user", content="x")])
+    assert result.reply == "两个都调完了"
+    assert len(result.tool_trace) == 2
+    roles = [m.role for m in provider.requests[1].messages]
+    assert roles == ["user", "assistant", "tool", "tool"]
+    assert provider.requests[1].messages[2].tool_call_id == "c1"
+    assert provider.requests[1].messages[3].tool_call_id == "c2"
+
+
+async def test_loop_provider_error_reraises(test_session):
+    """provider 抛异常时原样上抛（不吞掉返回半成品）"""
+    import pytest
+
+    class _BoomProvider(FakeProvider):
+        async def chat(self, request):
+            raise RuntimeError("网络超时")
+
+    provider = _BoomProvider([])
+    loop = AgentLoop(provider, _registry(), max_iterations=5)
+    with pytest.raises(RuntimeError, match="网络超时"):
+        await loop.run(test_session, [ChatMessage(role="user", content="x")])
