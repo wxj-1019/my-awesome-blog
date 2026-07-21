@@ -54,8 +54,8 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-my_awesome_blog}
       SECRET_KEY: ${SECRET_KEY}
       DEBUG: "False"
-      # 必须加引号，否则 Compose 会把 JSON 数组解析成 YAML list，导致容器内变成 [http://...] 非法 JSON
-      BACKEND_CORS_ORIGINS: "${BACKEND_CORS_ORIGINS:?BACKEND_CORS_ORIGINS must be set}"
+      # 用单引号包插值：env 里是 JSON 数组 ["http://..."] 时，双引号会与 YAML 引号冲突被剥成非法值
+      BACKEND_CORS_ORIGINS: '${BACKEND_CORS_ORIGINS:?BACKEND_CORS_ORIGINS must be set}'
       REDIS_HOST: redis
       REDIS_PORT: 6379
     depends_on:
