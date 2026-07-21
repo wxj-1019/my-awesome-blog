@@ -19,26 +19,26 @@ const MOTION_L3_ENABLED = process.env.NEXT_PUBLIC_MOTION_L3 !== '0';
 export default function HeroSection() {
   const { resolvedTheme } = useTheme();
   const reducedMotion = useReducedMotion();
-  const [mounted, setMounted] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
   useEffect(() => {
-    setMounted(true);
     const mq = window.matchMedia('(min-width: 768px)');
     const sync = () => setIsDesktop(mq.matches);
     sync();
     mq.addEventListener('change', sync);
     return () => mq.removeEventListener('change', sync);
   }, []);
-  const backgroundVideo = mounted && resolvedTheme === 'dark'
-    ? '/video/moonlit-clouds-field-HD-live.mp4'
-    : '/video/fantasy-landscape-deer-HD-live.mp4';
+  // 主题切换后立即换片；暗色=月夜云海，亮色=奇幻鹿景（须 H.264，勿 HEVC）
+  const backgroundVideo =
+    resolvedTheme === 'dark'
+      ? '/video/moonlit-clouds-field-HD-live.mp4'
+      : '/video/fantasy-landscape-deer-HD-live.mp4';
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [videoError, setVideoError] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
-  const [shouldLoadVideo, setShouldLoadVideo] = useState(false);
+  // 首屏直接加载视频（资源已 faststart + H.264）
+  const shouldLoadVideo = true;
   const videoRef = useRef<HTMLVideoElement>(null);
   const heroRef = useRef<HTMLElement>(null);
-  const observerRef = useRef<IntersectionObserver | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
   // 进度源：useScrollProgress（与 Bridge 的 ScrollTrigger 分离，且视频/文案分节点）
   const scrollProgress = useScrollProgress(heroRef);
@@ -53,44 +53,11 @@ export default function HeroSection() {
     ? Math.min(scrollProgress, 1) * (isDesktop ? 18 : 8)
     : 0;
 
-  const handleIntersection = useCallback((entries: IntersectionObserverEntry[]) => {
-    const [entry] = entries;
-    if (entry.isIntersecting && !shouldLoadVideo) {
-      logger.log('Hero section 进入视口，开始加载视频');
-      setShouldLoadVideo(true);
-
-      if (observerRef.current && heroRef.current) {
-        observerRef.current.unobserve(heroRef.current);
-      }
-    }
-  }, [shouldLoadVideo]);
+  // 主题或重试切换时重置可见态；换源后由 onLoadedData / onCanPlay 再亮起
   useEffect(() => {
-    const el = heroRef.current;
-    if (!el) {return;}
-
-    const options = {
-      root: null,
-      rootMargin: '50px',
-      threshold: 0.1
-    };
-
-    observerRef.current = new IntersectionObserver(handleIntersection, options);
-    observerRef.current.observe(el);
-
-    return () => {
-      if (observerRef.current) {
-        observerRef.current.unobserve(el);
-        observerRef.current.disconnect();
-      }
-    };
-  }, [handleIntersection]);
-  useEffect(() => {
-    if (mounted && !videoLoaded && !videoError && videoRef.current && shouldLoadVideo) {
-      logger.log('触发视频加载:', backgroundVideo);
-      setVideoLoaded(false);
-      setVideoError(false);
-    }
-  }, [mounted, backgroundVideo, retryCount, shouldLoadVideo, videoLoaded, videoError]);
+    setVideoLoaded(false);
+    setVideoError(false);
+  }, [backgroundVideo, retryCount]);
 
   const handleVideoError = useCallback((e: React.SyntheticEvent<HTMLVideoElement>) => {
     logger.error('视频加载失败:', backgroundVideo, e);
@@ -107,11 +74,34 @@ export default function HeroSection() {
     }
   }, [backgroundVideo, retryCount]);
 
-  const handleVideoSuccess = useCallback(() => {
-    logger.log('视频已成功加载:', backgroundVideo);
+  /** 有首帧即可显示：勿只等 canplaythrough（大文件 + 非 faststart 时常不触发） */
+  const handleVideoReady = useCallback(() => {
+    logger.log('视频可显示:', backgroundVideo);
     setVideoLoaded(true);
     setVideoError(false);
   }, [backgroundVideo]);
+
+  // 自动播放：部分浏览器对 muted+playsInline 仍需显式 play()
+  useEffect(() => {
+    if (!shouldLoadVideo || videoError) {
+      return;
+    }
+    const el = videoRef.current;
+    if (!el) {
+      return;
+    }
+    const tryPlay = () => {
+      const p = el.play();
+      if (p && typeof p.catch === 'function') {
+        p.catch((err: unknown) => {
+          logger.log('视频 autoplay 被拦截，等待用户交互或就绪事件:', err);
+        });
+      }
+    };
+    tryPlay();
+    el.addEventListener('loadeddata', tryPlay);
+    return () => el.removeEventListener('loadeddata', tryPlay);
+  }, [backgroundVideo, retryCount, shouldLoadVideo, videoError]);
 
   useEffect(() => {
     return () => {
@@ -168,19 +158,25 @@ export default function HeroSection() {
           </motion.div>
         )}
 
-        {mounted && shouldLoadVideo && !videoError && (
+        {shouldLoadVideo && !videoError && (
           <video
             ref={videoRef}
             autoPlay
             loop
             muted
             playsInline
-            preload="metadata"
+            // auto：尽快拉到可播；配合 faststart + H.264 首屏可见
+            preload="auto"
             className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${videoLoaded ? 'opacity-100' : 'opacity-0'}`}
             src={backgroundVideo}
-            onCanPlayThrough={handleVideoSuccess}
+            onLoadedData={handleVideoReady}
+            onLoadedMetadata={handleVideoReady}
+            onCanPlay={handleVideoReady}
+            onCanPlayThrough={handleVideoReady}
+            onPlaying={handleVideoReady}
             onPlay={() => {
               logger.log('视频开始播放:', backgroundVideo);
+              handleVideoReady();
             }}
             onError={handleVideoError}
             onLoadStart={() => {
@@ -194,11 +190,11 @@ export default function HeroSection() {
           />
         )}
 
-        {/* 后备渐变背景：L0 时无循环动画（inline animation 不受 CSS media 约束） */}
+        {/* 后备渐变背景：视频未就绪时占位 */}
         <div
           className={`absolute inset-0 w-full h-full transition-opacity duration-700 ${videoLoaded ? 'opacity-0' : 'opacity-100'}`}
           style={{
-            backgroundImage: mounted && resolvedTheme === 'dark'
+            backgroundImage: resolvedTheme === 'dark'
               ? 'linear-gradient(135deg, var(--tech-darkblue), var(--tech-deepblue), var(--tech-cyan))'
               : 'linear-gradient(135deg, #e0f2fe, #bae6fd, #93c5fd)',
             backgroundSize: '400% 400%',
@@ -207,13 +203,13 @@ export default function HeroSection() {
           aria-hidden="true"
         />
 
-        {/* 视频可读性遮罩：底部略重，中间留给文案，避免整块实心玻璃盖住画面 */}
+        {/* 可读性遮罩：略减轻，避免「像没视频」 */}
         <div
           className={cn(
             'absolute inset-0 pointer-events-none',
             resolvedTheme === 'dark'
-              ? 'bg-gradient-to-b from-black/40 via-black/20 to-black/50'
-              : 'bg-gradient-to-b from-slate-950/45 via-slate-950/30 to-slate-950/50'
+              ? 'bg-gradient-to-b from-black/25 via-black/10 to-black/35'
+              : 'bg-gradient-to-b from-slate-950/30 via-slate-950/15 to-slate-950/35'
           )}
           aria-hidden="true"
         />
