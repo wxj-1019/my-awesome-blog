@@ -193,7 +193,7 @@ def parse_openai_response(data: dict, model: str) -> ChatCompletionResponse:
         ]
 
     usage = None
-    if "usage" in data:
+    if data.get("usage"):
         usage_data = data["usage"]
         usage = Usage(
             prompt_tokens=usage_data.get("prompt_tokens", 0),

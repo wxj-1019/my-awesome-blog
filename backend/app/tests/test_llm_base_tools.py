@@ -95,3 +95,14 @@ def test_parse_openai_response_plain():
     assert resp.message.tool_calls is None
     assert resp.finish_reason == "stop"
     assert resp.usage is None
+
+
+def test_parse_openai_response_usage_null():
+    """响应中 usage 为 null 时归一为 None，不抛 AttributeError"""
+    data = {
+        "choices": [{"message": {"role": "assistant", "content": "你好"}, "finish_reason": "stop"}],
+        "usage": None,
+    }
+    resp = parse_openai_response(data, "deepseek-chat")
+    assert resp.message.content == "你好"
+    assert resp.usage is None
