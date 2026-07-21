@@ -1,0 +1,27 @@
+# 缩小 build context，加快 COPY 与 cache 命中
+.git
+.gitignore
+.venv
+venv
+__pycache__
+**/__pycache__
+*.py[cod]
+*$py.class
+.pytest_cache
+.mypy_cache
+.ruff_cache
+.coverage
+htmlcov
+tests
+**/tests
+*.md
+.env
+.env.*
+!.env.example
+logs
+*.log
+.idea
+.vscode
+.DS_Store
+Dockerfile
+.dockerignore

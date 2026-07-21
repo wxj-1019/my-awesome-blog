@@ -132,6 +132,25 @@ npm run type-check
 - Prefer `docker-compose.prod.yml` + env files that are **not** committed with secrets
 - See also: `docs/production-env-checklist.md`, `docs/security-cleanup-checklist.md`
 
+### Fast deploy (cached rebuild)
+
+默认**不要**用 `--no-cache`。依赖层 + BuildKit 缓存挂载后，小改动通常只重建变更服务。
+
+```bash
+# 本机（需 rsync + SSH）
+export DEPLOY_SERVER_IP=你的服务器IP
+./deploy.sh                         # frontend + backend，用层缓存
+DEPLOY_TARGET=frontend ./deploy.sh  # 只更前端
+DEPLOY_TARGET=backend ./deploy.sh   # 只更后端
+FORCE_NO_CACHE=1 ./deploy.sh        # 排查用全量无缓存（很慢）
+
+# 已在服务器上改代码时
+cd /opt/my-awesome-blog
+bash scripts/server-redeploy.sh frontend
+bash scripts/server-redeploy.sh backend
+bash scripts/server-redeploy.sh all
+```
+
 ## Documentation for contributors & agents
 
 | Doc | Audience |

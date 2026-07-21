@@ -1,9 +1,16 @@
 #!/bin/bash
+# 本机 → 服务器同步代码并快速重建（默认使用 Docker 层缓存）
+# 环境变量:
+#   DEPLOY_SERVER_IP   必填
+#   DEPLOY_PATH        默认 /opt/my-awesome-blog
+#   DEPLOY_TARGET      frontend|backend|all  默认 all
+#   FORCE_NO_CACHE=1   强制无缓存全量构建
+#   SKIP_SYNC=1        跳过 rsync（代码已在服务器）
 
-set -e
+set -euo pipefail
 
 echo "=========================================="
-echo "  My Awesome Blog - 部署脚本"
+echo "  My Awesome Blog - 快速部署"
 echo "=========================================="
 
 SERVER_IP="${DEPLOY_SERVER_IP:-}"
@@ -11,104 +18,80 @@ if [ -z "$SERVER_IP" ]; then
     echo "错误: 请设置环境变量 DEPLOY_SERVER_IP"
     exit 1
 fi
-SERVER_USER="root"
-DEPLOY_PATH="/opt/my-awesome-blog"
+SERVER_USER="${DEPLOY_SERVER_USER:-root}"
+DEPLOY_PATH="${DEPLOY_PATH:-/opt/my-awesome-blog}"
+DEPLOY_TARGET="${DEPLOY_TARGET:-all}"
 
 echo ""
-echo "步骤 1/5: 检查本地环境..."
+echo "步骤 1/4: 检查本地环境..."
 if ! command -v docker &> /dev/null; then
-    echo "错误: 本地未安装 Docker"
+    echo "提示: 本地可不装 Docker；构建在服务器执行"
+fi
+if ! command -v rsync &> /dev/null && [ "${SKIP_SYNC:-0}" != "1" ]; then
+    echo "错误: 未安装 rsync（或设置 SKIP_SYNC=1 并在服务器自行更新代码）"
     exit 1
 fi
 
-if ! command -v rsync &> /dev/null; then
-    echo "错误: 未安装 rsync"
-    exit 1
-fi
-
-echo "步骤 2/5: 检查 .env.production 文件..."
+echo "步骤 2/4: 检查 .env.production..."
 if [ ! -f ".env.production" ]; then
     echo "错误: .env.production 文件不存在"
-    echo "请创建 .env.production 文件并配置必要的环境变量"
     exit 1
 fi
-
 if grep -q "CHANGE_THIS" .env.production; then
     echo "错误: .env.production 中包含未修改的占位符"
-    echo "请修改 POSTGRES_PASSWORD 和 SECRET_KEY"
     exit 1
 fi
 
-echo "步骤 3/5: 同步文件到服务器..."
-echo "正在连接到 $SERVER_USER@$SERVER_IP..."
-
-rsync -avz --progress \
-    --exclude 'node_modules' \
-    --exclude '.next' \
-    --exclude '__pycache__' \
-    --exclude '.git' \
-    --exclude '*.pyc' \
-    --exclude '.env' \
-    --exclude '.env.local' \
-    --exclude 'venv' \
-    --exclude '.venv' \
-    --exclude 'logs' \
-    --exclude '*.log' \
-    --exclude '.trae' \
-    ./ ${SERVER_USER}@${SERVER_IP}:${DEPLOY_PATH}/
-
-echo "步骤 4/5: 在服务器上构建和启动服务..."
-
-ssh ${SERVER_USER}@${SERVER_IP} << 'ENDSSH'
-set -e
-
-cd /opt/my-awesome-blog
-
-echo "检查 Docker 服务..."
-if ! systemctl is-active --quiet docker; then
-    echo "启动 Docker 服务..."
-    systemctl start docker
+if [ "${SKIP_SYNC:-0}" != "1" ]; then
+    echo "步骤 3/4: 同步文件到 ${SERVER_USER}@${SERVER_IP}:${DEPLOY_PATH}/ ..."
+    rsync -avz --progress \
+        --exclude 'node_modules' \
+        --exclude '.next' \
+        --exclude '__pycache__' \
+        --exclude '.git' \
+        --exclude '*.pyc' \
+        --exclude '.env' \
+        --exclude '.env.local' \
+        --exclude '.env.production' \
+        --exclude 'venv' \
+        --exclude '.venv' \
+        --exclude 'logs' \
+        --exclude '*.log' \
+        --exclude '.trae' \
+        --exclude '.tmp-ssh-venv' \
+        --exclude '.tmp-*' \
+        ./ "${SERVER_USER}@${SERVER_IP}:${DEPLOY_PATH}/"
+else
+    echo "步骤 3/4: 跳过同步 (SKIP_SYNC=1)"
 fi
 
-echo "加载环境变量..."
-export $(grep -v '^#' .env.production | xargs)
+echo "步骤 4/4: 服务器重建 (${DEPLOY_TARGET})..."
+NO_CACHE_FLAG=""
+if [ "${FORCE_NO_CACHE:-0}" = "1" ]; then
+  NO_CACHE_FLAG="--no-cache"
+fi
+# shellcheck disable=SC2029
+ssh "${SERVER_USER}@${SERVER_IP}" \
+  "cd '${DEPLOY_PATH}' && \
+   if [ -f scripts/server-redeploy.sh ]; then \
+     bash scripts/server-redeploy.sh '${DEPLOY_TARGET}' ${NO_CACHE_FLAG}; \
+   else \
+     export DOCKER_BUILDKIT=1 COMPOSE_DOCKER_CLI_BUILD=1; \
+     docker compose -f docker-compose.prod.yml --env-file .env.production build ${NO_CACHE_FLAG} backend frontend; \
+     docker compose -f docker-compose.prod.yml --env-file .env.production up -d; \
+     docker compose -f docker-compose.prod.yml --env-file .env.production exec -T backend alembic upgrade head || true; \
+   fi"
 
-echo "停止旧容器..."
-docker compose -f docker-compose.prod.yml down --remove-orphans 2>/dev/null || true
-
-echo "清理旧镜像..."
-docker image prune -f
-
-echo "构建新镜像..."
-docker compose -f docker-compose.prod.yml build --no-cache
-
-echo "启动服务..."
-docker compose -f docker-compose.prod.yml up -d
-
-echo "等待服务启动..."
-sleep 10
-
-echo "检查服务状态..."
-docker compose -f docker-compose.prod.yml ps
-
-echo "运行数据库迁移..."
-docker compose -f docker-compose.prod.yml exec -T backend alembic upgrade head 2>/dev/null || echo "迁移完成或无需迁移"
-
-ENDSSH
-
-echo "步骤 5/5: 验证部署..."
 echo ""
 echo "=========================================="
 echo "  部署完成!"
 echo "=========================================="
-echo ""
-echo "访问地址:"
 echo "  前端: http://${SERVER_IP}"
-echo "  后端 API: http://${SERVER_IP}/api/v1"
-echo "  API 文档: http://${SERVER_IP}/docs"
+echo "  API:  http://${SERVER_IP}/api/v1"
+echo "  Docs: http://${SERVER_IP}/docs"
 echo ""
-echo "常用命令:"
-echo "  查看日志: ssh root@${SERVER_IP} 'docker compose -f /opt/my-awesome-blog/docker-compose.prod.yml logs -f'"
-echo "  重启服务: ssh root@${SERVER_IP} 'docker compose -f /opt/my-awesome-blog/docker-compose.prod.yml restart'"
-echo "  停止服务: ssh root@${SERVER_IP} 'docker compose -f /opt/my-awesome-blog/docker-compose.prod.yml down'"
+echo "加速提示:"
+echo "  只更前端: DEPLOY_TARGET=frontend ./deploy.sh"
+echo "  只更后端: DEPLOY_TARGET=backend ./deploy.sh"
+echo "  全量无缓存排查: FORCE_NO_CACHE=1 ./deploy.sh"
 echo ""
