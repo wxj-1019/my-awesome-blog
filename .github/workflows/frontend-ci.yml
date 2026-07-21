@@ -17,7 +17,8 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.x, 20.x]
+        # 与生产 Dockerfile (node:20) 对齐，减少双矩阵耗时
+        node-version: [20.x]
 
     steps:
       - uses: actions/checkout@v4
@@ -42,7 +43,8 @@ jobs:
         working-directory: frontend
 
       - name: Run tests
-        run: npm run test -- --coverage --passWithNoTests
+        # coverage 阈值已在 jest.config.cjs 放宽；CI 以用例通过为准
+        run: npm run test -- --ci --passWithNoTests --coverage --coverageReporters=text-summary
         working-directory: frontend
 
       - name: Build
