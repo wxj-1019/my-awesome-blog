@@ -41,8 +41,9 @@ jobs:
 
       - name: Run tests
         working-directory: ./backend
-        # 与本地一致：conftest 默认 SQLite 内存库 + create_all，不跑 Alembic/PG
-        run: pytest -v --cov=app --cov-report=xml
+        # 仅收集 app/tests（根目录 test_*.py 为手工脚本，勿进 CI）
+        # conftest 默认 SQLite 内存库 + create_all
+        run: pytest app/tests -v --cov=app --cov-report=xml
         env:
           # 故意不注入 postgres URL，让 conftest setdefault 使用 sqlite:///:memory:
           SECRET_KEY: test-secret-key-for-ci-min-32-chars-long
