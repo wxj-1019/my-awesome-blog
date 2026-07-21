@@ -7,7 +7,8 @@ export default function ThemeWrapper({ children }: { children: React.ReactNode }
   return (
     <ThemeProvider>
       {/*
-        全局环境背景：浅色「白昼浅海」（日光柱摇曳）/ 深色「夜海深潜」（月光斑 + 生物荧光），
+        全局环境背景：浅色「林间晨光」（丁达尔光柱 + 光尘孢子）/
+        深色「月夜云海」（月亮 + 云海 + 星空 + 流星），
         纯 CSS 按 html.light/.dark 切换，token 取色，零 rAF 成本。
       */}
       <AmbientBackground />

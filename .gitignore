@@ -95,7 +95,11 @@ temp/
 .DS_Store
 Thumbs.db
 ehthumbs.db
-Icon?
+# macOS 文件夹自定义图标（Icon + 一个特殊字符）。
+# 不要写裸的 Icon?：在 Windows 大小写不敏感匹配下会误伤 frontend/src/components/icons/
+Icon[
+!**/icons/
+!**/icons/**
 .CFUserTextEncoding
 
 # Python

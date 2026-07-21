@@ -18,7 +18,7 @@ describe('AmbientBackground · 全局环境背景', () => {
     bubbleFieldMock.mockClear();
   });
 
-  it('renders fixed decorative layer with gradient base, theme layers and noise', () => {
+  it('renders fixed decorative layer with theme scene layers', () => {
     const { container } = render(<AmbientBackground />);
 
     const root = container.querySelector('[data-ambient-background]');
@@ -30,15 +30,19 @@ describe('AmbientBackground · 全局环境背景', () => {
     expect(container.querySelector('.ambient-layer-light')).toBeInTheDocument();
     expect(container.querySelector('.ambient-layer-dark')).toBeInTheDocument();
 
-    // 浅色层：日光柱 ×2 + 云影
+    // 浅色 · 林间晨光：光柱 ×4 + bokeh ×3 + 光尘（移动端预算 8）
     expect(container.querySelector('.ambient-shaft-a')).toBeInTheDocument();
     expect(container.querySelector('.ambient-shaft-b')).toBeInTheDocument();
-    expect(container.querySelector('.ambient-cloud')).toBeInTheDocument();
+    expect(container.querySelector('.ambient-shaft-c')).toBeInTheDocument();
+    expect(container.querySelector('.ambient-shaft-d')).toBeInTheDocument();
+    expect(container.querySelectorAll('.ambient-bokeh-a, .ambient-bokeh-b, .ambient-bokeh-c')).toHaveLength(3);
+    expect(container.querySelectorAll('.ambient-mote-dot')).toHaveLength(8);
 
-    // 深色层：月光光斑 ×2 + 生物荧光点
-    expect(container.querySelector('.ambient-glow-a')).toBeInTheDocument();
-    expect(container.querySelector('.ambient-glow-b')).toBeInTheDocument();
-    // jsdom matchMedia mock 恒为 false → 移动端预算 6 个荧光点
+    // 深色 · 月夜云海：月亮、云海 ×3、星空（移动端预算 12）、流星、萤火虫（移动端预算 6）
+    expect(container.querySelector('[data-moon]')).toBeInTheDocument();
+    expect(container.querySelectorAll('.ambient-cloud-sea')).toHaveLength(3);
+    expect(container.querySelectorAll('.ambient-star-dot')).toHaveLength(12);
+    expect(container.querySelector('[data-meteor]')).toBeInTheDocument();
     expect(container.querySelectorAll('.ambient-firefly-dot')).toHaveLength(6);
   });
 
