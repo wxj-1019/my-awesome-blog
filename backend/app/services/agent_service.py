@@ -1,4 +1,7 @@
-"""Agent 服务层：组装 provider + 工具 + 循环引擎，对外提供 chat / polish。"""
+"""Agent 服务层：组装 provider + 工具 + 循环引擎，对外提供 chat / polish。
+
+约定：本服务抛出的 ValueError 由 API 端点捕获并转为 HTTP 400。
+"""
 
 from typing import Optional
 
@@ -9,6 +12,7 @@ from app.agent.tools.builtin import register_builtin_tools
 from app.agent.tools.registry import ToolRegistry
 from app.llm.base import ChatCompletionRequest, ChatMessage, LLMProvider
 from app.llm.provider_factory import get_llm_provider
+from app.utils.logger import app_logger
 from app.schemas.agent import (
     AgentChatRequest,
     AgentChatResponse,
@@ -77,8 +81,10 @@ class AgentService:
         for _ in range(request.max_rounds):
             critique = await self._ask(
                 provider, CRITIC_PROMPT.format(draft=draft, requirements_block=requirements_block),
+                temperature=0.3,
             )
-            if "PASS" in critique:
+            if critique.strip().upper().rstrip("。").rstrip(".") == "PASS":
+                app_logger.info(f"Agent polish 第 {_ + 1} 轮评审通过（PASS）")
                 break
             critiques.append(critique)
             draft = await self._ask(provider, WRITER_PROMPT.format(draft=draft, critique=critique))
@@ -86,10 +92,11 @@ class AgentService:
         return AgentPolishResponse(polished=draft, rounds=len(critiques), critiques=critiques)
 
     @staticmethod
-    async def _ask(provider: LLMProvider, prompt: str) -> str:
+    async def _ask(provider: LLMProvider, prompt: str, temperature: float = 0.7) -> str:
         """单次无工具调用，返回文本。"""
         response = await provider.chat(ChatCompletionRequest(
             messages=[ChatMessage(role="user", content=prompt)],
+            temperature=temperature,
         ))
         return response.message.content
 
