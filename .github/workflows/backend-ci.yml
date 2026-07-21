@@ -14,72 +14,47 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+
     strategy:
       matrix:
-        # 与生产 Dockerfile (python:3.12-slim) 对齐；3.13 部分依赖尚未稳定
+        # 与生产 Dockerfile (python:3.12-slim) 对齐
         python-version: ['3.12']
 
-    services:
-      postgres:
-        image: postgres:15-alpine
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: test_db
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-        cache: 'pip'
-        cache-dependency-path: |
-          backend/requirements.txt
-          backend/requirements-test.txt
+      - uses: actions/checkout@v4
 
-    - name: Install dependencies
-      working-directory: ./backend
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install -r requirements-test.txt
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+          cache-dependency-path: |
+            backend/requirements.txt
+            backend/requirements-test.txt
 
-    - name: Run migrations
-      working-directory: ./backend
-      run: alembic upgrade head
-      env:
-        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
-        SECRET_KEY: test-secret-key-for-ci-min-32-chars-long
-        DEBUG: "True"
+      - name: Install dependencies
+        working-directory: ./backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-test.txt
 
-    - name: Run tests
-      working-directory: ./backend
-      run: pytest -v --cov=app --cov-report=xml
-      env:
-        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
-        SECRET_KEY: test-secret-key-for-ci-min-32-chars-long
-        DEBUG: "True"
-        REDIS_HOST: localhost
-        REDIS_PORT: "6379"
-        REDIS_DB: "0"
-        EMAIL_ENABLED: "false"
-        FRONTEND_URL: http://localhost:3000
-        BACKEND_CORS_ORIGINS: '["http://localhost:3000"]'
+      - name: Run tests
+        working-directory: ./backend
+        # 与本地一致：conftest 默认 SQLite 内存库 + create_all，不跑 Alembic/PG
+        run: pytest -v --cov=app --cov-report=xml
+        env:
+          # 故意不注入 postgres URL，让 conftest setdefault 使用 sqlite:///:memory:
+          SECRET_KEY: test-secret-key-for-ci-min-32-chars-long
+          DEBUG: "True"
+          EMAIL_ENABLED: "false"
+          FRONTEND_URL: http://localhost:3000
+          BACKEND_CORS_ORIGINS: '["http://localhost:3000"]'
 
-    - name: Upload coverage to Codecov
-      continue-on-error: true
-      uses: codecov/codecov-action@v4
-      with:
-        file: ./backend/coverage.xml
-        flags: backend
-        name: codecov-backend
+      - name: Upload coverage to Codecov
+        continue-on-error: true
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./backend/coverage.xml
+          flags: backend
+          name: codecov-backend
