@@ -118,7 +118,7 @@ function ArticlesPageContent() {
           <div className="pt-20 pb-10 text-center">
             <GlitchText text="ARTICLES" size="lg" className="mb-4 font-display" />
             {/* 幕标 kicker：呼应首页幕标式头部，收敛故障风的赛博感 */}
-            <p className="mb-2 text-xs font-mono tracking-[0.28em] uppercase text-primary/90">
+            <p className="mb-2 text-xs font-mono tracking-[0.28em] uppercase text-white/80">
               文库 · ARTICLES
             </p>
             {/* 透出区裸文字：两个氛围世界均为深色底，保持浅色系 */}

@@ -19,8 +19,9 @@ export interface PageActHeaderProps {
 
 /**
  * 幕标式页面头部：与首页「分幕」叙事同源。
- * kicker 小字（tracking 加宽 + primary）→ 标题 → 描述 → 渐变引线。
- * 颜色全走 token；入场用 FadeIn（自带 reduced-motion 回退）。
+ * kicker 小字（tracking 加宽）→ 标题 → 描述 → 渐变引线。
+ * 标题/描述为透出氛围背景上的裸文字：两个氛围世界均为深色底，统一 text-white 系；
+ * 入场用 FadeIn（自带 reduced-motion 回退）。
  */
 export default function PageActHeader({
   kicker,
@@ -44,7 +45,7 @@ export default function PageActHeader({
       {kicker ? (
         <p
           data-act-kicker
-          className="text-[11px] sm:text-xs font-medium tracking-[0.28em] text-primary/90"
+          className="text-[11px] sm:text-xs font-medium tracking-[0.28em] text-white/80"
         >
           {kicker}
         </p>
@@ -61,13 +62,13 @@ export default function PageActHeader({
             <Icon className="w-5 h-5" aria-hidden />
           </span>
         ) : null}
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white drop-shadow-sm">
           {title}
         </h1>
       </div>
 
       {description ? (
-        <p className="mt-3 text-sm sm:text-base text-muted-foreground leading-relaxed">
+        <p className="mt-3 text-sm sm:text-base text-white/70 leading-relaxed">
           {description}
         </p>
       ) : null}
