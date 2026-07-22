@@ -8,7 +8,7 @@ import BubbleField from '@/components/home/BubbleField';
  * 全站氛围 · 采样自 Hero 视频帧，并做可读性收光
  *
  * dark  · moonlit-clouds：青绿夜 #1a3034/#2d5254 · 月晕 #97b698 · 云带 · 地雾
- * light · fantasy-deer：紫穹 #4b2fa4 · 环日暖晕 · 青绿地面光 · 微尘
+ * light · fantasy-deer：紫穹 #4b2fa4 · 环日暖晕 · 双层帷幕 · 漂浮光尘 · 青绿地面光（呼吸）
  *
  * 原则：色板忠于视频；层数克制；中间区域更透，便于正文/卡片。
  */
@@ -108,6 +108,37 @@ export default function AmbientBackground() {
             transform: translate3d(0.8vw, 0, 0);
           }
         }
+        @keyframes veil-flow-alt {
+          0%,
+          100% {
+            transform: translate3d(0, 0, 0);
+            opacity: 0.35;
+          }
+          50% {
+            transform: translate3d(-1.2vw, 0.4vh, 0);
+            opacity: 0.6;
+          }
+        }
+        @keyframes mote-float {
+          0%,
+          100% {
+            transform: translate3d(0, 0, 0);
+            opacity: 0.5;
+          }
+          50% {
+            transform: translate3d(0.6vw, -1.2vh, 0);
+            opacity: 0.9;
+          }
+        }
+        @keyframes ground-breathe {
+          0%,
+          100% {
+            opacity: 0.8;
+          }
+          50% {
+            opacity: 1;
+          }
+        }
 
         .moon-soft {
           animation: moon-soft 44s ease-in-out infinite;
@@ -124,13 +155,25 @@ export default function AmbientBackground() {
         .veil-flow {
           animation: veil-flow 48s ease-in-out infinite;
         }
+        .veil-flow-alt {
+          animation: veil-flow-alt 62s ease-in-out infinite;
+        }
+        .mote-float {
+          animation: mote-float 26s ease-in-out infinite;
+        }
+        .ground-breathe {
+          animation: ground-breathe 36s ease-in-out infinite;
+        }
 
         @media (prefers-reduced-motion: reduce) {
           .moon-soft,
           .cloud-slow,
           .cloud-slow-alt,
           .ring-soft,
-          .veil-flow {
+          .veil-flow,
+          .veil-flow-alt,
+          .mote-float,
+          .ground-breathe {
             animation: none;
             opacity: 0.65;
           }
@@ -248,19 +291,47 @@ export default function AmbientBackground() {
               filter: 'blur(32px)',
             }}
           />
+          {/* 中景云纱：缓慢漂移的第二层帷幕，补运动中景 */}
+          <div
+            className="veil-flow-alt absolute left-[-6%] top-[30%] h-[20vh] w-[112%]"
+            style={{
+              background:
+                'linear-gradient(90deg, transparent 0%, rgba(140, 160, 255, 0.16) 25%, rgba(180, 130, 230, 0.12) 55%, rgba(120, 200, 230, 0.1) 80%, transparent 100%)',
+              filter: 'blur(28px)',
+            }}
+          />
+          {/* 漂浮光尘：小尺度视觉锚点，呼应 fantasy-deer 的微粒感 */}
+          <div
+            className="mote-float absolute inset-0"
+            style={{
+              backgroundImage:
+                'radial-gradient(circle 2px at 18% 30%, rgba(255, 240, 200, 0.5) 0%, transparent 100%), radial-gradient(circle 1.5px at 62% 22%, rgba(200, 230, 255, 0.45) 0%, transparent 100%), radial-gradient(circle 2px at 82% 45%, rgba(255, 220, 190, 0.4) 0%, transparent 100%), radial-gradient(circle 1.5px at 38% 55%, rgba(180, 255, 235, 0.35) 0%, transparent 100%)',
+              backgroundRepeat: 'no-repeat',
+            }}
+          />
+          <div
+            className="mote-float absolute inset-0"
+            style={{
+              backgroundImage:
+                'radial-gradient(circle 1.5px at 28% 68%, rgba(255, 235, 205, 0.4) 0%, transparent 100%), radial-gradient(circle 2px at 72% 60%, rgba(190, 225, 255, 0.45) 0%, transparent 100%), radial-gradient(circle 1.5px at 50% 38%, rgba(230, 200, 255, 0.35) 0%, transparent 100%)',
+              backgroundRepeat: 'no-repeat',
+              animationDelay: '-13s',
+            }}
+          />
           {/* 地面青绿反光 */}
           <div
-            className="absolute left-[-8%] bottom-[-8%] h-[48vh] w-[55vw]"
+            className="ground-breathe absolute left-[-8%] bottom-[-8%] h-[48vh] w-[55vw]"
             style={{
               background:
                 'radial-gradient(ellipse 60% 50% at 40% 70%, rgba(0, 230, 190, 0.14) 0%, rgba(60, 180, 255, 0.08) 40%, transparent 70%)',
             }}
           />
           <div
-            className="absolute right-[0%] bottom-[-5%] h-[40vh] w-[42vw]"
+            className="ground-breathe absolute right-[0%] bottom-[-5%] h-[40vh] w-[42vw]"
             style={{
               background:
                 'radial-gradient(ellipse 55% 45% at 50% 75%, rgba(0, 200, 255, 0.1) 0%, transparent 65%)',
+              animationDelay: '-18s',
             }}
           />
           {/* 地面 */}
