@@ -17,7 +17,7 @@ export default function Section({ title, titleClassName, children, moreLink, mor
     <div className="py-6">
       <div className="flex items-center justify-between mb-6">
         <h2 className={cn(
-          'text-xl font-bold text-white tracking-tight',
+          'text-xl font-bold text-foreground tracking-tight',
           titleClassName
         )}>
           {title}
@@ -27,9 +27,9 @@ export default function Section({ title, titleClassName, children, moreLink, mor
             href={moreLink as never}
             className={cn(
               'group inline-flex items-center gap-1',
-              'text-sm font-medium text-indigo-400',
+              'text-sm font-medium text-primary',
               'transition-all duration-300',
-              'hover:text-pink-400 hover:gap-2'
+              'hover:text-accent hover:gap-2'
             )}
           >
             {moreText}

@@ -13,8 +13,8 @@ export interface DepthAmbienceProps {
  * 四期 · 分幕环境层：让玻璃卡有「水」可透。
  *
  * 设计决策（对比 spec §4.2 的可选视差）：
- * - 全部静态 CSS，不挂 ScrollFloat/Parallax。入水 scrub 已是本页唯一主运动，
- *   每幕再各自视差会稀释叙事焦点（静态 70% + 滚动 30% 原则）。
+ * - 本层全部静态 CSS，不挂 ScrollFloat/Parallax。滚动叙事由 Dive scrub 与
+ *   幕标视差/接续引线承担，本层保持静止以免稀释焦点（静态 70% + 滚动 30% 原则）。
  * - 色彩全部走 CSS 变量 token（color-mix 百分比来自 HOME_DEPTH 预算），
  *   浅色模式同比例生效，不压文字对比。
  * - 纯装饰：pointer-events-none + aria-hidden，不拦截任何交互。

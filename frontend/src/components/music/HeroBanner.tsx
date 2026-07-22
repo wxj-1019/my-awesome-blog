@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion } from '@/lib/framer-motion';
 import { cn } from '@/lib/utils';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { ChevronLeft, ChevronRight, Play } from 'lucide-react';
 import type { Banner } from '@/types/music';
 
@@ -25,6 +26,8 @@ export default function HeroBanner({
   const [isPaused, setIsPaused] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
+  // 减少动画偏好：封面悬浮循环与入场动效回退为静态
+  const reducedMotion = useReducedMotion();
 
   useEffect(() => {
     if (!autoPlay || isPaused) {return;}
@@ -69,7 +72,7 @@ export default function HeroBanner({
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-[360px] rounded-3xl overflow-hidden shadow-2xl shadow-indigo-500/10 group parallax-container"
+      className="relative w-full h-[360px] rounded-3xl overflow-hidden shadow-2xl shadow-tech-cyan/20 group parallax-container"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => {
         setIsPaused(false);
@@ -88,15 +91,15 @@ export default function HeroBanner({
         transition={{ type: 'spring', stiffness: 50, damping: 30 }}
       />
 
-      {/* Gradient Overlay */}
+      {/* Gradient Overlay（深色遮罩用品牌深蓝系，保持双主题可读） */}
       <div
-        className="absolute inset-0 bg-gradient-to-r from-indigo-900/90 via-purple-900/80 to-pink-900/70"
+        className="absolute inset-0 bg-gradient-to-r from-tech-darkblue/90 via-tech-deepblue/80 to-tech-darkblue/70"
       />
 
       <div className="relative z-10 flex h-full items-center px-8 lg:px-12">
         <motion.div 
           className="flex-1 max-w-lg"
-          initial={{ opacity: 0, x: -30 }}
+          initial={reducedMotion ? false : { opacity: 0, x: -30 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
           key={`text-${currentIndex}`}
@@ -115,12 +118,12 @@ export default function HeroBanner({
           <motion.button
             className={cn(
               'inline-flex items-center gap-2 px-6 py-3 rounded-xl',
-              'bg-gradient-to-r from-indigo-500 to-pink-500',
-              'text-white font-semibold text-sm',
-              'shadow-lg shadow-indigo-500/30',
+              'bg-gradient-to-r from-tech-cyan to-tech-sky',
+              'text-primary-foreground font-semibold text-sm',
+              'shadow-lg shadow-tech-cyan',
               'cursor-pointer'
             )}
-            whileHover={{ scale: 1.05, boxShadow: '0 0 30px rgba(99, 102, 241, 0.4)' }}
+            whileHover={{ scale: 1.05, boxShadow: '0 0 30px color-mix(in srgb, var(--primary) 40%, transparent)' }}
             whileTap={{ scale: 0.95 }}
           >
             <Play className="w-4 h-4 fill-white" />
@@ -154,8 +157,8 @@ export default function HeroBanner({
                 src={currentBanner.coverImage}
                 alt="专辑封面"
                 className="w-full h-full object-cover"
-                animate={{ y: [0, -10, 0] }}
-                transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+                animate={reducedMotion ? { y: 0 } : { y: [0, -10, 0] }}
+                transition={reducedMotion ? { duration: 0 } : { duration: 6, repeat: Infinity, ease: 'easeInOut' }}
               />
               {/* Shine effect */}
               <motion.div 
@@ -217,7 +220,7 @@ export default function HeroBanner({
               className={cn(
                 'rounded-full transition-all duration-300 ease-out',
                 currentIndex === index
-                  ? 'w-6 h-2 bg-gradient-to-r from-indigo-400 to-pink-400'
+                  ? 'w-6 h-2 bg-gradient-to-r from-tech-lightcyan to-tech-sky'
                   : 'w-2 h-2 bg-white/40 hover:bg-white/60 hover:scale-110'
               )}
               aria-label={`切换到第${index + 1}张`}

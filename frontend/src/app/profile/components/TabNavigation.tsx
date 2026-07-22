@@ -68,10 +68,11 @@ export default function TabNavigation({
               />
             )}
             {isActive && isVertical && (
+              /* 指示条只动 transform：scaleY + origin-top，避免 height 布局动画 */
               <motion.div
-                className="absolute left-0 top-0 bottom-0 w-1 bg-tech-cyan rounded-r-full"
-                initial={{ height: 0 }}
-                animate={{ height: '100%' }}
+                className="absolute left-0 top-0 bottom-0 w-1 bg-tech-cyan rounded-r-full origin-top"
+                initial={{ scaleY: 0 }}
+                animate={{ scaleY: 1 }}
                 transition={{ type: 'spring', damping: 30, stiffness: 300 }}
               />
             )}
@@ -87,13 +88,11 @@ export default function TabNavigation({
               )}>
                 {tab.label}
               </span>
-              {isVertical && tab.description && (
+              {isVertical && isActive && tab.description && (
+                /* 描述只动 opacity，避免 height 布局动画 */
                 <motion.p
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{
-                    opacity: isActive ? 1 : 0,
-                    height: isActive ? 'auto' : 0
-                  }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
                   transition={{ duration: 0.3 }}
                   className="text-xs text-foreground/50 mt-1"
                 >

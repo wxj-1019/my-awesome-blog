@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { motion } from '@/lib/framer-motion';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 import MusicSidebar from '@/components/music/MusicSidebar';
 import HeroBanner from '@/components/music/HeroBanner';
 import PlaylistScroll from '@/components/music/PlaylistScroll';
@@ -24,6 +25,8 @@ export default function MusicHallPageContent() {
   const [volume, setVolume] = useState(0.7);
   const [playMode, setPlayMode] = useState<PlayMode>('list');
   const [isPlayerExpanded, setIsPlayerExpanded] = useState(false);
+  // 减少动画偏好：入场 variants 回退为瞬时呈现终态
+  const reducedMotion = useReducedMotion();
 
   const handlePlay = () => {
     setIsPlaying(true);
@@ -66,10 +69,12 @@ export default function MusicHallPageContent() {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: {
-        staggerChildren: 0.15,
-        delayChildren: 0.1,
-      },
+      transition: reducedMotion
+        ? { duration: 0 }
+        : {
+            staggerChildren: 0.15,
+            delayChildren: 0.1,
+          },
     },
   };
 
@@ -78,10 +83,12 @@ export default function MusicHallPageContent() {
     visible: {
       opacity: 1,
       y: 0,
-      transition: {
-        duration: 0.6,
-        ease: [0.25, 0.1, 0.25, 1] as const,
-      },
+      transition: reducedMotion
+        ? { duration: 0 }
+        : {
+            duration: 0.6,
+            ease: [0.25, 0.1, 0.25, 1] as const,
+          },
     },
   };
 

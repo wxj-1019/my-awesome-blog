@@ -40,7 +40,7 @@ export default function ProfileHeader({
           {!isEditing ? (
             <Button
               onClick={onEditToggle}
-              className="bg-tech-cyan hover:bg-tech-sky text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center gap-2"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center gap-2"
             >
               <Edit3 className="w-4 h-4" />
               <span className="hidden sm:inline">编辑资料</span>
@@ -55,7 +55,7 @@ export default function ProfileHeader({
                 <X className="w-4 h-4" />
               </Button>
               <Button
-                className="bg-tech-cyan hover:bg-tech-sky text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center gap-2"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center gap-2"
               >
                 <Save className="w-4 h-4" />
                 <span className="hidden sm:inline">保存</span>

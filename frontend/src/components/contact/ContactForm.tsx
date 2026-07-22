@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from '@/lib/framer-motion';
 import { Mail, User, MessageSquare, Send, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
+import { FadeIn } from '@/components/motion';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 interface FormData {
   name: string;
   email: string;
@@ -11,6 +13,7 @@ interface FormData {
 }
 type FormStatus = 'idle' | 'submitting' | 'success' | 'error';
 export default function ContactForm() {
+  const reducedMotion = useReducedMotion();
   const [formData, setFormData] = useState<FormData>({
     name: '',
     email: '',
@@ -121,16 +124,16 @@ export default function ContactForm() {
               rows={rows}
               className={`
                 w-full pl-12 pr-4 py-4 rounded-2xl border-2
-                bg-background/80 dark:bg-foreground/5
-                text-foreground dark:text-white
-                placeholder-foreground/40 dark:placeholder-white/30
+                bg-background/80
+                text-foreground
+                placeholder-foreground/40
                 transition-all duration-300
                 resize-none
                 ${showError 
-                  ? 'border-red-500 dark:border-red-400 focus:ring-4 focus:ring-red-500/10' 
-                  : 'border-foreground/10 dark:border-white/10 hover:border-foreground/20 dark:hover:border-white/20 focus:border-tech-cyan focus:ring-4 focus:ring-tech-cyan/10'
+                  ? 'border-destructive focus:ring-4 focus:ring-destructive/10' 
+                  : 'border-foreground/10 hover:border-foreground/20 focus:border-tech-cyan focus:ring-4 focus:ring-tech-cyan/10'
                 }
-                focus:outline-none focus:bg-background dark:focus:bg-foreground/10
+                focus:outline-none focus:bg-background
                 font-sf-pro-text
               `}
               placeholder={`请输入${label}...`}
@@ -144,15 +147,15 @@ export default function ContactForm() {
               onBlur={() => handleBlur(name, formData[name])}
               className={`
                 w-full pl-12 pr-4 py-4 rounded-2xl border-2
-                bg-background/80 dark:bg-foreground/5
-                text-foreground dark:text-white
-                placeholder-foreground/40 dark:placeholder-white/30
+                bg-background/80
+                text-foreground
+                placeholder-foreground/40
                 transition-all duration-300
                 ${showError 
-                  ? 'border-red-500 dark:border-red-400 focus:ring-4 focus:ring-red-500/10' 
-                  : 'border-foreground/10 dark:border-white/10 hover:border-foreground/20 dark:hover:border-white/20 focus:border-tech-cyan focus:ring-4 focus:ring-tech-cyan/10'
+                  ? 'border-destructive focus:ring-4 focus:ring-destructive/10' 
+                  : 'border-foreground/10 hover:border-foreground/20 focus:border-tech-cyan focus:ring-4 focus:ring-tech-cyan/10'
                 }
-                focus:outline-none focus:bg-background dark:focus:bg-foreground/10
+                focus:outline-none focus:bg-background
                 font-sf-pro-text
               `}
               placeholder={`请输入${label}...`}
@@ -165,7 +168,7 @@ export default function ContactForm() {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="flex items-center gap-1.5 text-sm text-red-500 dark:text-red-400"
+              className="flex items-center gap-1.5 text-sm text-destructive"
             >
               <AlertCircle className="w-4 h-4" />
               {error}
@@ -179,22 +182,16 @@ export default function ContactForm() {
     <section className="w-full py-12 relative">
       <div className="container mx-auto px-4 sm:px-6">
         <div className="max-w-3xl mx-auto">
-          {/* 标题区域 */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="mb-10 text-center"
-          >
+          {/* 标题区域（FadeIn 自带 reduced-motion 回退） */}
+          <FadeIn className="mb-10 text-center">
             <h2 className="font-sf-pro-display text-3xl md:text-4xl font-bold text-foreground mb-3">
               发送消息
             </h2>
             <p className="font-sf-pro-text text-foreground/70 max-w-xl mx-auto">
               填写下面的表单，我会尽快回复你。通常在 24 小时内回复。
             </p>
-          </motion.div>
-          <GlassCard padding="lg" className="shadow-xl shadow-foreground/5 dark:shadow-black/20">
+          </FadeIn>
+          <GlassCard padding="lg" className="shadow-xl shadow-foreground/5">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {renderInput('name', '姓名', 'text', <User className="w-5 h-5" />)}
@@ -213,8 +210,8 @@ export default function ContactForm() {
                   flex items-center justify-center gap-3
                   shadow-lg
                   ${status === 'submitting'
-                    ? 'bg-foreground/20 dark:bg-white/10 cursor-not-allowed text-foreground/50'
-                    : 'bg-gradient-to-r from-tech-cyan via-cyan-500 to-blue-500 text-white shadow-tech-cyan/25 hover:shadow-xl hover:shadow-tech-cyan/30'
+                    ? 'bg-foreground/20 cursor-not-allowed text-foreground/50'
+                    : 'bg-gradient-to-r from-tech-cyan via-tech-lightcyan to-tech-sky text-primary-foreground shadow-tech-cyan/25 hover:shadow-xl hover:shadow-tech-cyan/30'
                   }
                 `}
               >
@@ -222,7 +219,7 @@ export default function ContactForm() {
                   <>
                     <motion.div
                       className="w-5 h-5 border-2 border-foreground/30 border-t-foreground rounded-full"
-                      animate={{ rotate: 360 }}
+                      animate={reducedMotion ? undefined : { rotate: 360 }}
                       transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
                     />
                     <span>发送中...</span>
@@ -241,9 +238,9 @@ export default function ContactForm() {
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
-                  className="mt-6 p-4 bg-green-500/10 dark:bg-green-500/20 border border-green-500/20 dark:border-green-500/30 rounded-2xl"
+                  className="mt-6 p-4 bg-success/10 border border-success/20 rounded-2xl"
                 >
-                  <div className="flex items-center gap-3 text-green-600 dark:text-green-400">
+                  <div className="flex items-center gap-3 text-success">
                     <CheckCircle className="w-5 h-5 flex-shrink-0" />
                     <p className="font-sf-pro-text">消息发送成功！我会尽快回复你。</p>
                   </div>
@@ -254,9 +251,9 @@ export default function ContactForm() {
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
-                  className="mt-6 p-4 bg-red-500/10 dark:bg-red-500/20 border border-red-500/20 dark:border-red-500/30 rounded-2xl"
+                  className="mt-6 p-4 bg-destructive/10 border border-destructive/20 rounded-2xl"
                 >
-                  <div className="flex items-center gap-3 text-red-600 dark:text-red-400">
+                  <div className="flex items-center gap-3 text-destructive">
                     <XCircle className="w-5 h-5 flex-shrink-0" />
                     <p className="font-sf-pro-text">发送失败，请稍后重试。</p>
                   </div>

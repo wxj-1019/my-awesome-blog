@@ -8,9 +8,12 @@ import AlbumFilter, { FilterType, SortType, ViewMode } from '@/components/albums
 import Lightbox, { LightboxImage } from '@/components/ui/Lightbox';
 import MasonryGallery, { MasonryImage } from '@/components/ui/MasonryGallery';
 import ImageTrail from '@/components/ui/ImageTrail';
+import { useThemedClasses } from '@/hooks/useThemedClasses';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
+import PageActHeader from '@/components/layout/PageActHeader';
 import { Album } from '@/types';
 import { apiRequest } from '@/lib/api-client';
-import { BlurIn, FadeIn } from '@/components/motion';
+import { FadeIn } from '@/components/motion';
 const AlbumsPageContent = () => {
   const [albums, setAlbums] = useState<Album[]>([]);
   const [, setSelectedAlbum] = useState<Album | null>(null);
@@ -22,6 +25,9 @@ const AlbumsPageContent = () => {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [lightboxImages, setLightboxImages] = useState<LightboxImage[]>([]);
+  const { themedClasses } = useThemedClasses();
+  // 循环动画（旋转/加载）需要 prefers-reduced-motion 回退为静态终态
+  const prefersReducedMotion = useReducedMotion();
   useEffect(() => {
     const fetchAlbums = async () => {
       try {
@@ -206,80 +212,80 @@ const AlbumsPageContent = () => {
   }, [albums]);
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="inline-block w-12 h-12 text-tech-cyan animate-spin mb-4" />
+          {/* 加载旋转：reduced-motion 时静止 */}
+          <Loader2 className={cn('inline-block w-12 h-12 text-tech-cyan mb-4', !prefersReducedMotion && 'animate-spin')} />
           <p className="text-foreground">正在加载相册...</p>
         </div>
       </div>
     );
   }
   return (
+    // 页面背景透明，透出全局 AmbientBackground；局部仅用 token 渐变装饰
     <div className="min-h-screen pb-16 pt-24">
       <div className="container mx-auto px-4">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="mb-12"
-        >
+        <FadeIn direction="down" className="mb-12">
           <div className="relative p-6 sm:p-10 rounded-3xl min-h-[450px]">
-            <div className="absolute -top-20 -right-20 w-64 h-64 bg-tech-cyan/20 rounded-full blur-3xl" />
-            <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl" />
-            <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-white/10 to-white/5 border border-white/20" />
+            {/* 淡色 token 渐变装饰光斑（纯装饰） */}
+            <div className="absolute -top-20 -right-20 w-64 h-64 bg-tech-cyan/20 rounded-full blur-3xl" aria-hidden />
+            <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-tech-sky/20 rounded-full blur-3xl" aria-hidden />
+            <div className="absolute inset-0 rounded-3xl bg-glass border border-glass-border" />
             <div className="absolute inset-0 z-0 overflow-visible min-h-[450px] w-full pointer-events-auto">
               <ImageTrail
                 items={albums.map(album => album.coverImage)}
                 variant={3}
               />
             </div>
-            
+
             <div className="relative z-10 text-center min-h-[400px] flex flex-col justify-center items-center pointer-events-none">
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                className="inline-flex items-center justify-center w-12 h-12 mb-3 rounded-2xl bg-gradient-to-br from-tech-cyan/30 to-purple-500/30 backdrop-blur-sm border border-white/20"
-              >
-                <Camera className="w-6 h-6 text-tech-cyan" />
-              </motion.div>
-              <BlurIn>
-                <h1 className="text-4xl sm:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-tech-cyan via-tech-sky via-purple-400 to-pink-500">
-                我的相册
-              </h1>
-              </BlurIn>
-              <div className="flex items-center justify-center gap-4 my-4">
-                <div className="h-px w-16 bg-gradient-to-r from-transparent to-tech-cyan/50" />
-                <div className="w-2 h-2 rounded-full bg-tech-cyan animate-pulse" />
-                <div className="h-px w-16 bg-gradient-to-l from-transparent to-tech-cyan/50" />
-              </div>
-              <p className="text-base sm:text-lg max-w-2xl mx-auto font-light tracking-wide leading-relaxed mb-8 text-white/70">
-                探索生活中的美好瞬间 · 用镜头记录难忘时刻
-              </p>
+              {/* 相机图标循环旋转：reduced-motion 时渲染静态终态 */}
+              {prefersReducedMotion ? (
+                <div className="inline-flex items-center justify-center w-12 h-12 mb-3 rounded-2xl bg-tech-cyan/15 backdrop-blur-sm border border-tech-cyan/30">
+                  <Camera className="w-6 h-6 text-tech-cyan" />
+                </div>
+              ) : (
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                  className="inline-flex items-center justify-center w-12 h-12 mb-3 rounded-2xl bg-tech-cyan/15 backdrop-blur-sm border border-tech-cyan/30"
+                >
+                  <Camera className="w-6 h-6 text-tech-cyan" />
+                </motion.div>
+              )}
+              <PageActHeader
+                kicker="相册 · ALBUMS"
+                title="我的相册"
+                description="探索生活中的美好瞬间 · 用镜头记录难忘时刻"
+                className="mb-8"
+              />
               {/* 统计信息 - 内联到标题框中 */}
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-5 max-w-md mx-auto pointer-events-auto">
                 <motion.div
                   whileHover={{ scale: 1.05, y: -4 }}
-                  className="flex-1 group relative p-4 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 overflow-hidden pointer-events-auto"
+                  className="flex-1 group relative p-4 rounded-2xl bg-glass backdrop-blur-xl border border-glass-border overflow-hidden pointer-events-auto"
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-tech-cyan/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                   <div className="relative z-10 flex items-center justify-center gap-3">
-                    <motion.div
-                      animate={{ rotate: [0, 360] }}
-                      transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-                      className="p-2 rounded-xl bg-tech-cyan/10 border border-tech-cyan/30"
-                    >
-                      <ImageIcon className="w-5 h-5 text-tech-cyan" />
-                    </motion.div>
-                    <div className="text-left">
+                    {/* 循环旋转：reduced-motion 时渲染静态终态 */}
+                    {prefersReducedMotion ? (
+                      <div className="p-2 rounded-xl bg-tech-cyan/10 border border-tech-cyan/30">
+                        <ImageIcon className="w-5 h-5 text-tech-cyan" />
+                      </div>
+                    ) : (
                       <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6, delay: 0.2 }}
-                        className="text-2xl font-bold tabular-nums text-white"
+                        animate={{ rotate: [0, 360] }}
+                        transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                        className="p-2 rounded-xl bg-tech-cyan/10 border border-tech-cyan/30"
                       >
-                        {albums.reduce((sum, album) => sum + album.images, 0)}
+                        <ImageIcon className="w-5 h-5 text-tech-cyan" />
                       </motion.div>
-                      <div className="text-sm text-white/60">
+                    )}
+                    <div className="text-left">
+                      <FadeIn delay={0.2} className={cn("text-2xl font-bold tabular-nums", themedClasses.textClass)}>
+                        {albums.reduce((sum, album) => sum + album.images, 0)}
+                      </FadeIn>
+                      <div className={cn("text-sm", themedClasses.mutedTextClass)}>
                         张照片
                       </div>
                     </div>
@@ -288,28 +294,30 @@ const AlbumsPageContent = () => {
                 
                 <motion.div
                   whileHover={{ scale: 1.05, y: -4 }}
-                  className="flex-1 group relative p-4 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 overflow-hidden"
+                  className="flex-1 group relative p-4 rounded-2xl bg-glass backdrop-blur-xl border border-glass-border overflow-hidden"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                  
+                  <div className="absolute inset-0 bg-gradient-to-br from-tech-sky/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
                   <div className="relative z-10 flex items-center justify-center gap-3">
-                    <motion.div
-                      animate={{ rotate: [360, 0] }}
-                      transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-                      className="p-2 rounded-xl bg-purple-500/10 border border-purple-500/30"
-                    >
-                      <FolderOpen className="w-5 h-5 text-purple-400" />
-                    </motion.div>
-                    <div className="text-left">
+                    {/* 反向循环旋转：reduced-motion 时渲染静态终态 */}
+                    {prefersReducedMotion ? (
+                      <div className="p-2 rounded-xl bg-tech-sky/10 border border-tech-sky/30">
+                        <FolderOpen className="w-5 h-5 text-tech-sky" />
+                      </div>
+                    ) : (
                       <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6, delay: 0.3 }}
-                        className="text-2xl font-bold tabular-nums text-white"
+                        animate={{ rotate: [360, 0] }}
+                        transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                        className="p-2 rounded-xl bg-tech-sky/10 border border-tech-sky/30"
                       >
-                        {albums.length}
+                        <FolderOpen className="w-5 h-5 text-tech-sky" />
                       </motion.div>
-                      <div className="text-sm text-white/60">
+                    )}
+                    <div className="text-left">
+                      <FadeIn delay={0.3} className={cn("text-2xl font-bold tabular-nums", themedClasses.textClass)}>
+                        {albums.length}
+                      </FadeIn>
+                      <div className={cn("text-sm", themedClasses.mutedTextClass)}>
                         个相册
                       </div>
                     </div>
@@ -318,7 +326,7 @@ const AlbumsPageContent = () => {
               </div>
             </div>
           </div>
-        </motion.div>
+        </FadeIn>
         <AlbumFilter
           onFilterChange={setFilter}
           onSortChange={setSort}
@@ -371,14 +379,10 @@ const AlbumsPageContent = () => {
           )}
         </AnimatePresence>
         {filteredAndSortedAlbums.length === 0 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-16"
-          >
-            <Camera className="w-16 h-16 mx-auto mb-4 text-white/60" />
-            <p className="text-lg text-white">没有找到匹配的相册</p>
-          </motion.div>
+          <FadeIn className="text-center py-16">
+            <Camera className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+            <p className="text-lg text-foreground">没有找到匹配的相册</p>
+          </FadeIn>
         )}
         <Lightbox
           images={lightboxImages}

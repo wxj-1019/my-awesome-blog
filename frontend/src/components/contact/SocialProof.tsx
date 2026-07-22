@@ -1,7 +1,7 @@
 'use client';
 
-import { motion } from '@/lib/framer-motion';
 import { Code2, Users, Star, TrendingUp, Quote, ThumbsUp } from 'lucide-react';
+import { FadeIn } from '@/components/motion';
 
 interface StatItem {
   icon: React.ReactNode;
@@ -10,30 +10,31 @@ interface StatItem {
   color: string;
 }
 
+/* 渐变色全部走 CSS 变量 token（tailwind 已映射），单值即可双主题自适应 */
 const stats: StatItem[] = [
   {
     icon: <Code2 className="w-6 h-6" />,
     value: '50+',
     label: '开源项目',
-    color: 'from-blue-500 to-blue-600',
+    color: 'from-tech-cyan to-tech-sky',
   },
   {
     icon: <Users className="w-6 h-6" />,
     value: '1000+',
     label: '合作客户',
-    color: 'from-purple-500 to-purple-600',
+    color: 'from-tech-purple to-tech-pink',
   },
   {
     icon: <Star className="w-6 h-6" />,
     value: '4.9',
     label: '平均评分',
-    color: 'from-pink-500 to-pink-600',
+    color: 'from-tech-pink to-tech-purple',
   },
   {
     icon: <TrendingUp className="w-6 h-6" />,
     value: '5年',
     label: '行业经验',
-    color: 'from-orange-500 to-orange-600',
+    color: 'from-warning to-warning',
   },
 ];
 
@@ -71,69 +72,65 @@ const testimonials: Testimonial[] = [
 
 function StatCard({ stat, delay }: { stat: StatItem; delay: number }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, duration: 0.5 }}
-      className="bg-white/50 dark:bg-black/50 backdrop-blur-xl rounded-xl p-6 border border-gray-200 dark:border-gray-800 group hover:shadow-xl transition-all duration-300"
+    <FadeIn
+      delay={delay}
+      className="bg-glass backdrop-blur-xl rounded-xl p-6 border border-glass-border group hover:shadow-xl transition-all duration-300"
     >
-      <div className={`w-12 h-12 bg-gradient-to-br ${stat.color} rounded-xl flex items-center justify-center text-white shadow-lg mb-4 group-hover:scale-110 transition-transform duration-300`}>
+      <div className={`w-12 h-12 bg-gradient-to-br ${stat.color} rounded-xl flex items-center justify-center text-primary-foreground shadow-lg mb-4 group-hover:scale-110 transition-transform duration-300`}>
         {stat.icon}
       </div>
-      <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
+      <div className="text-3xl font-bold text-foreground mb-1">
         {stat.value}
       </div>
-      <div className="text-sm text-gray-600 dark:text-gray-400">
+      <div className="text-sm text-muted-foreground">
         {stat.label}
       </div>
-    </motion.div>
+    </FadeIn>
   );
 }
 
 function TestimonialCard({ testimonial, delay }: { testimonial: Testimonial; delay: number }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, duration: 0.5 }}
-      className="bg-white/50 dark:bg-black/50 backdrop-blur-xl rounded-xl p-6 border border-gray-200 dark:border-gray-800 hover:shadow-xl transition-all duration-300"
+    <FadeIn
+      delay={delay}
+      className="bg-glass backdrop-blur-xl rounded-xl p-6 border border-glass-border hover:shadow-xl transition-all duration-300"
     >
       <div className="flex items-start gap-4 mb-4">
-        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
+        <div className="w-12 h-12 bg-gradient-to-br from-primary to-tech-purple rounded-full flex items-center justify-center text-primary-foreground font-bold flex-shrink-0">
           {testimonial.avatar}
         </div>
         <div className="flex-1">
-          <h4 className="font-semibold text-gray-900 dark:text-white">
+          <h4 className="font-semibold text-foreground">
             {testimonial.name}
           </h4>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-sm text-muted-foreground">
             {testimonial.role}
           </p>
         </div>
         <div className="flex gap-0.5">
           {[...Array(testimonial.rating)].map((_, i) => (
-            <Star key={i} className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+            <Star key={i} className="w-4 h-4 text-warning fill-warning" />
           ))}
         </div>
       </div>
       <div className="relative">
-        <Quote className="absolute -top-2 -left-1 w-6 h-6 text-gray-300 dark:text-gray-700" />
-        <p className="text-gray-700 dark:text-gray-300 leading-relaxed pl-6">
+        <Quote className="absolute -top-2 -left-1 w-6 h-6 text-muted-foreground/40" />
+        <p className="text-foreground/80 leading-relaxed pl-6">
           {testimonial.content}
         </p>
       </div>
-      <div className="flex items-center gap-1 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-        <ThumbsUp className="w-4 h-4 text-green-500" />
-        <span className="text-sm text-gray-600 dark:text-gray-400">推荐合作</span>
+      <div className="flex items-center gap-1 mt-4 pt-4 border-t border-glass-border">
+        <ThumbsUp className="w-4 h-4 text-success" />
+        <span className="text-sm text-muted-foreground">推荐合作</span>
       </div>
-    </motion.div>
+    </FadeIn>
   );
 }
 
 export default function SocialProof() {
   return (
     <section className="mb-12">
-      <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 px-1">
+      <h2 className="text-2xl font-bold text-foreground mb-6 px-1">
         关于我
       </h2>
 
@@ -143,7 +140,7 @@ export default function SocialProof() {
         ))}
       </div>
 
-      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+      <h3 className="text-xl font-bold text-foreground mb-4">
         合作伙伴评价
       </h3>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

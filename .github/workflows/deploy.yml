@@ -1,43 +1,32 @@
 name: Deploy to Production
 
+# 本仓库实际部署在自建服务器（docker compose + rsync/tar），
+# 不以 GitHub Actions runner 上的本地 npm/alembic 为准。
+# 保留 workflow 作文档钩子：校验关键文件存在，并提示服务器部署方式。
+
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
-  deploy:
+  deploy-check:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
-
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18.x'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build
-        run: npm run build
-
-      - name: Deploy to production
+      - name: Verify deploy artifacts present
         run: |
-          echo "Deploying to production..."
-          # Run database migrations
-          cd backend
-          export DATABASE_URL=${{ secrets.DATABASE_URL }}
-          export SECRET_KEY=${{ secrets.SECRET_KEY }}
-          export REDIS_HOST=${{ secrets.REDIS_HOST }}
-          export REDIS_PORT=${{ secrets.REDIS_PORT }}
-          export REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
-          alembic upgrade head
-          
-          # Start the application
-          # For example, using Docker:
-          # docker-compose up -d
-          # Or using a process manager like pm2:
-          # pm2 start start_server.py
+          test -f docker-compose.prod.yml
+          test -f deploy.sh
+          test -f scripts/server-redeploy.sh || test -f deploy.ps1
+          test -f frontend/package.json
+          test -f backend/requirements.txt
+          test -f nginx/nginx.conf
+          echo "Deploy artifacts OK. Production deploy is performed on the server (see deploy.sh / scripts/server-redeploy.sh)."
+
+      - name: Reminder
+        run: |
+          echo "To deploy: set DEPLOY_SERVER_IP and run bash deploy.sh (or scripts/server-redeploy.sh on the host)."
+          echo "Do not run monorepo root npm ci here — frontend lives under frontend/."

@@ -34,17 +34,17 @@ const ProgressTracker: React.FC<ProgressTrackerProps> = ({ video, isOpen, onClos
   const parseDuration = (duration: string): number => {
     const hoursMatch = duration.match(/(\d+)\s*h/);
     const minutesMatch = duration.match(/(\d+)\s*m/);
-    
+
     const hours = hoursMatch ? parseInt(hoursMatch[1]) : 0;
     const minutes = minutesMatch ? parseInt(minutesMatch[1]) : 0;
-    
+
     return hours * 60 + minutes;
   };
 
   const formatDuration = (minutes: number): string => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
-    
+
     if (hours > 0) {
       return `${hours}小时${mins > 0 ? `${mins}分钟` : ''}`;
     }
@@ -88,7 +88,7 @@ const ProgressTracker: React.FC<ProgressTrackerProps> = ({ video, isOpen, onClos
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm"
           />
 
           <motion.div
@@ -98,31 +98,31 @@ const ProgressTracker: React.FC<ProgressTrackerProps> = ({ video, isOpen, onClos
             className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
           >
             <div className="w-full max-w-lg pointer-events-auto">
-              <GlassCard className="relative overflow-hidden border-tech-cyan/30 shadow-[0_0_50px_rgba(6,182,212,0.15)]">
+              <GlassCard className="relative overflow-hidden border-tech-cyan/30 shadow-[0_0_50px_var(--shadow-tech-cyan)]">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                  <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
                     <Clock className="text-tech-cyan" />
                     进度追踪
                   </h2>
-                  <button 
+                  <button
                     onClick={onClose}
-                    className="p-2 hover:bg-white/10 rounded-full transition-colors text-gray-400 hover:text-white"
+                    className="p-2 hover:bg-muted rounded-full transition-colors text-muted-foreground hover:text-foreground"
                   >
                     <RotateCcw className="w-5 h-5" />
                   </button>
                 </div>
 
                 <div className="space-y-6">
-                  <div className="flex items-center gap-4 p-4 bg-black/20 rounded-lg border border-white/10">
+                  <div className="flex items-center gap-4 p-4 bg-glass rounded-lg border border-glass-border">
                     <img
                       src={video.coverUrl}
                       alt={video.title}
                       className="w-20 h-28 object-cover rounded-lg"
                     />
                     <div className="flex-1">
-                      <h3 className="text-lg font-bold text-white mb-1">{video.title}</h3>
-                      <div className="flex items-center gap-2 text-sm text-gray-400">
-                        <span className="px-2 py-1 text-xs font-medium rounded bg-white/10">
+                      <h3 className="text-lg font-bold text-foreground mb-1">{video.title}</h3>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <span className="px-2 py-1 text-xs font-medium rounded bg-muted">
                           {video.type}
                         </span>
                         {video.lastWatched && (
@@ -136,12 +136,12 @@ const ProgressTracker: React.FC<ProgressTrackerProps> = ({ video, isOpen, onClos
                     <div className="space-y-4">
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label className="text-gray-300">季节</Label>
+                          <Label className="text-foreground">季节</Label>
                           <div className="relative">
                             <select
                               value={currentSeason}
                               onChange={(e) => setCurrentSeason(parseInt(e.target.value))}
-                              className="w-full h-10 px-3 rounded-md bg-black/20 border border-white/10 text-white focus:outline-none focus:border-tech-cyan/50 appearance-none cursor-pointer"
+                              className="w-full h-10 px-3 rounded-md bg-glass border border-glass-border text-foreground focus:outline-none focus:border-tech-cyan/50 appearance-none cursor-pointer"
                             >
                               {Array.from({ length: totalSeasons }, (_, i) => (
                                 <option key={i + 1} value={i + 1}>
@@ -149,17 +149,17 @@ const ProgressTracker: React.FC<ProgressTrackerProps> = ({ video, isOpen, onClos
                                 </option>
                               ))}
                             </select>
-                            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
                           </div>
                         </div>
 
                         <div className="space-y-2">
-                          <Label className="text-gray-300">集数</Label>
+                          <Label className="text-foreground">集数</Label>
                           <div className="relative">
                             <select
                               value={currentEpisode}
                               onChange={(e) => setCurrentEpisode(parseInt(e.target.value))}
-                              className="w-full h-10 px-3 rounded-md bg-black/20 border border-white/10 text-white focus:outline-none focus:border-tech-cyan/50 appearance-none cursor-pointer"
+                              className="w-full h-10 px-3 rounded-md bg-glass border border-glass-border text-foreground focus:outline-none focus:border-tech-cyan/50 appearance-none cursor-pointer"
                             >
                               {Array.from({ length: episodesPerSeason }, (_, i) => (
                                 <option key={i + 1} value={i + 1}>
@@ -167,19 +167,19 @@ const ProgressTracker: React.FC<ProgressTrackerProps> = ({ video, isOpen, onClos
                                 </option>
                               ))}
                             </select>
-                            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
                           </div>
                         </div>
                       </div>
 
-                      <div className="text-center text-sm text-gray-400">
+                      <div className="text-center text-sm text-muted-foreground">
                         当前进度: S{currentSeason} E{currentEpisode}
                       </div>
                     </div>
                   ) : (
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <Label className="text-gray-300">观看进度</Label>
+                        <Label className="text-foreground">观看进度</Label>
                         <div className="relative">
                           <input
                             type="range"
@@ -187,9 +187,9 @@ const ProgressTracker: React.FC<ProgressTrackerProps> = ({ video, isOpen, onClos
                             max="100"
                             value={progress}
                             onChange={(e) => setProgress(parseInt(e.target.value))}
-                            className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-tech-cyan"
+                            className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-tech-cyan"
                           />
-                          <div className="flex justify-between mt-2 text-xs text-gray-400">
+                          <div className="flex justify-between mt-2 text-xs text-muted-foreground">
                             <span>0%</span>
                             <span className="text-tech-cyan font-bold">{Math.round(progress)}%</span>
                             <span>100%</span>
@@ -198,8 +198,8 @@ const ProgressTracker: React.FC<ProgressTrackerProps> = ({ video, isOpen, onClos
                       </div>
 
                       {video.totalDuration && (
-                        <div className="flex items-center justify-between p-3 bg-black/20 rounded-lg border border-white/10">
-                          <span className="text-sm text-gray-400">剩余时间</span>
+                        <div className="flex items-center justify-between p-3 bg-glass rounded-lg border border-glass-border">
+                          <span className="text-sm text-muted-foreground">剩余时间</span>
                           <span className="text-lg font-bold text-tech-cyan">
                             {calculateRemainingTime()}
                           </span>
@@ -226,18 +226,18 @@ const ProgressTracker: React.FC<ProgressTrackerProps> = ({ video, isOpen, onClos
                   </div>
 
                   <div className="pt-4 flex justify-end gap-3">
-                    <Button 
-                      type="button" 
-                      variant="ghost" 
+                    <Button
+                      type="button"
+                      variant="ghost"
                       onClick={onClose}
-                      className="text-gray-400 hover:text-white"
+                      className="text-muted-foreground hover:text-foreground"
                     >
                       取消
                     </Button>
-                    <Button 
+                    <Button
                       onClick={handleSave}
                       variant="default"
-                      className="bg-tech-cyan text-black hover:bg-tech-lightcyan"
+                      className="bg-tech-cyan text-primary-foreground hover:bg-tech-lightcyan"
                     >
                       <Save className="w-4 h-4 mr-2" />
                       保存进度

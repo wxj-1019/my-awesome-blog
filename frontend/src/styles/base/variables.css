@@ -9,14 +9,16 @@
  * 禁止在新代码中写 isDark ? 'hex/classA' : 'classB' 色值分支。
  * 将来增加皮肤时：只新增 [data-theme="xxx"] 覆盖下列变量，不改组件。
  *
- * Mode 切换：html.light / html.dark（与 ThemeProvider + FOUC 脚本一致）
+ * Mode 切换：html.light / html.dark（与 ThemeProvider + FOUC 脚本一致）。
+ * :root 即浅色主题（单一来源）；.light 不再重复定义，避免双份漂移导致
+ * FOUC 脚本落 class 前后品牌色闪烁（原 :root #0ea5e9 vs .light #0284c7）。
  * 阶段 A 柔和：略降饱和/描边/光晕，增大 radius，深色主色偏 teal
  */
 :root {
   --background: #f4f6f8;
   --foreground: #0f172a;
-  /* 统一品牌色：使用更现代的科技青 */
-  --primary: #0ea5e9;
+  /* 统一品牌色：科技青（浅色取深一档保证对比度） */
+  --primary: #0284c7;
   --primary-foreground: #ffffff;
   --secondary: #e2e8f0;
   --secondary-foreground: #1e3a8a;
@@ -41,7 +43,7 @@
   --warning-foreground: #fffbeb;
   --error: #dc2626;
   --error-foreground: #fef2f2;
-  --info: #2563eb;
+  --info: #0ea5e9;
   --info-foreground: #eff6ff;
   /* 与 shadcn/tailwind destructive 对齐，语义上等同 error */
   --destructive: #dc2626;
@@ -56,14 +58,14 @@
   /* 统一科技色系 - 使用青色系 */
   --tech-darkblue: #0c4a6e;
   --tech-deepblue: #075985;
-  --tech-cyan: #0ea5e9;
-  --tech-lightcyan: #38bdf8;
+  --tech-cyan: #0284c7;
+  --tech-lightcyan: #7dd3fc;
   --tech-sky: #7dd3fc;
   --tech-cyan-rgb: 14, 165, 233;
   --tech-lightcyan-rgb: 56, 189, 248;
   --tech-sky-rgb: 125, 211, 252;
 
-  /* 扩展科技色：用于 CyberButton / HoloCard 等组件 */
+  /* 扩展科技色：用于徽章/强调渐变等场景 */
   --tech-purple: #7c3aed;
   --tech-pink: #f43f5e;
   --tech-purple-rgb: 124, 58, 237;
@@ -137,140 +139,6 @@
   --dynamic-bg-gradient-3: #7dd3fc;
 
   --nav-link-hover-bg: rgba(14, 165, 233, 0.08);
-  --nav-dropdown-bg: rgba(255, 255, 255, 0.95);
-  --nav-dropdown-border: rgba(14, 165, 233, 0.15);
-
-  /* 表单占位符颜色 */
-  --input-placeholder: #64748b;
-
-  /* 绳子主题切换器颜色 */
-  --rope-from: #d4a574;
-  --rope-to: #8b4513;
-  --rope-mid: #c4956a;
-
-  /* Wave 装饰填充（Wave.tsx / WaveStack.tsx） */
-  --wave-fill-from: #e2e8f0;
-  --wave-fill-to: #ffffff;
-}
-
-.light {
-  --background: #f4f6f8;
-  --foreground: #0f172a;
-  --primary: #0284c7;
-  --primary-foreground: #ffffff;
-  --secondary: #e2e8f0;
-  --secondary-foreground: #1e3a8a;
-  --accent: #8b5cf6;
-  --accent-foreground: #ffffff;
-  --card: #ffffff;
-  --card-foreground: #0f172a;
-  --border: #d8e0e8;
-  --glass-light-border: rgba(14, 165, 233, 0.15);
-
-  --muted: #64748b;
-  --muted-foreground: #475569;
-  --popover: #ffffff;
-  --popover-foreground: #0f172a;
-  --input: #e2e8f0;
-  --ring: #7dd3fc;
-
-  --success: #16a34a;
-  --success-foreground: #f0fdf4;
-  --warning: #d97706;
-  --warning-foreground: #fffbeb;
-  --error: #dc2626;
-  --error-foreground: #fef2f2;
-  --info: #0ea5e9;
-  --info-foreground: #eff6ff;
-  --destructive: #dc2626;
-  --destructive-foreground: #fef2f2;
-
-  /* 与 :root 同步：浅色玻璃略更实，避免衬底透出影响对比 */
-  --glass-default: rgba(255, 255, 255, 0.96);
-  --glass-border: rgba(14, 165, 233, 0.2);
-  --glass-glow: rgba(14, 165, 233, 0.16);
-  --glass-shadow: 0 12px 40px rgba(15, 23, 42, 0.08);
-
-  --tech-darkblue: #0c4a6e;
-  --tech-deepblue: #075985;
-  --tech-cyan: #0284c7;
-  --tech-lightcyan: #7dd3fc;
-  --tech-sky: #7dd3fc;
-  --tech-cyan-rgb: 14, 165, 233;
-  --tech-lightcyan-rgb: 56, 189, 248;
-  --tech-sky-rgb: 125, 211, 252;
-
-  /* 扩展科技色：用于 CyberButton / HoloCard 等组件 */
-  --tech-purple: #7c3aed;
-  --tech-pink: #f43f5e;
-  --tech-purple-rgb: 124, 58, 237;
-  --tech-pink-rgb: 244, 63, 94;
-  --shadow-tech-purple: rgba(124, 58, 237, 0.4);
-  --shadow-tech-pink: rgba(244, 63, 94, 0.4);
-
-  /* 主色/中性色/强调色色阶 - Tailwind 引用 */
-  --primary-50: #f0f9ff;
-  --primary-100: #e0f2fe;
-  --primary-200: #bae6fd;
-  --primary-300: #7dd3fc;
-  --primary-400: #38bdf8;
-  --primary-500: #0ea5e9;
-  --primary-600: #0284c7;
-  --primary-700: #0369a1;
-  --primary-800: #075985;
-  --primary-900: #0c4a6e;
-
-  --secondary-50: #f8fafc;
-  --secondary-100: #f1f5f9;
-  --secondary-200: #e2e8f0;
-  --secondary-300: #cbd5e1;
-  --secondary-400: #94a3b8;
-  --secondary-500: #64748b;
-  --secondary-600: #475569;
-  --secondary-700: #334155;
-  --secondary-800: #1e293b;
-  --secondary-900: #0f172a;
-
-  --accent-50: #f5f3ff;
-  --accent-100: #ede9fe;
-  --accent-200: #ddd6fe;
-  --accent-300: #c4b5fd;
-  --accent-400: #a78bfa;
-  --accent-500: #8b5cf6;
-  --accent-600: #7c3aed;
-  --accent-700: #6d28d9;
-  --accent-800: #5b21b6;
-  --accent-900: #4c1d95;
-
-  --tech-50: #f0f9ff;
-  --tech-100: #e0f2fe;
-  --tech-200: #bae6fd;
-  --tech-300: #7dd3fc;
-  --tech-400: #38bdf8;
-  --tech-500: #0ea5e9;
-  --tech-600: #0284c7;
-  --tech-700: #0369a1;
-  --tech-800: #075985;
-  --tech-900: #0c4a6e;
-
-  --text-primary: #0f172a;
-  --text-secondary: #334155;
-  --text-muted: #64748b;
-  --text-primary-high-contrast: #0f172a;
-  --text-secondary-high-contrast: #475569;
-
-  --ripple-color: rgba(14, 165, 233, 0.25);
-
-  --texture-color: rgba(0, 0, 0, 0.06);
-
-  --shadow-tech-cyan: rgba(14, 165, 233, 0.18);
-  --shadow-default: 0 4px 20px rgba(0, 0, 0, 0.08);
-
-  --dynamic-bg-gradient-1: #e0f2fe;
-  --dynamic-bg-gradient-2: #bae6fd;
-  --dynamic-bg-gradient-3: #7dd3fc;
-
-  --nav-link-hover-bg: rgba(14, 165, 233, 0.08);
   --nav-dropdown-bg: rgba(255, 255, 255, 0.98);
   --nav-dropdown-border: rgba(14, 165, 233, 0.2);
 
@@ -282,6 +150,7 @@
   --rope-to: #8b4513;
   --rope-mid: #c4956a;
 
+  /* Wave 装饰填充（Wave.tsx / WaveStack.tsx） */
   --wave-fill-from: #e2e8f0;
   --wave-fill-to: #ffffff;
 }

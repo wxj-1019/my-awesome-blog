@@ -1,12 +1,14 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
-import { motion } from '@/lib/framer-motion';
 import { Send, Pause, Play, MessageSquare, Sparkles } from 'lucide-react';
 import { getMessages, createMessage, getDanmakuMessages, DANMAKU_COLORS, validateMessage } from '@/services/messageService';
 import { getCurrentUserApi } from '@/lib/api/auth';
 import { Message, UserProfile, DanmakuMessage } from '@/types';
 import { cn } from '@/lib/utils';
+import PageActHeader from '@/components/layout/PageActHeader';
+import { FadeIn } from '@/components/motion';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 
 const COLORS = DANMAKU_COLORS.map(c => c.value);
 
@@ -67,6 +69,9 @@ export default function MessagesPageContent() {
   const [activeDanmaku, setActiveDanmaku] = useState<ActiveDanmakuItem[]>([]);
   const [isPaused, setIsPaused] = useState(false);
   const [rainbowMode, setRainbowMode] = useState(false);
+
+  // 减少动态偏好：reduced 时不启动弹幕循环，入场动画静态
+  const reducedMotion = useReducedMotion();
   
   const isPausedRef = useRef(false);
   const danmakuListRef = useRef<DanmakuMessage[]>([]);
@@ -171,6 +176,8 @@ export default function MessagesPageContent() {
 
   useEffect(() => {
     if (danmakuList.length === 0) {return;}
+    // 减少动态：不启动弹幕调度循环
+    if (reducedMotion) {return;}
 
     let running = true;
 
@@ -242,7 +249,7 @@ export default function MessagesPageContent() {
         cancelAnimationFrame(schedulerRef.current);
       }
     };
-  }, [danmakuList.length, getNextFromPool, getAvailableTrack, createDanmakuItem]);
+  }, [danmakuList.length, reducedMotion, getNextFromPool, getAvailableTrack, createDanmakuItem]);
 
   const removeDanmaku = useCallback((instanceId: string) => {
     setActiveDanmaku(prev => prev.filter(d => d.instanceId !== instanceId));
@@ -297,36 +304,39 @@ export default function MessagesPageContent() {
       };
       setDanmakuList(prev => [newDanmaku, ...prev]);
       
-      const now = Date.now();
-      const trackIndex = getAvailableTrack(now);
-      const safeTrackIndex = trackIndex === -1 ? Math.floor(Math.random() * DANMAKU_CONFIG.trackCount) : trackIndex;
-      const duration = Math.random() * 6 + 8;
-      
-      const newActiveItem: ActiveDanmakuItem = {
-        ...newDanmaku,
-        instanceId: generateInstanceId(),
-        startTime: now,
-        y: tracksRef.current[safeTrackIndex]?.y ?? (Math.random() * 75 + 5),
-        duration,
-        fontSize: Math.random() * 0.25 + 0.875,
-        displayColor: rainbowMode
-          ? `hsl(${Math.random() * 360}, 80%, 65%)`
-          : newDanmaku.color || selectedColor,
-        track: safeTrackIndex,
-      };
-      
-      setActiveDanmaku(prev => {
-        const updated = [...prev, newActiveItem];
-        activeDanmakuRef.current = updated;
-        return updated;
-      });
+      // 减少动态：弹幕不立即上屏，仅写入列表
+      if (!reducedMotion) {
+        const now = Date.now();
+        const trackIndex = getAvailableTrack(now);
+        const safeTrackIndex = trackIndex === -1 ? Math.floor(Math.random() * DANMAKU_CONFIG.trackCount) : trackIndex;
+        const duration = Math.random() * 6 + 8;
+
+        const newActiveItem: ActiveDanmakuItem = {
+          ...newDanmaku,
+          instanceId: generateInstanceId(),
+          startTime: now,
+          y: tracksRef.current[safeTrackIndex]?.y ?? (Math.random() * 75 + 5),
+          duration,
+          fontSize: Math.random() * 0.25 + 0.875,
+          displayColor: rainbowMode
+            ? `hsl(${Math.random() * 360}, 80%, 65%)`
+            : newDanmaku.color || selectedColor,
+          track: safeTrackIndex,
+        };
+
+        setActiveDanmaku(prev => {
+          const updated = [...prev, newActiveItem];
+          activeDanmakuRef.current = updated;
+          return updated;
+        });
+      }
       setContent('');
     } catch (err) {
       setError(err instanceof Error ? err.message : '发送失败，请重试');
     } finally {
       setIsSubmitting(false);
     }
-  }, [content, selectedColor, rainbowMode, getAvailableTrack]);
+  }, [content, selectedColor, rainbowMode, reducedMotion, getAvailableTrack]);
 
   const isLoggedIn = !!currentUser;
 
@@ -334,8 +344,8 @@ export default function MessagesPageContent() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-white/60">加载中...</p>
+          <div className="w-12 h-12 border-4 border-tech-cyan border-t-transparent rounded-full animate-spin motion-reduce:animate-none mx-auto mb-4" />
+          <p className="text-muted-foreground">加载中...</p>
         </div>
       </div>
     );
@@ -350,6 +360,7 @@ export default function MessagesPageContent() {
             message={msg}
             isPaused={isPaused}
             instanceId={msg.instanceId}
+            reducedMotion={reducedMotion}
             onRemove={removeDanmaku}
           />
         ))}
@@ -362,7 +373,7 @@ export default function MessagesPageContent() {
             "flex items-center gap-2 px-4 py-2 rounded-full",
             "backdrop-blur-md border transition-all duration-300 cursor-pointer",
             isPaused
-              ? "bg-yellow-500/20 text-yellow-400 border-yellow-500/50"
+              ? "bg-warning/20 text-warning border-warning/50"
               : "bg-tech-cyan/20 text-tech-cyan border-tech-cyan/50"
           )}
         >
@@ -376,8 +387,8 @@ export default function MessagesPageContent() {
             "flex items-center gap-2 px-4 py-2 rounded-full",
             "backdrop-blur-md border transition-all duration-300 cursor-pointer",
             rainbowMode
-              ? "bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 text-white border-white/50"
-              : "bg-black/40 text-white/70 border-white/10"
+              ? "bg-primary/20 text-primary border-primary/50"
+              : "bg-glass text-muted-foreground border-glass-border"
           )}
         >
           <Sparkles className="w-4 h-4" />
@@ -386,25 +397,14 @@ export default function MessagesPageContent() {
       </div>
 
       <div className="relative z-20 flex flex-col items-center justify-center min-h-screen px-4 py-20">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
-        >
-          <h1 className="text-4xl md:text-5xl font-bold text-white drop-shadow-md mb-3">
-            留言板
-          </h1>
-          <p className="text-white/60 text-lg">
-            发送你的弹幕，和大家一起互动
-          </p>
-        </motion.div>
+        <PageActHeader
+          kicker="弹幕广场 · MESSAGES"
+          title="留言板"
+          description="发送你的弹幕，和大家一起互动"
+          className="mb-8"
+        />
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="w-full max-w-xl"
-        >
+        <FadeIn direction="up" delay={0.1} className="w-full max-w-xl">
           <div className="bg-glass/30 backdrop-blur-xl border border-glass-border rounded-2xl p-6 shadow-2xl">
             {!isLoggedIn ? (
               <div className="text-center py-8">
@@ -420,7 +420,7 @@ export default function MessagesPageContent() {
             ) : (
               <form onSubmit={handleSubmit}>
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-tech-cyan to-tech-lightcyan flex items-center justify-center text-white font-bold">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-tech-cyan to-tech-lightcyan flex items-center justify-center text-primary-foreground font-bold">
                     {currentUser?.username?.charAt(0)?.toUpperCase() || 'U'}
                   </div>
                   <span className="text-foreground font-medium">{currentUser?.username}</span>
@@ -446,7 +446,7 @@ export default function MessagesPageContent() {
                     rows={3}
                     className={cn(
                       "w-full px-4 py-3 rounded-xl resize-none",
-                      "bg-foreground/5 border border-foreground/10",
+                      "bg-glass border border-glass-border",
                       "focus:outline-none focus:ring-2 focus:ring-tech-cyan/50 focus:border-tech-cyan",
                       "placeholder:text-muted-foreground/60 text-foreground",
                       "transition-all duration-200"
@@ -458,7 +458,7 @@ export default function MessagesPageContent() {
                 </div>
 
                 {error && (
-                  <p className="text-red-400 text-sm mb-3">{error}</p>
+                  <p className="text-destructive text-sm mb-3">{error}</p>
                 )}
 
                 <div className="flex items-center justify-between gap-4">
@@ -472,7 +472,7 @@ export default function MessagesPageContent() {
                           onClick={() => setSelectedColor(color)}
                           className={cn(
                             "w-6 h-6 rounded-full transition-all duration-200 cursor-pointer",
-                            selectedColor === color && "ring-2 ring-foreground ring-offset-2 ring-offset-transparent scale-110"
+                            selectedColor === color && "ring-2 ring-primary ring-offset-2 ring-offset-transparent scale-110"
                           )}
                           style={{ backgroundColor: color }}
                         />
@@ -486,7 +486,7 @@ export default function MessagesPageContent() {
                     className={cn(
                       "flex items-center gap-2 px-6 py-2.5 rounded-xl",
                       "bg-gradient-to-r from-tech-cyan to-tech-lightcyan",
-                      "text-white font-medium",
+                      "text-primary-foreground font-medium",
                       "hover:opacity-90 transition-all duration-200",
                       "disabled:opacity-50 disabled:cursor-not-allowed",
                       "cursor-pointer"
@@ -501,11 +501,12 @@ export default function MessagesPageContent() {
           </div>
 
           <div className="mt-6 text-center">
+            {/* 透出区裸文字：两个氛围世界均为深色底，保持浅色系 */}
             <p className="text-white/60 text-sm">
               已有 {messages.length} 条弹幕在空中飘过
             </p>
           </div>
-        </motion.div>
+        </FadeIn>
       </div>
 
     </div>
@@ -516,10 +517,11 @@ interface DanmakuItemProps {
   message: ActiveDanmakuItem;
   isPaused: boolean;
   instanceId: string;
+  reducedMotion: boolean;
   onRemove: (instanceId: string) => void;
 }
 
-function DanmakuItem({ message, isPaused, instanceId, onRemove }: DanmakuItemProps) {
+function DanmakuItem({ message, isPaused, instanceId, reducedMotion, onRemove }: DanmakuItemProps) {
   const hasCompletedRef = useRef(false);
   const animationRef = useRef<Animation | null>(null);
   const elementRef = useRef<HTMLDivElement>(null);
@@ -529,6 +531,14 @@ function DanmakuItem({ message, isPaused, instanceId, onRemove }: DanmakuItemPro
     if (!elementRef.current || isInitializedRef.current) {return;}
 
     isInitializedRef.current = true;
+
+    // 减少动态：不启动 WAAPI 位移动画，直接移除（父级已关闭弹幕循环，此处兜底）
+    if (reducedMotion) {
+      hasCompletedRef.current = true;
+      onRemove(instanceId);
+      return;
+    }
+
     const element = elementRef.current;
     
     const animation = element.animate(
@@ -560,7 +570,7 @@ function DanmakuItem({ message, isPaused, instanceId, onRemove }: DanmakuItemPro
       }
       animation.cancel();
     };
-  }, [message.duration, instanceId, onRemove]);
+  }, [message.duration, instanceId, reducedMotion, onRemove]);
 
   useEffect(() => {
     if (animationRef.current) {

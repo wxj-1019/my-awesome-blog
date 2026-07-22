@@ -16,8 +16,8 @@ function NavItem({ icon: Icon, label, active = false, onClick }: NavItemProps) {
     <button
       className={cn(
         'flex flex-col items-center gap-1 p-2 rounded-xl transition-all duration-300',
-        'hover:bg-white/5',
-        active && 'bg-indigo-500/10'
+        'hover:bg-foreground/5',
+        active && 'bg-primary/10'
       )}
       onClick={onClick}
     >
@@ -25,8 +25,8 @@ function NavItem({ icon: Icon, label, active = false, onClick }: NavItemProps) {
         className={cn(
           'w-6 h-6 transition-all duration-300',
           active
-            ? 'text-indigo-400'
-            : 'text-white/50 hover:text-white/70'
+            ? 'text-primary'
+            : 'text-muted-foreground hover:text-foreground/70'
         )}
         strokeWidth={active ? 2.5 : 2}
       />
@@ -34,8 +34,8 @@ function NavItem({ icon: Icon, label, active = false, onClick }: NavItemProps) {
         className={cn(
           'text-[10px] font-medium transition-colors duration-300',
           active
-            ? 'text-indigo-400'
-            : 'text-white/50'
+            ? 'text-primary'
+            : 'text-muted-foreground'
         )}
       >
         {label}

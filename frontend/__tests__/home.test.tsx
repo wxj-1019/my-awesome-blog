@@ -81,9 +81,9 @@ describe('Home Page', () => {
 
     expect(screen.getByText('第一幕 · 展厅')).toBeInTheDocument();
     expect(screen.getByText('第二幕 · 仪表')).toBeInTheDocument();
-    expect(screen.getByText('第三幕 · 航迹')).toBeInTheDocument();
     expect(screen.getByText('第三幕 · 洋流')).toBeInTheDocument();
     expect(screen.getByText('第四幕 · 靠岸')).toBeInTheDocument();
+    expect(screen.queryByText('第三幕 · 航迹')).not.toBeInTheDocument();
 
     const sections = screen.getAllByRole('region');
     const labels = sections.map((section) => section.getAttribute('aria-label'));
@@ -127,7 +127,7 @@ describe('Home Page', () => {
     ).toBeInTheDocument();
     expect(
       container.querySelectorAll('[data-depth-ambience="current"]')
-    ).toHaveLength(2);
+    ).toHaveLength(1);
     expect(
       container.querySelector('[data-depth-ambience="shore"]')
     ).toBeInTheDocument();

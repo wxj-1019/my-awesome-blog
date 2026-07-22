@@ -72,7 +72,7 @@ export default function ProfileView({
                 htmlFor="avatar-upload" 
                 className="absolute bottom-2 right-2 bg-tech-cyan p-2 rounded-full cursor-pointer hover:bg-tech-cyan/90 transition-all duration-200 hover:scale-110 shadow-lg"
               >
-                <Camera className="w-5 h-5 text-white" />
+                <Camera className="w-5 h-5 text-primary-foreground" />
                 <input 
                   id="avatar-upload"
                   type="file" 

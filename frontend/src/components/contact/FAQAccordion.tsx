@@ -1,8 +1,11 @@
 'use client';
 import { useState } from 'react';
-import { motion, AnimatePresence } from '@/lib/framer-motion';
+import { motion } from '@/lib/framer-motion';
 import { ChevronDown, HelpCircle } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
+import { Stagger, StaggerItem, FadeIn } from '@/components/motion';
+import { cn } from '@/lib/utils';
+
 interface FAQItem {
   id: string;
   question: string;
@@ -63,17 +66,12 @@ export default function FAQAccordion() {
               你可能想了解的事情
             </p>
           </div>
-          <div className="space-y-4">
-            {faqItems.map((item, index) => {
+          {/* Stagger 自带 reduced-motion 回退 */}
+          <Stagger className="space-y-4" stagger={0.05}>
+            {faqItems.map((item) => {
               const isOpen = openItems.has(item.id);
               return (
-                <motion.div
-                  key={item.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: '-100px' }}
-                  transition={{ duration: 0.5, delay: index * 0.05 }}
-                >
+                <StaggerItem key={item.id}>
                   <GlassCard padding="none">
                     <motion.button
                       onClick={() => toggleItem(item.id)}
@@ -99,39 +97,36 @@ export default function FAQAccordion() {
                         </div>
                       </div>
                     </motion.button>
-                    <AnimatePresence mode="wait">
-                      {isOpen && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          exit={{ opacity: 0, height: 0 }}
-                          transition={{ duration: 0.3 }}
-                          className="overflow-hidden"
-                        >
-                          <div className="px-6 pb-6 pl-20">
-                            <p className="font-sf-pro-text text-foreground/70 leading-relaxed">
-                              {item.answer}
-                            </p>
-                          </div>
-                        </motion.div>
+                    {/* 展开动画：grid-rows 0fr→1fr + opacity，不触发布局属性动画 */}
+                    <div
+                      className={cn(
+                        'grid transition-[grid-template-rows] duration-300 ease-out',
+                        isOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
                       )}
-                    </AnimatePresence>
+                    >
+                      <div className="overflow-hidden min-h-0">
+                        <div
+                          className={cn(
+                            'px-6 pb-6 pl-20 transition-opacity duration-300',
+                            isOpen ? 'opacity-100' : 'opacity-0'
+                          )}
+                        >
+                          <p className="font-sf-pro-text text-foreground/70 leading-relaxed">
+                            {item.answer}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
                   </GlassCard>
-                </motion.div>
+                </StaggerItem>
               );
             })}
-          </div>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-100px' }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-            className="mt-8 text-center"
-          >
+          </Stagger>
+          <FadeIn delay={0.4} className="mt-8 text-center">
             <p className="font-sf-pro-text text-foreground/60">
               没有找到你的问题？<a href="mailto:contact@example.com" className="text-tech-cyan hover:underline">直接发邮件给我</a>
             </p>
-          </motion.div>
+          </FadeIn>
         </div>
       </div>
     </section>

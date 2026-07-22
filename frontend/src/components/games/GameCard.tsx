@@ -14,7 +14,7 @@ export default function GameCard({ game, onClick }: GameCardProps) {
   return (
     <motion.div
       layoutId={`game-card-${game.id}`}
-      className="group relative aspect-[3/4] rounded-xl overflow-hidden cursor-pointer bg-black/5 dark:bg-white/5"
+      className="group relative aspect-[3/4] rounded-xl overflow-hidden cursor-pointer bg-muted/50"
       whileHover={{ scale: 1.02, y: -5 }}
       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
       onClick={() => onClick(game)}
@@ -32,18 +32,18 @@ export default function GameCard({ game, onClick }: GameCardProps) {
 
       {/* Content */}
       <div className="absolute inset-x-0 bottom-0 p-4 translate-y-4 group-hover:translate-y-0 transition-transform duration-300 opacity-0 group-hover:opacity-100">
-        <h3 className="text-white font-bold text-lg leading-tight mb-1">{game.title}</h3>
-        <p className="text-white/70 text-xs mb-3">{game.developer}</p>
+        <h3 className="text-card-foreground font-bold text-lg leading-tight mb-1">{game.title}</h3>
+        <p className="text-muted-foreground text-xs mb-3">{game.developer}</p>
         
-        <div className="flex items-center gap-3 text-white/90 text-xs font-medium">
+        <div className="flex items-center gap-3 text-card-foreground text-xs font-medium">
           {game.myRating && (
-            <div className="flex items-center gap-1 bg-yellow-500/20 px-1.5 py-0.5 rounded text-yellow-400 border border-yellow-500/30">
+            <div className="flex items-center gap-1 bg-warning/20 px-1.5 py-0.5 rounded text-warning border border-warning/30">
               <Star className="w-3 h-3 fill-current" />
               <span>{game.myRating}</span>
             </div>
           )}
           {game.playTime && (
-            <div className="flex items-center gap-1 bg-blue-500/20 px-1.5 py-0.5 rounded text-blue-400 border border-blue-500/30">
+            <div className="flex items-center gap-1 bg-info/20 px-1.5 py-0.5 rounded text-info border border-info/30">
               <Clock className="w-3 h-3" />
               <span>{game.playTime}h</span>
             </div>
@@ -53,7 +53,7 @@ export default function GameCard({ game, onClick }: GameCardProps) {
 
       {/* Status Badge */}
       {game.status === 'Playing' && (
-        <div className="absolute top-2 right-2 px-2 py-1 bg-green-500/90 backdrop-blur-md text-white text-[10px] font-bold rounded-full shadow-lg">
+        <div className="absolute top-2 right-2 px-2 py-1 bg-success/90 backdrop-blur-md text-success-foreground text-[10px] font-bold rounded-full shadow-lg">
           PLAYING
         </div>
       )}

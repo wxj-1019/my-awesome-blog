@@ -99,7 +99,7 @@ const AlbumFilter: React.FC<AlbumFilterProps> = ({
               value={searchTerm}
               onChange={handleSearchChange}
               className={cn(
-                'w-full pl-10 pr-4 py-2 bg-black/20 rounded-lg border border-glass-border focus:outline-none focus:ring-2 focus:ring-tech-cyan focus:border-transparent transition-all',
+                'w-full pl-10 pr-4 py-2 bg-muted/20 rounded-lg border border-glass-border focus:outline-none focus:ring-2 focus:ring-tech-cyan focus:border-transparent transition-all',
                 themedClasses.textClass
               )}
             />
@@ -155,8 +155,8 @@ const AlbumFilter: React.FC<AlbumFilterProps> = ({
                 className={cn(
                   'px-4 py-2 rounded-lg border transition-all duration-300 flex items-center gap-2 text-sm font-medium',
                   filter === option.value
-                    ? 'bg-tech-cyan text-black border-tech-cyan shadow-md'
-                    : 'bg-tech-cyan/10 hover:bg-tech-cyan/20 border-glass-border text-white/80 hover:text-white'
+                    ? 'bg-tech-cyan text-primary-foreground border-tech-cyan shadow-md'
+                    : 'bg-tech-cyan/10 hover:bg-tech-cyan/20 border-glass-border text-foreground/80 hover:text-foreground'
                 )}
                 onClick={() => handleFilterChange(option.value)}
               >
@@ -166,7 +166,7 @@ const AlbumFilter: React.FC<AlbumFilterProps> = ({
             ))}
           </div>
 
-          <div className="flex gap-2 p-1 bg-black/20 rounded-lg border border-glass-border">
+          <div className="flex gap-2 p-1 bg-muted/20 rounded-lg border border-glass-border">
             {(['grid', 'list', 'masonry'] as ViewMode[]).map((mode) => {
               const Icon = mode === 'grid' ? Grid3X3 : mode === 'list' ? List : Filter;
               const label = mode === 'grid' ? '网格视图' : mode === 'list' ? '列表视图' : '瀑布流视图';
@@ -178,8 +178,8 @@ const AlbumFilter: React.FC<AlbumFilterProps> = ({
                   className={cn(
                     'p-2 rounded-md transition-all duration-300',
                     viewMode === mode
-                      ? 'bg-tech-cyan text-black'
-                      : 'text-white/60 hover:text-white hover:bg-white/10'
+                      ? 'bg-tech-cyan text-primary-foreground'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-foreground/10'
                   )}
                   onClick={() => handleViewModeChange(mode)}
                   aria-label={label}
@@ -194,9 +194,9 @@ const AlbumFilter: React.FC<AlbumFilterProps> = ({
         <AnimatePresence>
           {searchTerm && (
             <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
               className="pt-2 border-t border-glass-border"
             >
               <p className="text-sm">

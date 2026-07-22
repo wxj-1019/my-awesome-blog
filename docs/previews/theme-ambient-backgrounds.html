@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="dark" data-scheme="A">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>主题动态背景预览 · 深海 × 电影</title>
+  <style>
+    /* ========== 设计令牌（对齐项目 variables） ========== */
+    :root {
+      --primary: #0ea5e9;
+      --primary-foreground: #ffffff;
+      --tech-sky: #0ea5e9;
+      --tech-lightcyan: #38bdf8;
+      --tech-deepblue: #1e3a8a;
+      --tech-darkblue: #0f172a;
+      --background: #f8fafc;
+      --foreground: #0f172a;
+      --muted: #64748b;
+      --card: rgba(255, 255, 255, 0.55);
+      --border: rgba(15, 23, 42, 0.08);
+    }
+    html.dark {
+      --primary: #5eead4;
+      --primary-foreground: #042f2e;
+      --tech-sky: #38bdf8;
+      --tech-lightcyan: #99f6e4;
+      --tech-deepblue: #1e3a8a;
+      --tech-darkblue: #0b1220;
+      --background: #0b1220;
+      --foreground: #e2e8f0;
+      --muted: #94a3b8;
+      --card: rgba(15, 23, 42, 0.45);
+      --border: rgba(148, 163, 184, 0.18);
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      background: var(--background);
+      color: var(--foreground);
+      overflow-x: hidden;
+    }
+
+    /* ========== 固定背景层 ========== */
+    .ambient-root {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    /* 方案层：仅显示当前 data-scheme */
+    .scheme { display: none; position: absolute; inset: 0; }
+    html[data-scheme="A"] .scheme-a,
+    html[data-scheme="B"] .scheme-b,
+    html[data-scheme="C"] .scheme-c,
+    html[data-scheme="D"] .scheme-d { display: block; }
+
+    /* 主题子层：light/dark 切换（与现网 AmbientBackground 同思路） */
+    .layer-light, .layer-dark { display: none; position: absolute; inset: 0; }
+    html.light .layer-light,
+    html.dark .layer-dark { display: block; }
+
+    /* ---------- 通用动画 ---------- */
+    @keyframes drift-a {
+      0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.5; }
+      50% { transform: translate3d(3.5vw, 2.5vh, 0) scale(1.06); opacity: 0.85; }
+    }
+    @keyframes drift-b {
+      0%, 100% { transform: translate3d(0, 0, 0) scale(1.04); opacity: 0.4; }
+      50% { transform: translate3d(-3vw, -3vh, 0) scale(1); opacity: 0.75; }
+    }
+    @keyframes shaft-sway-a {
+      0%, 100% { transform: translate3d(-1.5vw, 0, 0) skewX(-10deg); opacity: 0.45; }
+      50% { transform: translate3d(2vw, 0, 0) skewX(-8deg); opacity: 0.8; }
+    }
+    @keyframes shaft-sway-b {
+      0%, 100% { transform: translate3d(1.5vw, 0, 0) skewX(-14deg); opacity: 0.3; }
+      50% { transform: translate3d(-1.5vw, 0, 0) skewX(-12deg); opacity: 0.55; }
+    }
+    @keyframes cloud-drift {
+      0%, 100% { transform: translate3d(-3vw, 1vh, 0) scale(1); opacity: 0.45; }
+      50% { transform: translate3d(4vw, -1.5vh, 0) scale(1.05); opacity: 0.75; }
+    }
+    @keyframes firefly {
+      0%, 100% { transform: translate3d(0, 0, 0) scale(0.7); opacity: 0.06; }
+      50% { transform: translate3d(var(--drift, 0px), -8px, 0) scale(1); opacity: 0.75; }
+    }
+    @keyframes bubble-rise {
+      0% { transform: translate3d(0, 20px, 0) scale(0.6); opacity: 0; }
+      12% { opacity: 0.45; }
+      50% { transform: translate3d(var(--drift, 0px), -50vh, 0) scale(1); opacity: 0.55; }
+      100% { transform: translate3d(calc(var(--drift, 0px) * 0.5), -105vh, 0) scale(0.75); opacity: 0; }
+    }
+    @keyframes mist-breathe {
+      0%, 100% { opacity: 0.25; transform: translate3d(0, 0, 0) scale(1); }
+      50% { opacity: 0.45; transform: translate3d(1vw, -1vh, 0) scale(1.04); }
+    }
+    @keyframes aurora-soft {
+      0%, 100% { transform: translate3d(-2%, 0, 0) skewX(-4deg); opacity: 0.2; }
+      50% { transform: translate3d(2%, 1%, 0) skewX(2deg); opacity: 0.38; }
+    }
+    @keyframes grain-shift {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(-2%, -2%); }
+    }
+
+    .anim-drift-a { animation: drift-a 28s ease-in-out infinite; }
+    .anim-drift-b { animation: drift-b 34s ease-in-out infinite; }
+    .anim-shaft-a { animation: shaft-sway-a 26s ease-in-out infinite; }
+    .anim-shaft-b { animation: shaft-sway-b 32s ease-in-out infinite; }
+    .anim-cloud { animation: cloud-drift 38s ease-in-out infinite; }
+    .anim-mist { animation: mist-breathe 18s ease-in-out infinite; }
+    .anim-aurora { animation: aurora-soft 22s ease-in-out infinite; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .anim-drift-a, .anim-drift-b, .anim-shaft-a, .anim-shaft-b,
+      .anim-cloud, .anim-mist, .anim-aurora, .bubble, .firefly {
+        animation: none !important;
+      }
+    }
+
+    /* ========== 方案 A：现网增强版（白昼浅海 / 夜海深潜） ========== */
+    .base-grad {
+      position: absolute; inset: 0;
+      background: linear-gradient(
+        to bottom,
+        color-mix(in srgb, var(--primary) 5%, transparent),
+        transparent 32%,
+        transparent 68%,
+        color-mix(in srgb, var(--tech-deepblue) 6%, transparent)
+      );
+    }
+
+    /* light A */
+    .sky-glow {
+      position: absolute; inset-inline: 0; top: 0; height: 55vh;
+      background: radial-gradient(ellipse 75% 100% at 50% 0%,
+        color-mix(in srgb, var(--tech-sky) 20%, transparent), transparent 72%);
+    }
+    .shaft-main {
+      position: absolute; top: -8%; left: 16%; height: 85vh; width: 22vw;
+      background: linear-gradient(to bottom,
+        color-mix(in srgb, var(--tech-lightcyan) 18%, transparent), transparent 78%);
+      filter: blur(8px);
+    }
+    .shaft-sub {
+      position: absolute; top: -6%; left: 52%; height: 70vh; width: 12vw;
+      background: linear-gradient(to bottom,
+        color-mix(in srgb, var(--tech-sky) 14%, transparent), transparent 75%);
+      filter: blur(6px);
+    }
+    .cloud-blob {
+      position: absolute; bottom: -18%; right: -10%; height: 60vh; width: 50vw;
+      background: radial-gradient(ellipse at center,
+        color-mix(in srgb, var(--primary) 8%, transparent), transparent 70%);
+    }
+
+    /* dark A */
+    .moon-a {
+      position: absolute; top: -20%; left: -10%; height: 70vh; width: 60vw;
+      background: radial-gradient(ellipse at center,
+        color-mix(in srgb, var(--primary) 12%, transparent), transparent 70%);
+    }
+    .moon-b {
+      position: absolute; bottom: -25%; right: -15%; height: 80vh; width: 55vw;
+      background: radial-gradient(ellipse at center,
+        color-mix(in srgb, var(--tech-lightcyan) 9%, transparent), transparent 70%);
+    }
+    .moon-path {
+      position: absolute; inset-inline: 0; top: 0; margin-inline: auto;
+      height: 60vh; width: 26vw;
+      background: linear-gradient(to bottom,
+        color-mix(in srgb, var(--tech-lightcyan) 10%, transparent), transparent 80%);
+      filter: blur(10px);
+    }
+    .firefly {
+      position: absolute; border-radius: 999px;
+      background: color-mix(in srgb, var(--tech-lightcyan) 85%, transparent);
+      box-shadow: 0 0 10px 2px color-mix(in srgb, var(--tech-lightcyan) 40%, transparent);
+      animation: firefly var(--dur, 4s) ease-in-out var(--delay, 0s) infinite;
+      will-change: transform, opacity;
+    }
+
+    /* ========== 方案 B：雾气水面（更柔、更少几何柱） ========== */
+    .mist-layer {
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 90% 60% at 50% 110%,
+          color-mix(in srgb, var(--primary) 12%, transparent), transparent 60%),
+        radial-gradient(ellipse 70% 50% at 20% 20%,
+          color-mix(in srgb, var(--tech-sky) 10%, transparent), transparent 65%),
+        radial-gradient(ellipse 60% 45% at 85% 30%,
+          color-mix(in srgb, var(--tech-lightcyan) 8%, transparent), transparent 70%);
+    }
+    .mist-blob {
+      position: absolute; border-radius: 50%;
+      filter: blur(40px);
+      background: color-mix(in srgb, var(--primary) 14%, transparent);
+    }
+    .mist-blob.b1 { width: 45vw; height: 40vh; left: -5%; top: 10%; }
+    .mist-blob.b2 { width: 40vw; height: 35vh; right: -8%; bottom: 15%;
+      background: color-mix(in srgb, var(--tech-lightcyan) 12%, transparent); }
+    .mist-blob.b3 { width: 50vw; height: 30vh; left: 30%; bottom: -5%;
+      background: color-mix(in srgb, var(--tech-sky) 8%, transparent); }
+
+    /* ========== 方案 C：柔极光带（极淡，不赛博） ========== */
+    .aurora-band {
+      position: absolute; left: -10%; width: 120%; height: 28vh;
+      filter: blur(28px);
+      mix-blend-mode: screen;
+      opacity: 0.55;
+    }
+    html.light .aurora-band { mix-blend-mode: multiply; opacity: 0.35; }
+    .aurora-1 {
+      top: 8%;
+      background: linear-gradient(90deg,
+        transparent,
+        color-mix(in srgb, var(--primary) 35%, transparent) 40%,
+        color-mix(in srgb, var(--tech-lightcyan) 25%, transparent) 70%,
+        transparent);
+    }
+    .aurora-2 {
+      top: 28%; height: 22vh;
+      background: linear-gradient(90deg,
+        transparent,
+        color-mix(in srgb, var(--tech-sky) 22%, transparent) 50%,
+        transparent);
+      animation-delay: -8s;
+    }
+    .horizon-glow {
+      position: absolute; inset-inline: 0; bottom: 0; height: 35vh;
+      background: linear-gradient(to top,
+        color-mix(in srgb, var(--tech-deepblue) 18%, transparent), transparent);
+    }
+    html.light .horizon-glow {
+      background: linear-gradient(to top,
+        color-mix(in srgb, var(--primary) 8%, transparent), transparent);
+    }
+
+    /* ========== 方案 D：极简双光斑 + 噪点（性能最稳） ========== */
+    .soft-blob {
+      position: absolute; border-radius: 50%;
+      filter: blur(60px);
+    }
+    .soft-blob.s1 {
+      width: 55vw; height: 50vh; top: -15%; left: -10%;
+      background: color-mix(in srgb, var(--primary) 16%, transparent);
+    }
+    .soft-blob.s2 {
+      width: 50vw; height: 45vh; bottom: -20%; right: -12%;
+      background: color-mix(in srgb, var(--tech-lightcyan) 12%, transparent);
+    }
+
+    /* 气泡 */
+    .bubbles { position: absolute; inset: 0; overflow: hidden; }
+    .bubble {
+      position: absolute; bottom: 0; border-radius: 999px;
+      border: 1px solid color-mix(in srgb, var(--primary) 28%, transparent);
+      background: color-mix(in srgb, var(--primary) 10%, transparent);
+      animation: bubble-rise var(--dur, 10s) ease-in var(--delay, 0s) infinite;
+      will-change: transform, opacity;
+    }
+
+    /* 噪点 */
+    .noise {
+      position: absolute; inset: -20%;
+      opacity: 0.03;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      animation: grain-shift 8s steps(4) infinite;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .noise { animation: none; }
+    }
+
+    /* ========== UI 面板 ========== */
+    .ui {
+      position: relative;
+      z-index: 10;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      padding: 1.25rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .panel {
+      background: var(--card);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1rem 1.15rem;
+      box-shadow: 0 8px 32px color-mix(in srgb, var(--foreground) 6%, transparent);
+    }
+    h1 { font-size: 1.25rem; margin: 0 0 0.35rem; font-weight: 700; }
+    .sub { color: var(--muted); font-size: 0.875rem; line-height: 1.5; margin: 0; }
+    .row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-top: 0.85rem; }
+    .label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-right: 0.25rem; }
+    button {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, var(--background) 70%, transparent);
+      color: var(--foreground);
+      border-radius: 999px;
+      padding: 0.4rem 0.85rem;
+      font-size: 0.8125rem;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s, color 0.2s;
+    }
+    button:hover { border-color: color-mix(in srgb, var(--primary) 45%, transparent); }
+    button.active {
+      background: color-mix(in srgb, var(--primary) 18%, transparent);
+      border-color: color-mix(in srgb, var(--primary) 55%, transparent);
+      color: var(--primary);
+      font-weight: 600;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 0.75rem;
+    }
+    .card {
+      background: color-mix(in srgb, var(--background) 55%, transparent);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.9rem;
+      min-height: 100px;
+    }
+    .card h3 { margin: 0 0 0.35rem; font-size: 0.95rem; }
+    .card p { margin: 0; font-size: 0.8rem; color: var(--muted); line-height: 1.45; }
+    .mock-nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.65rem 1rem;
+      border-radius: 12px;
+      background: color-mix(in srgb, var(--background) 40%, transparent);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+    }
+    .logo {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: var(--primary); color: var(--primary-foreground);
+      display: grid; place-items: center; font-weight: 800; font-size: 0.9rem;
+    }
+    .spacer { height: 40vh; }
+    .footer-note { font-size: 0.75rem; color: var(--muted); }
+    code { font-size: 0.78em; background: color-mix(in srgb, var(--foreground) 6%, transparent); padding: 0.1em 0.35em; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <!-- 背景根 -->
+  <div class="ambient-root" aria-hidden="true">
+    <div class="base-grad"></div>
+
+    <!-- A：现网增强 · 对应 Hero 月夜/鹿景 -->
+    <div class="scheme scheme-a">
+      <div class="layer-light">
+        <div class="sky-glow"></div>
+        <div class="shaft-main anim-shaft-a"></div>
+        <div class="shaft-sub anim-shaft-b"></div>
+        <div class="cloud-blob anim-cloud"></div>
+      </div>
+      <div class="layer-dark">
+        <div class="moon-a anim-drift-a"></div>
+        <div class="moon-b anim-drift-b"></div>
+        <div class="moon-path"></div>
+        <div id="fireflies-a"></div>
+      </div>
+      <div class="bubbles" data-count="desktop:6,mobile:3" id="bubbles-a"></div>
+    </div>
+
+    <!-- B：雾气水面 · 最柔 -->
+    <div class="scheme scheme-b">
+      <div class="mist-layer"></div>
+      <div class="layer-light">
+        <div class="mist-blob b1 anim-mist"></div>
+        <div class="mist-blob b2 anim-mist" style="animation-delay:-6s"></div>
+        <div class="mist-blob b3 anim-mist" style="animation-delay:-12s"></div>
+        <div class="sky-glow" style="opacity:0.7"></div>
+      </div>
+      <div class="layer-dark">
+        <div class="mist-blob b1 anim-mist" style="background: color-mix(in srgb, var(--primary) 18%, transparent)"></div>
+        <div class="mist-blob b2 anim-mist" style="animation-delay:-7s"></div>
+        <div class="moon-path" style="opacity:0.7"></div>
+        <div id="fireflies-b"></div>
+      </div>
+      <div class="bubbles" id="bubbles-b"></div>
+    </div>
+
+    <!-- C：柔极光 + 地平线 -->
+    <div class="scheme scheme-c">
+      <div class="layer-light">
+        <div class="sky-glow"></div>
+        <div class="aurora-band aurora-1 anim-aurora"></div>
+        <div class="aurora-band aurora-2 anim-aurora"></div>
+        <div class="horizon-glow"></div>
+      </div>
+      <div class="layer-dark">
+        <div class="moon-a anim-drift-a" style="opacity:0.85"></div>
+        <div class="aurora-band aurora-1 anim-aurora"></div>
+        <div class="aurora-band aurora-2 anim-aurora"></div>
+        <div class="horizon-glow"></div>
+        <div id="fireflies-c"></div>
+      </div>
+      <div class="bubbles" id="bubbles-c"></div>
+    </div>
+
+    <!-- D：极简双光斑 -->
+    <div class="scheme scheme-d">
+      <div class="soft-blob s1 anim-drift-a"></div>
+      <div class="soft-blob s2 anim-drift-b"></div>
+      <div class="layer-light">
+        <div class="sky-glow" style="height:40vh;opacity:0.85"></div>
+      </div>
+      <div class="layer-dark">
+        <div class="moon-path" style="height:45vh;opacity:0.6"></div>
+      </div>
+      <div class="bubbles" id="bubbles-d" style="opacity:0.65"></div>
+    </div>
+
+    <div class="noise"></div>
+  </div>
+
+  <!-- 前景 UI -->
+  <div class="ui">
+    <div class="panel">
+      <h1>主题动态背景预览</h1>
+      <p class="sub">
+        对齐 Hero：<strong>深色 = 月夜云海</strong>、<strong>浅色 = 林间晨光/鹿景</strong>。
+        效果刻意柔和（慢动画 · 低透明度 · token 色）。可实时切换主题与方案，下方有示例内容卡片模拟叠字可读性。
+      </p>
+      <div class="row">
+        <span class="label">主题</span>
+        <button type="button" data-theme="light" id="btn-light">浅色 · 晨光</button>
+        <button type="button" data-theme="dark" id="btn-dark" class="active">深色 · 月夜</button>
+      </div>
+      <div class="row">
+        <span class="label">方案</span>
+        <button type="button" data-scheme="A" class="active">A 现网增强</button>
+        <button type="button" data-scheme="B">B 雾气水面</button>
+        <button type="button" data-scheme="C">C 柔极光</button>
+        <button type="button" data-scheme="D">D 极简双斑</button>
+      </div>
+      <p class="footer-note" style="margin-top:0.75rem">
+        文件路径：<code>docs/previews/theme-ambient-backgrounds.html</code>
+        · 双击或用浏览器打开即可 · 推荐 Chrome
+      </p>
+    </div>
+
+    <div class="mock-nav panel" style="padding:0.5rem 1rem">
+      <div style="display:flex;align-items:center;gap:0.65rem">
+        <div class="logo">A</div>
+        <div>
+          <div style="font-weight:700;font-size:0.9rem">Awesome</div>
+          <div style="font-size:0.65rem;letter-spacing:0.18em;color:var(--muted)">BLOG</div>
+        </div>
+      </div>
+      <div style="font-size:0.8rem;color:var(--muted)">导航示意 · 检查 Logo/字对比</div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h3>方案 A · 现网增强</h3>
+        <p>浅：天光 + 双日光柱 + 云影；深：双月光斑 + 月路 + 荧光点。最贴近当前 <code>AmbientBackground</code> 与 Hero 气质。</p>
+      </div>
+      <div class="card">
+        <h3>方案 B · 雾气水面</h3>
+        <p>大块柔雾呼吸，几乎无硬几何柱。最「安静」，适合怕花的浅色模式。</p>
+      </div>
+      <div class="card">
+        <h3>方案 C · 柔极光</h3>
+        <p>横向极淡光带 + 地平线，略电影、仍克制。深色像月云流动，浅色像晨雾彩光。</p>
+      </div>
+      <div class="card">
+        <h3>方案 D · 极简</h3>
+        <p>仅双光斑慢漂 + 极稀气泡。性能最稳，做默认兜底很合适。</p>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3 style="margin:0 0 0.5rem;font-size:1rem">正文可读性检查</h3>
+      <p class="sub">
+        凭借多年的软件开发经验，我专注于为复杂问题创建优雅的解决方案。
+        若这段字在背景上发灰、发糊，说明该方案透明度需要再降。理想效果是：
+        感觉「有水/有气」，但不会抢走卡片与标题注意力。
+      </p>
+      <div class="spacer"></div>
+      <p class="sub">滚动到底：检查背景是否全程柔和、无闪烁。</p>
+    </div>
+
+    <p class="footer-note">
+      Hero 参考：dark → <code>moonlit-clouds-field-HD-live.mp4</code>；
+      light → <code>fantasy-landscape-deer-HD-live.mp4</code>。
+      选定方案后可回项目改 <code>AmbientBackground.tsx</code>。
+    </p>
+  </div>
+
+  <script>
+    (function () {
+      const root = document.documentElement;
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      // 默认跟随系统，也可固定 dark
+      if (!prefersDark) {
+        root.classList.remove('dark');
+        root.classList.add('light');
+        document.getElementById('btn-light').classList.add('active');
+        document.getElementById('btn-dark').classList.remove('active');
+      }
+
+      function seed(n) {
+        const x = Math.sin(n * 7919 + 31) * 10000;
+        return x - Math.floor(x);
+      }
+
+      function fillFireflies(containerId, count) {
+        const el = document.getElementById(containerId);
+        if (!el) return;
+        el.innerHTML = '';
+        for (let i = 0; i < count; i++) {
+          const s = document.createElement('span');
+          s.className = 'firefly';
+          const size = 2 + seed(i + 3) * 3;
+          s.style.left = 4 + seed(i + 1) * 92 + '%';
+          s.style.top = 28 + seed(i + 7) * 62 + '%';
+          s.style.width = size + 'px';
+          s.style.height = size + 'px';
+          s.style.setProperty('--drift', (seed(i + 11) - 0.5) * 28 + 'px');
+          s.style.setProperty('--dur', 3.5 + seed(i + 13) * 4 + 's');
+          s.style.setProperty('--delay', seed(i + 17) * 6 + 's');
+          el.appendChild(s);
+        }
+      }
+
+      function fillBubbles(containerId, count) {
+        const el = document.getElementById(containerId);
+        if (!el) return;
+        el.innerHTML = '';
+        for (let i = 0; i < count; i++) {
+          const s = document.createElement('span');
+          s.className = 'bubble';
+          const size = 4 + seed(i + 2) * 10;
+          s.style.left = 4 + seed(i + 1) * 92 + '%';
+          s.style.width = size + 'px';
+          s.style.height = size + 'px';
+          s.style.setProperty('--drift', (seed(i + 5) - 0.5) * 50 + 'px');
+          s.style.setProperty('--dur', 8 + seed(i + 9) * 8 + 's');
+          s.style.setProperty('--delay', seed(i + 15) * 7 + 's');
+          el.appendChild(s);
+        }
+      }
+
+      const isDesktop = window.matchMedia('(min-width: 768px)').matches;
+      const fireCount = isDesktop ? 10 : 5;
+      const bubbleCount = isDesktop ? 6 : 3;
+
+      fillFireflies('fireflies-a', fireCount);
+      fillFireflies('fireflies-b', Math.max(4, fireCount - 2));
+      fillFireflies('fireflies-c', Math.max(4, fireCount - 2));
+      fillBubbles('bubbles-a', bubbleCount);
+      fillBubbles('bubbles-b', bubbleCount);
+      fillBubbles('bubbles-c', Math.max(2, bubbleCount - 1));
+      fillBubbles('bubbles-d', Math.max(2, bubbleCount - 2));
+
+      document.querySelectorAll('[data-theme]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const t = btn.getAttribute('data-theme');
+          root.classList.remove('light', 'dark');
+          root.classList.add(t);
+          document.querySelectorAll('[data-theme]').forEach((b) => b.classList.remove('active'));
+          btn.classList.add('active');
+        });
+      });
+
+      document.querySelectorAll('[data-scheme]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const s = btn.getAttribute('data-scheme');
+          root.setAttribute('data-scheme', s);
+          document.querySelectorAll('[data-scheme]').forEach((b) => b.classList.remove('active'));
+          btn.classList.add('active');
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

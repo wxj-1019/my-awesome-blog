@@ -1,7 +1,7 @@
 'use client';
 
-import { motion } from '@/lib/framer-motion';
-import {  ExternalLink } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
+import { FadeIn } from '@/components/motion';
 
 interface ContactCardProps {
   icon: React.ReactNode;
@@ -15,23 +15,23 @@ interface ContactCardProps {
 function ContactCard({ icon, title, description, href, onClick, delay = 0 }: ContactCardProps) {
   const content = (
     <div className="group relative">
-      <div className="absolute inset-0 bg-gradient-to-br from-white/50 to-white/30 dark:from-black/50 dark:to-black/30 backdrop-blur-xl border border-gray-200 dark:border-gray-800 rounded-xl p-6 transition-all duration-300 hover:shadow-xl hover:border-blue-400/50 dark:hover:border-blue-400/50">
+      <div className="absolute inset-0 bg-glass backdrop-blur-xl border border-glass-border rounded-xl p-6 transition-all duration-300 hover:shadow-xl hover:border-primary/40">
         <div className="flex items-start gap-4 mb-3">
-          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform duration-300">
+          <div className="w-12 h-12 bg-gradient-to-br from-primary to-tech-purple rounded-xl flex items-center justify-center text-primary-foreground shadow-lg group-hover:scale-110 transition-transform duration-300">
             {icon}
           </div>
           <div className="flex-1">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+            <h3 className="text-lg font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
               {title}
             </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+            <p className="text-sm text-muted-foreground leading-relaxed">
               {description}
             </p>
           </div>
         </div>
         {href && (
           <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-            <ExternalLink className="w-4 h-4 text-gray-400" />
+            <ExternalLink className="w-4 h-4 text-muted-foreground" />
           </div>
         )}
       </div>
@@ -39,11 +39,7 @@ function ContactCard({ icon, title, description, href, onClick, delay = 0 }: Con
   );
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, duration: 0.5 }}
-    >
+    <FadeIn delay={delay}>
       {href ? (
         <a
           href={href}
@@ -63,7 +59,7 @@ function ContactCard({ icon, title, description, href, onClick, delay = 0 }: Con
       ) : (
         <div>{content}</div>
       )}
-    </motion.div>
+    </FadeIn>
   );
 }
 
@@ -80,7 +76,7 @@ interface ContactCardsProps {
 export default function ContactCards({ cards }: ContactCardsProps) {
   return (
     <section className="mb-12">
-      <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 px-1">
+      <h2 className="text-2xl font-bold text-foreground mb-6 px-1">
         热门联系主题
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

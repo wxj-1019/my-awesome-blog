@@ -95,7 +95,7 @@ const AlbumCard: React.FC<AlbumCardProps> = ({
             <motion.div
               initial={{ scale: 0, rotate: -180 }}
               animate={{ scale: 1, rotate: 0 }}
-              className="absolute top-3 right-3 bg-tech-cyan text-black text-xs font-bold px-2 py-1 rounded-full shadow-lg"
+              className="absolute top-3 right-3 bg-tech-cyan text-primary-foreground text-xs font-bold px-2 py-1 rounded-full shadow-lg"
             >
               <Star className="w-3 h-3 inline mr-1 fill-current" />
               精选
@@ -107,7 +107,7 @@ const AlbumCard: React.FC<AlbumCardProps> = ({
               initial={{ x: -100, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ delay: 0.2 }}
-              className="absolute top-3 left-3 bg-black/60 backdrop-blur-sm text-white text-xs font-semibold px-2 py-1 rounded-full"
+              className="absolute top-3 left-3 bg-glass backdrop-blur-sm border border-glass-border text-foreground text-xs font-semibold px-2 py-1 rounded-full"
             >
               {album.category}
             </motion.div>
@@ -118,7 +118,7 @@ const AlbumCard: React.FC<AlbumCardProps> = ({
               initial={{ opacity: 0 }}
               animate={{ opacity: isHovered ? 1 : 0 }}
               transition={{ duration: 0.3 }}
-              className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex items-end p-4"
+              className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/40 to-transparent flex items-end p-4 text-background"
             >
               <motion.div
                 initial={{ y: 20, opacity: 0 }}
@@ -131,14 +131,14 @@ const AlbumCard: React.FC<AlbumCardProps> = ({
                     <motion.button
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
-                      className="p-2 bg-white/20 backdrop-blur-sm rounded-full hover:bg-white/30 transition-colors"
+                      className="p-2 bg-background/20 backdrop-blur-sm rounded-full hover:bg-background/30 transition-colors"
                       onClick={handleLike}
                       aria-label={isPlaying ? '取消收藏' : '收藏'}
                     >
                       <Heart
                         className={cn(
                           'w-4 h-4',
-                          isPlaying && 'fill-red-500 text-red-500'
+                          isPlaying && 'fill-destructive text-destructive'
                         )}
                         aria-hidden="true"
                       />
@@ -146,7 +146,7 @@ const AlbumCard: React.FC<AlbumCardProps> = ({
                     <motion.button
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
-                      className="p-2 bg-white/20 backdrop-blur-sm rounded-full hover:bg-white/30 transition-colors"
+                      className="p-2 bg-background/20 backdrop-blur-sm rounded-full hover:bg-background/30 transition-colors"
                       aria-label="分享"
                     >
                       <Share2 className="w-4 h-4" aria-hidden="true" />

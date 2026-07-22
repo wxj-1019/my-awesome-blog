@@ -23,10 +23,10 @@ export default function ContactSidebar({ activeSection, onSectionChange }: Conta
   ];
 
   return (
-    <aside className="w-64 h-full hidden md:flex flex-col bg-card/50 backdrop-blur-2xl border-r border-black/5 dark:border-white/5 pt-6 pb-4 px-4 flex-shrink-0">
+    <aside className="w-64 h-full hidden md:flex flex-col bg-card/50 backdrop-blur-2xl border-r border-glass-border pt-6 pb-4 px-4 flex-shrink-0">
       <div className="flex-1 overflow-y-auto scrollbar-hide">
         <div className="mb-8">
-          <h2 className="px-3 text-xs font-semibold text-black/40 dark:text-white/40 uppercase tracking-wider mb-2">
+          <h2 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
             导航
           </h2>
           <nav className="space-y-1">
@@ -37,13 +37,13 @@ export default function ContactSidebar({ activeSection, onSectionChange }: Conta
                 className={cn(
                   'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 group',
                   activeSection === item.id
-                    ? 'bg-blue-500 text-white shadow-md shadow-blue-500/20'
-                    : 'text-black/70 dark:text-white/70 hover:bg-black/5 dark:hover:bg-white/10'
+                    ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20'
+                    : 'text-foreground/70 hover:bg-foreground/5'
                 )}
               >
                 <item.icon className={cn(
                   "w-4 h-4 transition-transform duration-200 group-active:scale-95",
-                  activeSection === item.id ? "text-white" : "text-black/50 dark:text-white/50 group-hover:text-black dark:group-hover:text-white"
+                  activeSection === item.id ? "text-primary-foreground" : "text-foreground/50 group-hover:text-foreground"
                 )} />
                 {item.label}
               </button>
@@ -52,7 +52,7 @@ export default function ContactSidebar({ activeSection, onSectionChange }: Conta
         </div>
 
         <div>
-          <h2 className="px-3 text-xs font-semibold text-black/40 dark:text-white/40 uppercase tracking-wider mb-2">
+          <h2 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
             快速链接
           </h2>
           <nav className="space-y-1">
@@ -63,13 +63,13 @@ export default function ContactSidebar({ activeSection, onSectionChange }: Conta
                 className={cn(
                   'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 group',
                   activeSection === item.id
-                    ? 'bg-blue-500 text-white shadow-md shadow-blue-500/20'
-                    : 'text-black/70 dark:text-white/70 hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer'
+                    ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20'
+                    : 'text-foreground/70 hover:bg-foreground/5 cursor-pointer'
                 )}
               >
                 <item.icon className={cn(
                   "w-4 h-4 transition-transform duration-200 group-active:scale-95",
-                  activeSection === item.id ? "text-white" : "text-black/50 dark:text-white/50 group-hover:text-black dark:group-hover:text-white"
+                  activeSection === item.id ? "text-primary-foreground" : "text-foreground/50 group-hover:text-foreground"
                 )} />
                 {item.label}
               </a>
@@ -78,18 +78,18 @@ export default function ContactSidebar({ activeSection, onSectionChange }: Conta
         </div>
       </div>
 
-      <div className="mt-auto pt-4 border-t border-black/5 dark:border-white/5">
-        <div className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl p-4">
+      <div className="mt-auto pt-4 border-t border-glass-border">
+        <div className="bg-gradient-to-br from-primary/10 to-tech-purple/10 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-2">
-            <Clock className="w-4 h-4 text-blue-500" />
-            <span className="text-xs font-medium text-black/60 dark:text-white/60">
+            <Clock className="w-4 h-4 text-primary" />
+            <span className="text-xs font-medium text-foreground/60">
               响应时间
             </span>
           </div>
-          <p className="text-sm font-semibold text-black dark:text-white">
+          <p className="text-sm font-semibold text-foreground">
             24小时内
           </p>
-          <p className="text-xs text-black/50 dark:text-white/50 mt-1">
+          <p className="text-xs text-foreground/50 mt-1">
             工作日通常更快
           </p>
         </div>

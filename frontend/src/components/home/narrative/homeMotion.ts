@@ -4,6 +4,7 @@
  * 一期：act / dive / bubbles / glow
  * 二期：reel（展厅卷轴）/ current（洋流路径）
  * 四期：dive 入水装置 / depth 分幕环境 / 展厅光影
+ * 五期：幕间叙事（接续引线 + 幕标滚动视差）；「航迹」并入「洋流」幕
  *
  * 预算：
  * - L0 reduced-motion：无循环、无 drift、path 满绘；气泡不渲染
@@ -96,13 +97,13 @@ export const HOME_CURRENT = {
  * 主折光与光柱的 opacity / autoAlpha / y 仅由 GSAP 写入（单一来源，勿再加 class opacity）。
  */
 export const HOME_DIVE = {
-  /** 装置高度（较一期 h-24/32 加厚，让「潜下去」有过程） */
-  heightMobile: 'h-40',
-  heightDesktop: 'sm:h-56',
+  /** 装置高度（继续加厚，让「潜下去」的滚动区间更足） */
+  heightMobile: 'h-56',
+  heightDesktop: 'sm:h-80',
   /** 主折光线：GSAP 目标 opacity（桌面 scrub 终点 / 移动·RM 终态） */
-  shimmerOpacity: 0.3,
+  shimmerOpacity: 0.5,
   /** 光柱：GSAP 目标 autoAlpha（渐变为 token 淡色；勿与 Tailwind opacity-* 叠乘） */
-  lightShaftOpacity: 0.45,
+  lightShaftOpacity: 0.65,
 } as const;
 
 /**

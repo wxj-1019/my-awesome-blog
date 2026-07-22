@@ -24,10 +24,10 @@ export default function GameSidebar({ activeSection, onSectionChange }: GameSide
   ];
 
   return (
-    <aside className="w-64 h-full hidden md:flex flex-col bg-card/50 backdrop-blur-2xl border-r border-black/5 dark:border-white/5 pt-6 pb-4 px-4 flex-shrink-0">
+    <aside className="w-64 h-full hidden md:flex flex-col bg-card/50 backdrop-blur-2xl border-r border-glass-border pt-6 pb-4 px-4 flex-shrink-0">
       <div className="flex-1 overflow-y-auto scrollbar-hide">
         <div className="mb-8">
-          <h2 className="px-3 text-xs font-semibold text-black/40 dark:text-white/40 uppercase tracking-wider mb-2">
+          <h2 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
             库
           </h2>
           <nav className="space-y-1">
@@ -38,13 +38,13 @@ export default function GameSidebar({ activeSection, onSectionChange }: GameSide
                 className={cn(
                   'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 group',
                   activeSection === item.id
-                    ? 'bg-blue-500 text-white shadow-md shadow-blue-500/20'
-                    : 'text-black/70 dark:text-white/70 hover:bg-black/5 dark:hover:bg-white/10'
+                    ? 'bg-primary text-primary-foreground shadow-md'
+                    : 'text-muted-foreground hover:bg-muted/50'
                 )}
               >
                 <item.icon className={cn(
                   "w-4 h-4 transition-transform duration-200 group-active:scale-95",
-                  activeSection === item.id ? "text-white" : "text-black/50 dark:text-white/50 group-hover:text-black dark:group-hover:text-white"
+                  activeSection === item.id ? "text-primary-foreground" : "text-muted-foreground group-hover:text-foreground"
                 )} />
                 {item.label}
               </button>
@@ -53,7 +53,7 @@ export default function GameSidebar({ activeSection, onSectionChange }: GameSide
         </div>
 
         <div>
-          <h2 className="px-3 text-xs font-semibold text-black/40 dark:text-white/40 uppercase tracking-wider mb-2">
+          <h2 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
             平台
           </h2>
           <nav className="space-y-1">
@@ -64,13 +64,13 @@ export default function GameSidebar({ activeSection, onSectionChange }: GameSide
                 className={cn(
                   'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 group',
                   activeSection === item.id
-                    ? 'bg-blue-500 text-white shadow-md shadow-blue-500/20'
-                    : 'text-black/70 dark:text-white/70 hover:bg-black/5 dark:hover:bg-white/10'
+                    ? 'bg-primary text-primary-foreground shadow-md'
+                    : 'text-muted-foreground hover:bg-muted/50'
                 )}
               >
                 <item.icon className={cn(
                   "w-4 h-4 transition-transform duration-200 group-active:scale-95",
-                  activeSection === item.id ? "text-white" : "text-black/50 dark:text-white/50 group-hover:text-black dark:group-hover:text-white"
+                  activeSection === item.id ? "text-primary-foreground" : "text-muted-foreground group-hover:text-foreground"
                 )} />
                 {item.label}
               </button>

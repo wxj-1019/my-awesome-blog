@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { User, Mail, Globe, Twitter, Github, Linkedin, FileText, Save, X, Check } from 'lucide-react';
+import { User, Mail, Globe, Twitter, Github, Linkedin, FileText, Save, X, Check, type LucideIcon } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/input';
@@ -9,17 +9,19 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { validateSocialLink } from '@/lib/validation';
 
+interface EditFormData {
+  fullName?: string;
+  email?: string;
+  bio?: string;
+  website?: string;
+  twitter?: string;
+  github?: string;
+  linkedin?: string;
+}
+
 interface EditModeFormProps {
-  initialData: {
-    fullName?: string;
-    email?: string;
-    bio?: string;
-    website?: string;
-    twitter?: string;
-    github?: string;
-    linkedin?: string;
-  };
-  onSave: (data: any) => void;
+  initialData: EditFormData;
+  onSave: (data: EditFormData) => void;
   onCancel: () => void;
 }
 
@@ -63,7 +65,10 @@ export default function EditModeForm({ initialData, onSave, onCancel }: EditMode
     setIsSaving(false);
   };
 
-  const fieldGroups = [
+  const fieldGroups: {
+    title: string;
+    fields: { name: string; label: string; icon: LucideIcon; type: string; placeholder?: string }[];
+  }[] = [
     {
       title: '基本信息',
       fields: [
@@ -113,12 +118,12 @@ export default function EditModeForm({ initialData, onSave, onCancel }: EditMode
             </Button>
             <Button
               type="submit"
-              className="bg-tech-cyan hover:bg-tech-sky text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center gap-2"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center gap-2"
               disabled={isSaving || Object.keys(errors).length > 0}
             >
               {isSaving ? (
                 <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground" />
                   <span className="hidden sm:inline ml-2">保存中...</span>
                 </>
               ) : (
@@ -164,7 +169,7 @@ export default function EditModeForm({ initialData, onSave, onCancel }: EditMode
                         rows={4}
                         placeholder="介绍一下自己..."
                         className={`bg-muted/50 border-tech-cyan/20 focus:border-tech-cyan/50 focus:ring-2 focus:ring-tech-cyan/20 transition-all duration-300 resize-none ${
-                          hasError ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : ''
+                          hasError ? 'border-destructive focus:border-destructive focus:ring-destructive/20' : ''
                         }`}
                       />
                     ) : (
@@ -175,15 +180,15 @@ export default function EditModeForm({ initialData, onSave, onCancel }: EditMode
                         value={formData[field.name as keyof typeof formData] || ''}
                         onChange={handleChange}
                         onBlur={() => handleBlur(field.name)}
-                        placeholder={(field as any).placeholder || ''}
+                        placeholder={field.placeholder || ''}
                         className={`bg-muted/50 border-tech-cyan/20 focus:border-tech-cyan/50 focus:ring-2 focus:ring-tech-cyan/20 transition-all duration-300 ${
-                          hasError ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : ''
+                          hasError ? 'border-destructive focus:border-destructive focus:ring-destructive/20' : ''
                         }`}
                       />
                     )}
 
                     {hasError && (
-                      <p className="text-sm text-red-500 flex items-center gap-1 animate-fade-in">
+                      <p className="text-sm text-destructive flex items-center gap-1 animate-fade-in">
                         <X className="w-3 h-3" />
                         {errors[field.name]}
                       </p>

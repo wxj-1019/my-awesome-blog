@@ -11,10 +11,10 @@ interface SocialLinksCardProps {
   isEditing?: boolean;
 }
 const socialConfig = {
-  website: { icon: Globe, label: '个人网站', color: 'text-blue-500' },
-  twitter: { icon: Twitter, label: 'Twitter', color: 'text-sky-500' },
-  github: { icon: Github, label: 'GitHub', color: 'text-gray-600 dark:text-gray-300' },
-  linkedin: { icon: Linkedin, label: 'LinkedIn', color: 'text-blue-600' },
+  website: { icon: Globe, label: '个人网站', color: 'text-info' },
+  twitter: { icon: Twitter, label: 'Twitter', color: 'text-tech-sky' },
+  github: { icon: Github, label: 'GitHub', color: 'text-foreground' },
+  linkedin: { icon: Linkedin, label: 'LinkedIn', color: 'text-info' },
 };
 export default function SocialLinksCard({ socialLinks, isEditing = false }: SocialLinksCardProps) {
   const validLinks = socialLinks.filter(link => link.value);

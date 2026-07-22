@@ -67,7 +67,7 @@ export default function TechStack() {
   const gridItems = techItems.slice(0, 8)
 
   return (
-    <section className="py-6 sm:py-8 md:py-10 lg:py-12">
+    <section className="py-4 sm:py-6">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <BlurIn>
           <div className="flex items-center gap-3 mb-5 sm:mb-6">

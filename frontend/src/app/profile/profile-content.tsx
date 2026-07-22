@@ -9,6 +9,8 @@ import { UserProfile, UserStats } from '@/types';
 import { fetchCurrentUserProfile, updateUserProfile, uploadAvatar, fetchCurrentUserStats } from '@/lib/api/profile';
 import { useLoading } from '@/context/loading-context';
 import { useThemedClasses } from '@/hooks/useThemedClasses';
+import PageActHeader from '@/components/layout/PageActHeader';
+import { FadeIn, Stagger, StaggerItem } from '@/components/motion';
 import TabNavigation from './components/TabNavigation';
 import ProfileView from './components/ProfileView';
 import SettingsView from './components/SettingsView';
@@ -166,27 +168,30 @@ export default function ProfilePageContent() {
   }
   // 主题相关样式
   const cardBgClass = themedClasses.cardBgClass;
-  const accentClass = 'text-primary';
   return (
     <ProtectedRoute>
-      <div className="min-h-screen py-8 sm:py-12 transition-colors duration-300">
+      <div className="min-h-screen pt-24 pb-12 transition-colors duration-300">
         <div className="container mx-auto px-4 max-w-4xl">
           {saveStatus && (
             <div className={`mb-6 p-4 rounded-lg transition-all duration-300 ${
               saveStatus.success 
-                ? 'bg-green-500/20 text-green-700 dark:text-green-400 border border-green-500/30' 
-                : 'bg-red-500/20 text-red-700 dark:text-red-400 border border-red-500/30'
+                ? 'bg-success/20 text-success border border-success/30' 
+                : 'bg-destructive/20 text-destructive border border-destructive/30'
             }`}>
               {saveStatus.message}
             </div>
           )}
-          <div className="mb-8 text-center">
-            <h1 className={`text-4xl font-bold ${accentClass}`}>个人中心</h1>
-            <p className="text-lg mt-2 text-muted-foreground">管理您的个人资料、设置和活动</p>
-          </div>
-          <TabNavigation activeTab={activeTab} setActiveTab={(tab: string) => setActiveTab(tab as 'profile' | 'settings' | 'activity')} />
+          <PageActHeader
+            kicker="账户 · PROFILE"
+            title="个人中心"
+            description="管理您的个人资料、设置和活动"
+          />
+          <FadeIn delay={0.1}>
+            <TabNavigation activeTab={activeTab} setActiveTab={(tab: string) => setActiveTab(tab as 'profile' | 'settings' | 'activity')} />
+          </FadeIn>
           <div className="mt-6">
             {activeTab === 'profile' && (
+              <FadeIn direction="none" duration={0.4}>
               <ProfileView
                 profile={profile}
                 isEditing={isEditing}
@@ -200,42 +205,51 @@ export default function ProfilePageContent() {
                 }}
                 onAvatarChange={handleAvatarUpload}
               />
+              </FadeIn>
             )}
-            {activeTab === 'settings' && <SettingsView />}
+            {activeTab === 'settings' && (
+              <FadeIn direction="none" duration={0.4}>
+                <SettingsView />
+              </FadeIn>
+            )}
             
-            {activeTab === 'activity' && <ActivityView />}
+            {activeTab === 'activity' && (
+              <FadeIn direction="none" duration={0.4}>
+                <ActivityView />
+              </FadeIn>
+            )}
           </div>
           {stats && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-8">
-              <div className={`${cardBgClass} rounded-xl p-4 text-center transition-transform duration-300 hover:scale-105`}>
+            <Stagger className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+              <StaggerItem className={`${cardBgClass} rounded-xl p-4 text-center transition-transform duration-300 hover:scale-105`}>
                 <div className="flex flex-col items-center justify-center">
                   <UserRound className="w-8 h-8 text-tech-cyan mb-2" />
                   <p className="text-2xl font-bold text-tech-cyan">{stats.article_count || 0}</p>
                   <p className="text-sm text-muted-foreground">文章数</p>
                 </div>
-              </div>
-              <div className={`${cardBgClass} rounded-xl p-4 text-center transition-transform duration-300 hover:scale-105`}>
+              </StaggerItem>
+              <StaggerItem className={`${cardBgClass} rounded-xl p-4 text-center transition-transform duration-300 hover:scale-105`}>
                 <div className="flex flex-col items-center justify-center">
                   <Mail className="w-8 h-8 text-tech-cyan mb-2" />
                   <p className="text-2xl font-bold text-tech-cyan">{stats.comment_count || 0}</p>
                   <p className="text-sm text-muted-foreground">评论数</p>
                 </div>
-              </div>
-              <div className={`${cardBgClass} rounded-xl p-4 text-center transition-transform duration-300 hover:scale-105`}>
+              </StaggerItem>
+              <StaggerItem className={`${cardBgClass} rounded-xl p-4 text-center transition-transform duration-300 hover:scale-105`}>
                 <div className="flex flex-col items-center justify-center">
                   <Globe className="w-8 h-8 text-tech-cyan mb-2" />
                   <p className="text-2xl font-bold text-tech-cyan">{stats.total_views || 0}</p>
                   <p className="text-sm text-muted-foreground">总浏览量</p>
                 </div>
-              </div>
-              <div className={`${cardBgClass} rounded-xl p-4 text-center transition-transform duration-300 hover:scale-105`}>
+              </StaggerItem>
+              <StaggerItem className={`${cardBgClass} rounded-xl p-4 text-center transition-transform duration-300 hover:scale-105`}>
                 <div className="flex flex-col items-center justify-center">
                   <Calendar className="w-8 h-8 text-tech-cyan mb-2" />
                   <p className="text-2xl font-bold text-tech-cyan">{stats.joined_date || '-'}</p>
                   <p className="text-sm text-muted-foreground">加入日期</p>
                 </div>
-              </div>
-            </div>
+              </StaggerItem>
+            </Stagger>
           )}
         </div>
       </div>
