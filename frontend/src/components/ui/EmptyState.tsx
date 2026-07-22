@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { motion } from '@/lib/framer-motion';
 import { cn } from '@/lib/utils';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { Button } from '@/components/ui/Button';
 import {
   FileText,
   Inbox,
@@ -139,8 +140,9 @@ const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
         ? 'py-8 px-4'
         : 'py-16 px-4';
 
+    // CTA 复用 ui/Button（default 变体即 bg-primary），仅补充尺寸与悬停上浮
     const ctaClass =
-      'inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all duration-200 hover:scale-105 shadow-lg shadow-primary/20';
+      'gap-2 px-6 py-3 rounded-lg transition-all duration-200 hover:scale-105 shadow-lg shadow-primary/20';
 
     const iconFallback = (
       <div
@@ -246,24 +248,25 @@ const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
                 })}
           >
             {resolvedAction.href ? (
-              <Link
-                href={
-                  resolvedAction.href as React.ComponentProps<typeof Link>['href']
-                }
-                className={ctaClass}
-              >
-                <ActionIcon className="w-5 h-5" />
-                {resolvedAction.label}
-              </Link>
+              <Button asChild className={ctaClass}>
+                <Link
+                  href={
+                    resolvedAction.href as React.ComponentProps<typeof Link>['href']
+                  }
+                >
+                  <ActionIcon className="w-5 h-5" />
+                  {resolvedAction.label}
+                </Link>
+              </Button>
             ) : (
-              <button
+              <Button
                 type="button"
                 onClick={resolvedAction.onClick}
                 className={ctaClass}
               >
                 <ActionIcon className="w-5 h-5" />
                 {resolvedAction.label}
-              </button>
+              </Button>
             )}
           </motion.div>
         )}

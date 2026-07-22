@@ -1,8 +1,9 @@
 'use client';
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from '@/lib/framer-motion';
-import { Camera, Loader2, Image as ImageIcon, FolderOpen } from 'lucide-react';
+import { Camera, Loader2, Image as ImageIcon, FolderOpen, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import EmptyState from '@/components/ui/EmptyState';
 import AlbumCard from '@/components/albums/AlbumCard';
 import AlbumFilter, { FilterType, SortType, ViewMode } from '@/components/albums/AlbumFilter';
 import Lightbox, { LightboxImage } from '@/components/ui/Lightbox';
@@ -379,10 +380,18 @@ const AlbumsPageContent = () => {
           )}
         </AnimatePresence>
         {filteredAndSortedAlbums.length === 0 && (
-          <FadeIn className="text-center py-16">
-            <Camera className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-            <p className="text-lg text-foreground">没有找到匹配的相册</p>
-          </FadeIn>
+          /* 统一空态三要素：图标 + 一句话 + 清除筛选行动按钮 */
+          <EmptyState
+            variant="search"
+            icon={Camera}
+            title="没有找到匹配的相册"
+            description="尝试调整筛选条件或搜索关键词"
+            action={{
+              label: '清除筛选',
+              onClick: () => { setFilter('all'); setSearchTerm(''); },
+              icon: RefreshCw,
+            }}
+          />
         )}
         <Lightbox
           images={lightboxImages}

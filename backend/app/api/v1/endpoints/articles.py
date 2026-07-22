@@ -27,7 +27,7 @@ router = APIRouter()
 
 @router.get("/", response_model=List[ArticleWithAuthor])
 @article_read_rate_limit
-def read_articles(
+async def read_articles(
     request: Request,
     skip: int = Query(0, ge=0, description="Number of items to skip"),
     limit: int = Query(100, ge=1, le=100, description="Maximum 100 items per request"),
@@ -38,18 +38,13 @@ def read_articles(
     search: Optional[str] = Query(None, description="Search in title and content"),
     db: Session = Depends(get_db)
 ) -> Any:
-    """
-    Retrieve articles
-    """
-    from uuid import UUID
-    from app.utils.db_utils import get_articles_by_multiple_filters
-
-    # 使用优化的查询函数
+    """Retrieve articles（热路径：同步查询放 to_thread）。"""
     author_ids = [author_id] if author_id else None
     category_ids = [category_id] if category_id else None
     tag_ids = [tag_id] if tag_id else None
 
-    articles = get_articles_by_multiple_filters(
+    return await asyncio.to_thread(
+        get_articles_by_multiple_filters,
         db,
         author_ids=author_ids,
         category_ids=category_ids,
@@ -57,9 +52,8 @@ def read_articles(
         search=search,
         published_only=published_only,
         limit=limit,
-        offset=skip
+        offset=skip,
     )
-    return articles
 
 
 @router.post("/", response_model=Article)
@@ -71,39 +65,34 @@ async def create_article(
     article_in: ArticleCreate,
     current_user: User = Depends(get_current_active_user)
 ) -> Any:
-    """
-    Create new article
-    """
-    # Check if slug already exists
-    existing_article = crud.get_article_by_slug(db, slug=article_in.slug)
-    if existing_article:
-        raise ConflictException(
-            resource="Article",
-            field="slug",
-            value=article_in.slug
+    """Create new article（slug 检查 + 写入走 to_thread）。"""
+
+    def _create_sync() -> ArticleModel:
+        existing = crud.get_article_by_slug(db, slug=article_in.slug)
+        if existing:
+            raise ConflictException(
+                resource="Article",
+                field="slug",
+                value=article_in.slug,
+            )
+        return crud.create_article(
+            db, article=article_in, author_id=current_user.id  # type: ignore
         )
-    
-    article = crud.create_article(db, article=article_in, author_id=current_user.id)  # type: ignore
-    
-    # Clear related caches
-    from app.services.cache_service import cache_service
+
+    article = await asyncio.to_thread(_create_sync)
     await cache_service.delete(f"article:slug:{article_in.slug}")
-    
     return article
 
 
 @router.get("/featured", response_model=List[ArticleWithAuthor])
 @article_read_rate_limit
-def read_featured_articles(
+async def read_featured_articles(
     request: Request,
     limit: int = Query(10, ge=1, le=50, description="Number of featured articles to return"),
     db: Session = Depends(get_db)
 ) -> Any:
-    """
-    Get featured/pinned articles
-    """
-    articles = crud.get_featured_articles(db, limit=limit)
-    return articles
+    """Get featured/pinned articles."""
+    return await asyncio.to_thread(crud.get_featured_articles, db, limit=limit)
 
 
 @router.get("/test-public")
@@ -116,28 +105,18 @@ def test_public():
 
 @router.get("/popular", response_model=List[ArticleWithAuthor])
 @article_read_rate_limit
-def read_popular_articles(
+async def read_popular_articles(
     request: Request,
     limit: int = Query(10, ge=1, le=50, description="Number of popular articles to return"),
     days: int = Query(30, ge=1, description="Number of days to consider for popularity calculation"),
     db: Session = Depends(get_db)
 ) -> Any:
-    """
-    Get popular articles based on views in recent days
-    """
-    from app.utils.db_utils import get_popular_articles_optimized
-    from app.utils.logger import app_logger
-
+    """Get popular articles based on views in recent days."""
     try:
         app_logger.info(f"Fetching popular articles: limit={limit}, days={days}")
-
-        # 使用优化的查询函数
-        articles = get_popular_articles_optimized(
-            db,
-            limit=limit,
-            days=days
+        articles = await asyncio.to_thread(
+            get_popular_articles_optimized, db, limit=limit, days=days
         )
-
         app_logger.info(f"Successfully fetched {len(articles)} popular articles")
         return articles
     except Exception as e:
@@ -149,27 +128,28 @@ def read_popular_articles(
 
 @router.get("/recommended", response_model=List[ArticleWithAuthor])
 @article_read_rate_limit
-def read_recommended_articles(
+async def read_recommended_articles(
     request: Request,
     limit: int = Query(10, ge=1, le=50, description="Number of recommended articles to return"),
     db: Session = Depends(get_db)
 ) -> Any:
-    """
-    Get recommended articles (published articles sorted by view count)
-    """
-    articles = (
-        db.query(ArticleModel)
-        .filter(ArticleModel.is_published == True)
-        .order_by(ArticleModel.view_count.desc())
-        .limit(limit)
-        .all()
-    )
-    return articles
+    """Get recommended articles (published, by view count)."""
+
+    def _recommended() -> list:
+        return (
+            db.query(ArticleModel)
+            .filter(ArticleModel.is_published == True)  # noqa: E712
+            .order_by(ArticleModel.view_count.desc())
+            .limit(limit)
+            .all()
+        )
+
+    return await asyncio.to_thread(_recommended)
 
 
 @router.get("/search", response_model=List[ArticleWithAuthor])
 @article_read_rate_limit
-def search_articles(
+async def search_articles(
     request: Request,
     q: str = Query(..., min_length=1, max_length=100, description="Search query"),
     category_slug: Optional[str] = Query(None, description="Filter by category slug"),
@@ -180,46 +160,42 @@ def search_articles(
     limit: int = Query(100, ge=1, le=100, description="Maximum 100 items per request"),
     db: Session = Depends(get_db)
 ) -> Any:
-    """
-    Search articles by query string with optional filters
-    """
-    # Get category_id if category_slug is provided
-    category_id = None
-    if category_slug:
-        category = crud.get_category_by_slug(db, category_slug)
-        if not category:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Category not found",
-            )
-        category_id = category.id
+    """Search articles by query string with optional filters."""
 
-    # Get tag_id if tag_slug is provided
-    tag_id = None
-    if tag_slug:
-        tag = crud.get_tag_by_slug(db, tag_slug)
-        if not tag:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Tag not found",
-            )
-        tag_id = tag.id
+    def _search() -> list:
+        category_id = None
+        if category_slug:
+            category = crud.get_category_by_slug(db, category_slug)
+            if not category:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Category not found",
+                )
+            category_id = category.id
 
-    from uuid import UUID
-    author_uuid = UUID(author_id) if author_id else None
+        tag_id = None
+        if tag_slug:
+            tag = crud.get_tag_by_slug(db, tag_slug)
+            if not tag:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Tag not found",
+                )
+            tag_id = tag.id
 
-    articles = crud.get_articles_with_categories_and_tags(
-        db,
-        skip=skip,
-        limit=limit,
-        published_only=published_only,
-        author_id=author_uuid,
-        search=q,
-        category_id=category_id,
-        tag_id=tag_id
-    )
+        author_uuid = UUID(author_id) if author_id else None
+        return crud.get_articles_with_categories_and_tags(
+            db,
+            skip=skip,
+            limit=limit,
+            published_only=published_only,
+            author_id=author_uuid,
+            search=q,
+            category_id=category_id,
+            tag_id=tag_id,
+        )
 
-    return articles
+    return await asyncio.to_thread(_search)
 
 
 @router.get("/slug/{slug}", response_model=ArticleWithAuthor)
@@ -260,8 +236,9 @@ async def read_related_articles(
             identifier=article_id
         )
 
-    related_articles = crud.get_related_articles(db, article_id=article_uuid, limit=limit)
-    return related_articles
+    return await asyncio.to_thread(
+        crud.get_related_articles, db, article_id=article_uuid, limit=limit
+    )
 
 
 @router.get("/cursor-paginated", response_model=dict)
@@ -309,15 +286,14 @@ async def search_articles_fulltext(
     """
     Search articles using PostgreSQL fulltext search
     """
-    articles = crud.search_articles_fulltext(
-        db=db,
+    return await asyncio.to_thread(
+        crud.search_articles_fulltext,
+        db,
         search_query=search_query,
         published_only=published_only,
         skip=skip,
-        limit=limit
+        limit=limit,
     )
-
-    return articles
 
 
 @router.get("/{article_id}", response_model=ArticleWithAuthor)

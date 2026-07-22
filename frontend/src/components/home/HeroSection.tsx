@@ -331,13 +331,14 @@ export default function HeroSection() {
         />
       </motion.div>
 
-      {/* 气泡：L2 桌面 16 / L1 移动 8 */}
+      {/* 气泡：仅 Hero 浪线附近稀疏点缀，内容区不挂 */}
       <div
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-[320px]"
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-[280px]"
         aria-hidden
       >
         <BubbleField
           count={isDesktop ? HOME_BUBBLE_COUNT.desktop : HOME_BUBBLE_COUNT.mobile}
+          withHighlight={false}
         />
       </div>
     </div>

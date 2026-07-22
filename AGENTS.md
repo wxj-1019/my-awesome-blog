@@ -1,7 +1,7 @@
 # AGENTS.md - My Awesome Blog 框架规则
 
 > AI Agent 在本项目中的最高级别规则入口。修改代码前先读本文件，再按模块规则执行。  
-> 最后更新：2026-07-20  
+> 最后更新：2026-07-23  
 > 历史修复记录：[`docs/changelog-agents.md`](./docs/changelog-agents.md)
 
 ## 1. 项目定位与架构
@@ -21,9 +21,9 @@
 - **博客核心**：文章、分类、标签、评论、RSS
 - **扩展内容**：作品集、时间线、相册、友链、打字机文案、订阅、留言
 - **多媒体**：音乐、视频、游戏入口（导航「家」`/home`）
-- **AI**：多 LLM、对话、记忆、提示词（前后端 `/ai/*` 与 admin）
+- **AI**：多 LLM、Agent 对话（**主用途：写文章辅助**，含润色 polish）、记忆、提示词（前后端 `/ai/*` 与 admin）
 - **后台**：`/admin/*` CMS + 监控/审计/天气等
-- **基础设施**：JWT、多租户 `tenant_id`、Redis 缓存、OSS、限流、调度
+- **基础设施**：JWT、`User.tenant_id`（见 §7 定位说明）、Redis 缓存、OSS、限流、调度
 
 ### 1.2 目录结构
 
@@ -157,7 +157,8 @@ docker-compose -f docker-compose.prod.yml up -d
 | 项 | 说明 |
 |----|------|
 | 后端端口 | **8989**，不是 8000 |
-| 多租户 | `User.tenant_id` 非空；测试造用户必须带 `tenant_id` |
+| tenant_id | **个人站定位**：非 SaaS 多租户隔离。`User.tenant_id` 非空（注册默认租户），**仅 AI 侧**（prompt / memory / conversation 等）按租户作用域；文章/评论等内容主链**不按租户过滤**。测试造用户必须带 `tenant_id`。勿按「全站多租户」改内容 API |
+| Agent chat | `/api/v1/agent/chat` + polish：**写作辅助**（查站内文、润色草稿）；非通用客服 C2 平台 |
 | Live2D | 根布局中注释；缺 `public/wanko/runtime`，勿擅自启用 |
 | 测试 DB | 默认 SQLite；PG 全文搜索相关用例可能 skip |
 | 环境变量 | 密钥与 DB URL 只从 env 读取；README/compose 不写死生产密码 |

@@ -58,21 +58,6 @@ export default function ScrollIndicator() {
         </motion.div>
       </motion.div>
 
-      {/* 脉冲效果 */}
-      {!shouldReduceMotion && (
-        <motion.div
-          className="absolute -inset-4 rounded-full border border-white/20 dark:border-white/20 pointer-events-none"
-          animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.5, 0, 0.5],
-          }}
-          transition={{
-            duration: 2,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
-        />
-      )}
-    </motion.button>
+      </motion.button>
   );
 }

@@ -4,6 +4,7 @@ import { motion } from '@/lib/framer-motion';
 import { ChevronDown, HelpCircle } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
 import { Stagger, StaggerItem, FadeIn } from '@/components/motion';
+import { ScrollRevealLine } from '@/components/gsap/ScrollNarrative';
 import { cn } from '@/lib/utils';
 
 interface FAQItem {
@@ -65,6 +66,8 @@ export default function FAQAccordion() {
             <p className="font-sf-pro-text text-foreground/70">
               你可能想了解的事情
             </p>
+            {/* 分区揭示线：scaleX 由外层 ScrollNarrative 的 GSAP 写入 */}
+            <ScrollRevealLine className="mx-auto" />
           </div>
           {/* Stagger 自带 reduced-motion 回退 */}
           <Stagger className="space-y-4" stagger={0.05}>

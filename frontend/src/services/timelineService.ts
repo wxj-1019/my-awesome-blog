@@ -35,7 +35,8 @@ export interface TimelineEventUpdate {
   sort_order?: number;
 }
 
-const API_URL = '/timeline-events';
+/** 集合路径必须带尾斜杠，避免 FastAPI 307 绝对跳转到 :8989 导致 Failed to fetch */
+const API_URL = '/timeline-events/';
 
 export const timelineService = {
   async getTimelineEvents(params?: { is_active?: boolean; skip?: number; limit?: number }): Promise<TimelineEvent[]> {
@@ -44,11 +45,12 @@ export const timelineService = {
     if (params?.skip !== undefined) {queryString.append('skip', params.skip.toString());}
     if (params?.limit !== undefined) {queryString.append('limit', params.limit.toString());}
 
-    return apiRequest(`${API_URL}?${queryString.toString()}`);
+    const qs = queryString.toString();
+    return apiRequest(qs ? `${API_URL}?${qs}` : API_URL);
   },
 
   async getTimelineEventById(eventId: string): Promise<TimelineEvent> {
-    return apiRequest(`${API_URL}/${eventId}`);
+    return apiRequest(`/timeline-events/${eventId}`);
   },
 
   async createTimelineEvent(eventData: TimelineEventCreate): Promise<TimelineEvent> {
@@ -59,14 +61,14 @@ export const timelineService = {
   },
 
   async updateTimelineEvent(eventId: string, eventData: TimelineEventUpdate): Promise<TimelineEvent> {
-    return apiRequest(`${API_URL}/${eventId}`, {
+    return apiRequest(`/timeline-events/${eventId}`, {
       method: 'PUT',
       body: eventData,
     });
   },
 
   async deleteTimelineEvent(eventId: string): Promise<void> {
-    return apiRequest(`${API_URL}/${eventId}`, {
+    return apiRequest(`/timeline-events/${eventId}`, {
       method: 'DELETE',
     });
   },

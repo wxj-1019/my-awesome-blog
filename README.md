@@ -1,6 +1,8 @@
 # My Awesome Blog
 
-Enterprise-grade personal site / blog monorepo: **Next.js 16** frontend + **FastAPI** backend, with CMS admin, AI chat/memory/prompts, media hubs, and multi-tenant-ready user model.
+Enterprise-grade **personal site / blog** monorepo: **Next.js 16** frontend + **FastAPI** backend, with CMS admin, AI writing assistant (chat + polish), memory/prompts, and media hubs.
+
+> **Tenant note:** `User.tenant_id` is required and used mainly by AI-side scopes (prompts/memories/conversations). Content APIs (articles, comments, …) are **single-site**, not multi-tenant SaaS isolation.
 
 > **AI agents:** follow [`AGENTS.md`](./AGENTS.md) and [`docs/rules/`](./docs/rules/).  
 > **Change history (agents):** [`docs/changelog-agents.md`](./docs/changelog-agents.md)
@@ -35,9 +37,9 @@ Enterprise-grade personal site / blog monorepo: **Next.js 16** frontend + **Fast
 - **Blog:** articles (publish / featured / pin), categories, tags, comments, RSS (`/feed.xml`)
 - **Site content:** portfolio, timeline, albums, friend links, typewriter copy, subscriptions, messages
 - **Media hubs:** music, videos, games (`/home` hub)
-- **AI:** multi-provider LLM, conversations, memories, prompts (app + admin)
+- **AI:** multi-provider LLM, agent chat (**article writing aid**) + polish, conversations, memories, prompts
 - **Admin:** `/admin/*` CMS, audit logs, monitoring, weather, settings
-- **Infra:** JWT auth, tenant-scoped users, Redis cache, OSS upload, rate limit, schedulers
+- **Infra:** JWT auth, `tenant_id` on users (AI scopes / reserved; not full multi-tenant content isolation), Redis, OSS, rate limit, schedulers
 
 Interactive API docs when backend is running: [http://localhost:8989/docs](http://localhost:8989/docs)
 

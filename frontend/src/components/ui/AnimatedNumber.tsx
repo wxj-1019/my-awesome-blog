@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion, useSpring, useTransform, useInView, SpringOptions } from '@/lib/framer-motion'
+import { useReducedMotion } from '@/hooks/useReducedMotion'
 
 interface AnimatedNumberProps {
   value: number
@@ -23,7 +24,8 @@ export default function AnimatedNumber({
   const ref = useRef<HTMLSpanElement>(null)
   const isInView = useInView(ref, { once: true, margin: '-50px' })
   const [hasAnimated, setHasAnimated] = useState(false)
-  
+  const reducedMotion = useReducedMotion()
+
   const spring = useSpring(0, springOptions)
   const display = useTransform(spring, (latest) => formatFn(Math.round(latest)))
 
@@ -36,6 +38,18 @@ export default function AnimatedNumber({
       return () => clearTimeout(timeout)
     }
   }, [isInView, hasAnimated, spring, value, delay])
+
+  // 动画完成后 value 再变化时，平滑过渡到新值（如实时统计更新）
+  useEffect(() => {
+    if (hasAnimated) {
+      spring.set(value)
+    }
+  }, [value, hasAnimated, spring])
+
+  // reduced-motion：不跑 spring，直接渲染终值
+  if (reducedMotion) {
+    return <span className={className}>{formatFn(value)}</span>
+  }
 
   return (
     <motion.span ref={ref} className={className}>

@@ -168,12 +168,12 @@ tailwind.config.js          ← 把 CSS 变量映射为 Tailwind 类
 
 ### 4.2 全局动态背景（AmbientBackground）
 
-`components/visual/AmbientBackground.tsx`：**两套主题层常驻 DOM，纯 CSS 按 `html.light/.dark` 切换**，无 JS 分支、无闪烁。
+`components/visual/AmbientBackground.tsx`：按 `resolvedTheme` 渲染其中一套场景层（`data-ambient-world`），纯 CSS 场景（曾短暂试用 blurred-video-backdrop 视频底，已回退），无 BubbleField——气泡仅留在 Hero/入水叙事段。
+两场景**镜像构图 + 色域分离 + 运动对比**以规避趋同；并有 `useScroll` 滚动视差（远 24 / 月 36 / 云 56 / 近景 84px，reduced-motion 归零）。
 
-- **浅色 · 林间晨光**：晨光基底 + 丁达尔光柱 ×4（`skewX` 摇曳 24–42s 错峰）+ 光尘微粒（桌 16 / 移 8，上浮+横摆）+ 柔和 bokeh ×3 + 底部远林绿意暗示。
-- **深色 · 月夜云海**：月亮 + 月晕 + 云海 ×3（60/90/120s 三速漂移）+ 星空（桌 24 / 移 12 明灭）+ 偶发流星（18s 周期）+ 生物荧光点（桌 12 / 移 6）。
-- 公共层：水体渐变基底 + 稀疏气泡（桌 6 / 移 3，无高光）+ 噪点。
-- 约束：`fixed -z-10 pointer-events-none aria-hidden`，只动 transform/opacity，reduced-motion 全静态。
+- **浅色 · 林间晨光**：暖金晨空 → 雾绿基底 + 旭日（居右）+ 林隙光柱 ×3 + 金绿 bokeh ×3 + 花粉上浮 + 落叶 ×3（旋转飘坠）+ 冷杉林剪影 ×2 + 鹿剪影。
+- **深色 · 月夜云海**：深邃蓝夜 + 亮月（居左，含环形山）与月晕 + 月光海路 + 云海 ×3（银边 + 三速漂移）+ 星空与星座描边绘入（居右）+ 双流星错峰 + 山脉剪影 ×2 + 远灯暖点 + 近地草雾。
+- 公共约束：`fixed -z-10 pointer-events-none aria-hidden`，只动 transform/opacity，reduced-motion 全静态（流星/落叶隐藏、视差归零）；中间区域更透，保证玻璃卡可读；场景色板采自视频氛围，为氛围层特许色值（组件层仍须走 token）。
 
 ### 4.3 页面背景原则
 

@@ -200,13 +200,13 @@ export default function Navbar() {
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         className={cn(
-          // overflow-visible：桌面下拉从 h-16 顶栏向下展开，不可裁剪
-          'fixed top-0 left-0 right-0 z-[100] w-full overflow-visible transition-all duration-300',
+          // overflow-visible：桌面下拉与移动端面板从 h-16 顶栏向下展开，不可裁剪
+          // header 高度固定 h-16，移动端面板为独立绝对定位层，不做高度补间推挤整页
+          'fixed top-0 left-0 right-0 z-[100] w-full h-16 overflow-visible transition-all duration-300',
           reducedMotion ? 'transition-none' : '',
           scrolled || isHovered || mobileMenuOpen
             ? 'bg-glass backdrop-blur-3xl shadow-2xl'
-            : 'bg-transparent backdrop-blur-0',
-          mobileMenuOpen ? 'h-64' : 'h-16'
+            : 'bg-transparent backdrop-blur-0'
         )}
       >
         <div className="relative z-[101] w-full h-16 flex items-center justify-between px-4 md:px-6 lg:px-8 overflow-visible">
@@ -237,7 +237,7 @@ export default function Navbar() {
                         <button
                           type="button"
                           className={cn(
-                            'nav-link relative text-sm font-medium transition-colors flex items-center py-2 px-3 space-x-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-tech-cyan rounded-lg overflow-hidden group',
+                            'nav-link relative text-sm font-medium transition-colors flex items-center py-2 px-3 space-x-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg overflow-hidden group',
                             pathname === link.href
                               ? "text-tech-cyan"
                               : "text-foreground/80 hover:text-tech-cyan"
@@ -302,7 +302,7 @@ export default function Navbar() {
                         <button
                           type="button"
                           className={cn(
-                            'nav-link relative text-sm font-medium transition-colors flex items-center py-2 px-3 space-x-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-tech-cyan rounded-lg overflow-hidden group',
+                            'nav-link relative text-sm font-medium transition-colors flex items-center py-2 px-3 space-x-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg overflow-hidden group',
                             pathname === link.href
                               ? "text-tech-cyan"
                               : "text-foreground/80 hover:text-tech-cyan"
@@ -361,7 +361,7 @@ export default function Navbar() {
                       <Link
                         href={link.href as Route}
                         className={cn(
-                          'nav-link relative text-sm font-medium transition-colors flex items-center py-2 px-3 space-x-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-tech-cyan rounded-lg overflow-hidden group',
+                          'nav-link relative text-sm font-medium transition-colors flex items-center py-2 px-3 space-x-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg overflow-hidden group',
                           pathname === link.href
                             ? "text-tech-cyan"
                             : "text-foreground/80 hover:text-tech-cyan"
@@ -433,28 +433,40 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* 移动端菜单（纯 CSS 过渡） */}
+        {/* 移动端菜单：独立绝对定位层，只动 transform/opacity（面板下沉淡入） */}
         <div
           className={cn(
             "md:hidden absolute top-16 left-0 right-0 bg-glass backdrop-blur-3xl border-b border-glass-border overflow-y-auto",
-            "transition-all duration-300 ease-out",
+            "transition-all duration-300 ease-out origin-top",
+            reducedMotion ? 'transition-none' : '',
             mobileMenuOpen
-              ? "opacity-100 translate-x-0 pointer-events-auto"
-              : "opacity-0 translate-x-full pointer-events-none"
+              ? "opacity-100 translate-y-0 pointer-events-auto"
+              : "opacity-0 -translate-y-2 pointer-events-none"
           )}
         >
           <nav role="navigation" aria-label="移动端导航" className="py-4 px-4 space-y-2">
-            {navLinks.map((link) => {
+            {navLinks.map((link, index) => {
               const IconComponent = link.icon;
               const hasChildren = link.children && link.children.length > 0;
 
               return (
-                <div key={link.href}>
+                /* 菜单项入场 stagger：每项 y:8→0 + opacity，间隔 40ms（纯 transform/opacity） */
+                <div
+                  key={link.href}
+                  className={cn(
+                    'transition-all duration-300 ease-out',
+                    reducedMotion ? 'transition-none' : '',
+                    mobileMenuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
+                  )}
+                  style={{
+                    transitionDelay: mobileMenuOpen && !reducedMotion ? `${index * 40}ms` : '0ms'
+                  }}
+                >
                   <Link
                     href={link.href as Route}
                     onClick={() => setMobileMenuOpen(false)}
                     className={cn(
-                      'flex items-center space-x-3 py-3 px-4 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-tech-cyan',
+                      'flex items-center space-x-3 py-3 px-4 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                       pathname === link.href
                         ? "bg-tech-cyan/20 text-tech-cyan"
                         : "text-foreground/80 hover:bg-glass hover:text-tech-cyan"

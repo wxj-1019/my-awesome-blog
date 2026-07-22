@@ -84,10 +84,9 @@ export default function TechStack() {
         <FadeIn delay={0.08}>
           <div className="relative bg-glass/20 backdrop-blur-xl border border-glass-border rounded-lg p-4 sm:p-6 md:p-8 overflow-hidden">
             <div data-testid="tech-orbital-layer" className="absolute inset-0 pointer-events-none" aria-hidden="true">
-              <div className="absolute left-1/2 top-1/2 h-48 w-48 -translate-x-1/2 -translate-y-1/2 rounded-full border border-tech-cyan/15 shadow-[0_0_60px_rgba(6,182,212,.12)]" />
-              <div className="absolute left-1/2 top-1/2 h-28 w-28 -translate-x-1/2 -translate-y-1/2 rounded-full border border-tech-sky/20" />
-              <div className="absolute inset-x-8 top-1/2 h-px bg-gradient-to-r from-transparent via-tech-cyan/25 to-transparent" />
-              <div className="absolute left-1/2 top-8 bottom-8 w-px bg-gradient-to-b from-transparent via-tech-cyan/20 to-transparent" />
+              {/* 结构十字线即可；圆形光晕叠在 logo 上影响辨识，已移除 */}
+              <div className="absolute inset-x-8 top-1/2 h-px bg-gradient-to-r from-transparent via-tech-cyan/20 to-transparent" />
+              <div className="absolute left-1/2 top-8 bottom-8 w-px bg-gradient-to-b from-transparent via-tech-cyan/15 to-transparent" />
             </div>
             {/* 静态顶线：去掉 animate-pulse，降低中段持续动画 */}
             <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent opacity-60" />

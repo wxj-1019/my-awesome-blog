@@ -19,14 +19,43 @@
   100% { background-position: 0% 50%; }
 }
 
+/* 中档摇摆：轻摆 + 轻浮，不抢导航 */
 @keyframes rope-swing {
-  0%, 100% { transform: rotate(-3deg); }
-  50% { transform: rotate(3deg); }
+  0%,
+  100% {
+    transform: rotate(-3deg) translateY(0);
+  }
+  50% {
+    transform: rotate(3deg) translateY(5px);
+  }
 }
 
+/* 拉动：下沉后回弹，一次定住 */
 @keyframes rope-pull {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(10px); }
+  0% {
+    transform: rotate(0deg) translateY(0);
+  }
+  40% {
+    transform: rotate(0deg) translateY(14px);
+  }
+  70% {
+    transform: rotate(0deg) translateY(4px);
+  }
+  100% {
+    transform: rotate(0deg) translateY(0);
+  }
+}
+
+/* 单层涟漪 */
+@keyframes rope-tide-ripple {
+  0% {
+    transform: translateX(-50%) scale(0.5);
+    opacity: 0.5;
+  }
+  100% {
+    transform: translateX(-50%) scale(1.7);
+    opacity: 0;
+  }
 }
 
 @keyframes glitch-1 {

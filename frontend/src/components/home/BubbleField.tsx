@@ -114,7 +114,7 @@ export default function BubbleField({
         bubbles.map((b, i) => (
           <span
             key={i}
-            className="absolute bottom-0 rounded-full border border-tech-cyan/30 bg-tech-cyan/10 backdrop-blur-[1px]"
+            className="absolute bottom-0 rounded-full border border-primary/15 bg-primary/8"
             style={{
               left: `${b.left}%`,
               width: `${b.size}px`,
@@ -132,7 +132,7 @@ export default function BubbleField({
         bubbles.map((b, i) => (
           <span
             key={`g-${i}`}
-            className="absolute bottom-0 rounded-full bg-white/40"
+            className="absolute bottom-0 rounded-full bg-primary/25"
             style={{
               left: `calc(${b.left}% + ${b.size * 0.18}px)`,
               bottom: `${b.size * 0.35}px`,

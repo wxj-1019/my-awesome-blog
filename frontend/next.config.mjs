@@ -2,6 +2,8 @@
 const nextConfig = {
   output: 'standalone',
   typedRoutes: true,
+  // 避免 /api/v1/foo/ 被 308 成无尾斜杠，再被 FastAPI 307 到绝对 :8989 引发 CORS Failed to fetch
+  skipTrailingSlashRedirect: true,
   images: {
     remotePatterns: [
       {

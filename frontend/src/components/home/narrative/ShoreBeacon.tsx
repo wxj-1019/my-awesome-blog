@@ -71,10 +71,9 @@ export default function ShoreBeacon({ className }: { className?: string }) {
               className="pointer-events-none absolute inset-0"
               aria-hidden
             >
-              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
-              <div className="absolute -left-16 top-1/2 h-40 w-40 -translate-y-1/2 rounded-full border border-primary/10" />
-              <div className="absolute -right-20 bottom-0 h-48 w-48 rounded-full border border-primary/10" />
-              <div className="absolute inset-x-[15%] bottom-10 h-8 rounded-full bg-primary/10 blur-2xl" />
+              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/45 to-transparent" />
+              {/* 底部弱提亮条，不用圆形光斑 */}
+              <div className="absolute inset-x-[18%] bottom-8 h-10 rounded-full bg-primary/8 blur-2xl" />
             </div>
 
             <div className="relative z-10">

@@ -16,6 +16,7 @@ import GlassCard from '@/components/ui/GlassCard';
 import PageShell from '@/components/layout/PageShell';
 import PageHeader from '@/components/layout/PageHeader';
 import { FadeIn, Stagger, StaggerItem } from '@/components/motion';
+import ScrollNarrative, { ScrollRevealLine } from '@/components/gsap/ScrollNarrative';
 
 export default function AboutPageContent() {
   const [friendLinks, setFriendLinks] = useState<FriendLink[]>([]);
@@ -75,21 +76,26 @@ export default function AboutPageContent() {
       />
 
       <div className="max-w-4xl mx-auto space-y-6">
-        <FadeIn>
-          <GlassCard padding="lg">
-            <p className="text-base md:text-lg text-muted-foreground leading-relaxed">
-              凭借多年的软件开发经验，我专注于为复杂问题创建优雅的解决方案。
-              我的专业知识涵盖前后端技术，特别关注现代 JavaScript 框架和云架构。
-            </p>
-          </GlassCard>
-        </FadeIn>
+        {/* 分区层滚动叙事：容器视差 + 标题揭示线（GSAP 单一写入，reduced/移动端静态） */}
+        <ScrollNarrative>
+          <FadeIn>
+            <GlassCard padding="lg">
+              <p className="text-base md:text-lg text-muted-foreground leading-relaxed">
+                凭借多年的软件开发经验，我专注于为复杂问题创建优雅的解决方案。
+                我的专业知识涵盖前后端技术，特别关注现代 JavaScript 框架和云架构。
+              </p>
+            </GlassCard>
+          </FadeIn>
+        </ScrollNarrative>
 
-        <FadeIn delay={0.1}>
-          <GlassCard padding="lg">
-            <h2 className="text-xl md:text-2xl font-bold text-foreground mb-4">
-              在这里你会发现
-            </h2>
-            <p className="text-muted-foreground mb-6">这个博客涵盖广泛的主题，包括：</p>
+        <ScrollNarrative>
+          <FadeIn delay={0.1}>
+            <GlassCard padding="lg">
+              <h2 className="text-xl md:text-2xl font-bold text-foreground mb-4">
+                在这里你会发现
+              </h2>
+              <ScrollRevealLine className="mb-4" />
+              <p className="text-muted-foreground mb-6">这个博客涵盖广泛的主题，包括：</p>
 
             <Stagger className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {features.map((feature) => {
@@ -111,28 +117,34 @@ export default function AboutPageContent() {
               })}
             </Stagger>
           </GlassCard>
-        </FadeIn>
+          </FadeIn>
+        </ScrollNarrative>
 
-        <FadeIn delay={0.15}>
-          <GlassCard padding="lg">
-            <h2 className="text-xl md:text-2xl font-bold text-foreground mb-3">联系方式</h2>
-            <p className="text-muted-foreground leading-relaxed">
-              有问题或想要联系？欢迎通过
-              <Link
-                href="/contact"
-                className="mx-1 text-primary underline-offset-2 hover:underline"
-              >
-                联系页面
-              </Link>
-              与我取得联系，或在社交媒体上关注我。
-            </p>
-          </GlassCard>
-        </FadeIn>
+        <ScrollNarrative>
+          <FadeIn delay={0.15}>
+            <GlassCard padding="lg">
+              <h2 className="text-xl md:text-2xl font-bold text-foreground mb-3">联系方式</h2>
+              <ScrollRevealLine className="mb-3" />
+              <p className="text-muted-foreground leading-relaxed">
+                有问题或想要联系？欢迎通过
+                <Link
+                  href="/contact"
+                  className="mx-1 text-primary underline-offset-2 hover:underline"
+                >
+                  联系页面
+                </Link>
+                与我取得联系，或在社交媒体上关注我。
+              </p>
+            </GlassCard>
+          </FadeIn>
+        </ScrollNarrative>
 
         {(loadingLinks || friendLinks.length > 0) && (
-          <FadeIn delay={0.2}>
-            <GlassCard padding="lg">
-              <h2 className="text-xl md:text-2xl font-bold text-foreground mb-6">友情链接</h2>
+          <ScrollNarrative>
+            <FadeIn delay={0.2}>
+              <GlassCard padding="lg">
+                <h2 className="text-xl md:text-2xl font-bold text-foreground mb-6">友情链接</h2>
+                <ScrollRevealLine className="mb-6 -mt-4" />
               {loadingLinks ? (
                 <div className="flex justify-center items-center py-8">
                   <Loader2 className="w-8 h-8 text-primary animate-spin" aria-label="加载中" />
@@ -173,7 +185,8 @@ export default function AboutPageContent() {
                 </Stagger>
               )}
             </GlassCard>
-          </FadeIn>
+            </FadeIn>
+          </ScrollNarrative>
         )}
       </div>
     </PageShell>

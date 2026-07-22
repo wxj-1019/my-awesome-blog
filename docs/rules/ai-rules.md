@@ -5,14 +5,18 @@
 
 ## 1. 模块定位
 
-AI 模块为博客提供智能对话、长期记忆、提示词管理功能。核心能力：
+AI 模块为**个人站写作与辅助**提供能力。核心能力：
 
 - 多 LLM 提供商支持（DeepSeek、GLM、Qwen）
-- 流式/非流式聊天
-- 会话（Conversation）管理
+- **Agent chat（主用途：写文章）**：站内检索工具 + 对话；`/agent/polish` Writer-Critic 润色草稿
+- 流式/非流式聊天、会话（Conversation）管理
 - 短期记忆（Redis）+ 长期记忆（PGVector）
 - 提示词版本控制与 A/B 测试
 - 上下文窗口与摘要
+
+### 1.1 个人站 · tenant
+- 非多租户内容隔离；`tenant_id` 主要用于 prompt/memory/conversation 等 AI 数据作用域。
+- Agent 工具默认查**本站已发布**公开内容即可，勿按 SaaS 租户拆文章库。
 
 ## 2. 目录结构
 

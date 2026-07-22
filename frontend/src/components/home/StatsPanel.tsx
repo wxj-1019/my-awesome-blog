@@ -108,9 +108,9 @@ export default function StatsPanel() {
   return (
     <section className="relative overflow-hidden py-6 sm:py-8">
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-        <div className="absolute inset-x-8 top-8 h-px bg-gradient-to-r from-transparent via-tech-cyan/25 to-transparent" />
-        <div className="absolute inset-0 opacity-[0.04] [background-image:linear-gradient(rgba(6,182,212,.45)_1px,transparent_1px),linear-gradient(90deg,rgba(6,182,212,.45)_1px,transparent_1px)] [background-size:56px_56px]" />
-        <div className="absolute right-[8%] top-16 h-44 w-44 rounded-full border border-tech-cyan/10 shadow-[0_0_80px_rgba(6,182,212,.1)]" />
+        {/* 仅保留极淡网格与顶线，去掉圆形装饰以免干扰阅读 */}
+        <div className="absolute inset-x-8 top-8 h-px bg-gradient-to-r from-transparent via-tech-cyan/20 to-transparent" />
+        <div className="absolute inset-0 opacity-[0.03] [background-image:linear-gradient(rgba(6,182,212,.4)_1px,transparent_1px),linear-gradient(90deg,rgba(6,182,212,.4)_1px,transparent_1px)] [background-size:56px_56px]" />
       </div>
       <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
         <FadeIn>

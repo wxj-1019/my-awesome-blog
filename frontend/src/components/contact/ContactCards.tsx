@@ -2,6 +2,7 @@
 import { motion } from '@/lib/framer-motion';
 import { Mail, Github, Twitter, Linkedin, MapPin, Clock, ArrowRight } from 'lucide-react';
 import { Stagger, StaggerItem, HoverLift } from '@/components/motion';
+import { ScrollRevealLine } from '@/components/gsap/ScrollNarrative';
 
 interface ContactCard {
   id: string;
@@ -85,6 +86,8 @@ export default function ContactCards() {
             <p className="font-sf-pro-text text-foreground/70 max-w-2xl mx-auto">
               除了邮件，你也可以通过以下渠道联系我
             </p>
+            {/* 分区揭示线：scaleX 由外层 ScrollNarrative 的 GSAP 写入 */}
+            <ScrollRevealLine className="mx-auto" />
           </div>
           {/* Stagger 自带 reduced-motion 回退 */}
           <Stagger className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">

@@ -10,9 +10,9 @@
  * - L0 reduced-motion：无循环、无 drift、path 满绘；气泡不渲染
  * - L1 移动：卷轴 snap 横滑；洋流静态线；Dive 光柱静态
  * - L2 桌面：焦点景深 + 洋流描边进度 + Dive 色温 scrub
- * - 持续循环允许：浪（WaveStack）+ 多源稀疏气泡（见 HOME_BUBBLE_COUNT*）
- *   · Hero 出口：HOME_BUBBLE_COUNT（桌 16 / 移 8）
- *   · Dive 入水：HOME_BUBBLE_COUNT_UNDERWATER（桌 8 / 移 4，无高光）
+ * - 持续循环允许：浪（WaveStack）+ 稀疏气泡（仅 Hero / Dive，内容幕不挂）
+ *   · Hero 出口：HOME_BUBBLE_COUNT（桌 6 / 移 3，无高光）
+ *   · Dive 入水：HOME_BUBBLE_COUNT_UNDERWATER（桌 4 / 移 2，无高光）
  *   · 全局 AmbientBackground：dark 桌 5/移 3 · light 桌 6/移 3（贴合 Hero 月夜/鹿境；见 AmbientBackground.tsx）
  * - 禁止：矩阵雨、Reel 自动漂移、每幕无限光扫
  */
@@ -59,8 +59,8 @@ export const HOME_TRANSITION = {
 } as const;
 
 export const HOME_BUBBLE_COUNT = {
-  desktop: 16,
-  mobile: 8,
+  desktop: 6,
+  mobile: 3,
 } as const;
 
 export const HOME_GLOW = {
@@ -107,11 +107,11 @@ export const HOME_DIVE = {
 } as const;
 
 /**
- * 四期 · 水下残影气泡（较 Hero 减半，控制 DOM 与预算）
+ * 四期 · 水下残影气泡（较 Hero 更稀，控制 DOM 与阅读干扰）
  */
 export const HOME_BUBBLE_COUNT_UNDERWATER = {
-  desktop: 8,
-  mobile: 4,
+  desktop: 4,
+  mobile: 2,
 } as const;
 
 /**

@@ -49,8 +49,8 @@ describe('DiveTransition · 多层入水装置', () => {
 
     expect(bubbleFieldMock).toHaveBeenCalled();
     const props = bubbleFieldMock.mock.calls[0][0];
-    // jsdom matchMedia mock 恒为 false → 走移动端数量
-    expect(props.count).toBe(4);
+    // jsdom matchMedia mock 恒为 false → 走移动端数量（HOME_BUBBLE_COUNT_UNDERWATER.mobile）
+    expect(props.count).toBe(2);
     expect(props.withHighlight).toBe(false);
   });
 });

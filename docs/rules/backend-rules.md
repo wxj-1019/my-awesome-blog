@@ -83,17 +83,26 @@ async def create_article(
 ```
 
 ### 4.3 同步 vs 异步
-- 当前数据库使用同步 SQLAlchemy Session。
-- Endpoint 函数声明为 `async`，但数据库操作可直接调用同步 CRUD。
-- 对于会阻塞 IO 的批量/复杂查询，使用 `asyncio.to_thread()` 包装。
+- 当前数据库使用**同步** SQLAlchemy Session（`get_db`）。
+- Endpoint 可声明为 `async`；**热路径**（列表、搜索、创建、slug 详情等）的同步 CRUD / 查询必须用 `asyncio.to_thread()` 包一层，避免堵事件循环。
+- 已有 `*_async` CRUD 若内部已 `to_thread`/`run_in_executor`，直接 `await`，勿再套一层。
+- 批量/复杂删除等同样 `to_thread`。
 - 示例：
   ```python
-  def _delete_articles_sync():
-      # 同步数据库操作
-      ...
-
+  articles = await asyncio.to_thread(
+      crud.get_articles, db, skip=skip, limit=limit, published_only=True
+  )
+  # 或
   deleted_count, slugs, deleted_ids = await asyncio.to_thread(_delete_articles_sync)
   ```
+- 中长期可选：迁 AsyncSession；未迁移前**禁止**在 async 路由里直接跑重查询而不 `to_thread`。
+
+### 4.3.1 个人站 · tenant 定位（避免误读）
+- 产品是**单站个人博客**，不是多租户 SaaS。
+- `User.tenant_id` 非空；注册默认租户 ID 固定。
+- **内容主链**（articles / comments / categories / tags / …）**不按** `tenant_id` 过滤。
+- **AI 侧**（prompts / memories / conversations 等）可按 `tenant_id` 作用域。
+- Agent：`/agent/chat`、`/agent/polish` 主场景是**写文章辅助**（查站内文、润色），见 [ai-rules.md](./ai-rules.md)。
 
 ### 4.4 依赖注入顺序
 ```python

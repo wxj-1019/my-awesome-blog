@@ -392,10 +392,9 @@ export default function Timeline() {
       aria-label="历程时间线"
     >
       <div data-testid="timeline-route-layer" className="absolute inset-0 pointer-events-none" aria-hidden="true">
-        <div className="absolute left-1/2 top-8 h-[calc(100%-4rem)] w-px bg-gradient-to-b from-transparent via-primary/15 to-transparent" />
-        <div className="absolute inset-x-0 top-1/3 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
-        <div className="absolute left-[8%] top-24 h-24 w-24 rounded-full border border-primary/10 shadow-[0_0_60px_color-mix(in_oklab,var(--primary)_12%,transparent)]" />
-        <div className="absolute right-[10%] bottom-24 h-32 w-32 rounded-full border border-primary/10 shadow-[0_0_70px_color-mix(in_oklab,var(--primary)_10%,transparent)]" />
+        {/* 仅中轴/水平引导线，无圆形装饰 */}
+        <div className="absolute left-1/2 top-8 h-[calc(100%-4rem)] w-px bg-gradient-to-b from-transparent via-primary/12 to-transparent" />
+        <div className="absolute inset-x-0 top-1/3 h-px bg-gradient-to-r from-transparent via-primary/15 to-transparent" />
       </div>
       <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
         <BlurIn className="mb-8 sm:mb-10 lg:mb-12">

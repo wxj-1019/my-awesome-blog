@@ -1,15 +1,17 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Plus, Search, Film, Clock } from 'lucide-react';
+import { Plus, Search, Film, Clock, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/input';
+import EmptyState from '@/components/ui/EmptyState';
 
 import VideoCard, { VideoItem, VideoType, Episode } from '@/components/videos/VideoCard';
 import AddVideoModal from '@/components/videos/AddVideoModal';
 import RecentlyWatched from '@/components/videos/RecentlyWatched';
 import ProgressTracker from '@/components/videos/ProgressTracker';
 import LottieAnimation from '@/components/ui/LottieAnimation';
+import AnimatedNumber from '@/components/ui/AnimatedNumber';
 import PageActHeader from '@/components/layout/PageActHeader';
 import { FadeIn, Stagger, StaggerItem } from '@/components/motion';
 import { cn } from '@/lib/utils';
@@ -185,17 +187,17 @@ export default function VideosPageContent() {
                 <div className="flex flex-wrap gap-4 pt-4">
                   <div className="flex items-center gap-2 bg-glass px-4 py-2 rounded-lg border border-glass-border backdrop-blur-sm">
                     <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
-                    <span className="text-foreground font-bold">{stats.watching}</span>
+                    <AnimatedNumber value={stats.watching} className="text-foreground font-bold tabular-nums" />
                     <span className="text-muted-foreground text-sm">在看</span>
                   </div>
                   <div className="flex items-center gap-2 bg-glass px-4 py-2 rounded-lg border border-glass-border backdrop-blur-sm">
                     <div className="w-2 h-2 rounded-full bg-info" />
-                    <span className="text-foreground font-bold">{stats.completed}</span>
+                    <AnimatedNumber value={stats.completed} className="text-foreground font-bold tabular-nums" />
                     <span className="text-muted-foreground text-sm">已完成</span>
                   </div>
                   <div className="flex items-center gap-2 bg-glass px-4 py-2 rounded-lg border border-glass-border backdrop-blur-sm">
                     <div className="w-2 h-2 rounded-full bg-warning" />
-                    <span className="text-foreground font-bold">{stats.plan}</span>
+                    <AnimatedNumber value={stats.plan} className="text-foreground font-bold tabular-nums" />
                     <span className="text-muted-foreground text-sm">计划</span>
                   </div>
                   <div className="flex items-center gap-2 bg-glass px-4 py-2 rounded-lg border border-glass-border backdrop-blur-sm">
@@ -280,18 +282,18 @@ export default function VideosPageContent() {
               ))}
             </Stagger>
           ) : (
-            <div className="flex flex-col items-center justify-center py-20 text-center">
-              <div className="w-24 h-24 bg-glass rounded-full flex items-center justify-center mb-4">
-                <Film className="w-10 h-10 text-muted-foreground" />
-              </div>
-              <h3 className="text-xl font-bold text-foreground mb-2">未找到视频</h3>
-              <p className="text-muted-foreground max-w-xs mx-auto mb-6">
-                尝试调整筛选条件或搜索查询以查找您想要的内容。
-              </p>
-              <Button onClick={() => {setFilterType('all'); setSearchQuery('');}} variant="outline">
-                清除筛选
-              </Button>
-            </div>
+            /* 统一空态三要素：图标 + 一句话 + 清除筛选行动按钮 */
+            <EmptyState
+              variant="search"
+              icon={Film}
+              title="未找到视频"
+              description="尝试调整筛选条件或搜索查询以查找您想要的内容。"
+              action={{
+                label: '清除筛选',
+                onClick: () => {setFilterType('all'); setSearchQuery('');},
+                icon: RefreshCw,
+              }}
+            />
           )}
 
           <AddVideoModal

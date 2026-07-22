@@ -2,6 +2,7 @@
 
 import { FileText, MessageCircle, Eye, Calendar, TrendingUp } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
+import AnimatedNumber from '@/components/ui/AnimatedNumber';
 import { UserStats } from '@/types';
 
 interface StatsGridProps {
@@ -94,11 +95,18 @@ export default function StatsGrid({ stats, loading }: StatsGridProps) {
               <stat.icon className={`w-5 h-5 text-${stat.color}`} />
             </div>
 
-            {/* 数值 */}
+            {/* 数值：纯数字走 AnimatedNumber 滚动；年份/N-A 文本保持原样 */}
             <div className="text-center">
-              <div className={`text-2xl font-bold text-${stat.color} mb-1 group-hover:text-tech-cyan transition-colors`}>
-                {stat.isDate ? stat.value : stat.value?.toLocaleString() || '0'}
-              </div>
+              {typeof stat.value === 'number' ? (
+                <AnimatedNumber
+                  value={stat.value}
+                  className={`block text-2xl font-bold text-${stat.color} mb-1 group-hover:text-tech-cyan transition-colors tabular-nums`}
+                />
+              ) : (
+                <div className={`text-2xl font-bold text-${stat.color} mb-1 group-hover:text-tech-cyan transition-colors`}>
+                  {stat.value}
+                </div>
+              )}
               <div className="text-sm text-muted-foreground">{stat.label}</div>
             </div>
           </div>

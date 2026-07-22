@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from '@/lib/framer-motion';
 import { Mail, User, MessageSquare, Send, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
 import { FadeIn } from '@/components/motion';
+import { ScrollRevealLine } from '@/components/gsap/ScrollNarrative';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 interface FormData {
   name: string;
@@ -190,6 +191,8 @@ export default function ContactForm() {
             <p className="font-sf-pro-text text-foreground/70 max-w-xl mx-auto">
               填写下面的表单，我会尽快回复你。通常在 24 小时内回复。
             </p>
+            {/* 分区揭示线：scaleX 由外层 ScrollNarrative 的 GSAP 写入 */}
+            <ScrollRevealLine className="mx-auto" />
           </FadeIn>
           <GlassCard padding="lg" className="shadow-xl shadow-foreground/5">
             <form onSubmit={handleSubmit} className="space-y-6">

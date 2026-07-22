@@ -4,6 +4,7 @@ import { motion } from '@/lib/framer-motion';
 import { CheckCircle, XCircle, Clock, Calendar, MessageSquare, AlertCircle } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { ScrollRevealLine } from '@/components/gsap/ScrollNarrative';
 import { cn } from '@/lib/utils';
 
 type AvailabilityStatus = 'available' | 'busy' | 'offline' | 'away';
@@ -107,6 +108,8 @@ export default function AvailabilityCard() {
             <p className="font-sf-pro-text text-foreground/70">
               了解我的工作状态和响应时间
             </p>
+            {/* 分区揭示线：scaleX 由外层 ScrollNarrative 的 GSAP 写入 */}
+            <ScrollRevealLine className="mx-auto" />
           </div>
           <GlassCard padding="lg">
             <div className="flex items-center gap-6 mb-8">

@@ -1,6 +1,25 @@
 import { env } from '@/lib/env';
 
 /**
+ * FastAPI 路由多为 `@router.get("/")` 挂在前缀下，无尾斜杠会 307 到绝对 backend URL，
+ * 经 Next rewrite 时浏览器跟跳会变成跨域 → TypeError: Failed to fetch。
+ * 仅修正「单段资源集合」：`/timeline-events` → `/timeline-events/`，保留 `/id` 路径。
+ */
+function normalizeApiEndpoint(endpoint: string): string {
+  if (!endpoint || endpoint.startsWith('http')) {
+    return endpoint;
+  }
+  const q = endpoint.indexOf('?');
+  const path = q === -1 ? endpoint : endpoint.slice(0, q);
+  const query = q === -1 ? '' : endpoint.slice(q);
+  // 已有尾斜杠，或路径深度 > 1（含具体 id），不改
+  if (path.endsWith('/') || path.split('/').filter(Boolean).length !== 1) {
+    return endpoint;
+  }
+  return `${path}/${query}`;
+}
+
+/**
  * API Base URL 解析：
  * - 浏览器：优先同域相对路径 `/api/v1`（nginx 反代），避免 CORS / localhost 误注入
  * - 服务端 RSC：INTERNAL_API_URL（Compose 内 backend:8989）
@@ -24,9 +43,19 @@ function resolveApiBaseUrl(): string {
     return 'http://backend:8989/api/v1';
   }
 
-  // 浏览器：同域相对路径最稳（生产经 nginx；开发经 next rewrites）
+  // 浏览器
   const configured =
     env.NEXT_PUBLIC_API_BASE_URL || env.NEXT_PUBLIC_API_URL || '';
+
+  // 开发：显式本机后端时直连，避免 Next rewrite 吞尾斜杠 → FastAPI 307 绝对地址 → Failed to fetch
+  if (
+    process.env.NODE_ENV === 'development' &&
+    configured &&
+    (configured.includes('localhost') || configured.includes('127.0.0.1'))
+  ) {
+    return configured.replace(/\/$/, '');
+  }
+
   if (
     configured &&
     !configured.includes('localhost') &&
@@ -60,7 +89,8 @@ export async function apiFetch(
   const token =
     typeof window !== 'undefined' ? localStorage.getItem(TOKEN_KEY) : null;
   const base = resolveApiBaseUrl();
-  const url = input.startsWith('http') ? input : `${base}${input}`;
+  const path = input.startsWith('http') ? input : normalizeApiEndpoint(input);
+  const url = path.startsWith('http') ? path : `${base}${path}`;
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
     ...(token && { Authorization: `Bearer ${token}` }),
@@ -105,7 +135,8 @@ export async function apiRequest<T = unknown>(
 
   try {
     const base = resolveApiBaseUrl();
-    const response = await fetch(`${base}${endpoint}`, config);
+    const path = normalizeApiEndpoint(endpoint);
+    const response = await fetch(`${base}${path}`, config);
 
     if (!response.ok) {
       if (response.status === 401) {

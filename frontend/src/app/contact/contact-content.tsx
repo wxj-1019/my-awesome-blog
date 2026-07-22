@@ -1,6 +1,7 @@
 'use client';
 
 import { FadeIn } from '@/components/motion';
+import ScrollNarrative from '@/components/gsap/ScrollNarrative';
 import HeroSection from '@/components/contact/HeroSection';
 import ContactCards from '@/components/contact/ContactCards';
 import ContactForm from '@/components/contact/ContactForm';
@@ -13,26 +14,34 @@ export default function ContactPageContent() {
       {/* Hero Section - 渐变背景 */}
       <HeroSection />
 
-      {/* 联系方式卡片 - 透出全站氛围背景 */}
+      {/* 联系方式卡片 - 透出全站氛围背景；ScrollNarrative 提供分区视差（reduced/移动端静态） */}
       <section className="relative py-16">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-foreground/5 to-transparent dark:via-white/5" />
-        <ContactCards />
+        <ScrollNarrative>
+          <ContactCards />
+        </ScrollNarrative>
       </section>
 
       {/* 联系表单 - 带背景色区分 */}
       <section className="relative py-20 bg-foreground/5">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-tech-cyan/5 to-transparent" />
-        <ContactForm />
+        <ScrollNarrative>
+          <ContactForm />
+        </ScrollNarrative>
       </section>
       {/* 在线状态 - 透出全站氛围背景 */}
       <section className="relative py-16">
-        <AvailabilityCard />
+        <ScrollNarrative>
+          <AvailabilityCard />
+        </ScrollNarrative>
       </section>
 
       {/* FAQ - 带背景色区分 */}
       <section className="relative py-20 bg-foreground/5">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-tech-purple/5 to-transparent" />
-        <FAQAccordion />
+        <ScrollNarrative>
+          <FAQAccordion />
+        </ScrollNarrative>
       </section>
       {/* 底部装饰（FadeIn 自带 reduced-motion 回退）- 透出氛围背景，不铺实底 */}
       <FadeIn

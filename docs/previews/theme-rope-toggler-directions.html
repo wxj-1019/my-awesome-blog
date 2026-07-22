@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>主题拉杆 · 创新方向预览</title>
+  <style>
+    :root {
+      --bg: #0c1418;
+      --panel: rgba(16, 30, 36, 0.85);
+      --border: rgba(100, 200, 220, 0.2);
+      --text: #e7f3f6;
+      --muted: #8aa8b0;
+      --cyan: #22d3ee;
+      --ease: cubic-bezier(0.32, 0.72, 0, 1);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background:
+        radial-gradient(ellipse 70% 40% at 15% 0%, rgba(34,211,238,.08), transparent 50%),
+        radial-gradient(ellipse 50% 35% at 90% 5%, rgba(167,139,250,.08), transparent 45%),
+        var(--bg);
+      color: var(--text);
+      padding: 28px 18px 72px;
+      line-height: 1.5;
+    }
+    h1 { font-size: 1.4rem; margin: 0 0 6px; }
+    .sub { color: var(--muted); margin: 0 0 22px; max-width: 48rem; font-size: 0.95rem; }
+    .grid {
+      display: grid;
+      gap: 18px;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 960px) {
+      .grid { grid-template-columns: 1fr 1fr; }
+    }
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: var(--panel);
+      overflow: hidden;
+      transition: border-color .25s var(--ease);
+    }
+    .card:hover { border-color: rgba(34,211,238,.4); }
+    .card-h { padding: 14px 16px 10px; border-bottom: 1px solid rgba(255,255,255,.06); }
+    .card-h .tag {
+      font-size: .68rem; letter-spacing: .14em; text-transform: uppercase;
+      color: var(--cyan); margin-bottom: 4px;
+    }
+    .card-h h2 { margin: 0 0 4px; font-size: 1.05rem; }
+    .card-h p { margin: 0; color: var(--muted); font-size: .85rem; }
+    .rec {
+      display: inline-block; margin-left: 6px; font-size: .65rem;
+      padding: 2px 7px; border-radius: 999px;
+      background: rgba(34,211,238,.15); color: var(--cyan); vertical-align: middle;
+    }
+    .stage {
+      position: relative;
+      height: 220px;
+      background:
+        linear-gradient(180deg, rgba(8,16,20,.3), transparent 40%),
+        repeating-linear-gradient(90deg, transparent, transparent 31px, rgba(255,255,255,.03) 32px);
+      display: flex; justify-content: flex-end; align-items: flex-start;
+      padding: 12px 40px 0 0;
+      overflow: hidden;
+    }
+    .nav {
+      position: absolute; left: 0; right: 0; top: 0; height: 44px;
+      background: rgba(12,20,26,.75); border-bottom: 1px solid rgba(255,255,255,.06);
+      backdrop-filter: blur(10px);
+    }
+    /* rope base */
+    .rope-wrap {
+      position: relative; z-index: 2;
+      display: flex; flex-direction: column; align-items: center;
+      transform-origin: top center;
+      animation: swing 3.2s ease-in-out infinite;
+    }
+    .fix {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: linear-gradient(#7dd3e8, #3a8ea3);
+      margin-bottom: 2px;
+    }
+    .line {
+      width: 4px; border-radius: 999px;
+      background: linear-gradient(#6ec4d8, #2f6f80);
+      height: 96px;
+      position: relative;
+    }
+    .line::after {
+      content: ""; position: absolute; inset: 0;
+      background: linear-gradient(to bottom, transparent 0%, rgba(255,255,255,.12) 20%, transparent 40%, rgba(255,255,255,.1) 60%, transparent);
+    }
+    .knot {
+      width: 12px; height: 6px; border-radius: 999px; margin-top: -2px;
+      background: linear-gradient(#6ec4d8, #2f6f80);
+    }
+    .bulb {
+      width: 36px; height: 36px; border-radius: 50%;
+      display: grid; place-items: center;
+      background: rgba(20,36,42,.8);
+      border: 1px solid rgba(120,200,220,.35);
+      backdrop-filter: blur(8px);
+      color: var(--cyan);
+      font-size: 16px;
+      box-shadow: 0 4px 16px rgba(0,0,0,.3);
+    }
+    @keyframes swing {
+      0%, 100% { transform: rotate(-2.5deg); }
+      50% { transform: rotate(2.5deg); }
+    }
+    /* A status quo */
+    .a .bulb { color: #fbbf24; }
+    /* B tide pull */
+    .b .rope-wrap { animation: swing 3.2s ease-in-out infinite, bob 2.4s ease-in-out infinite; }
+    .b .line {
+      background: linear-gradient(180deg, #7dd3fc, #0e7490 70%, #0369a1);
+    }
+    .b .bulb {
+      border-color: rgba(34,211,238,.5);
+      box-shadow: 0 0 18px rgba(34,211,238,.25);
+    }
+    .b .ripple {
+      position: absolute; right: 28px; top: 150px;
+      width: 70px; height: 18px; border-radius: 50%;
+      border: 1px solid rgba(34,211,238,.25);
+      animation: ripple 2.2s ease-out infinite;
+      pointer-events: none;
+    }
+    .b .ripple:nth-child(2) { animation-delay: .7s; }
+    @keyframes bob {
+      0%, 100% { translate: 0 0; }
+      50% { translate: 0 6px; }
+    }
+    @keyframes ripple {
+      from { transform: scale(.6); opacity: .7; }
+      to { transform: scale(1.6); opacity: 0; }
+    }
+    /* C lantern */
+    .c .line { height: 88px; background: linear-gradient(#c4b5fd, #6d28d9); }
+    .c .fix, .c .knot { background: linear-gradient(#c4b5fd, #6d28d9); }
+    .c .bulb {
+      width: 40px; height: 40px;
+      border-radius: 12px;
+      background: radial-gradient(circle at 40% 30%, #fff7ed, #fbbf24 40%, #f59e0b 70%);
+      border: none;
+      color: #78350f;
+      box-shadow: 0 0 28px rgba(251,191,36,.45);
+      animation: glow 2s ease-in-out infinite;
+    }
+    .c.dark-mode .bulb {
+      background: radial-gradient(circle at 40% 30%, #e0f2fe, #38bdf8 45%, #0369a1);
+      color: #0c4a6e;
+      box-shadow: 0 0 28px rgba(56,189,248,.45);
+    }
+    @keyframes glow {
+      0%, 100% { filter: brightness(1); }
+      50% { filter: brightness(1.12); }
+    }
+    .c .veil {
+      position: absolute; inset: 44px 0 0 0;
+      background: radial-gradient(circle at 88% 18%, rgba(251,191,36,.18), transparent 35%);
+      pointer-events: none;
+      animation: veil 3s ease-in-out infinite alternate;
+    }
+    @keyframes veil {
+      from { opacity: .5; }
+      to { opacity: 1; }
+    }
+    /* D compass */
+    .d .line { height: 70px; }
+    .d .bulb {
+      width: 42px; height: 42px;
+      background: conic-gradient(from 0deg, #0ea5e9, #a78bfa, #f59e0b, #0ea5e9);
+      padding: 2px;
+      border: none;
+    }
+    .d .bulb-inner {
+      width: 100%; height: 100%; border-radius: 50%;
+      background: #0f1c22;
+      display: grid; place-items: center;
+      font-size: 11px; color: var(--muted);
+      position: relative;
+    }
+    .d .needle {
+      width: 2px; height: 16px; background: var(--cyan);
+      border-radius: 2px;
+      transform-origin: bottom center;
+      animation: spinNeedle 4s ease-in-out infinite;
+    }
+    @keyframes spinNeedle {
+      0%, 100% { transform: rotate(-25deg); }
+      50% { transform: rotate(155deg); }
+    }
+    .foot {
+      margin-top: 22px; color: var(--muted); font-size: .88rem; max-width: 42rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>主题拉杆 · 创新方向预览</h1>
+  <p class="sub">
+    现状是「吊绳 + 下拉 + 圆扩散 View Transition」。下面四档是在保留导航吊挂手感的前提下，
+    往「更有意思」走的程度。请回到终端回答偏好。
+  </p>
+
+  <div class="grid">
+    <section class="card a">
+      <div class="card-h">
+        <div class="tag">A · 现状</div>
+        <h2>绳 + 日/月 + 圆扩散</h2>
+        <p>已有摇摆、拉动、View Transition。辨识度够，叙事偏通用。</p>
+      </div>
+      <div class="stage">
+        <div class="nav"></div>
+        <div class="rope-wrap">
+          <div class="fix"></div>
+          <div class="line"></div>
+          <div class="knot"></div>
+          <div class="bulb">☀</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card b">
+      <div class="card-h">
+        <div class="tag">B · 潮汐拉环 <span class="rec">推荐</span></div>
+        <h2>深海绳环 · 潮汐起伏 · 涟漪</h2>
+        <p>保留拉绳，把手做成「浮标/环」；轻上下浮动 + 点击涟漪，切换仍用圆扩散但色温跟双世界。</p>
+      </div>
+      <div class="stage">
+        <div class="nav"></div>
+        <div class="ripple"></div>
+        <div class="ripple"></div>
+        <div class="rope-wrap">
+          <div class="fix"></div>
+          <div class="line"></div>
+          <div class="knot"></div>
+          <div class="bulb">◉</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card c">
+      <div class="card-h">
+        <div class="tag">C · 世界灯笼</div>
+        <h2>鹿景暖灯 / 月夜青灯</h2>
+        <p>拉绳变灯笼：浅色暖黄、深色青月；切换时灯芯变色 + 页面轻晕，和 Ambient 双世界强绑定。</p>
+      </div>
+      <div class="stage">
+        <div class="nav"></div>
+        <div class="veil"></div>
+        <div class="rope-wrap">
+          <div class="fix"></div>
+          <div class="line"></div>
+          <div class="knot"></div>
+          <div class="bulb">灯</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card d">
+      <div class="card-h">
+        <div class="tag">D · 罗盘锚</div>
+        <h2>小罗盘旋向 · 定档切换</h2>
+        <p>把手变罗盘，针指向 light/dark；偏「仪表舱」玩法，和统计卡一致，但和深海浪花略分叉。</p>
+      </div>
+      <div class="stage">
+        <div class="nav"></div>
+        <div class="rope-wrap">
+          <div class="fix"></div>
+          <div class="line"></div>
+          <div class="knot"></div>
+          <div class="bulb"><div class="bulb-inner"><div class="needle"></div></div></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <p class="foot">
+    建议 <strong>B</strong>：动效预算可控、不抢导航、和现有 Rope + View Transition 最顺。
+    若你更想「一拉世界变色」的仪式感，选 <strong>C</strong>。
+  </p>
+</body>
+</html>

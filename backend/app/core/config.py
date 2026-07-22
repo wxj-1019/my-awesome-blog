@@ -66,7 +66,15 @@ class Settings(BaseSettings):
     ALIBABA_CLOUD_OSS_CDN_DOMAIN: str = Field(default="", description="OSS CDN域名")
 
     # CORS - 生产环境应该限制更严格
-    BACKEND_CORS_ORIGINS: List[str] = Field(default=["http://localhost:3000", "http://localhost:3001"], description="允许的CORS源")
+    BACKEND_CORS_ORIGINS: List[str] = Field(
+        default=[
+            "http://localhost:3000",
+            "http://localhost:3001",
+            "http://127.0.0.1:3000",
+            "http://127.0.0.1:3001",
+        ],
+        description="允许的CORS源（开发需同时含 localhost 与 127.0.0.1）",
+    )
 
     # Email configuration
     SMTP_HOST: Optional[str] = Field(default=None, description="SMTP服务器地址")

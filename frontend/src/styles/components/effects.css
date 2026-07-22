@@ -28,12 +28,25 @@
   animation: rope-swing 3s ease-in-out infinite;
 }
 
-.rope-swing-wrapper:hover .rope-swing {
-  animation: rope-swing 1.5s ease-in-out infinite;
+.rope-swing-wrapper:hover .rope-swing:not(.rope-pull) {
+  animation-duration: 1.6s;
 }
 
 .rope-pull {
-  animation: rope-pull 0.3s ease-in-out;
+  animation: rope-pull 0.42s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.rope-tide-ripple {
+  animation: rope-tide-ripple 0.55s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rope-swing,
+  .rope-pull,
+  .rope-tide-ripple,
+  .rope-swing-wrapper:hover .rope-swing {
+    animation: none !important;
+  }
 }
 
 .hero-bg {
