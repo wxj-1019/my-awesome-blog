@@ -12,7 +12,7 @@
  * - 持续循环允许：浪（WaveStack）+ 多源稀疏气泡（见 HOME_BUBBLE_COUNT*）
  *   · Hero 出口：HOME_BUBBLE_COUNT（桌 16 / 移 8）
  *   · Dive 入水：HOME_BUBBLE_COUNT_UNDERWATER（桌 8 / 移 4，无高光）
- *   · 全局 AmbientBackground：桌 6 / 移 3（无高光；非本文件常量）
+ *   · 全局 AmbientBackground：dark 桌 5/移 3 · light 桌 6/移 3（贴合 Hero 月夜/鹿境；见 AmbientBackground.tsx）
  * - 禁止：矩阵雨、Reel 自动漂移、每幕无限光扫
  */
 

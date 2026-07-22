@@ -24,7 +24,9 @@ const densityContainer: Record<PageShellDensity, string> = {
 };
 
 /**
- * 公开内容页外层：统一背景、顶距、container。
+ * 公开内容页外层：统一顶距、container。
+ * 默认**不铺实底**，让全局 AmbientBackground 水光透出；
+ * 卡片/表单仍用 bg-card / GlassCard 保证可读。
  * 不塞动效；页内自行组合 PageHeader / GlassCard。
  */
 export default function PageShell({
@@ -40,7 +42,8 @@ export default function PageShell({
     <Comp
       className={cn(
         contained ? 'min-h-[70vh]' : 'min-h-screen',
-        'bg-background text-foreground',
+        // 透明壳 + 极淡主题 wash，正文对比靠卡片 token
+        'bg-transparent text-foreground',
         className
       )}
       {...props}

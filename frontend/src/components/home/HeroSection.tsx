@@ -27,7 +27,8 @@ export default function HeroSection() {
     mq.addEventListener('change', sync);
     return () => mq.removeEventListener('change', sync);
   }, []);
-  // 主题切换后立即换片；暗色=月夜云海，亮色=奇幻鹿景（须 H.264，勿 HEVC）
+  // 暗色=月夜云海（青绿满月原野）；亮色=奇幻鹿境（紫穹暖环日）。须 H.264
+  // 全站 AmbientBackground 色板按这两支视频实帧采样，保持同一故事线
   const backgroundVideo =
     resolvedTheme === 'dark'
       ? '/video/moonlit-clouds-field-HD-live.mp4'
@@ -190,27 +191,27 @@ export default function HeroSection() {
           />
         )}
 
-        {/* 后备渐变背景：视频未就绪时占位 */}
+        {/* 后备渐变：贴合视频实帧色，避免加载时跳成科技蓝 */}
         <div
           className={`absolute inset-0 w-full h-full transition-opacity duration-700 ${videoLoaded ? 'opacity-0' : 'opacity-100'}`}
           style={{
-            backgroundImage: resolvedTheme === 'dark'
-              ? 'linear-gradient(135deg, var(--tech-darkblue), var(--tech-deepblue), var(--tech-cyan))'
-              : 'linear-gradient(135deg, #e0f2fe, #bae6fd, #93c5fd)',
-            backgroundSize: '400% 400%',
-            animation: reducedMotion ? undefined : 'gradient-move 8s ease infinite',
+            backgroundImage:
+              resolvedTheme === 'dark'
+                ? 'linear-gradient(180deg, #0c1a1c 0%, #1a3034 40%, #2a4e4f 70%, #162d2b 100%)'
+                : 'linear-gradient(180deg, #4a2870 0%, #4b2fa4 45%, #3a2480 100%)',
           }}
           aria-hidden="true"
         />
 
-        {/* 可读性遮罩：略减轻，避免「像没视频」 */}
+        {/* 可读性遮罩：色调贴视频，中间更透 */}
         <div
-          className={cn(
-            'absolute inset-0 pointer-events-none',
-            resolvedTheme === 'dark'
-              ? 'bg-gradient-to-b from-black/25 via-black/10 to-black/35'
-              : 'bg-gradient-to-b from-slate-950/30 via-slate-950/15 to-slate-950/35'
-          )}
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              resolvedTheme === 'dark'
+                ? 'linear-gradient(to bottom, rgba(8,24,26,0.35) 0%, rgba(8,24,26,0.08) 40%, rgba(8,24,26,0.4) 100%)'
+                : 'linear-gradient(to bottom, rgba(40,10,90,0.35) 0%, rgba(40,10,90,0.1) 42%, rgba(34,0,88,0.42) 100%)',
+          }}
           aria-hidden="true"
         />
       </div>
@@ -256,7 +257,7 @@ export default function HeroSection() {
                   : 'text-white/85 drop-shadow-sm'
               )}
             >
-              {resolvedTheme === 'dark' ? '月夜云海' : '林间晨光'}
+              {resolvedTheme === 'dark' ? '月夜云海' : '奇幻鹿境'}
             </p>
 
             <h1

@@ -20,7 +20,8 @@ const SpecialLayoutComponent = ({ children }: { children: React.ReactNode }) => 
         <ThemeWrapper>
           {/* 媒体组件将在子组件中处理 */}
           <Navbar />
-          <main className="bg-background">
+          {/* 透明 main：透出 AmbientBackground 水光 */}
+          <main className="bg-transparent">
             <LoadingHandler>{children}</LoadingHandler>
           </main>
           <Footer />
@@ -34,7 +35,7 @@ const SpecialLayoutComponent = ({ children }: { children: React.ReactNode }) => 
     <LoadingProvider>
       <ThemeWrapper>
         <Navbar />
-        <main className="bg-background">
+        <main className="bg-transparent">
           <LoadingHandler>{children}</LoadingHandler>
         </main>
         <Footer />
