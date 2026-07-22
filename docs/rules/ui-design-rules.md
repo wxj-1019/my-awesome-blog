@@ -2,7 +2,7 @@
 
 > 适用于所有前端 UI 组件、样式、动画、主题相关代码。新增或修改组件前必须阅读本文件。  
 > 全局铁律见 [AGENTS.md](../../AGENTS.md)；工程约定见 [frontend-rules.md](./frontend-rules.md)。  
-> 最后更新：2026-07-20
+> 最后更新：2026-07-21
 
 ## 1. 设计语言
 
@@ -70,10 +70,12 @@
 - Info: `text-info bg-info`
 
 ### 3.3 使用规范
-- 背景使用 `bg-background` 或 `bg-glass/30`。
+- **页面壳**（`PageShell` 等）：优先透明，透出全局 `AmbientBackground` 水光；需要实底时用 `bg-background` 或 `bg-background/95`。
+- **卡片 / 表单**：`bg-card` / `bg-glass`，保证正文对比。
 - 文字使用 `text-foreground`、`text-primary`、`text-secondary`、`text-muted`。
 - 强调色使用 `text-tech-cyan` 或 `text-primary`。
 - 禁止使用裸十六进制颜色（除非在 tailwind 配置中已定义）。
+- 全站环境背景：`AmbientBackground` 在 `ThemeWrapper` 中挂载；深/浅色用 `html.dark` / `html.light` 两套 CSS，勿在组件内 `isDark ? hex : hex`。
 
 ## 4. 玻璃拟态组件
 

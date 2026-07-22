@@ -75,6 +75,15 @@ getThemeClass('bg-black text-white', 'bg-white text-black')
 - 全局：去掉 `* { transition 300ms }`，仅控件 + `.theme-transition`
 - 饰：矩阵雨更稀/更淡；浅色粒子数量与透明度减半
 
+## 全站环境背景（2026-07-21）
+
+- 组件：`frontend/src/components/visual/AmbientBackground.tsx`（挂在 `ThemeWrapper`）
+- **深 / 浅按 Hero 视频实帧采样，两套场景：**
+  - **dark · 月夜云海**（`moonlit-clouds-field`）：青绿夜 #20393b/#3a6564 · 黄绿月 #97b698 · 横向云海 · 近地暗绿
+  - **light · 奇幻鹿境**（`fantasy-landscape-deer`）：紫穹 #5b307e/#4b2fa4 · 暖环日 #e6caca · 放射蓝紫云 · 地面青绿反光（非暖晨林）
+- 实现：`resolvedTheme` 只渲染当前世界；色值来自 `docs/previews/frames/*` 帧采样
+- 公开页 `PageShell` 透明透出；预览页 `docs/previews/ambient-soft-luminous-cinema.html` 可对照截帧
+
 ## 阶段 B · 阅读与关键页（2026-07-19）
 
 - 文章详情：栏宽 `max-w-3xl`、prose 更大字号/行高 1.8、封面更矮、视差减半
