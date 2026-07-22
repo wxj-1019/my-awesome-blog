@@ -112,7 +112,7 @@ function ArticlesPageContent() {
     filters.selectedCategory || filters.selectedTag || filters.searchQuery
   );
   return (
-    <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/40 selection:text-primary-foreground">
+    <div className="min-h-screen text-foreground font-sans selection:bg-primary/40 selection:text-primary-foreground">
       <div className="relative">
         <BlurIn>
           <div className="pt-20 pb-10 text-center">

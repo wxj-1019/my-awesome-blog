@@ -9,12 +9,12 @@ import FAQAccordion from '@/components/contact/FAQAccordion';
 
 export default function ContactPageContent() {
   return (
-    <main className="min-h-screen bg-background dark:bg-black">
+    <main className="min-h-screen">
       {/* Hero Section - 渐变背景 */}
       <HeroSection />
       
       {/* 联系方式卡片 - 白色/深色背景 */}
-      <section className="relative py-16 bg-background dark:bg-black">
+      <section className="relative py-16">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-foreground/5 to-transparent dark:via-white/5" />
         <ContactCards />
       </section>
@@ -26,7 +26,7 @@ export default function ContactPageContent() {
       </section>
       
       {/* 在线状态 - 白色/深色背景 */}
-      <section className="relative py-16 bg-background dark:bg-black">
+      <section className="relative py-16">
         <AvailabilityCard />
       </section>
       
@@ -42,7 +42,7 @@ export default function ContactPageContent() {
         whileInView={{ opacity: 1 }}
         viewport={{ once: true }}
         transition={{ duration: 0.8 }}
-        className="relative py-12 bg-background dark:bg-black border-t border-foreground/10"
+        className="relative py-12 border-t border-foreground/10"
       >
         <div className="container mx-auto px-4 sm:px-6 text-center">
           <p className="font-sf-pro-text text-foreground/50 text-sm">

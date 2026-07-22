@@ -147,7 +147,7 @@ export default function VideosPageContent() {
   };
 
   return (
-    <div className="min-h-screen py-8 sm:py-12 bg-gradient-to-br from-tech-darkblue/20 via-tech-deepblue/10 to-tech-cyan/5">
+    <div className="min-h-screen py-8 sm:py-12">
       <div className="container mx-auto px-4 max-w-7xl">
         <div className="space-y-8 animate-fade-in-up">
           <div className="text-center mb-8">

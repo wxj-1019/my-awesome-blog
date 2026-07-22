@@ -208,16 +208,16 @@ const AlbumsPageContent = () => {
   }, [albums]);
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-tech-darkblue via-tech-deepblue to-tech-cyan flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="inline-block w-12 h-12 text-tech-cyan animate-spin mb-4" />
-          <p className="text-white">正在加载相册...</p>
+          <p className="text-foreground">正在加载相册...</p>
         </div>
       </div>
     );
   }
   return (
-    <div className="min-h-screen bg-gradient-to-br from-tech-darkblue via-tech-deepblue to-tech-cyan pb-16 pt-24">
+    <div className="min-h-screen pb-16 pt-24">
       <div className="container mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: -20 }}

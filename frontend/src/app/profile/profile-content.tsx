@@ -165,12 +165,11 @@ export default function ProfilePageContent() {
     );
   }
   // 主题相关样式
-  const containerBgClass = 'bg-gradient-to-br from-background via-muted/30 to-background';
   const cardBgClass = themedClasses.cardBgClass;
   const accentClass = 'text-primary';
   return (
     <ProtectedRoute>
-      <div className={`min-h-screen py-8 sm:py-12 transition-colors duration-300 ${containerBgClass}`}>
+      <div className="min-h-screen py-8 sm:py-12 transition-colors duration-300">
         <div className="container mx-auto px-4 max-w-4xl">
           {saveStatus && (
             <div className={`mb-6 p-4 rounded-lg transition-all duration-300 ${

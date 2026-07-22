@@ -335,7 +335,7 @@ export default function MessagesPageContent() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-white/60">加载中...</p>
+          <p className="text-muted-foreground">加载中...</p>
         </div>
       </div>
     );
@@ -391,10 +391,10 @@ export default function MessagesPageContent() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-8"
         >
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-3">
+          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-3">
             留言板
           </h1>
-          <p className="text-white/60 text-lg">
+          <p className="text-muted-foreground text-lg">
             发送你的弹幕，和大家一起互动
           </p>
         </motion.div>
@@ -409,7 +409,7 @@ export default function MessagesPageContent() {
             {!isLoggedIn ? (
               <div className="text-center py-8">
                 <MessageSquare className="w-12 h-12 mx-auto mb-4 text-tech-cyan/50" />
-                <p className="text-white/80 mb-3">登录后即可发送弹幕</p>
+                <p className="text-foreground mb-3">登录后即可发送弹幕</p>
                 <a
                   href="/login"
                   className="inline-block px-6 py-2 bg-tech-cyan/20 text-tech-cyan rounded-full hover:bg-tech-cyan/30 transition-colors"
@@ -423,7 +423,7 @@ export default function MessagesPageContent() {
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-tech-cyan to-tech-lightcyan flex items-center justify-center text-white font-bold">
                     {currentUser?.username?.charAt(0)?.toUpperCase() || 'U'}
                   </div>
-                  <span className="text-white font-medium">{currentUser?.username}</span>
+                  <span className="text-foreground font-medium">{currentUser?.username}</span>
                 </div>
 
                 <div className="relative mb-4">
@@ -446,13 +446,13 @@ export default function MessagesPageContent() {
                     rows={3}
                     className={cn(
                       "w-full px-4 py-3 rounded-xl resize-none",
-                      "bg-white/5 border border-white/10",
+                      "bg-foreground/5 border border-foreground/10",
                       "focus:outline-none focus:ring-2 focus:ring-tech-cyan/50 focus:border-tech-cyan",
-                      "placeholder:text-white/30 text-white",
+                      "placeholder:text-muted-foreground/60 text-foreground",
                       "transition-all duration-200"
                     )}
                   />
-                  <div className="absolute bottom-2 right-3 text-xs text-white/30">
+                  <div className="absolute bottom-2 right-3 text-xs text-muted-foreground/60">
                     {content.length}/200
                   </div>
                 </div>
@@ -463,7 +463,7 @@ export default function MessagesPageContent() {
 
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-2">
-                    <span className="text-white/50 text-sm">颜色:</span>
+                    <span className="text-muted-foreground text-sm">颜色:</span>
                     <div className="flex gap-1.5">
                       {COLORS.map((color) => (
                         <button
@@ -472,7 +472,7 @@ export default function MessagesPageContent() {
                           onClick={() => setSelectedColor(color)}
                           className={cn(
                             "w-6 h-6 rounded-full transition-all duration-200 cursor-pointer",
-                            selectedColor === color && "ring-2 ring-white ring-offset-2 ring-offset-transparent scale-110"
+                            selectedColor === color && "ring-2 ring-foreground ring-offset-2 ring-offset-transparent scale-110"
                           )}
                           style={{ backgroundColor: color }}
                         />
@@ -501,7 +501,7 @@ export default function MessagesPageContent() {
           </div>
 
           <div className="mt-6 text-center">
-            <p className="text-white/40 text-sm">
+            <p className="text-muted-foreground text-sm">
               已有 {messages.length} 条弹幕在空中飘过
             </p>
           </div>
