@@ -15,6 +15,7 @@ import { getCommentTree, createComment } from '@/services/commentService';
 import logger from '@/utils/logger';
 import type { RelatedArticle, Article } from '@/types';
 import { useLoading } from '@/context/loading-context';
+import { useTheme } from '@/context/theme-context';
 import MediaPlayer from '@/components/ui/MediaPlayer';
 import ReadingProgressBar from '@/components/articles/ReadingProgressBar';
 import ArticleHeroStage from '@/components/articles/ArticleHeroStage';
@@ -75,6 +76,13 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
   const contentRef = useRef<HTMLDivElement>(null);
   const { themedClasses } = useThemedClasses();
   const { showLoading, hideLoading } = useLoading();
+  const { resolvedTheme } = useTheme();
+  // 与全站氛围背景/HeroSection 同源：暗色=月夜云海，亮色=奇幻鹿境
+  // SSR 未 mounted 时 resolvedTheme 确定性默认 dark，与 HeroSection 处理一致
+  const heroMedia =
+    resolvedTheme === 'dark'
+      ? { src: '/video/moonlit-clouds-field-HD-live.mp4', caption: '月夜云海' }
+      : { src: '/video/fantasy-landscape-deer-HD-live.mp4', caption: '奇幻鹿境' };
   useCodeBlockEnhancement(contentRef);
   const readingProgress = useReadingProgress(contentRef);
   const activeHeading = useActiveHeading(toc);
@@ -223,7 +231,7 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
     );
   }
   return (
-    <div className="min-h-screen bg-background relative">
+    <div className="min-h-screen relative">
       <ReadingProgressBar progress={readingProgress} />
       {/* 移动端 TOC 抽屉 */}
       <ArticleTocRail
@@ -262,9 +270,9 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
                   mediaItems={[
                     {
                       type: 'video',
-                      src: '/video/falling-star-sky-lake-silhouette-live-wallpaper.mp4',
-                      alt: '星空湖景动态壁纸',
-                      caption: '星空湖景动态壁纸',
+                      src: heroMedia.src,
+                      alt: heroMedia.caption,
+                      caption: heroMedia.caption,
                     },
                   ]}
                   autoPlay={true}
