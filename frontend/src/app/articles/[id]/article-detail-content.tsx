@@ -322,7 +322,7 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
                       <Badge
                         key={tag.id}
                         variant="outline"
-                        className="border-border text-muted-foreground"
+                        className="border-white/30 text-white/80"
                       >
                         <Tag className="h-3 w-3 mr-1" />
                         {tag.name}
