@@ -13,8 +13,8 @@ from .base import (
     ChatCompletionRequest,
     ChatCompletionResponse,
     ChatStreamChunk,
-    ChatMessage,
-    Usage
+    build_openai_payload,
+    parse_openai_response,
 )
 
 
@@ -52,16 +52,7 @@ class DeepSeekProvider(LLMProvider):
             if len(parts) >= 2 and parts[0].lower() in ['deepseek', 'glm', 'qwen']:
                 model_name = '_'.join(parts[1:])
 
-        payload = {
-            'model': model_name,
-            'messages': [msg.dict() for msg in request.messages],
-            'temperature': request.temperature,
-            'top_p': request.top_p,
-            'stream': False,
-        }
-
-        if request.max_tokens:
-            payload['max_tokens'] = request.max_tokens
+        payload = build_openai_payload(request, model_name, stream=False)
 
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
@@ -112,16 +103,7 @@ class DeepSeekProvider(LLMProvider):
 
         app_logger.info(f"DeepSeek stream - Final model_name: {model_name}")
 
-        payload = {
-            'model': model_name,
-            'messages': [msg.dict() for msg in request.messages],
-            'temperature': request.temperature,
-            'top_p': request.top_p,
-            'stream': True,
-        }
-
-        if request.max_tokens:
-            payload['max_tokens'] = request.max_tokens
+        payload = build_openai_payload(request, model_name, stream=True)
 
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
@@ -163,31 +145,8 @@ class DeepSeekProvider(LLMProvider):
             raise
 
     def _parse_response(self, data: dict, model: str) -> ChatCompletionResponse:
-        """
-        解析API响应
-        """
-        choice = data['choices'][0]
-        message_data = choice['message']
-
-        usage = None
-        if 'usage' in data:
-            usage_data = data['usage']
-            usage = Usage(
-                prompt_tokens=usage_data.get('prompt_tokens', 0),
-                completion_tokens=usage_data.get('completion_tokens', 0),
-                total_tokens=usage_data.get('total_tokens', 0)
-            )
-
-        message = ChatMessage(
-            role=message_data.get('role', 'assistant'),
-            content=message_data.get('content', '')
-        )
-
-        return ChatCompletionResponse(
-            message=message,
-            model=model,
-            usage=usage
-        )
+        """解析API响应（含 tool_calls，共用 OpenAI 兼容解析）"""
+        return parse_openai_response(data, model)
 
     def _parse_stream_chunk(self, data: dict) -> ChatStreamChunk:
         """

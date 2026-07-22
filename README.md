@@ -107,7 +107,7 @@ Base path: `/api/v1`. Full list is registered in `backend/app/api/v1/router.py` 
 | Auth / users | `/auth`, `/users` |
 | Blog | `/articles`, `/comments`, `/categories`, `/tags` |
 | Site | `/messages`, `/albums`, `/portfolio`, `/friend-links`, … |
-| AI | `/llm`, `/conversations`, `/memories`, `/prompts` |
+| AI | `/llm`, `/conversations`, `/memories`, `/prompts`, `/agent` |
 | Ops | `/monitoring`, `/audit-logs`, `/stats`, `/tenants`, … |
 
 ## Testing
