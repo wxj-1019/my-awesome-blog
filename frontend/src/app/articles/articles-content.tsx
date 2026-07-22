@@ -117,7 +117,7 @@ function ArticlesPageContent() {
         <BlurIn>
           <div className="pt-20 pb-10 text-center">
             <GlitchText text="ARTICLES" size="lg" className="mb-4 font-display" />
-            <p className="text-gray-400 font-mono text-sm tracking-widest uppercase">
+            <p className="text-white/60 font-mono text-sm tracking-widest uppercase">
               Explore digital frontier
             </p>
           </div>

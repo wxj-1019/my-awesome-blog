@@ -58,7 +58,7 @@ export default function MediaPlayer({
     };
   }, [autoPlay, mediaItems.length, currentMedia]);
 
-  // 控制视频播放/暂停
+  // 控制视频播放/暂停；currentMedia.src 入依赖：key 换源重建后新 <video> 默认暂停，需重新触发 play
   useEffect(() => {
     if (videoRef.current) {
       if (isPlaying) {
@@ -67,7 +67,7 @@ export default function MediaPlayer({
         videoRef.current.pause();
       }
     }
-  }, [isPlaying, currentIndex]);
+  }, [isPlaying, currentIndex, currentMedia.src]);
 
   const togglePlay = () => {
     if (currentMedia.type === 'video' && videoRef.current) {
@@ -121,6 +121,7 @@ export default function MediaPlayer({
         <div className="absolute inset-0 flex items-center justify-center bg-black/20">
           {currentMedia.type === 'video' ? (
             <video
+              key={currentMedia.src}
               ref={videoRef}
               src={currentMedia.src}
               poster="" // 可以设置封面图

@@ -13,7 +13,7 @@ export default function ContactPageContent() {
       {/* Hero Section - 渐变背景 */}
       <HeroSection />
       
-      {/* 联系方式卡片 - 白色/深色背景 */}
+      {/* 联系方式卡片 - 透出全站氛围背景 */}
       <section className="relative py-16">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-foreground/5 to-transparent dark:via-white/5" />
         <ContactCards />
@@ -25,7 +25,7 @@ export default function ContactPageContent() {
         <ContactForm />
       </section>
       
-      {/* 在线状态 - 白色/深色背景 */}
+      {/* 在线状态 - 透出全站氛围背景 */}
       <section className="relative py-16">
         <AvailabilityCard />
       </section>
@@ -45,7 +45,7 @@ export default function ContactPageContent() {
         className="relative py-12 border-t border-foreground/10"
       >
         <div className="container mx-auto px-4 sm:px-6 text-center">
-          <p className="font-sf-pro-text text-foreground/50 text-sm">
+          <p className="font-sf-pro-text text-white/50 text-sm">
             期待与你的交流
           </p>
         </div>

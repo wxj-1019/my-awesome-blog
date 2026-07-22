@@ -316,7 +316,7 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
                   </div>
                 </GlassCard>
                 <div className="mb-8">
-                  <h3 className={`text-lg font-semibold mb-3 ${textClass}`}>标签</h3>
+                  <h3 className="text-lg font-semibold mb-3 text-white">标签</h3>
                   <div className="flex flex-wrap gap-2">
                     {article.tags.map((tag) => (
                       <Badge

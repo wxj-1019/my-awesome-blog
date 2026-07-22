@@ -8,7 +8,6 @@ import AlbumFilter, { FilterType, SortType, ViewMode } from '@/components/albums
 import Lightbox, { LightboxImage } from '@/components/ui/Lightbox';
 import MasonryGallery, { MasonryImage } from '@/components/ui/MasonryGallery';
 import ImageTrail from '@/components/ui/ImageTrail';
-import { useThemedClasses } from '@/hooks/useThemedClasses';
 import { Album } from '@/types';
 import { apiRequest } from '@/lib/api-client';
 import { BlurIn, FadeIn } from '@/components/motion';
@@ -23,7 +22,6 @@ const AlbumsPageContent = () => {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [lightboxImages, setLightboxImages] = useState<LightboxImage[]>([]);
-  const { themedClasses } = useThemedClasses();
   useEffect(() => {
     const fetchAlbums = async () => {
       try {
@@ -254,7 +252,7 @@ const AlbumsPageContent = () => {
                 <div className="w-2 h-2 rounded-full bg-tech-cyan animate-pulse" />
                 <div className="h-px w-16 bg-gradient-to-l from-transparent to-tech-cyan/50" />
               </div>
-              <p className={cn("text-base sm:text-lg max-w-2xl mx-auto font-light tracking-wide leading-relaxed mb-8", themedClasses.mutedTextClass)}>
+              <p className="text-base sm:text-lg max-w-2xl mx-auto font-light tracking-wide leading-relaxed mb-8 text-white/70">
                 探索生活中的美好瞬间 · 用镜头记录难忘时刻
               </p>
               {/* 统计信息 - 内联到标题框中 */}
@@ -277,11 +275,11 @@ const AlbumsPageContent = () => {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6, delay: 0.2 }}
-                        className={cn("text-2xl font-bold tabular-nums", themedClasses.textClass)}
+                        className="text-2xl font-bold tabular-nums text-white"
                       >
                         {albums.reduce((sum, album) => sum + album.images, 0)}
                       </motion.div>
-                      <div className={cn("text-sm", themedClasses.mutedTextClass)}>
+                      <div className="text-sm text-white/60">
                         张照片
                       </div>
                     </div>
@@ -307,11 +305,11 @@ const AlbumsPageContent = () => {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6, delay: 0.3 }}
-                        className={cn("text-2xl font-bold tabular-nums", themedClasses.textClass)}
+                        className="text-2xl font-bold tabular-nums text-white"
                       >
                         {albums.length}
                       </motion.div>
-                      <div className={cn("text-sm", themedClasses.mutedTextClass)}>
+                      <div className="text-sm text-white/60">
                         个相册
                       </div>
                     </div>

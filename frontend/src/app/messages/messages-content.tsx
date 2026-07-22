@@ -335,7 +335,7 @@ export default function MessagesPageContent() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">加载中...</p>
+          <p className="text-white/60">加载中...</p>
         </div>
       </div>
     );
@@ -391,10 +391,10 @@ export default function MessagesPageContent() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-8"
         >
-          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-3">
+          <h1 className="text-4xl md:text-5xl font-bold text-white drop-shadow-md mb-3">
             留言板
           </h1>
-          <p className="text-muted-foreground text-lg">
+          <p className="text-white/60 text-lg">
             发送你的弹幕，和大家一起互动
           </p>
         </motion.div>
@@ -501,7 +501,7 @@ export default function MessagesPageContent() {
           </div>
 
           <div className="mt-6 text-center">
-            <p className="text-muted-foreground text-sm">
+            <p className="text-white/60 text-sm">
               已有 {messages.length} 条弹幕在空中飘过
             </p>
           </div>
