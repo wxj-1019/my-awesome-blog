@@ -73,20 +73,74 @@ export default function AmbientBackground() {
           0%, 100% { opacity: 0.25; }
           50% { opacity: 0.9; }
         }
-        /* 流星 A：右上向左下（16s 周期） */
+        /* 流星 A（快）：16s 周期 → 14s，可见窗口更短，一闪而过 */
         @keyframes meteor-fall {
-          0%, 82% { transform: translate3d(0, 0, 0) rotate(-30deg); opacity: 0; }
-          86% { opacity: 0.95; }
-          94% { transform: translate3d(-38vw, 24vh, 0) rotate(-30deg); opacity: 0.6; }
-          98%, 100% { transform: translate3d(-44vw, 28vh, 0) rotate(-30deg); opacity: 0; }
+          0%, 86% { transform: translate3d(0, 0, 0) rotate(-30deg); opacity: 0; }
+          88% { opacity: 1; }
+          92.5% { transform: translate3d(-36vw, 22vh, 0) rotate(-30deg); opacity: 1; }
+          94.5%, 100% { transform: translate3d(-40vw, 25vh, 0) rotate(-30deg); opacity: 0; }
         }
-        /* 流星 B：中部反向错峰（22s 周期） */
+        /* 流星 B（慢）：22s → 24s，划过更从容，与 A 形成速度差 */
         @keyframes meteor-fall-b {
-          0%, 86% { transform: translate3d(0, 0, 0) rotate(28deg); opacity: 0; }
-          89% { opacity: 0.85; }
-          96% { transform: translate3d(34vw, 20vh, 0) rotate(28deg); opacity: 0.5; }
-          99%, 100% { transform: translate3d(40vw, 24vh, 0) rotate(28deg); opacity: 0; }
+          0%, 88% { transform: translate3d(0, 0, 0) rotate(28deg); opacity: 0; }
+          90% { opacity: 0.9; }
+          95.5% { transform: translate3d(32vw, 19vh, 0) rotate(28deg); opacity: 0.9; }
+          97.5%, 100% { transform: translate3d(37vw, 22vh, 0) rotate(28deg); opacity: 0; }
         }
+        /* 流星亮核闪烁（燃烧感，仅可见窗口内起作用） */
+        @keyframes meteor-head-flicker {
+          0%, 100% { opacity: 1; }
+          25% { opacity: 0.55; }
+          50% { opacity: 0.95; }
+          75% { opacity: 0.7; }
+        }
+        /* 尾迹：左侧收成尖的三角渐变 */
+        .meteor-tail {
+          position: absolute;
+          top: 50%;
+          transform: translateY(-50%);
+          height: 2px;
+          filter: blur(0.4px);
+        }
+        /* 核后亮带：贴核最亮 → 12% 处快衰减 → 尾端渐隐 */
+        .meteor-tail-right {
+          right: 3px;
+          width: 110px;
+          background: linear-gradient(to left,
+            rgba(255, 255, 255, 0.95) 0%,
+            rgba(222, 238, 252, 0.72) 10%,
+            rgba(200, 222, 246, 0.32) 42%,
+            rgba(190, 214, 240, 0.1) 70%,
+            transparent 100%);
+          clip-path: polygon(0 50%, 100% 0, 100% 100%);
+        }
+        .meteor-tail-left {
+          left: 3px;
+          width: 80px;
+          background: linear-gradient(to right,
+            rgba(255, 255, 255, 0.9) 0%,
+            rgba(222, 238, 252, 0.65) 10%,
+            rgba(200, 222, 246, 0.28) 42%,
+            rgba(190, 214, 240, 0.08) 70%,
+            transparent 100%);
+          clip-path: polygon(0 0, 100% 50%, 0 100%);
+        }
+        /* 亮核 + 光晕 */
+        .meteor-head {
+          position: absolute;
+          top: 50%;
+          width: 3px;
+          height: 3px;
+          border-radius: 9999px;
+          transform: translateY(-50%);
+          background: rgba(248, 251, 255, 0.95);
+          box-shadow:
+            0 0 4px 1px rgba(236, 246, 255, 0.9),
+            0 0 14px 4px rgba(190, 214, 240, 0.45);
+          animation: meteor-head-flicker 0.7s linear infinite;
+        }
+        .meteor-head-right { right: 0; }
+        .meteor-head-left { left: 0; }
         /* 月光海路：倒影带轻微颤动 */
         @keyframes moon-road-shimmer {
           0%, 100% { opacity: 0.55; transform: scaleX(1); }
@@ -112,8 +166,8 @@ export default function AmbientBackground() {
         .cloud-slow-c { animation: cloud-slow-c 95s ease-in-out infinite; }
         .star-twinkle { animation: star-twinkle 5s ease-in-out infinite; }
         .star-twinkle-alt { animation: star-twinkle 7s ease-in-out -3s infinite; }
-        .meteor-fall { animation: meteor-fall 16s linear 5s infinite; }
-        .meteor-fall-b { animation: meteor-fall-b 22s linear 11s infinite; }
+        .meteor-fall { animation: meteor-fall 14s cubic-bezier(0.33, 0, 0.2, 1) 5s infinite; }
+        .meteor-fall-b { animation: meteor-fall-b 24s cubic-bezier(0.33, 0, 0.2, 1) 11s infinite; }
         .moon-road-shimmer { animation: moon-road-shimmer 9s ease-in-out infinite; }
         .constellation-pulse { animation: constellation-pulse 12s ease-in-out infinite; }
         .constellation-draw-line {
@@ -184,8 +238,8 @@ export default function AmbientBackground() {
           .tree-sway, .sun-breathe {
             animation: none;
           }
-          .meteor-fall, .meteor-fall-b,
-          .leaf-fall-a, .leaf-fall-b, .leaf-fall-c { opacity: 0; }
+          .meteor-fall, .meteor-fall-b, .meteor-head,
+          .leaf-fall-a, .leaf-fall-b, .leaf-fall-c { opacity: 0; animation: none; }
           .constellation-draw-line {
             animation: none;
             stroke-dashoffset: 0;
@@ -359,32 +413,24 @@ export default function AmbientBackground() {
             />
           </motion.div>
 
-          {/* 流星 A：右上向左下 */}
+          {/* 流星 A：右上向左下（亮核 + 渐尖尾迹） */}
           <div
             data-meteor
-            className="meteor-fall absolute right-[8%] top-[10%] h-[2px] w-36"
-            style={{
-              background:
-                'linear-gradient(to left, rgba(236, 244, 252, 0.95), rgba(190, 214, 240, 0.4) 55%, transparent)',
-              boxShadow: '0 0 8px 1px rgba(210, 230, 250, 0.5)',
-              opacity: 0,
-              transformOrigin: 'right center',
-              willChange: 'transform, opacity',
-            }}
-          />
+            className="meteor-fall absolute right-[8%] top-[10%] h-[3px] w-32"
+            style={{ opacity: 0, willChange: 'transform, opacity' }}
+          >
+            <span className="meteor-tail meteor-tail-right" />
+            <span className="meteor-head meteor-head-right" />
+          </div>
           {/* 流星 B：中部反向错峰 */}
           <div
             data-meteor="b"
-            className="meteor-fall-b absolute left-[42%] top-[14%] h-[2px] w-28"
-            style={{
-              background:
-                'linear-gradient(to right, rgba(236, 244, 252, 0.9), rgba(190, 214, 240, 0.35) 55%, transparent)',
-              boxShadow: '0 0 6px 1px rgba(210, 230, 250, 0.4)',
-              opacity: 0,
-              transformOrigin: 'left center',
-              willChange: 'transform, opacity',
-            }}
-          />
+            className="meteor-fall-b absolute left-[42%] top-[14%] h-[3px] w-24"
+            style={{ opacity: 0, willChange: 'transform, opacity' }}
+          >
+            <span className="meteor-head meteor-head-left" />
+            <span className="meteor-tail meteor-tail-left" />
+          </div>
 
           {/* 山脉剪影 ×2（近景视差，远浅近深） */}
           <motion.div

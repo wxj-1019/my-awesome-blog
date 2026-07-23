@@ -1,27 +1,45 @@
 'use client';
 import { useState, useEffect, Suspense, useCallback, useMemo } from 'react';
-import { motion, AnimatePresence } from '@/lib/framer-motion';
-import { getArticles, getCategories, getTags, getFeaturedArticles } from '@/services/articleService';
+import { getArticles, getCategories, getTags } from '@/services/articleService';
 import { useLoading } from '@/context/loading-context';
-import HoloCard from '@/components/articles/HoloCard';
-import CommandBar from '@/components/articles/CommandBar';
 import ArchiveDrawer from '@/components/articles/ArchiveDrawer';
+import ArticleSidebar from '@/app/articles/components/ArticleSidebar';
+import FilterBar from '@/components/articles/FilterBar';
+import ArticleListItem from '@/components/articles/ArticleListItem';
 import Loader from '@/components/loading/Loader';
-import GlitchText from '@/components/ui/GlitchText';
-import { FocusCards } from '@/components/ui/FocusCards';
 import EmptyState from '@/components/ui/EmptyState';
-import ArticleCardSkeleton from '@/components/articles/ArticleCardSkeleton';
-import { BlurIn, FadeIn } from '@/components/motion';
-import {  Article, Category, Tag } from '@/types';
+import ArticleCard, { ArticleCardSkeleton } from '@/components/ui/ArticleCard';
+import { FadeIn, Stagger, StaggerItem } from '@/components/motion';
+import { Article, Category, Tag } from '@/types';
 import logger from '@/utils/logger';
-import { mapArticlesToAlbums, getHotArticles } from '@/utils/articleHelpers';
+import { getHotArticles } from '@/utils/articleHelpers';
 import { useArticleFilters } from '@/hooks/useArticleFilters';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import { BookOpen } from 'lucide-react';
+import type { Route } from 'next';
+
 const ARTICLES_PER_PAGE = 12;
+
+/** 将后端 Article 映射为统一 ArticleCard 的 props */
+function toCardProps(article: Article) {
+  return {
+    id: article.id,
+    title: article.title,
+    excerpt: article.excerpt || '',
+    date: article.published_at
+      ? new Date(article.published_at).toLocaleDateString('zh-CN')
+      : '',
+    readTime: article.read_time ? `${article.read_time} min` : undefined,
+    category: article.categories?.[0]?.name,
+    coverImage: article.cover_image || undefined,
+    likes: article.likes_count || 0,
+    comments: article.comments_count || 0,
+    href: `/articles/${article.id}` as Route,
+  };
+}
+
 function ArticlesPageContent() {
   const [articles, setArticles] = useState<Article[]>([]);
-  const [featuredArticles, setFeaturedArticles] = useState<Article[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,8 +52,7 @@ function ArticlesPageContent() {
   const { showLoading, hideLoading } = useLoading();
   const filters = useArticleFilters({ categories, tags });
   const hotArticles = useMemo(() => getHotArticles(articles, 10), [articles]);
-  const featuredAlbums = useMemo(() => mapArticlesToAlbums(featuredArticles), [featuredArticles]);
-  const featuredArticleCount = featuredArticles.length;
+
   const fetchInitialData = useCallback(async () => {
     try {
       logger.log('开始获取文章数据...');
@@ -44,7 +61,7 @@ function ArticlesPageContent() {
       showLoading();
 
       // 并行请求所有数据，减少等待时间
-      const [articlesData, categoriesData, tagsData, featuredData] = await Promise.all([
+      const [articlesData, categoriesData, tagsData] = await Promise.all([
         getArticles({
           category: filters.selectedCategory || undefined,
           tag: filters.selectedTag || undefined,
@@ -54,107 +71,84 @@ function ArticlesPageContent() {
         }),
         getCategories(),
         getTags(),
-        getFeaturedArticles(5),
       ]);
 
-      logger.log('获取到文章数据:', articlesData);
       setArticles(articlesData);
-      logger.log('获取到分类数据:', categoriesData);
       setCategories(categoriesData);
-      logger.log('获取到标签数据:', tagsData);
       setTags(tagsData);
-      logger.log('获取到精选文章数据:', featuredData);
-      setFeaturedArticles(featuredData || []);
       setHasMore(articlesData.length >= ARTICLES_PER_PAGE);
       setPage(1);
-    } catch (error) {
-      logger.error('获取数据失败:', error);
-      setError(error instanceof Error ? error.message : '获取数据失败');
+    } catch (err) {
+      logger.error('获取数据失败:', err);
+      setError(err instanceof Error ? err.message : '获取数据失败');
     } finally {
       hideLoading();
       setLoading(false);
     }
   }, [filters.selectedCategory, filters.selectedTag, filters.searchQuery, showLoading, hideLoading]);
+
   useEffect(() => {
     fetchInitialData();
   }, [fetchInitialData]);
+
   const loadMore = useCallback(async () => {
-    if (!loadingMore && hasMore) {
-      try {
-        setLoadingMore(true);
-        const nextPage = page + 1;
-        const articlesData = await getArticles({
-          category: filters.selectedCategory || undefined,
-          tag: filters.selectedTag || undefined,
-          search: filters.searchQuery || undefined,
-          limit: ARTICLES_PER_PAGE,
-          offset: (nextPage - 1) * ARTICLES_PER_PAGE,
-        });
-        setArticles(prev => [...prev, ...articlesData]);
-        setPage(nextPage);
-        setHasMore(articlesData.length >= ARTICLES_PER_PAGE);
-      } catch (error) {
-        logger.error('加载更多失败:', error);
-      } finally {
-        setLoadingMore(false);
-      }
+    if (loadingMore || !hasMore) {
+      return;
+    }
+    try {
+      setLoadingMore(true);
+      const nextPage = page + 1;
+      const articlesData = await getArticles({
+        category: filters.selectedCategory || undefined,
+        tag: filters.selectedTag || undefined,
+        search: filters.searchQuery || undefined,
+        limit: ARTICLES_PER_PAGE,
+        offset: (nextPage - 1) * ARTICLES_PER_PAGE,
+      });
+      setArticles(prev => [...prev, ...articlesData]);
+      setPage(nextPage);
+      setHasMore(articlesData.length >= ARTICLES_PER_PAGE);
+    } catch (err) {
+      logger.error('加载更多失败:', err);
+    } finally {
+      setLoadingMore(false);
     }
   }, [loadingMore, hasMore, page, filters.selectedCategory, filters.selectedTag, filters.searchQuery]);
+
   const observerTargetRef = useInfiniteScroll({
     loading: loadingMore,
     hasMore,
-    onLoadMore: loadMore
+    onLoadMore: loadMore,
   });
-  const handleViewToggle = useCallback((view: 'grid' | 'list') => {
-    setViewMode(view);
-  }, []);
+
   const hasFilters = Boolean(
     filters.selectedCategory || filters.selectedTag || filters.searchQuery
   );
+
+  // 筛选结果变化时重挂载入场，避免 popLayout 跳动
+  const filterKey = `${filters.selectedCategory ?? ''}|${filters.selectedTag ?? ''}|${filters.searchQuery}`;
+
   return (
     <div className="min-h-screen text-foreground font-sans selection:bg-primary/40 selection:text-primary-foreground">
-      <div className="relative">
-        <BlurIn>
-          <div className="pt-20 pb-10 text-center">
-            <GlitchText text="ARTICLES" size="lg" className="mb-4 font-display" />
-            {/* 幕标 kicker：呼应首页幕标式头部，收敛故障风的赛博感 */}
-            <p className="mb-2 text-xs font-mono tracking-[0.28em] uppercase text-white/80">
-              文库 · ARTICLES
-            </p>
-            {/* 透出区裸文字：两个氛围世界均为深色底，保持浅色系 */}
-            <p className="text-white/60 font-mono text-sm tracking-widest uppercase">
-              Explore digital frontier
-            </p>
-          </div>
-        </BlurIn>
-        {featuredArticleCount > 0 && (
-          <FadeIn className="mb-16">
-            <FocusCards cards={featuredAlbums} />
-          </FadeIn>
-        )}
-        <div className="container mx-auto px-4 py-8 pb-32">
-          <FadeIn delay={0.05}>
-            <CommandBar
-              categories={categories}
-              tags={tags}
-              onCategoryChange={filters.handleCategoryChange}
-              onTagChange={filters.handleTagChange}
-              onSearchChange={filters.handleSearchChange}
-              onViewToggle={handleViewToggle}
-              currentView={viewMode}
-              onOpenDrawer={() => setDrawerOpen(true)}
-            />
-          </FadeIn>
-          <div className="mt-8">
+      <div className="container mx-auto px-4 pt-24">
+        <FilterBar
+          onSearchChange={filters.handleSearchChange}
+          viewMode={viewMode}
+          onViewToggle={setViewMode}
+          onOpenDrawer={() => setDrawerOpen(true)}
+        />
+      </div>
+
+      {/* 两列布局：左侧文章区，右侧边栏（统计/分类/标签/热门） */}
+      <div className="container mx-auto px-4 pb-32">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8 items-start">
+          {/* 左列：文章区 */}
+          <div className="min-w-0">
             {error ? (
               <FadeIn>
                 <div className="text-center py-20">
-                  <div className="text-4xl font-bold mb-4 text-destructive">
-                    加载失败
-                  </div>
-                  <p className="text-lg mb-6 text-muted-foreground">
-                    {error}
-                  </p>
+                  <div className="text-4xl font-bold mb-4 text-destructive">加载失败</div>
+                  <p className="text-lg mb-6 text-muted-foreground">{error}</p>
                   <button
                     onClick={() => fetchInitialData()}
                     className="px-6 py-3 rounded-lg font-medium bg-primary text-primary-foreground hover:bg-primary/90"
@@ -164,64 +158,64 @@ function ArticlesPageContent() {
                 </div>
               </FadeIn>
             ) : loading ? (
-              <div className={viewMode === 'grid'
-                ? 'columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6'
-                : 'space-y-6'
-              }>
-                {/* 骨架屏占位符：使用 index 作为 key */}
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <ArticleCardSkeleton key={i} variant={i % 3 === 0 ? 'tall' : i % 3 === 1 ? 'short' : 'default'} />
-                ))}
-              </div>
+              /* 骨架屏与真实布局严格同构（减少 CLS） */
+              viewMode === 'grid' ? (
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <ArticleCardSkeleton key={i} />
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} className="glass-card flex gap-4 p-4 animate-pulse" aria-hidden>
+                      <div className="w-28 sm:w-44 aspect-[4/3] rounded-xl bg-glass/40" />
+                      <div className="flex-1 space-y-3 py-1">
+                        <div className="h-4 w-1/4 bg-glass/40 rounded" />
+                        <div className="h-5 w-3/4 bg-glass/40 rounded" />
+                        <div className="h-4 w-full bg-glass/30 rounded" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )
             ) : articles.length > 0 ? (
               <>
-                <FadeIn>
-                  <div
-                    className={viewMode === 'grid'
-                      ? 'columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6'
-                      : 'space-y-6'
-                    }
+                {viewMode === 'grid' ? (
+                  <Stagger
+                    key={filterKey}
+                    className="grid grid-cols-1 xl:grid-cols-2 gap-6"
+                    itemCount={articles.length}
                   >
-                    <AnimatePresence mode="popLayout">
-                      {articles.map((article) => (
-                        <motion.div
-                          key={article.id}
-                          layout
-                          initial={{ opacity: 0, scale: 0.96 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.96 }}
-                          transition={{ duration: 0.25 }}
-                          className="break-inside-avoid mb-6"
-                        >
-                          <HoloCard
-                            article={article}
-                            isFeatured={false}
-                            className="w-full"
-                          />
-                        </motion.div>
-                      ))}
-                    </AnimatePresence>
-                  </div>
-                </FadeIn>
-                {hasMore && (
-                  <div ref={observerTargetRef} className="py-8 text-center">
-                    {loadingMore ? (
-                      <div className="flex items-center justify-center space-x-2">
-                        <Loader />
-                        <span className="text-sm text-muted-foreground">加载更多...</span>
-                      </div>
-                    ) : (
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={loadMore}
-                        className="px-8 py-4 rounded-xl font-medium bg-primary text-primary-foreground hover:bg-primary/90"
-                      >
-                        加载更多 ({articles.length})
-                      </motion.button>
-                    )}
-                  </div>
+                    {articles.map((article) => (
+                      <StaggerItem key={article.id}>
+                        <ArticleCard {...toCardProps(article)} />
+                      </StaggerItem>
+                    ))}
+                  </Stagger>
+                ) : (
+                  <Stagger key={filterKey} className="space-y-4" itemCount={articles.length}>
+                    {articles.map((article) => (
+                      <StaggerItem key={article.id}>
+                        <ArticleListItem article={article} />
+                      </StaggerItem>
+                    ))}
+                  </Stagger>
                 )}
+
+                {/* 无限滚动哨兵 + 终态提示（替代原加载更多按钮） */}
+                <div ref={observerTargetRef} className="py-10 text-center">
+                  {loadingMore ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <Loader />
+                      <span className="text-sm text-muted-foreground">加载更多…</span>
+                    </div>
+                  ) : !hasMore ? (
+                    <p className="text-sm text-muted-foreground">
+                      — 已加载全部 {articles.length} 篇 —
+                    </p>
+                  ) : null}
+                </div>
               </>
             ) : (
               <EmptyState
@@ -234,9 +228,7 @@ function ArticlesPageContent() {
                     : '暂无文章发布，请稍后再来'
                 }
                 // 仅无筛选的「真·空库」用本地 Lottie 试点；筛选空结果保持简洁图标
-                lottieSrc={
-                  hasFilters ? undefined : '/lottie/empty-inbox.json'
-                }
+                lottieSrc={hasFilters ? undefined : '/lottie/empty-inbox.json'}
                 action={
                   hasFilters
                     ? { label: '清除筛选', onClick: filters.resetFilters }
@@ -245,31 +237,42 @@ function ArticlesPageContent() {
               />
             )}
           </div>
-        </div>
-        <ArchiveDrawer
-          isOpen={drawerOpen}
-          onClose={() => setDrawerOpen(false)}
-          categories={categories}
-          tags={tags}
-          hotArticles={hotArticles}
-          onCategorySelect={filters.handleCategoryChange}
-          onTagSelect={filters.handleTagChange}
-        />
-        <AnimatePresence>
-          {drawerOpen && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setDrawerOpen(false)}
-              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+
+          {/* 右列：边栏（移动端折叠到文章区下方） */}
+          <div className="lg:sticky lg:top-24">
+            <ArticleSidebar
+              categories={categories}
+              tags={tags}
+              articles={articles}
+              selectedCategory={filters.selectedCategory}
+              selectedTag={filters.selectedTag}
+              onCategorySelect={filters.handleCategoryChange}
+              onTagSelect={filters.handleTagChange}
             />
-          )}
-        </AnimatePresence>
+          </div>
+        </div>
       </div>
+
+      <ArchiveDrawer
+        isOpen={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        categories={categories}
+        tags={tags}
+        hotArticles={hotArticles}
+        onCategorySelect={filters.handleCategoryChange}
+        onTagSelect={filters.handleTagChange}
+      />
+      {drawerOpen && (
+        <div
+          onClick={() => setDrawerOpen(false)}
+          className="fixed inset-0 bg-background/60 backdrop-blur-sm z-40"
+          aria-hidden
+        />
+      )}
     </div>
   );
 }
+
 export default function ArticlesPageClient() {
   return (
     <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-foreground">加载中...</div>}>
