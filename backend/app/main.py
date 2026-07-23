@@ -99,11 +99,67 @@ register_exception_handlers(app)
 
 
 
-# Health check endpoint
+# Health check endpoint（存活探针：进程在即可）
 @app.get("/health")
 async def health_check():
     app_logger.info("Health check endpoint accessed")
     return {"status": "healthy", "service": settings.APP_NAME}
+
+
+@app.get("/ready")
+async def readiness_check():
+    """
+    就绪探针：检查 DB / Redis 等依赖。
+    - 200：关键依赖可用
+    - 503：关键依赖不可用，不应接入流量
+    """
+    import asyncio
+    from datetime import datetime, timezone
+    from sqlalchemy import text
+    from fastapi.responses import JSONResponse
+    from app.core.database import SessionLocal
+
+    checks: dict = {
+        "service": settings.APP_NAME,
+        "time": datetime.now(timezone.utc).isoformat(),
+        "checks": {},
+    }
+    overall_ok = True
+
+    def _check_db() -> dict:
+        db = SessionLocal()
+        try:
+            db.execute(text("SELECT 1"))
+            return {"status": "ok"}
+        except Exception as exc:  # noqa: BLE001 — 探针需捕获任意连接失败
+            return {"status": "error", "detail": str(exc)[:200]}
+        finally:
+            db.close()
+
+    db_result = await asyncio.to_thread(_check_db)
+    checks["checks"]["database"] = db_result
+    if db_result.get("status") != "ok":
+        overall_ok = False
+
+    # Redis：优先 PING；未连接则 not ready
+    try:
+        client = getattr(cache_service, "redis", None)
+        if client is None:
+            checks["checks"]["redis"] = {
+                "status": "error",
+                "detail": "redis client not connected",
+            }
+            overall_ok = False
+        else:
+            await client.ping()
+            checks["checks"]["redis"] = {"status": "ok"}
+    except Exception as exc:  # noqa: BLE001
+        checks["checks"]["redis"] = {"status": "error", "detail": str(exc)[:200]}
+        overall_ok = False
+
+    checks["status"] = "ready" if overall_ok else "not_ready"
+    code = 200 if overall_ok else 503
+    return JSONResponse(status_code=code, content=checks)
 
 
 @app.get("/")
@@ -113,7 +169,9 @@ async def root():
         "message": f"Welcome to {settings.APP_NAME} API",
         "version": settings.APP_VERSION,
         "docs": "/docs",
-        "openapi": "/api/v1/openapi.json"
+        "openapi": "/api/v1/openapi.json",
+        "health": "/health",
+        "ready": "/ready",
     }
 
 

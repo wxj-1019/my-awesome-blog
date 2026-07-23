@@ -19,7 +19,11 @@ from app.core.config import settings
 from app.services.weather_update_service import weather_update_service
 from app.services.oss_service import oss_service
 from app.utils.rate_limit import limiter
-from app.core.dependencies import get_current_active_user, get_current_superuser
+from app.core.dependencies import (
+    get_current_active_user,
+    get_current_superuser,
+    get_current_user_optional,
+)
 from app.models.user import User
 
 
@@ -72,9 +76,11 @@ def override_auth(test_session, setup_database):
 
     app.dependency_overrides[get_current_active_user] = _get_test_user
     app.dependency_overrides[get_current_superuser] = _get_test_user
+    app.dependency_overrides[get_current_user_optional] = _get_test_user
     yield
     app.dependency_overrides.pop(get_current_active_user, None)
     app.dependency_overrides.pop(get_current_superuser, None)
+    app.dependency_overrides.pop(get_current_user_optional, None)
 
 
 # 确保全局 settings 也使用测试数据库

@@ -150,8 +150,12 @@ def get_replies(db: Session, comment_id: UUID, skip: int = 0, limit: int = 100, 
 
 
 def create_comment(db: Session, comment: CommentCreate, author_id: UUID) -> Comment:
+    data = comment.model_dump()
+    data["article_id"] = UUID(str(data["article_id"]))
+    if data.get("parent_id") is not None:
+        data["parent_id"] = UUID(str(data["parent_id"]))
     db_comment = Comment(
-        **comment.model_dump(),
+        **data,
         author_id=author_id,
     )
     db.add(db_comment)
