@@ -1,49 +1,71 @@
 'use client';
 
-import Link from 'next/link';
-import type { Route } from 'next';
-import { ArrowLeft } from 'lucide-react';
+import { useState } from 'react';
+import { Sparkles } from 'lucide-react';
 import { showcaseSkills } from '@/mock/skills';
-import SkillHero from '@/components/skills/SkillHero';
-import SkillAct from '@/components/skills/SkillAct';
-import { FadeIn } from '@/components/motion';
+import type { ShowcaseSkill } from '@/types/skill';
+import PageShell from '@/components/layout/PageShell';
+import PageHeader from '@/components/layout/PageHeader';
+import GlassCard from '@/components/ui/GlassCard';
+import { Stagger, StaggerItem } from '@/components/motion';
+import SkillCard from '@/components/skills/SkillCard';
+import { cn } from '@/lib/utils';
+
+/** 领域筛选项：『全部』+ 数据模型中的三种领域 */
+type DomainFilter = '全部' | ShowcaseSkill['domain'];
+
+const DOMAIN_FILTERS: DomainFilter[] = ['全部', '前端', '后端', '通用'];
 
 /**
- * Skill 收藏馆编排：全屏开场 Hero → 每个 skill 一幕（电影式分幕滚动）→ 收尾区。
- * 数据与分幕组件来自契约模块（@/mock/skills、@/components/skills/*）。
+ * Skill 收藏馆索引页：领域筛选按钮组 + 卡片网格。
+ * 卡片点击进入 /tools/skills/[slug] 沉浸详情页；数据来自 @/mock/skills。
  */
 export default function SkillsContent() {
-  const total = showcaseSkills.length;
+  const [filter, setFilter] = useState<DomainFilter>('全部');
+
+  const filteredSkills =
+    filter === '全部'
+      ? showcaseSkills
+      : showcaseSkills.filter((skill) => skill.domain === filter);
 
   return (
-    <div className="text-foreground">
-      {/* 全屏开场 */}
-      <SkillHero />
+    <PageShell density="narrow">
+      <PageHeader
+        title="Skill 收藏馆"
+        description="收录让我在写代码时如虎添翼的 AI Agent Skills"
+        icon={Sparkles}
+        align="center"
+      />
 
-      {/* 分幕：每个收藏的 skill 一幕，index 从 0 开始 */}
-      {showcaseSkills.map((skill, index) => (
-        <SkillAct key={skill.slug} skill={skill} index={index} total={total} />
-      ))}
+      {/* 领域筛选按钮组 */}
+      <GlassCard padding="sm" className="max-w-md mx-auto flex items-center justify-center gap-2">
+        {DOMAIN_FILTERS.map((domain) => (
+          <button
+            key={domain}
+            type="button"
+            onClick={() => setFilter(domain)}
+            aria-pressed={filter === domain}
+            className={cn(
+              'px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+              filter === domain
+                ? 'bg-primary/15 text-primary'
+                : 'text-muted-foreground hover:text-foreground hover:bg-primary/5'
+            )}
+          >
+            {domain}
+          </button>
+        ))}
+      </GlassCard>
 
-      {/* 收尾区：持续收录中 + 返回百宝箱 */}
-      <FadeIn className="container mx-auto px-4 sm:px-6 py-20 sm:py-28 text-center">
-        <p className="text-[11px] sm:text-xs font-medium tracking-[0.28em] text-primary/90">
-          未完待续
-        </p>
-        <h2 className="mt-3 text-2xl sm:text-3xl font-semibold text-foreground">
-          持续收录中
-        </h2>
-        <p className="mt-3 text-sm text-muted-foreground max-w-md mx-auto">
-          遇到好用的 AI Agent Skill 会陆续收入馆中，欢迎常回来看看。
-        </p>
-        <Link
-          href={'/tools' as Route}
-          className="mt-8 inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" aria-hidden />
-          返回百宝箱
-        </Link>
-      </FadeIn>
-    </div>
+      {/* 卡片网格：key 用稳定的 slug */}
+      <Stagger className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {filteredSkills.map((skill) => (
+          <StaggerItem key={skill.slug} className="h-full">
+            <SkillCard skill={skill} />
+          </StaggerItem>
+        ))}
+      </Stagger>
+    </PageShell>
   );
 }

@@ -58,6 +58,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'weekly',
       priority: 0.6,
     },
+    // Skill 收藏馆 · 单 skill 沉浸详情页
+    ...['taste', 'superpowers', 'brainstorm', 'frontend-design', 'webapp-testing'].map(
+      (slug) => ({
+        url: `${baseUrl}/tools/skills/${slug}`,
+        lastModified: new Date(),
+        changeFrequency: 'weekly' as const,
+        priority: 0.5,
+      })
+    ),
     {
       url: `${baseUrl}/games`,
       lastModified: new Date(),

@@ -21,4 +21,6 @@ export interface ShowcaseSkill {
   examplePrompts: string[];
   /** 来源/仓库链接（可选） */
   sourceUrl?: string;
+  /** 适用场景（3-4 条，详情页展示） */
+  scenes?: string[];
 }

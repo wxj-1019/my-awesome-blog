@@ -25,6 +25,12 @@ export const showcaseSkills: ShowcaseSkill[] = [
       '按 taste 的规则重写这个仪表盘：信息密度要高，但不能显得拥挤',
     ],
     sourceUrl: 'https://github.com/Leonxlnx/taste-skill',
+    scenes: [
+      '新页面临启动，怕写出来一股模板味',
+      '作品被吐槽「一看就是 AI 做的」，想找病根',
+      '重构老页面，想顺便把审美也升级一遍',
+      '给 Agent 立一套设计规矩，让它不再自由发挥',
+    ],
   },
   {
     slug: 'superpowers',
@@ -45,6 +51,12 @@ export const showcaseSkills: ShowcaseSkill[] = [
       '这个接口偶发 500，用系统化调试的方法定位根因，不许靠猜',
     ],
     sourceUrl: 'https://github.com/obra/superpowers',
+    scenes: [
+      '需求刚到手上，想让 Agent 先盘清楚再动手',
+      '大重构心里没底，需要一份能逐步验证的执行计划',
+      'bug 反复修不好，想戒掉「改一下试试」的玄学调试',
+      '给 Agent 装上整套工程纪律，而不是每次都口头叮嘱',
+    ],
   },
   {
     slug: 'brainstorm',
@@ -65,6 +77,12 @@ export const showcaseSkills: ShowcaseSkill[] = [
       '这个重构动机很模糊，先通过提问帮我把真正的痛点挖出来',
     ],
     sourceUrl: 'https://github.com/obra/superpowers',
+    scenes: [
+      '脑子里只有一个模糊念头，说不清到底要做什么',
+      '想法太多太散，需要有人帮忙收敛成一个方案',
+      '开工前想先把隐含假设和边界都逼问出来',
+      '写好了点子却落不了地，想要一份能直接开发的规格',
+    ],
   },
   {
     slug: 'frontend-design',
@@ -85,6 +103,12 @@ export const showcaseSkills: ShowcaseSkill[] = [
       '检查这个组件的视觉层次，让主要操作在 3 秒内被注意到',
     ],
     sourceUrl: 'https://github.com/anthropics/skills',
+    scenes: [
+      '让 Agent 生成页面，希望默认就有像样的设计水准',
+      '赶时间出原型，没空逐个调整视觉细节',
+      '生成的界面能用但不好看，想要一个开箱即用的审美底座',
+      '做移动端页面，怕可读性和响应式被忽略',
+    ],
   },
   {
     slug: 'webapp-testing',
@@ -105,5 +129,11 @@ export const showcaseSkills: ShowcaseSkill[] = [
       '在移动端视口下验收首页，确认没有横向滚动条和遮挡',
     ],
     sourceUrl: 'https://github.com/anthropics/skills',
+    scenes: [
+      '功能写完了，想让 Agent 自己打开浏览器验收一遍',
+      '改完代码心里没底，想自动跑一遍核心用户路径',
+      '线上报了个 UI 问题，想留截图和控制台日志当证据',
+      '提交前最后一道关，怕「看起来对实则跑不通」',
+    ],
   },
 ];
