@@ -5,3 +5,4 @@ export { mockEvents, type TimelineEvent, type MediaItem } from './timeline';
 export { mockProjects, projectCategories, type Project, type GitHubStats } from './portfolio';
 export { mockGames } from './games';
 export { MOCK_WEATHER } from './weather';
+export { showcaseSkills } from './skills';

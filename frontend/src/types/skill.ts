@@ -1,0 +1,24 @@
+/**
+ * Skill 收藏馆（/tools/skills）的数据类型定义。
+ * 与 mock 数据层、SkillHero / SkillAct 组件共用的跨模块契约。
+ */
+
+/** Skill 收藏馆中单个收藏 skill 的展示模型 */
+export interface ShowcaseSkill {
+  /** 唯一标识，用作 key 与锚点 */
+  slug: string;
+  /** skill 显示名称，如 "taste" */
+  name: string;
+  /** 一句话标语 */
+  tagline: string;
+  /** 领域标签 */
+  domain: '前端' | '后端' | '通用';
+  /** 详细介绍 */
+  description: string;
+  /** 能力亮点（3-5 条） */
+  highlights: string[];
+  /** 示例提示词（2-3 条） */
+  examplePrompts: string[];
+  /** 来源/仓库链接（可选） */
+  sourceUrl?: string;
+}
