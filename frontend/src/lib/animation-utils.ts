@@ -233,16 +233,16 @@ export const flipIn: Variants = {
 // 容器交错动画变体
 // ============================================
 export const staggerContainer = (staggerChildren = 0.1, delayChildren = 0): Variants => ({
-  hidden: { opacity: 0 },
+  // 容器本身不要 opacity:0——否则 whileInView 未触发时整块列表永久不可见。
+  // 交错只交给子项的 hidden/visible。
+  hidden: {},
   visible: {
-    opacity: 1,
     transition: {
       staggerChildren: Math.max(staggerChildren, 0.05), // 最小0.05s避免过度触发
       delayChildren,
     },
   },
   exit: {
-    opacity: 0,
     transition: {
       staggerChildren: Math.max(staggerChildren * 0.5, 0.03),
       staggerDirection: -1,

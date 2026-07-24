@@ -58,14 +58,27 @@ export default function SkillsContent() {
         ))}
       </GlassCard>
 
-      {/* 卡片网格：key 用稳定的 slug */}
-      <Stagger className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {filteredSkills.map((skill) => (
-          <StaggerItem key={skill.slug} className="h-full">
-            <SkillCard skill={skill} />
-          </StaggerItem>
-        ))}
-      </Stagger>
+      {/* 卡片网格：filter 变化时整组 remount，避免 Stagger 已 visible 时新卡片卡在 opacity:0 */}
+      {filteredSkills.length === 0 ? (
+        <div
+          role="status"
+          className="mt-12 text-center text-sm text-muted-foreground"
+        >
+          当前领域暂无收录，换个筛选看看。
+        </div>
+      ) : (
+        <Stagger
+          key={filter}
+          className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+          itemCount={filteredSkills.length}
+        >
+          {filteredSkills.map((skill) => (
+            <StaggerItem key={skill.slug} className="h-full">
+              <SkillCard skill={skill} />
+            </StaggerItem>
+          ))}
+        </Stagger>
+      )}
     </PageShell>
   );
 }

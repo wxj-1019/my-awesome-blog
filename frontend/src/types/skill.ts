@@ -1,6 +1,6 @@
 /**
  * Skill 收藏馆（/tools/skills）的数据类型定义。
- * 与 mock 数据层、SkillHero / SkillAct 组件共用的跨模块契约。
+ * 与 mock 数据层、SkillCard / SkillDetailHero 等组件共用的跨模块契约。
  */
 
 /** Skill 收藏馆中单个收藏 skill 的展示模型 */

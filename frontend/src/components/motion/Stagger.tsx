@@ -57,8 +57,10 @@ export function Stagger({
       className={cn(className)}
       variants={staggerContainer(stagger, delay)}
       initial="hidden"
+      // 首屏列表用 whileInView 时，负 margin 可能让已在视口内的网格迟迟不进 visible，
+      // 子项会一直停在 opacity:0。amount:0 表示「一露出就播」。
       whileInView="visible"
-      viewport={{ once, margin: '-40px' }}
+      viewport={{ once, amount: 0 }}
     >
       {children}
     </motion.div>

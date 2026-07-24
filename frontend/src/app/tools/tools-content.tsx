@@ -29,7 +29,7 @@ const items: {
   {
     href: '/tools/skills' as Route,
     title: 'Skill 收藏馆',
-    description: '电影式沉浸展示好用的 AI Agent Skills',
+    description: 'AI Agent Skills 索引与沉浸详情',
     icon: Sparkles,
   },
 ];
