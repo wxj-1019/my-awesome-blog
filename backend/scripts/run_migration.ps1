@@ -7,15 +7,15 @@ Write-Host "Migration Execution Script" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
-# 设置工作目录
+# 设置工作目录：脚本位于 backend/scripts/，需切到 backend/ 根（alembic.ini 所在处）
 $scriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
-Set-Location $scriptPath
+Set-Location (Join-Path $scriptPath "..")
 Write-Host "Working directory: $PWD" -ForegroundColor Green
 Write-Host ""
 
 # Step 1: 检查数据库连接
 Write-Host "[Step 1] Checking database connection..." -ForegroundColor Yellow
-python check_db.py
+python scripts/check_db.py
 if ($LASTEXITCODE -ne 0) {
     Write-Host "[ERROR] Database connection failed" -ForegroundColor Red
     Read-Host "Press Enter to exit"
@@ -25,7 +25,7 @@ if ($LASTEXITCODE -ne 0) {
 # Step 2: 检查迁移状态
 Write-Host ""
 Write-Host "[Step 2] Checking migration status..." -ForegroundColor Yellow
-python migration_status.py
+python scripts/migration_status.py
 if ($LASTEXITCODE -ne 0) {
     Write-Host "[WARNING] Migration status check failed, continuing..." -ForegroundColor Yellow
 }
