@@ -22,21 +22,18 @@ describe('AmbientBackground · 贴合 Hero 双场景', () => {
     });
   });
 
-  it('renders moonlit world when dark', () => {
+  it('renders deep-space canvas when dark', () => {
     const { container } = render(<AmbientBackground />);
     expect(container.querySelector('[data-ambient-mode="dark"]')).toBeInTheDocument();
     expect(container.querySelector('[data-ambient-world="dark"]')).toBeInTheDocument();
     expect(container.querySelector('[data-ambient-world="light"]')).not.toBeInTheDocument();
-    // 月夜云海：满月（居左，含环形山）、流星 ×2、星空、星座描边绘入（居右）、月光海路、山脉剪影 ×2
-    expect(container.querySelector('[data-moon]')).toBeInTheDocument();
-    expect(container.querySelector('[data-meteor]')).toBeInTheDocument();
-    expect(container.querySelector('[data-meteor="b"]')).toBeInTheDocument();
-    expect(container.querySelector('.star-twinkle')).toBeInTheDocument();
-    expect(container.querySelector('[data-constellation]')).toBeInTheDocument();
-    expect(container.querySelector('.constellation-draw-line')).toBeInTheDocument();
-    expect(container.querySelector('[data-moon-road]')).toBeInTheDocument();
-    expect(container.querySelectorAll('[data-ridge]')).toHaveLength(2);
-    // 全站层不挂气泡，避免内容区浮圈
+    // 深空 canvas 渲染（替代原月夜云海 DOM 拼装）
+    expect(container.querySelector('[data-ambient-world="dark"] canvas')).toBeInTheDocument();
+    // 旧的月夜云海元素已移除
+    expect(container.querySelector('[data-moon]')).not.toBeInTheDocument();
+    expect(container.querySelector('[data-meteor]')).not.toBeInTheDocument();
+    expect(container.querySelector('.star-twinkle')).not.toBeInTheDocument();
+    // 全站层不挂气泡
     expect(container.querySelector('[data-testid="bubble-field"]')).not.toBeInTheDocument();
   });
 
