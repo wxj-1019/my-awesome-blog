@@ -12,6 +12,7 @@ from app.models.user import User
 from app.services.image_service import ImageService
 from app.services.oss_service import oss_service
 from app.core.config import settings
+from app.utils.file_validation import ALLOWED_IMAGE_EXTENSIONS
 
 router = APIRouter()
 
@@ -48,8 +49,8 @@ def upload_image(
     """
     Upload a new image
     """
-    # Check if file is an allowed image type
-    allowed_extensions = [".jpg", ".jpeg", ".png", ".gif", ".webp"]
+    # Check if file is an allowed image type（复用 file_validation 统一白名单）
+    allowed_extensions = ALLOWED_IMAGE_EXTENSIONS
     file_extension = os.path.splitext(file.filename)[1].lower()
     if file_extension not in allowed_extensions:
         raise HTTPException(
