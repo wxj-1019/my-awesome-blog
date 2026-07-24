@@ -100,7 +100,6 @@ def read_trending_messages(
         )
         return messages
     except Exception as e:
-        from app.utils.logger import app_logger
         app_logger.error(f"Error getting trending messages: {e}")
         raise
 
@@ -120,7 +119,6 @@ def read_message_activity(
         )
         return stats
     except Exception as e:
-        from app.utils.logger import app_logger
         app_logger.error(f"Error getting message activity: {e}")
         raise
 

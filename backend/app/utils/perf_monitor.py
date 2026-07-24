@@ -208,7 +208,6 @@ def log_slow_queries(threshold_ms: float = 1000.0):
             
             if duration > threshold_ms:
                 # 记录慢查询
-                from app.utils.logger import app_logger
                 app_logger.warning(
                     f"SLOW QUERY detected in {func.__name__}: {duration:.2f}ms\n"
                     f"Args: {args}\nKwargs: {kwargs}"

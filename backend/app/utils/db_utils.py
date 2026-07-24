@@ -8,6 +8,7 @@ from app.models.user import User
 from app.models.comment import Comment
 from app.models.category import Category
 from app.models.tag import Tag
+from app.utils.logger import app_logger
 
 
 def optimize_article_query(db: Session, include_author: bool = True, include_categories: bool = True, include_tags: bool = True, include_comments: bool = False):
@@ -54,8 +55,7 @@ def get_popular_articles_optimized(db: Session, limit: int = 5, days: int = 30):
     from sqlalchemy import text
     from app.models.article_category import ArticleCategory
     from app.models.article_tag import ArticleTag
-    from app.utils.logger import app_logger
-    
+
     try:
         # 使用原生SQL查询优化性能 - 只要求已发布，不限制发布时间
         query = text("""
