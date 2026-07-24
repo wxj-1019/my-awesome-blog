@@ -25,4 +25,12 @@ export interface ShowcaseSkill {
   scenes?: string[];
   /** 站内托管的 skill 正文路径（站点根相对），如 /skills/taste/SKILL.md */
   contentPath?: string;
+  /** 工作原理：在 Agent 工作流中的运作机制（2-4 条要点） */
+  howItWorks?: string[];
+  /** 最佳实践 / 上手建议（3-5 条） */
+  bestPractices?: string[];
+  /** 适合 / 不适合对比 */
+  fitMatrix?: { fit: string[]; notFit: string[] };
+  /** 关联 skill：馆内 slug 列表，详情页互链 */
+  relatedSlugs?: string[];
 }

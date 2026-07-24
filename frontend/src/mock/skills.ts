@@ -32,6 +32,30 @@ export const showcaseSkills: ShowcaseSkill[] = [
       '重构老页面，想顺便把审美也升级一遍',
       '给 Agent 立一套设计规矩，让它不再自由发挥',
     ],
+    howItWorks: [
+      '把设计师对布局、配色、排版、动效的判断写成 SKILL.md 约束规则',
+      'Agent 在生成代码前先读取并内化这些规则，按规则做设计决策',
+      '生成后可对照规则自检，标记「一眼 AI」的模板化产出并重构',
+    ],
+    bestPractices: [
+      '在项目启动时挂载 taste，让规则成为 Agent 的默认审美底座',
+      '遇到不满意的设计，先问 Agent「按 taste 标准哪里最像 AI」，再让它改',
+      '按项目气质选择不同审美人格，而非一套规则走天下',
+      '定期更新规则以匹配你不断进化的品味',
+    ],
+    fitMatrix: {
+      fit: [
+        '对设计有要求、不想让 AI 输出模板味的前端项目',
+        '需要快速出原型但又要保持专业感的场景',
+        '希望 Agent 像设计师一样「先想后做」的团队',
+      ],
+      notFit: [
+        '只需要功能性界面、不在意审美的内部工具',
+        '已有严格设计系统、Agent 只需按 token 执行的场景',
+        '纯后端或无界面的项目',
+      ],
+    },
+    relatedSlugs: ['frontend-design', 'superpowers'],
   },
   {
     slug: 'superpowers',
@@ -59,6 +83,31 @@ export const showcaseSkills: ShowcaseSkill[] = [
       'bug 反复修不好，想戒掉「改一下试试」的玄学调试',
       '给 Agent 装上整套工程纪律，而不是每次都口头叮嘱',
     ],
+    howItWorks: [
+      '把工程纪律拆成可独立调用的 skill：brainstorm、write-plan、execute-plan、systematic-debugging、test-driven-development',
+      '每个 skill 是一段工作流指令，Agent 读取后按步骤执行而非自由发挥',
+      'skill 之间可串联：brainstorm 产出规格 → write-plan 拆任务 → execute-plan 落地',
+      '整套接入即成为 Agent 的「工程操作系统」，单取一个也能用',
+    ],
+    bestPractices: [
+      '复杂任务先 brainstorm 再 write-plan，别让 Agent 直接开写',
+      '调试时强制走 systematic-debugging，拒绝「改一下试试」',
+      '按任务性质选 skill 子集，不必每次全套',
+      '把执行计划拆成可独立验证的小任务，逐步推进',
+    ],
+    fitMatrix: {
+      fit: [
+        '中大型功能开发、需要工程纪律约束 Agent 的场景',
+        '团队协作中希望 Agent 按统一流程干活',
+        '调试疑难 bug、需要系统化方法论',
+      ],
+      notFit: [
+        '一句话就能完成的琐碎改动',
+        '已经非常明确、无需规划的小修小补',
+        '探索性、不需要严谨流程的即兴编码',
+      ],
+    },
+    relatedSlugs: ['brainstorm', 'webapp-testing', 'taste'],
   },
   {
     slug: 'brainstorm',
@@ -86,6 +135,31 @@ export const showcaseSkills: ShowcaseSkill[] = [
       '开工前想先把隐含假设和边界都逼问出来',
       '写好了点子却落不了地，想要一份能直接开发的规格',
     ],
+    howItWorks: [
+      '面对模糊需求，不急于给方案，而是连续追问目标、约束、边界',
+      '先用开放式提问拓宽可能性，再逐步收敛到单一可执行方向',
+      '把对话挤压成结构化的需求规格文档，而非聊天记录',
+      '产出的规格可直接交给 write-plan 继续拆解执行',
+    ],
+    bestPractices: [
+      '尽量描述现状与期望，别只说「做个功能」',
+      '允许 Agent 多问几轮，别过早拍板',
+      '收敛后让 Agent 复述规格，确认理解一致再进入开发',
+      '把约束（时间、技术栈、用户）讲清楚，方案会更准',
+    ],
+    fitMatrix: {
+      fit: [
+        '需求模糊、自己也没完全想清楚的功能',
+        '想法很多但缺乏结构、需要收敛的场景',
+        '开工前想逼出隐含假设与边界',
+      ],
+      notFit: [
+        '需求已经非常明确、无需澄清的任务',
+        '纯执行类的机械改动',
+        '没有决策空间的标准化操作',
+      ],
+    },
+    relatedSlugs: ['superpowers'],
   },
   {
     slug: 'frontend-design',
@@ -113,6 +187,30 @@ export const showcaseSkills: ShowcaseSkill[] = [
       '生成的界面能用但不好看，想要一个开箱即用的审美底座',
       '做移动端页面，怕可读性和响应式被忽略',
     ],
+    howItWorks: [
+      '把视觉层次、信息架构、可读性、响应式等通用设计准则编码为指令',
+      'Agent 生成前端代码时自动加载这些准则作为判断依据',
+      '无需显式调用，作为前端任务的默认审美底座静默生效',
+    ],
+    bestPractices: [
+      '作为默认底座长期挂载，而非每次手动触发',
+      '与 taste 搭配：官方底座 + 个性化规则，效果更好',
+      '生成后让 Agent 自查可访问性与响应式',
+      '对生成结果不满意时，指明具体维度（层次/留白/对比）再让它改',
+    ],
+    fitMatrix: {
+      fit: [
+        '任何需要 Agent 生成前端界面的任务',
+        '希望开箱即用、不折腾配置的场景',
+        '对可访问性与响应式有基本要求的项目',
+      ],
+      notFit: [
+        '纯后端或无界面项目',
+        '已有专属设计系统、只需按规范执行的场景',
+        '追求高度个性化审美（用 taste 更合适）',
+      ],
+    },
+    relatedSlugs: ['taste', 'webapp-testing'],
   },
   {
     slug: 'webapp-testing',
@@ -140,5 +238,30 @@ export const showcaseSkills: ShowcaseSkill[] = [
       '线上报了个 UI 问题，想留截图和控制台日志当证据',
       '提交前最后一道关，怕「看起来对实则跑不通」',
     ],
+    howItWorks: [
+      '基于 Playwright 驱动真实浏览器，模拟真实用户环境',
+      '按脚本执行点击、填表、导航等操作，并对结果做断言',
+      '自动截图与收集控制台错误，形成可查证的验收报告',
+      '与编码 Agent 串联：写完即测，把验收闭环在开发流程内',
+    ],
+    bestPractices: [
+      '把核心用户路径写成测试脚本，每次改动自动回归',
+      '失败时优先看截图与控制台日志，而非盲猜',
+      '移动端视口单独跑一遍，避免响应式问题漏网',
+      '与 superpowers 的 execute-plan 配合，每步执行后即测',
+    ],
+    fitMatrix: {
+      fit: [
+        'Web 应用开发，需要真实浏览器验证的功能',
+        '希望把验收自动化、减少手动回归的场景',
+        '线上 UI 问题排查、需要取证的情况',
+      ],
+      notFit: [
+        '纯后端 API 或无界面的服务',
+        '一次性脚本、无需浏览器验证的任务',
+        '性能压测（应选专用工具）',
+      ],
+    },
+    relatedSlugs: ['superpowers', 'frontend-design'],
   },
 ];
