@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { showcaseSkills } from '@/mock/skills';
+import type { ShowcaseSkill } from '@/types/skill';
 import { readSkillMarkdown } from '@/lib/skill-content.server';
 import SkillDetailContent from './skill-detail-content';
 
@@ -50,6 +51,11 @@ export default async function SkillDetailPage({ params }: PageProps) {
   const prevSkill = showcaseSkills[(index - 1 + total) % total];
   const nextSkill = showcaseSkills[(index + 1) % total];
   const contentMarkdown = await readSkillMarkdown(skill.contentPath);
+  /** 关联 skill：slug 列表解析为卡片数据（过滤不存在的 slug） */
+  const related = (skill.relatedSlugs ?? [])
+    .map((s) => showcaseSkills.find((x) => x.slug === s))
+    .filter((x): x is ShowcaseSkill => Boolean(x))
+    .map((x) => ({ slug: x.slug, name: x.name, domain: x.domain }));
 
   return (
     <SkillDetailContent
@@ -57,6 +63,7 @@ export default async function SkillDetailPage({ params }: PageProps) {
       prev={{ slug: prevSkill.slug, name: prevSkill.name }}
       next={{ slug: nextSkill.slug, name: nextSkill.name }}
       contentMarkdown={contentMarkdown}
+      related={related}
     />
   );
 }

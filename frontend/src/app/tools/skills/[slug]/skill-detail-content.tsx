@@ -2,12 +2,14 @@
 
 import Link from 'next/link';
 import type { Route } from 'next';
-import { ArrowLeft, ArrowRight, ExternalLink, Sparkles } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ExternalLink, Sparkles, Workflow, CheckCircle } from 'lucide-react';
 import { FadeIn } from '@/components/motion';
 import GlassCard from '@/components/ui/GlassCard';
 import SkillDetailHero from '@/components/skills/SkillDetailHero';
 import SkillPromptCard from '@/components/skills/SkillPromptCard';
 import SkillContentPanel from '@/components/skills/SkillContentPanel';
+import SkillFitMatrix from '@/components/skills/SkillFitMatrix';
+import SkillRelated, { type RelatedSkillRef } from '@/components/skills/SkillRelated';
 import type { ShowcaseSkill } from '@/types/skill';
 
 /** 相邻 skill 的极简导航信息 */
@@ -27,6 +29,8 @@ export interface SkillDetailContentProps {
   next: SkillNeighbor;
   /** Server 注入的 SKILL.md 正文；null 表示缺失 */
   contentMarkdown?: string | null;
+  /** 关联 skill（Server 解析后），用于互链 */
+  related?: RelatedSkillRef[];
 }
 
 /**
@@ -39,6 +43,7 @@ export default function SkillDetailContent({
   prev,
   next,
   contentMarkdown = null,
+  related = [],
 }: SkillDetailContentProps) {
   return (
     <>
@@ -71,6 +76,54 @@ export default function SkillDetailContent({
             ))}
           </ul>
         </FadeIn>
+
+        {/* 工作原理（可选） */}
+        {skill.howItWorks && skill.howItWorks.length > 0 ? (
+          <FadeIn delay={0.1} className="mt-12">
+            <h2 className="font-display text-2xl font-bold text-foreground tracking-tight">
+              工作原理
+            </h2>
+            <ul className="mt-6 space-y-3">
+              {skill.howItWorks.map((point) => (
+                <li key={point} className="flex items-start gap-3">
+                  <span className="mt-0.5 p-1 rounded-md bg-primary/15 text-primary shrink-0">
+                    <Workflow className="w-4 h-4" aria-hidden />
+                  </span>
+                  <span className="text-foreground/90 leading-relaxed">{point}</span>
+                </li>
+              ))}
+            </ul>
+          </FadeIn>
+        ) : null}
+
+        {/* 最佳实践（可选） */}
+        {skill.bestPractices && skill.bestPractices.length > 0 ? (
+          <FadeIn delay={0.1} className="mt-12">
+            <h2 className="font-display text-2xl font-bold text-foreground tracking-tight">
+              最佳实践
+            </h2>
+            <ul className="mt-6 space-y-3">
+              {skill.bestPractices.map((tip) => (
+                <li key={tip} className="flex items-start gap-3">
+                  <span className="mt-0.5 p-1 rounded-md bg-emerald-500/15 text-emerald-500 shrink-0">
+                    <CheckCircle className="w-4 h-4" aria-hidden />
+                  </span>
+                  <span className="text-foreground/90 leading-relaxed">{tip}</span>
+                </li>
+              ))}
+            </ul>
+          </FadeIn>
+        ) : null}
+
+        {/* 适合 / 不适合（可选） */}
+        {skill.fitMatrix ? (
+          <FadeIn delay={0.1} className="mt-12">
+            <h2 className="font-display text-2xl font-bold text-foreground tracking-tight mb-6">
+              适合 / 不适合
+            </h2>
+            <SkillFitMatrix fit={skill.fitMatrix.fit} notFit={skill.fitMatrix.notFit} />
+          </FadeIn>
+        ) : null}
 
         {/* 适用场景（可选） */}
         {skill.scenes && skill.scenes.length > 0 ? (
@@ -107,6 +160,16 @@ export default function SkillDetailContent({
               contentPath={skill.contentPath}
               contentMarkdown={contentMarkdown}
             />
+          </FadeIn>
+        ) : null}
+
+        {/* 关联 skill（可选） */}
+        {related.length > 0 ? (
+          <FadeIn delay={0.1} className="mt-12">
+            <h2 className="font-display text-2xl font-bold text-foreground tracking-tight mb-6">
+              关联 skill
+            </h2>
+            <SkillRelated related={related} />
           </FadeIn>
         ) : null}
 
