@@ -94,8 +94,8 @@ Frontend is usually run separately with `npm run dev` unless you use a full prod
 
 ```bash
 cd backend
-python scripts/diagnose_db.py
-python scripts/fix_db_connection.py
+python scripts/init_db.py            # 初始化表 + 种子数据
+python scripts/migration_status.py   # 查看迁移状态
 ```
 
 Details: [backend/README.md](./backend/README.md).
