@@ -87,4 +87,18 @@ describe('HotArticles · 文章页热门列表', () => {
     const link = screen.getByRole('link', { name: /链接测试/ });
     expect(link).toHaveAttribute('href', '/articles/abc');
   });
+
+  it('不会原地修改传入的 props 数组（防止 Array.sort 变异回退）', () => {
+    const articles = [
+      makeArticle({ id: '1', title: '低', view_count: 5 }),
+      makeArticle({ id: '2', title: '高', view_count: 999 }),
+      makeArticle({ id: '3', title: '中', view_count: 50 }),
+    ];
+    const snapshot = articles.map((a) => a.id);
+
+    render(<HotArticles articles={articles} />);
+
+    // 排序在组件内部进行，不应改变外部数组的元素顺序
+    expect(articles.map((a) => a.id)).toEqual(snapshot);
+  });
 });
