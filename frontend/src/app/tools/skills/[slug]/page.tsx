@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { showcaseSkills } from '@/mock/skills';
+import { readSkillMarkdown } from '@/lib/skill-content.server';
 import SkillDetailContent from './skill-detail-content';
 
 /** 静态导出全部 skill 详情页 */
@@ -48,12 +49,14 @@ export default async function SkillDetailPage({ params }: PageProps) {
   /** 按数组顺序循环取相邻 skill */
   const prevSkill = showcaseSkills[(index - 1 + total) % total];
   const nextSkill = showcaseSkills[(index + 1) % total];
+  const contentMarkdown = await readSkillMarkdown(skill.contentPath);
 
   return (
     <SkillDetailContent
       skill={skill}
       prev={{ slug: prevSkill.slug, name: prevSkill.name }}
       next={{ slug: nextSkill.slug, name: nextSkill.name }}
+      contentMarkdown={contentMarkdown}
     />
   );
 }

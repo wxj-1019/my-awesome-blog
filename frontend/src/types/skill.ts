@@ -23,4 +23,6 @@ export interface ShowcaseSkill {
   sourceUrl?: string;
   /** 适用场景（3-4 条，详情页展示） */
   scenes?: string[];
+  /** 站内托管的 skill 正文路径（站点根相对），如 /skills/taste/SKILL.md */
+  contentPath?: string;
 }

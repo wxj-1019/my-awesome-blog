@@ -7,6 +7,7 @@ import { FadeIn } from '@/components/motion';
 import GlassCard from '@/components/ui/GlassCard';
 import SkillDetailHero from '@/components/skills/SkillDetailHero';
 import SkillPromptCard from '@/components/skills/SkillPromptCard';
+import SkillContentPanel from '@/components/skills/SkillContentPanel';
 import type { ShowcaseSkill } from '@/types/skill';
 
 /** 相邻 skill 的极简导航信息 */
@@ -24,6 +25,8 @@ export interface SkillDetailContentProps {
   prev: SkillNeighbor;
   /** 下一个 skill（按 showcaseSkills 顺序循环） */
   next: SkillNeighbor;
+  /** Server 注入的 SKILL.md 正文；null 表示缺失 */
+  contentMarkdown?: string | null;
 }
 
 /**
@@ -35,6 +38,7 @@ export default function SkillDetailContent({
   skill,
   prev,
   next,
+  contentMarkdown = null,
 }: SkillDetailContentProps) {
   return (
     <>
@@ -94,6 +98,17 @@ export default function SkillDetailContent({
         <FadeIn delay={0.1} className="mt-12">
           <SkillPromptCard prompts={skill.examplePrompts} />
         </FadeIn>
+
+        {/* 站内托管 SKILL.md：预览 + 下载 */}
+        {skill.contentPath ? (
+          <FadeIn delay={0.1} className="mt-12">
+            <SkillContentPanel
+              slug={skill.slug}
+              contentPath={skill.contentPath}
+              contentMarkdown={contentMarkdown}
+            />
+          </FadeIn>
+        ) : null}
 
         {/* 来源外链（可选） */}
         {skill.sourceUrl ? (
