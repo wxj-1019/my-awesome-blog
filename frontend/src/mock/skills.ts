@@ -11,6 +11,7 @@ export const showcaseSkills: ShowcaseSkill[] = [
     name: 'taste',
     tagline: '把「一眼 AI」的模板味，炼成真正的设计品味',
     domain: '前端',
+    kind: 'skill',
     description:
       '一套主打「反廉价感」的前端审美 skill 合集，把专业设计师对布局、配色、排版、动效与留白的判断写成 AI 能执行的约束规则。装上之后，编码 Agent 在动手前先审稿、再编码，按规则做设计决策，而不是凭概率复读训练数据里最常见的蓝紫渐变与居中卡片。',
     highlights: [
@@ -55,6 +56,12 @@ export const showcaseSkills: ShowcaseSkill[] = [
         '纯后端或无界面的项目',
       ],
     },
+    installSteps: [
+      '克隆或下载 taste-skill 仓库到本地',
+      '把 skill 目录复制到 ~/.claude/skills/（全局生效）或项目 .claude/skills/（仅本项目）',
+      '重启 Claude Code 会话，让 Agent 读取新挂载的审美规则',
+      'Cursor、Codex 等其他 Agent 按各自的 skill 加载方式挂载即可',
+    ],
     relatedSlugs: ['frontend-design', 'superpowers'],
   },
   {
@@ -62,6 +69,7 @@ export const showcaseSkills: ShowcaseSkill[] = [
     name: 'superpowers',
     tagline: '让 Agent 先想清楚，再动手写代码',
     domain: '后端',
+    kind: 'skill',
     description:
       '社区里最具影响力的编码工作流 skill 全家桶。它解决的不是「怎么写代码」，而是「怎么像资深工程师一样工作」——把头脑风暴、写计划、执行计划、系统化调试、测试驱动开发等一整套工程纪律装进 Agent 的工作流，让 Claude 从聊天机器人升级为真正按流程干活的协作伙伴。',
     highlights: [
@@ -107,6 +115,11 @@ export const showcaseSkills: ShowcaseSkill[] = [
         '探索性、不需要严谨流程的即兴编码',
       ],
     },
+    installSteps: [
+      '在 Claude Code 中按仓库 README 的 plugin 方式安装（添加插件市场后一键安装）',
+      '或克隆仓库，把需要的 skill 目录放入 ~/.claude/skills/ 或项目 .claude/skills/',
+      '重启会话后，按需取用单个 skill 或让整套工作流接管',
+    ],
     relatedSlugs: ['brainstorm', 'webapp-testing', 'taste'],
   },
   {
@@ -114,6 +127,7 @@ export const showcaseSkills: ShowcaseSkill[] = [
     name: 'brainstorm',
     tagline: '把脑子里那团雾，澄清成可执行的规格',
     domain: '通用',
+    kind: 'skill',
     description:
       '结构化头脑风暴 skill（superpowers 工作流的第一环）。面对一个模糊念头，它不会急着给方案，而是像优秀的产品搭档一样连续追问：目标是什么、约束有哪些、边界在哪里，直到想法被挤压成一份清晰、可验收、可以直接进入开发的需求规格。',
     highlights: [
@@ -159,6 +173,11 @@ export const showcaseSkills: ShowcaseSkill[] = [
         '没有决策空间的标准化操作',
       ],
     },
+    installSteps: [
+      '随 superpowers 一起按 plugin 方式安装，或单独克隆 obra/superpowers 仓库',
+      '把 brainstorm skill 目录复制到 ~/.claude/skills/ 或项目 .claude/skills/',
+      '重启会话后，直接对 Agent 说「帮我 brainstorm 一下」即可触发',
+    ],
     relatedSlugs: ['superpowers'],
   },
   {
@@ -166,6 +185,7 @@ export const showcaseSkills: ShowcaseSkill[] = [
     name: 'frontend-design',
     tagline: '官方出品的前端设计直觉，开箱即用',
     domain: '前端',
+    kind: 'skill',
     description:
       'Anthropic 官方 skills 仓库中的前端设计最佳实践 skill。它把界面设计的通用准则——视觉层次、信息架构、可读性、响应式考量——浓缩成 Agent 在生成前端代码时自动调用的判断力，适合作为任何前端生成任务的默认底座。',
     highlights: [
@@ -210,6 +230,11 @@ export const showcaseSkills: ShowcaseSkill[] = [
         '追求高度个性化审美（用 taste 更合适）',
       ],
     },
+    installSteps: [
+      '克隆 anthropics/skills 官方仓库',
+      '把 frontend-design skill 目录复制到 ~/.claude/skills/ 或项目 .claude/skills/',
+      '重启会话即生效，生成前端代码时自动作为审美底座，无需额外配置',
+    ],
     relatedSlugs: ['taste', 'webapp-testing'],
   },
   {
@@ -217,6 +242,7 @@ export const showcaseSkills: ShowcaseSkill[] = [
     name: 'webapp-testing',
     tagline: '让 Agent 亲手打开浏览器，验收自己的作业',
     domain: '通用',
+    kind: 'skill',
     description:
       'Anthropic 官方 skills 仓库中的 Web 应用测试 skill，基于 Playwright 驱动真实浏览器。它让 Agent 从「写完就算」进化到「写完亲自验收」：自动启动应用、模拟用户操作、截图比对、抓取控制台报错，把验证环节闭环在开发流程之内。',
     highlights: [
@@ -262,6 +288,108 @@ export const showcaseSkills: ShowcaseSkill[] = [
         '性能压测（应选专用工具）',
       ],
     },
-    relatedSlugs: ['superpowers', 'frontend-design'],
+    installSteps: [
+      '克隆 anthropics/skills 官方仓库',
+      '把 webapp-testing skill 目录复制到 ~/.claude/skills/ 或项目 .claude/skills/',
+      '确认环境可运行 Playwright（首次使用需安装浏览器驱动，按 skill 内说明执行）',
+      '重启会话后，让 Agent「用浏览器验收一遍」即可触发',
+    ],
+    relatedSlugs: ['superpowers', 'frontend-design', 'playwright-mcp'],
+  },
+  {
+    slug: 'playwright-mcp',
+    name: 'playwright-mcp',
+    tagline: '把浏览器交给 AI，点击截图一气呵成',
+    domain: '通用',
+    kind: 'mcp',
+    description:
+      '微软官方出品的浏览器自动化 MCP server，基于 Playwright 把真实浏览器能力暴露给 AI 助手：打开页面、点击、填表、截图、抓取可访问性快照。全程通过结构化快照而非截图像素理解页面，让 Agent 像人一样稳定地操作网页。',
+    highlights: [
+      '结构化可访问性快照驱动：不靠截图猜坐标，交互稳定且对 LLM 友好',
+      '完整浏览器操作集：导航、点击、填表、等待、截图、执行脚本一应俱全',
+      '微软官方维护：与 Playwright 生态同源，更新及时、兼容性可靠',
+      '跨客户端通用：Claude Code、Cursor、VS Code 等支持 MCP 的客户端均可接入',
+    ],
+    examplePrompts: [
+      '打开本地开发服务器，走一遍注册到登录的完整流程并把每步截图发我',
+      '帮我在这个页面填写表单并提交，确认成功提示出现',
+      '抓取这个页面的可访问性快照，列出所有可交互元素',
+    ],
+    sourceUrl: 'https://github.com/microsoft/playwright-mcp',
+    scenes: [
+      '让 Agent 亲自打开浏览器，验收刚写完的页面',
+      '需要在网页上执行重复操作：填表、抓取、巡检',
+      '端到端流程走查，留截图当证据',
+      '给没有 API 的网站做自动化操作',
+    ],
+    installSteps: [
+      '在 MCP 配置中加入该 server（如 mcp.json / 客户端设置），按仓库 README 填 command 或 url',
+      '重启客户端确认 server 连接成功，即可让 Agent 调用浏览器工具',
+    ],
+    relatedSlugs: ['webapp-testing', 'frontend-design'],
+  },
+  {
+    slug: 'github-mcp',
+    name: 'github-mcp',
+    tagline: '让 AI 直接上手你的仓库，从 issue 到 PR 一条龙',
+    domain: '通用',
+    kind: 'mcp',
+    description:
+      'GitHub 官方维护的 MCP server，把仓库操作能力直接接进 AI 助手：读写 issue 与 PR、检索代码、查看 CI 状态、管理评审。Agent 不再只改本地文件，而是能在 GitHub 上完成从读需求到提 PR 的完整协作闭环。',
+    highlights: [
+      'GitHub 官方出品：覆盖 issue、PR、代码检索、Actions 等核心仓库能力',
+      '协作闭环：从读 issue、改代码到提 PR、看 CI，全在对话里完成',
+      '细粒度权限：基于 GitHub 认证，可按需限定 toolset 与访问范围',
+      '远程托管或本地运行均可，按团队安全要求灵活选择',
+    ],
+    examplePrompts: [
+      '看下这个仓库最近打开的 issue，挑一个适合上手的帮我分析',
+      '基于当前改动创建一个 PR，标题和描述按提交内容写好',
+      '这个 PR 的 CI 挂了，帮我看下失败日志定位原因',
+    ],
+    sourceUrl: 'https://github.com/github/github-mcp-server',
+    scenes: [
+      'issue 多到看不过来，想让 Agent 先分拣与总结',
+      '改完代码顺手让 Agent 开 PR、写描述',
+      '排查 CI 失败，直接在对话里看日志',
+      '跨仓库检索代码与历史提交',
+    ],
+    installSteps: [
+      '在 MCP 配置中加入该 server（如 mcp.json / 客户端设置），按仓库 README 填 command 或 url',
+      '按 README 配置 GitHub 认证（如 PAT 或 OAuth），重启客户端确认连接成功',
+    ],
+    relatedSlugs: ['superpowers', 'context7-mcp'],
+  },
+  {
+    slug: 'context7-mcp',
+    name: 'context7-mcp',
+    tagline: '把最新官方文档，直接喂到 AI 嘴边',
+    domain: '通用',
+    kind: 'mcp',
+    description:
+      'Upstash 出品的文档查询 MCP server，专治「模型知识过期、API 记错版本」：实时拉取各框架与库的最新官方文档与代码示例，按库按版本注入上下文，让 Agent 写代码时引用的不再是训练数据里的旧写法。',
+    highlights: [
+      '最新文档实时查询：直接拉取官方文档与示例，不依赖模型的过期记忆',
+      '按库按版本精准注入：指定具体库与版本，上下文干净不注水',
+      '覆盖面广：主流框架、库、SDK 的文档持续收录',
+      '接入即用：远程 endpoint 或本地运行均可，主流 MCP 客户端都能配置',
+    ],
+    examplePrompts: [
+      '用 context7 查一下 Next.js 最新版的 App Router 用法，再帮我改这个页面',
+      '这个库的最新 API 变了，先查文档再写代码，别用旧写法',
+      '帮我查 Tailwind 的最新配置方式，核对一下我的配置文件',
+    ],
+    sourceUrl: 'https://github.com/upstash/context7',
+    scenes: [
+      '用新版本框架写代码，怕 Agent 引用过时 API',
+      '冷门库文档少，想让 Agent 直接查官方资料',
+      '升级依赖前，先核对新版本的用法变化',
+      '写 SDK 调用代码，需要精确的函数签名与示例',
+    ],
+    installSteps: [
+      '在 MCP 配置中加入该 server（如 mcp.json / 客户端设置），按仓库 README 填 command 或 url',
+      '重启客户端确认连接成功，之后让 Agent「查一下最新文档」即可触发',
+    ],
+    relatedSlugs: ['superpowers', 'github-mcp'],
   },
 ];

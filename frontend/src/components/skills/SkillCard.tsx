@@ -19,6 +19,18 @@ const domainVariant: Record<ShowcaseSkill['domain'], 'default' | 'secondary' | '
   通用: 'outline',
 };
 
+/** 收藏类型 → Badge 变体：skill default / mcp secondary */
+const kindVariant: Record<ShowcaseSkill['kind'], 'default' | 'secondary'> = {
+  skill: 'default',
+  mcp: 'secondary',
+};
+
+/** 收藏类型 → 徽章文案 */
+const kindLabel: Record<ShowcaseSkill['kind'], string> = {
+  skill: 'Skill',
+  mcp: 'MCP',
+};
+
 /**
  * Skill 收藏馆索引卡片：整卡可点击，进入对应 skill 的沉浸详情页。
  * 动画仅依赖 GlassCard 的 hoverEffect（transform/shadow），无额外动效。
@@ -34,11 +46,16 @@ export default function SkillCard({ skill }: SkillCardProps) {
         hoverEffect
         className="h-full flex flex-col group-hover:border-primary/40"
       >
-        {/* 名称 + 领域标签 */}
+        {/* 名称 + 类型徽章 + 领域标签 */}
         <div className="flex items-start justify-between gap-3">
-          <h3 className="font-display text-2xl font-bold tracking-tight text-foreground">
-            {skill.name}
-          </h3>
+          <div className="flex items-center gap-2 min-w-0">
+            <h3 className="font-display text-2xl font-bold tracking-tight text-foreground">
+              {skill.name}
+            </h3>
+            <Badge variant={kindVariant[skill.kind]} className="shrink-0">
+              {kindLabel[skill.kind]}
+            </Badge>
+          </div>
           <Badge variant={domainVariant[skill.domain]} className="shrink-0">
             {skill.domain}
           </Badge>

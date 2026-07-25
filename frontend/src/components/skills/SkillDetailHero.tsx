@@ -23,6 +23,18 @@ const DOMAIN_BADGE_VARIANT: Record<
   通用: 'outline',
 };
 
+/** 收藏类型 → Badge 变体映射：skill default / mcp secondary */
+const KIND_BADGE_VARIANT: Record<ShowcaseSkill['kind'], 'default' | 'secondary'> = {
+  skill: 'default',
+  mcp: 'secondary',
+};
+
+/** 收藏类型 → 徽章文案 */
+const KIND_BADGE_LABEL: Record<ShowcaseSkill['kind'], string> = {
+  skill: 'Skill',
+  mcp: 'MCP',
+};
+
 /**
  * Skill 详情页 · 轻量开场（减重版）
  * - 顶部「← 返回全览」返回索引页
@@ -86,15 +98,23 @@ export default function SkillDetailHero({ skill }: SkillDetailHeroProps) {
           </Badge>
         </motion.div>
 
-        {/* skill 名称：整体一次淡入上浮（减重，不再逐字错落） */}
-        <motion.h1
-          className="font-display font-bold leading-tight tracking-tight text-foreground text-[clamp(2.25rem,7vw,4.5rem)] break-words"
-          initial={reduced ? false : { opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ ...TRANSITION.DEFAULT, delay: 0.2 }}
-        >
-          {skill.name}
-        </motion.h1>
+        {/* skill 名称 + 类型徽章：整体一次淡入上浮（减重，不再逐字错落） */}
+        <div className="flex items-center justify-center gap-3">
+          <motion.h1
+            className="font-display font-bold leading-tight tracking-tight text-foreground text-[clamp(2.25rem,7vw,4.5rem)] break-words"
+            initial={reduced ? false : { opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ ...TRANSITION.DEFAULT, delay: 0.2 }}
+          >
+            {skill.name}
+          </motion.h1>
+          <Badge
+            variant={KIND_BADGE_VARIANT[skill.kind]}
+            className="shrink-0 text-sm px-3 py-1"
+          >
+            {KIND_BADGE_LABEL[skill.kind]}
+          </Badge>
+        </div>
 
         {/* 台词：一句话标语，电影字幕感 */}
         <motion.p

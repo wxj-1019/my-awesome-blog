@@ -27,11 +27,11 @@ export async function generateMetadata({
   const skill = findSkill(slug);
 
   if (!skill) {
-    return { title: 'Skill 未找到 - Skill 收藏馆' };
+    return { title: 'Skill 未找到 - AI 工具收藏' };
   }
 
   return {
-    title: `${skill.name} - Skill 收藏馆`,
+    title: `${skill.name} - AI 工具收藏`,
     description: skill.tagline,
   };
 }

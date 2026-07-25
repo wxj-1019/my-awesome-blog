@@ -13,6 +13,8 @@ export interface ShowcaseSkill {
   tagline: string;
   /** 领域标签 */
   domain: '前端' | '后端' | '通用';
+  /** 收藏类型：skill 提示词工作流 / mcp 工具服务 */
+  kind: 'skill' | 'mcp';
   /** 详细介绍 */
   description: string;
   /** 能力亮点（3-5 条） */
@@ -33,4 +35,6 @@ export interface ShowcaseSkill {
   fitMatrix?: { fit: string[]; notFit: string[] };
   /** 关联 skill：馆内 slug 列表，详情页互链 */
   relatedSlugs?: string[];
+  /** 快速上手/安装步骤（2-4 条，详情页侧栏展示） */
+  installSteps?: string[];
 }

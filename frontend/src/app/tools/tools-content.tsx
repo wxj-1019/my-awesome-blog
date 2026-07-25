@@ -28,8 +28,8 @@ const items: {
   },
   {
     href: '/tools/skills' as Route,
-    title: 'Skill 收藏馆',
-    description: 'AI Agent Skills 索引与沉浸详情',
+    title: 'AI 工具收藏',
+    description: '收藏优秀的 Skill 与 MCP',
     icon: Sparkles,
   },
 ];

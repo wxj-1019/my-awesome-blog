@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { Sparkles } from 'lucide-react';
 import { showcaseSkills } from '@/mock/skills';
-import type { ShowcaseSkill } from '@/types/skill';
 import PageShell from '@/components/layout/PageShell';
 import PageHeader from '@/components/layout/PageHeader';
 import GlassCard from '@/components/ui/GlassCard';
@@ -11,49 +10,54 @@ import { Stagger, StaggerItem } from '@/components/motion';
 import SkillCard from '@/components/skills/SkillCard';
 import { cn } from '@/lib/utils';
 
-/** 领域筛选项：『全部』+ 数据模型中的三种领域 */
-type DomainFilter = '全部' | ShowcaseSkill['domain'];
+/** 类型筛选项：『全部』+ 数据模型中的两种收藏类型 */
+type KindFilter = 'all' | 'skill' | 'mcp';
 
-const DOMAIN_FILTERS: DomainFilter[] = ['全部', '前端', '后端', '通用'];
+/** 筛选项 value → 展示文案 */
+const KIND_FILTERS: { value: KindFilter; label: string }[] = [
+  { value: 'all', label: '全部' },
+  { value: 'skill', label: 'Skill' },
+  { value: 'mcp', label: 'MCP' },
+];
 
 /**
- * Skill 收藏馆索引页：领域筛选按钮组 + 卡片网格。
+ * AI 工具收藏索引页：类型筛选按钮组 + 卡片网格。
  * 卡片点击进入 /tools/skills/[slug] 沉浸详情页；数据来自 @/mock/skills。
  */
 export default function SkillsContent() {
-  const [filter, setFilter] = useState<DomainFilter>('全部');
+  const [filter, setFilter] = useState<KindFilter>('all');
 
   const filteredSkills =
-    filter === '全部'
+    filter === 'all'
       ? showcaseSkills
-      : showcaseSkills.filter((skill) => skill.domain === filter);
+      : showcaseSkills.filter((skill) => skill.kind === filter);
 
   return (
     <PageShell density="narrow">
       <PageHeader
-        title="Skill 收藏馆"
-        description="收录让我在写代码时如虎添翼的 AI Agent Skills"
+        title="AI 工具收藏"
+        description="收藏优秀的 Skill 与 MCP，让 AI 助手更好用"
         icon={Sparkles}
         align="center"
       />
 
-      {/* 领域筛选按钮组 */}
+      {/* 类型筛选按钮组 */}
       <GlassCard padding="sm" className="max-w-md mx-auto flex items-center justify-center gap-2">
-        {DOMAIN_FILTERS.map((domain) => (
+        {KIND_FILTERS.map(({ value, label }) => (
           <button
-            key={domain}
+            key={value}
             type="button"
-            onClick={() => setFilter(domain)}
-            aria-pressed={filter === domain}
+            onClick={() => setFilter(value)}
+            aria-pressed={filter === value}
             className={cn(
               'px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-              filter === domain
+              filter === value
                 ? 'bg-primary/15 text-primary'
                 : 'text-muted-foreground hover:text-foreground hover:bg-primary/5'
             )}
           >
-            {domain}
+            {label}
           </button>
         ))}
       </GlassCard>
@@ -64,7 +68,7 @@ export default function SkillsContent() {
           role="status"
           className="mt-12 text-center text-sm text-muted-foreground"
         >
-          当前领域暂无收录，换个筛选看看。
+          当前类型暂无收录，换个筛选看看。
         </div>
       ) : (
         <Stagger
