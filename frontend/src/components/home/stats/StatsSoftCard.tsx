@@ -53,11 +53,11 @@ export default function StatsSoftCard({
       <div className="relative z-10 mb-5 flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2.5">
           {icon ? (
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/12 text-primary">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center text-primary">
               {icon}
             </div>
           ) : null}
-          <h3 className="truncate text-lg font-bold text-foreground sm:text-xl">
+          <h3 className="truncate font-serif text-lg font-semibold text-foreground sm:text-xl">
             {title}
           </h3>
         </div>
@@ -91,16 +91,15 @@ export function StatsKpiCell({
   return (
     <div
       className={cn(
-        'rounded-xl border border-glass-border/60 bg-glass/25 p-3 text-center',
-        'transition-[border-color,background-color] duration-200',
-        'hover:border-primary/30 hover:bg-glass/35',
+        'border-t border-primary/15 p-3 text-center',
+        'transition-colors duration-200 hover:border-primary/40',
         className
       )}
     >
-      <div className="mb-1 flex items-center justify-center gap-1 text-[10px] text-muted-foreground">
+      <div className="mb-1 flex items-center justify-center gap-1 text-[10px] uppercase tracking-wider text-muted-foreground">
         {label}
       </div>
-      <div className="text-xl font-bold tabular-nums text-foreground sm:text-2xl">
+      <div className="font-serif text-xl font-semibold tabular-nums text-foreground sm:text-2xl">
         {children}
       </div>
       {hint ? (

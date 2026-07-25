@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import type { ReactNode } from 'react';
 import {
   TrendingUp,
@@ -13,9 +14,11 @@ import {
 import {
   BarChart,
   Bar,
+  Cell,
+  LabelList,
+  ReferenceLine,
   XAxis,
   YAxis,
-  CartesianGrid,
   Tooltip,
   ResponsiveContainer,
   AreaChart,
@@ -49,8 +52,6 @@ const FALLBACK_WEEKLY = [
 ];
 
 const DAY_LABELS = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'] as const;
-
-const CHART_ANIM_MS = 900;
 
 const tooltipStyle = {
   backgroundColor: 'color-mix(in srgb, var(--card) 95%, transparent)',
@@ -144,6 +145,17 @@ export function StatsCharts({
   const statsKey = String(stats !== null);
   const chartAnim = !reduced;
 
+  // lieflat：hover 某柱时该柱加亮、其余变淡（联动）
+  const [hoverIndex, setHoverIndex] = useState<number | null>(null);
+  /** 按文章数线性映射柱浓度：最小 0.35、最大 0.95 */
+  const monthlyValues = monthlyStatsData.map((d) => d.articles);
+  const minVal = Math.min(...monthlyValues, 0);
+  const maxVal = Math.max(...monthlyValues, 1);
+  const opacityFor = (val: number) => {
+    if (maxVal === minVal) return 0.65;
+    return 0.35 + (0.6 * (val - minVal)) / (maxVal - minVal);
+  };
+
   const monthlyTotal = monthlyStatsData.reduce(
     (sum, item) => sum + item.articles,
     0
@@ -182,7 +194,6 @@ export function StatsCharts({
       : 0;
 
   const axisTick = { fill: 'var(--muted-foreground)', fontSize: 11 };
-  const gridStroke = 'color-mix(in srgb, var(--border) 55%, transparent)';
 
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -265,19 +276,11 @@ export function StatsCharts({
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={monthlyStatsData}
-              margin={{ top: 10, right: 8, left: 0, bottom: 0 }}
+              margin={{ top: 24, right: 8, left: 0, bottom: 0 }}
+              onMouseLeave={() => setHoverIndex(null)}
             >
-              <defs>
-                <linearGradient id="softBarArticles" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="var(--primary)" stopOpacity={0.95} />
-                  <stop offset="100%" stopColor="var(--primary)" stopOpacity={0.35} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid
-                strokeDasharray="4 4"
-                stroke={gridStroke}
-                vertical={false}
-              />
+              {/* lieflat：去虚线网格，仅一条底部细基线 */}
+              <ReferenceLine y={0} stroke="color-mix(in srgb, var(--primary) 20%, transparent)" />
               <XAxis
                 dataKey="month"
                 tickLine={false}
@@ -292,18 +295,42 @@ export function StatsCharts({
               />
               <Tooltip
                 contentStyle={tooltipStyle}
-                cursor={{ fill: 'color-mix(in srgb, var(--primary) 8%, transparent)' }}
+                cursor={{ fill: 'color-mix(in srgb, var(--primary) 6%, transparent)' }}
               />
               <Bar
                 dataKey="articles"
-                fill="url(#softBarArticles)"
-                radius={[8, 8, 4, 4]}
+                fill="var(--primary)"
+                radius={[6, 6, 2, 2]}
                 name="文章数"
                 maxBarSize={44}
                 isAnimationActive={chartAnim}
-                animationDuration={CHART_ANIM_MS}
+                animationDuration={900}
                 animationEasing="ease-out"
-              />
+                onMouseEnter={(_, i) => setHoverIndex(i)}
+              >
+                {monthlyStatsData.map((entry, i) => {
+                  const base = opacityFor(entry.articles);
+                  const op = hoverIndex === null
+                    ? base
+                    : hoverIndex === i
+                      ? Math.min(1, base + 0.15)
+                      : 0.2;
+                  return (
+                    <Cell
+                      key={`bar-${i}`}
+                      fill="var(--primary)"
+                      fillOpacity={op}
+                    />
+                  );
+                })}
+                <LabelList
+                  dataKey="articles"
+                  position="top"
+                  fill="var(--primary)"
+                  fontSize={11}
+                  fontFamily="Georgia, serif"
+                />
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -369,28 +396,15 @@ export function StatsCharts({
             <AreaChart
               data={weeklyActivityData}
               margin={{ top: 10, right: 8, left: 0, bottom: 0 }}
+              onMouseLeave={() => setHoverIndex(null)}
             >
               <defs>
                 <linearGradient id="softAreaVisitors" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="var(--primary)" stopOpacity={0.35} />
                   <stop offset="100%" stopColor="var(--primary)" stopOpacity={0} />
                 </linearGradient>
-                <linearGradient
-                  id="softAreaEngagement"
-                  x1="0"
-                  y1="0"
-                  x2="0"
-                  y2="1"
-                >
-                  <stop offset="0%" stopColor="#ec4899" stopOpacity={0.3} />
-                  <stop offset="100%" stopColor="#ec4899" stopOpacity={0} />
-                </linearGradient>
               </defs>
-              <CartesianGrid
-                strokeDasharray="4 4"
-                stroke={gridStroke}
-                vertical={false}
-              />
+              <ReferenceLine y={0} stroke="color-mix(in srgb, var(--primary) 20%, transparent)" />
               <XAxis
                 dataKey="day"
                 tickLine={false}
@@ -410,30 +424,34 @@ export function StatsCharts({
                 iconType="circle"
                 wrapperStyle={{ fontSize: '12px' }}
               />
+              {/* lieflat 单色：visitors 实线浓、engagement 虚线淡 */}
               <Area
                 type="monotone"
                 dataKey="visitors"
                 stroke="var(--primary)"
                 strokeWidth={2.25}
                 fill="url(#softAreaVisitors)"
+                fillOpacity={hoverIndex === null ? 1 : 0.3}
                 name={weeklyFallback ? '访客数' : '活跃度'}
                 dot={false}
                 activeDot={{ r: 5, strokeWidth: 0 }}
                 isAnimationActive={chartAnim}
-                animationDuration={CHART_ANIM_MS}
+                animationDuration={900}
                 animationEasing="ease-out"
               />
               <Area
                 type="monotone"
                 dataKey="engagement"
-                stroke="#ec4899"
-                strokeWidth={2.25}
-                fill="url(#softAreaEngagement)"
+                stroke="var(--primary)"
+                strokeWidth={1.75}
+                strokeDasharray="4 3"
+                fill="none"
+                fillOpacity={hoverIndex === null ? 1 : 0.3}
                 name="互动数"
                 dot={false}
-                activeDot={{ r: 5, strokeWidth: 0 }}
+                activeDot={{ r: 4, strokeWidth: 0 }}
                 isAnimationActive={chartAnim}
-                animationDuration={CHART_ANIM_MS}
+                animationDuration={900}
                 animationEasing="ease-out"
               />
             </AreaChart>
