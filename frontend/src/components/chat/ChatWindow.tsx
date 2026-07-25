@@ -12,10 +12,13 @@ import {
   AlertCircle,
   FileText,
   RefreshCw,
+  Plus,
+  X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { API_BASE_URL, TOKEN_KEY, USER_KEY } from '@/lib/api-client';
 import MarkdownRenderer from '@/components/ui/MarkdownRenderer';
+import type { ShowcaseSkill } from '@/types/skill';
 
 export interface ChatMessage {
   id: string;
@@ -34,6 +37,23 @@ interface ChatWindowProps {
   sessionMessages: ChatMessage[];
   onMessagesChange: (messages: ChatMessage[]) => void;
   onNewSession: () => void;
+  /** 当前选中的 skill（为 null 表示用默认写作助手提示） */
+  selectedSkill: ShowcaseSkill | null;
+  /** 打开页内 Skill 选用弹窗 */
+  onOpenSkillPicker: () => void;
+  /** 清除当前选中的 skill */
+  onClearSkill: () => void;
+}
+
+/**
+ * 为无 SKILL.md 全文的 skill（如 mcp 类）拼接轻量系统提示。
+ * 用 description + highlights 组织，让模型了解该工具的定位与能力。
+ */
+function buildFallbackPrompt(skill: ShowcaseSkill): string {
+  const highlights = skill.highlights?.length
+    ? `\n\n核心能力：\n${skill.highlights.map((h) => `- ${h}`).join('\n')}`
+    : '';
+  return `你正在使用「${skill.name}」工具（${skill.kind.toUpperCase()} 类型，${skill.domain}领域）。\n${skill.description}${highlights}\n\n请在该工具的能力范围内回应用户。`;
 }
 
 export function ChatWindow({
@@ -41,6 +61,9 @@ export function ChatWindow({
   sessionMessages,
   onMessagesChange,
   onNewSession,
+  selectedSkill,
+  onOpenSkillPicker,
+  onClearSkill,
 }: ChatWindowProps) {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -48,6 +71,8 @@ export function ChatWindow({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [streamingContent, setStreamingContent] = useState('');
+  /** skill 正文缓存：slug → 系统提示文本 */
+  const skillPromptCache = useRef<Map<string, string>>(new Map());
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -82,12 +107,44 @@ export function ChatWindow({
     setStreamingContent('');
 
     try {
-      // 固定走写作助手系统提示（定位：站内文章撰写与内容打磨）
-      const systemPrompt = WRITING_ASSISTANT_PROMPT;
+      // 构建系统提示：选了 skill 用 skill 内容，否则用默认写作助手提示
+      let systemPrompt: string;
+      if (selectedSkill) {
+        // 先查缓存
+        const cached = skillPromptCache.current.get(selectedSkill.slug);
+        if (cached) {
+          systemPrompt = cached;
+        } else if (selectedSkill.contentPath) {
+          // 有 SKILL.md 全文：拉取静态文件，前缀一句角色说明
+          try {
+            const res = await fetch(selectedSkill.contentPath);
+            const md = res.ok ? await res.text() : '';
+            systemPrompt =
+              `你正在使用「${selectedSkill.name}」Skill。遵循以下指南回应用户：\n\n${md}`;
+          } catch {
+            // 拉取失败则降级用描述
+            systemPrompt = buildFallbackPrompt(selectedSkill);
+          }
+          skillPromptCache.current.set(selectedSkill.slug, systemPrompt);
+        } else {
+          // 无 SKILL.md（mcp 类）：用描述 + 亮点拼接
+          systemPrompt = buildFallbackPrompt(selectedSkill);
+          skillPromptCache.current.set(selectedSkill.slug, systemPrompt);
+        }
+      } else {
+        systemPrompt = WRITING_ASSISTANT_PROMPT;
+      }
 
       // 流式请求需裸 fetch，手动带 JWT（与 apiRequest 的认证逻辑一致）
       const token =
         typeof window !== 'undefined' ? localStorage.getItem(TOKEN_KEY) : null;
+
+      // 系统提示作为 messages 首位的 system 消息注入（后端原样透传，
+      // 注意：单独的 system_prompt 字段后端 schema 不接收，必须走 messages）
+      const payloadMessages = [
+        { role: 'system' as const, content: systemPrompt },
+        ...newMessages.map((m) => ({ role: m.role, content: m.content })),
+      ];
 
       const response = await fetch(`${API_BASE_URL}/llm/chat/stream`, {
         method: 'POST',
@@ -96,9 +153,8 @@ export function ChatWindow({
           ...(token && { Authorization: `Bearer ${token}` }),
         },
         body: JSON.stringify({
-          messages: [...newMessages.map((m) => ({ role: m.role, content: m.content }))],
+          messages: payloadMessages,
           stream: true,
-          system_prompt: systemPrompt,
         }),
         cache: 'no-store',
       });
@@ -202,10 +258,34 @@ export function ChatWindow({
             <Menu size={20} aria-hidden />
           </button>
 
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <FileText size={14} aria-hidden />
-            <span>写作助手模式</span>
-          </div>
+          {/* 当前工具状态：选了 skill 显示 chip（可点开弹窗 / 可清除），否则显示选择按钮 */}
+          {selectedSkill ? (
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={onOpenSkillPicker}
+                className="flex items-center gap-1.5 rounded-lg border border-primary/40 bg-primary/10 px-2.5 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-primary/60"
+              >
+                <Sparkles size={13} className="text-primary" aria-hidden />
+                <span className="max-w-[8rem] truncate">{selectedSkill.name}</span>
+              </button>
+              <button
+                onClick={onClearSkill}
+                className="rounded-lg p-1 text-muted-foreground transition-colors hover:bg-glass hover:text-foreground"
+                aria-label="清除选中的工具，恢复写作助手"
+              >
+                <X size={14} aria-hidden />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={onOpenSkillPicker}
+              className="flex items-center gap-1.5 rounded-lg border border-glass-border bg-glass px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+            >
+              <FileText size={13} aria-hidden />
+              <span>写作助手</span>
+              <Plus size={12} aria-hidden />
+            </button>
+          )}
         </div>
 
         {/* 「新对话」入口移除：侧边栏已有，避免重复 */}

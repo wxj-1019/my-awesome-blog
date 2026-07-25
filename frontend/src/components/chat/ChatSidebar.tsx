@@ -3,8 +3,6 @@
 import { motion, AnimatePresence } from '@/lib/framer-motion';
 import { MessageSquare, Plus, Trash2, X, Cpu, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import Link from 'next/link';
-import type { Route } from 'next';
 import EmptyState from '@/components/ui/EmptyState';
 
 export interface ChatSession {
@@ -22,6 +20,8 @@ interface ChatSidebarProps {
   onDeleteSession: (id: string, e: React.MouseEvent) => void;
   isOpen: boolean;
   onClose: () => void;
+  /** 打开页内 Skill 选用弹窗（替代原跳转 /tools/skills） */
+  onOpenSkillPicker: () => void;
 }
 
 export function ChatSidebar({
@@ -32,6 +32,7 @@ export function ChatSidebar({
   onDeleteSession,
   isOpen,
   onClose,
+  onOpenSkillPicker,
 }: ChatSidebarProps) {
   return (
     <>
@@ -161,10 +162,11 @@ export function ChatSidebar({
           </div>
         </div>
 
-        {/* Footer - AI 工具收藏入口 */}
+        {/* Footer - AI 工具收藏入口（页内弹窗选用，不再跳转） */}
         <div className="shrink-0 border-t border-glass-border p-4">
-          <Link
-            href={'/tools/skills' as Route}
+          <button
+            type="button"
+            onClick={onOpenSkillPicker}
             className={cn(
               'flex w-full items-center gap-3 rounded-xl p-3 transition-colors',
               'border border-glass-border bg-glass hover:border-primary/40'
@@ -179,10 +181,10 @@ export function ChatSidebar({
                 AI 工具收藏
               </span>
               <div className="truncate text-xs text-muted-foreground">
-                收藏的 MCP 与 Skill
+                选用 Skill 注入当前对话
               </div>
             </div>
-          </Link>
+          </button>
         </div>
       </motion.aside>
     </>
