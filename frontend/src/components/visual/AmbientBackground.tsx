@@ -48,17 +48,17 @@ export default function AmbientBackground() {
   const sfRef = useRef<Starfield | null>(null);
 
   useEffect(() => {
-    if (mode !== 'dark') return;
+    if (mode !== 'dark') {return;}
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas) {return;}
     const sf = createStarfield(canvas, { reducedMotion });
     sfRef.current = sf;
     sf.start();
 
     const onResize = () => sf.resize();
     const onVis = () => {
-      if (document.hidden) sf.stop();
-      else sf.start();
+      if (document.hidden) {sf.stop();}
+      else {sf.start();}
     };
     window.addEventListener('resize', onResize);
     document.addEventListener('visibilitychange', onVis);

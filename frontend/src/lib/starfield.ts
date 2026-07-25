@@ -80,7 +80,7 @@ export function createStarfield(
     H = Math.max(1, rect.height);
     canvas.width = Math.floor(W * dpr);
     canvas.height = Math.floor(H * dpr);
-    if (ctx) ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (ctx) {ctx.setTransform(dpr, 0, 0, dpr, 0, 0);}
   }
 
   function rebuild(): void {
@@ -92,7 +92,7 @@ export function createStarfield(
   }
 
   function drawBackground(): void {
-    if (!ctx) return;
+    if (!ctx) {return;}
     const g = ctx.createLinearGradient(0, 0, 0, H);
     g.addColorStop(0, '#040816');
     g.addColorStop(1, '#0a1228');
@@ -101,7 +101,7 @@ export function createStarfield(
   }
 
   function drawStars(stars: Star[], baseColor: string): void {
-    if (!ctx) return;
+    if (!ctx) {return;}
     for (const s of stars) {
       const a = 0.35 + 0.55 * (0.5 + 0.5 * Math.sin(t * 0.02 * s.ts + s.tw));
       ctx.beginPath();
@@ -120,8 +120,8 @@ export function createStarfield(
   }
 
   function drawMeteors(): void {
-    if (!ctx || reduced) return;
-    if (Math.random() < 0.0035 && meteors.length < 1) spawnMeteor();
+    if (!ctx || reduced) {return;}
+    if (Math.random() < 0.0035 && meteors.length < 1) {spawnMeteor();}
     for (const m of meteors) {
       m.life++;
       m.x -= m.sp * 2;
@@ -143,12 +143,12 @@ export function createStarfield(
       ctx.fill();
     }
     for (let i = meteors.length - 1; i >= 0; i--) {
-      if (meteors[i].life >= meteors[i].max) meteors.splice(i, 1);
+      if (meteors[i].life >= meteors[i].max) {meteors.splice(i, 1);}
     }
   }
 
   function drawGalaxy(): void {
-    if (!ctx) return;
+    if (!ctx) {return;}
     const cx = W * 0.72;
     const cy = H * 0.68;
     const R = Math.min(W, H) * 0.22;
@@ -179,7 +179,7 @@ export function createStarfield(
   }
 
   function drawNebula(): void {
-    if (!ctx) return;
+    if (!ctx) {return;}
     const clouds = [
       { x: 0.2, y: 0.3, r: 90, c: '120,90,200' },
       { x: 0.45, y: 0.55, r: 110, c: '70,110,190' },
@@ -202,10 +202,10 @@ export function createStarfield(
   }
 
   function drawDust(): void {
-    if (!ctx || reduced) return;
+    if (!ctx || reduced) {return;}
     for (const d of dust) {
       d.y -= d.sp;
-      if (d.y < -4) d.y = H + 4;
+      if (d.y < -4) {d.y = H + 4;}
       const x = d.x + Math.sin(t * 0.01 + d.ph) * 6;
       ctx.beginPath();
       ctx.arc(x, d.y, d.r, 0, Math.PI * 2);
@@ -215,7 +215,7 @@ export function createStarfield(
   }
 
   function frame(): void {
-    if (!ctx) return;
+    if (!ctx) {return;}
     t++;
     drawBackground();
     drawStars(far, '230,235,255');
@@ -225,13 +225,13 @@ export function createStarfield(
     drawGalaxy();
     drawMeteors();
     drawDust();
-    if (running) rafId = requestAnimationFrame(frame);
+    if (running) {rafId = requestAnimationFrame(frame);}
   }
 
   function drawStatic(): void {
-    if (!ctx) return;
+    if (!ctx) {return;}
     t = 0;
-    if (W === 0) rebuild();
+    if (W === 0) {rebuild();}
     drawBackground();
     // 静态中等亮度
     for (const s of [...far, ...mid, ...near]) {
@@ -246,8 +246,8 @@ export function createStarfield(
 
   return {
     start() {
-      if (running) return;
-      if (W === 0) rebuild();
+      if (running) {return;}
+      if (W === 0) {rebuild();}
       running = true;
       if (reduced) {
         drawStatic();
@@ -258,7 +258,7 @@ export function createStarfield(
     },
     stop() {
       running = false;
-      if (rafId) cancelAnimationFrame(rafId);
+      if (rafId) {cancelAnimationFrame(rafId);}
       rafId = 0;
     },
     resize() {

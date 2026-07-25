@@ -152,7 +152,7 @@ export default function Navbar() {
   useEffect(() => {
     let rafId = 0;
     const handleScroll = () => {
-      if (rafId) return;
+      if (rafId) {return;}
       rafId = requestAnimationFrame(() => {
         setScrolled(window.scrollY > 10);
         rafId = 0;
@@ -162,7 +162,7 @@ export default function Navbar() {
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      if (rafId) cancelAnimationFrame(rafId);
+      if (rafId) {cancelAnimationFrame(rafId);}
     };
   }, []);
 

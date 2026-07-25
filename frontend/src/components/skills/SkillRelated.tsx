@@ -25,7 +25,7 @@ const DOMAIN_VARIANT: Record<ShowcaseSkill['domain'], 'default' | 'secondary' | 
  * 关联 skill 卡片链：点击跳对应详情页，形成知识网。
  */
 export default function SkillRelated({ related }: SkillRelatedProps) {
-  if (related.length === 0) return null;
+  if (related.length === 0) {return null;}
 
   return (
     <div className="grid gap-3 sm:grid-cols-2">

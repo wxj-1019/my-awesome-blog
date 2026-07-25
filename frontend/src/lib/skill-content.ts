@@ -6,15 +6,15 @@ export const DEFAULT_SKILL_PREVIEW_LINES = 16;
  * 非法或路径穿越返回 null。
  */
 export function contentPathToPublicFile(contentPath: string): string | null {
-  if (!contentPath.startsWith('/skills/')) return null;
+  if (!contentPath.startsWith('/skills/')) {return null;}
   const rel = contentPath.replace(/^\//, '');
   // 仅允许正斜杠路径段，拒绝 .. 与反斜杠
   if (rel.includes('..') || rel.includes('\\') || rel.includes('\0')) {
     return null;
   }
   const segments = rel.split('/').filter(Boolean);
-  if (segments[0] !== 'skills') return null;
-  if (segments.some((s) => s === '.' || s === '..')) return null;
+  if (segments[0] !== 'skills') {return null;}
+  if (segments.some((s) => s === '.' || s === '..')) {return null;}
   return segments.join('/');
 }
 

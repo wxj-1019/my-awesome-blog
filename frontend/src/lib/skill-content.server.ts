@@ -9,9 +9,9 @@ import { contentPathToPublicFile } from '@/lib/skill-content';
 export async function readSkillMarkdown(
   contentPath: string | undefined,
 ): Promise<string | null> {
-  if (!contentPath) return null;
+  if (!contentPath) {return null;}
   const rel = contentPathToPublicFile(contentPath);
-  if (!rel) return null;
+  if (!rel) {return null;}
   const abs = path.join(process.cwd(), 'public', ...rel.split('/'));
   try {
     const text = await fs.readFile(abs, 'utf8');

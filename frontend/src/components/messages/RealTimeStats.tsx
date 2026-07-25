@@ -51,7 +51,7 @@ function RealTimeStats() {
 
   // 模拟数据初始化
   // messageRate 仅用于初始化统计卡片，加入依赖会导致每次 rate 变化时重复初始化
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   useEffect(() => {
     // 初始化实时数据
     const initialOnlineUsers = Math.floor(Math.random() * 50) + 10;

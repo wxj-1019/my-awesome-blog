@@ -152,7 +152,7 @@ export function StatsCharts({
   const minVal = Math.min(...monthlyValues, 0);
   const maxVal = Math.max(...monthlyValues, 1);
   const opacityFor = (val: number) => {
-    if (maxVal === minVal) return 0.65;
+    if (maxVal === minVal) {return 0.65;}
     return 0.35 + (0.6 * (val - minVal)) / (maxVal - minVal);
   };
 

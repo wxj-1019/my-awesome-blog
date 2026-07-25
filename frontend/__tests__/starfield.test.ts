@@ -42,7 +42,7 @@ describe('createStarfield', () => {
     (globalThis as any).ResizeObserver = class {
       observe() {} unobserve() {} disconnect() {}
     };
-    (globalThis as any).requestAnimationFrame = (cb: FrameRequestCallback) =>
+    (globalThis as any).requestAnimationFrame = (_cb: FrameRequestCallback) =>
       0 as unknown as number;
     (globalThis as any).cancelAnimationFrame = () => {};
     (globalThis as any).devicePixelRatio = 1;

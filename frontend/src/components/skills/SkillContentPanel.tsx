@@ -38,7 +38,7 @@ export default function SkillContentPanel({
     setDownloading(true);
     try {
       const res = await fetch(contentPath);
-      if (!res.ok) throw new Error('fetch failed');
+      if (!res.ok) {throw new Error('fetch failed');}
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -56,7 +56,7 @@ export default function SkillContentPanel({
     }
   }, [contentPath, slug]);
 
-  if (contentMarkdown == null || contentMarkdown.trim() === '') {
+  if (!contentMarkdown || contentMarkdown.trim() === '') {
     return (
       <GlassCard padding="md" role="region" aria-label="Skill 文件">
         <p className="text-sm text-muted-foreground">暂无托管正文</p>
