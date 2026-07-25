@@ -44,7 +44,7 @@ const navLinks: NavLink[] = [
     children: [
       { href: '/chat', label: '模型对话', icon: MessageSquare },
       { href: '/online-tools', label: '在线工具', icon: Cpu },
-      { href: '/tools/skills', label: 'Skill 收藏馆', icon: Sparkles },
+      { href: '/tools/skills', label: 'AI 工具收藏', icon: Sparkles },
     ]
   },
   { href: '/messages', label: '留言', icon: Mail },
@@ -194,6 +194,13 @@ export default function Navbar() {
       searchInput.focus();
     }
   }, []);
+
+  // 后台管理系统有独立的 AdminSidebar + header，不渲染前台导航，
+  // 否则 fixed Navbar 会覆盖在 admin 的 sticky header 之上造成双层遮挡。
+  // 置于所有 hooks 之后，避免违反 hooks 调用顺序规则。
+  if (pathname?.startsWith('/admin')) {
+    return null;
+  }
 
   return (
     <>
