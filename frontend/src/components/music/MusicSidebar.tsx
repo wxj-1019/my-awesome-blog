@@ -23,7 +23,7 @@ export default function MusicSidebar({ activeSection, onSectionChange, playlists
   ];
   return (
     <aside className={cn(
-      'hidden md:flex flex-col h-full flex-shrink-0 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]',
+      'hidden md:flex flex-col h-full flex-shrink-0 transition-[width] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]',
       'bg-card/95 backdrop-blur-md',
       'border-r border-glass-border',
       'shadow-lg shadow-black/20 z-20',

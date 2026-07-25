@@ -359,7 +359,7 @@ export default function CategoriesPage() {
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     rows={3}
                     placeholder="输入分类描述（可选）"
-                    className="w-full px-4 py-3 border border-glass-border/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-tech-cyan/50 transition-all duration-200 bg-glass/10 text-foreground placeholder:text-foreground/40"
+                    className="w-full px-4 py-3 border border-glass-border/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-tech-cyan/50 transition-colors duration-200 bg-glass/10 text-foreground placeholder:text-foreground/40"
                   />
                 </div>
                 

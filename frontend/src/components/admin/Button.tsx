@@ -102,7 +102,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         className={cn(
           'inline-flex items-center justify-center gap-2',
           'rounded-xl font-semibold',
-          'transition-all duration-200 ease-out',
+          'transition-colors duration-200 ease-out',
           'cursor-pointer',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
           'min-h-[48px]',

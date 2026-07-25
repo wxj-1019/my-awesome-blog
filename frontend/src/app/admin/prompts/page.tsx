@@ -519,7 +519,7 @@ export default function PromptsPage() {
                     <motion.button
                       type="button"
                       onClick={() => setFormData({ ...formData, is_active: !formData.is_active })}
-                      className={cn("relative w-12 h-6 rounded-full transition-all", formData.is_active ? "bg-tech-cyan" : "bg-gray-500/30")}
+                      className={cn("relative w-12 h-6 rounded-full transition-colors", formData.is_active ? "bg-tech-cyan" : "bg-gray-500/30")}
                     >
                       <motion.div className="absolute top-1 w-4 h-4 bg-white rounded-full" animate={{ left: formData.is_active ? "28px" : "4px" }} />
                     </motion.button>
@@ -529,7 +529,7 @@ export default function PromptsPage() {
                     <motion.button
                       type="button"
                       onClick={() => setFormData({ ...formData, is_system: !formData.is_system })}
-                      className={cn("relative w-12 h-6 rounded-full transition-all", formData.is_system ? "bg-purple-500" : "bg-gray-500/30")}
+                      className={cn("relative w-12 h-6 rounded-full transition-colors", formData.is_system ? "bg-purple-500" : "bg-gray-500/30")}
                     >
                       <motion.div className="absolute top-1 w-4 h-4 bg-white rounded-full" animate={{ left: formData.is_system ? "28px" : "4px" }} />
                     </motion.button>

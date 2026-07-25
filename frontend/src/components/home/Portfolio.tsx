@@ -278,7 +278,7 @@ export default function Portfolio() {
                 <div
                   className={cn(
                     'absolute inset-0 w-full h-full',
-                    'transition-all duration-700 ease-in-out'
+                    'transition-colors duration-700 ease-in-out'
                   )}
                   style={{
                     backfaceVisibility: 'hidden',

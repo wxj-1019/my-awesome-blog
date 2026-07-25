@@ -170,7 +170,7 @@ export default function Tabs({
                 onClick={() => !tab.disabled && setActiveTab(tab.id)}
                 disabled={tab.disabled}
                 className={cn(
-                  'flex items-center gap-2 font-medium transition-all',
+                  'flex items-center gap-2 font-medium transition-colors',
                   sizeClasses[size],
                   'rounded-lg',
                   activeTab === tab.id

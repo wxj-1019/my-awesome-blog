@@ -477,7 +477,7 @@ export default function FriendLinksPage() {
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     rows={3}
                     placeholder="简短描述这个网站..."
-                    className="w-full px-4 py-3 bg-glass/20 border border-glass-border/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-tech-cyan/50 focus:border-transparent transition-all duration-200 text-foreground placeholder:text-foreground/30 resize-none"
+                    className="w-full px-4 py-3 bg-glass/20 border border-glass-border/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-tech-cyan/50 focus:border-transparent transition-colors duration-200 text-foreground placeholder:text-foreground/30 resize-none"
                   />
                 </div>
                 

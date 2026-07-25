@@ -38,15 +38,17 @@ const GlassCard = React.forwardRef<HTMLDivElement, GlassCardProps>(
       <div
         ref={ref}
         className={cn(
-          'rounded-xl border shadow-lg transition-all duration-300',
+          /* 明确属性白名单，时长对齐 TRANSITION.FAST（0.28s） */
+          'rounded-xl border shadow-lg transition-[transform,box-shadow,border-color] duration-[280ms]',
           /* 略加强模糊，配合更高不透明度，复杂背景下更易读 */
           'backdrop-blur-md',
           'bg-glass border-glass-border text-foreground',
           'shadow-[var(--glass-shadow)]',
           paddingClasses[padding],
           hoverEffect &&
-            'hover:-translate-y-1 hover:shadow-2xl hover:border-primary/40 cursor-pointer',
-          glowEffect && 'hover:shadow-[0_0_30px_var(--shadow-tech-cyan)]',
+            'hover:-translate-y-1 hover:shadow-[var(--glass-shadow)] hover:border-primary/40 cursor-pointer',
+          /* 柔和玻璃光晕：改用 token 化 15px 轻发光，取代 30px 重发光 */
+          glowEffect && 'hover:shadow-tech-cyan',
           className
         )}
         {...props}

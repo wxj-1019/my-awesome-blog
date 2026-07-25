@@ -151,7 +151,7 @@ export default function TagCloud() {
             aria-label={`查看${tag.name}标签的文章 (${tag.count}篇)`}
           >
             <div className="relative z-10 flex flex-col items-center gap-2">
-              <Tag className="w-6 h-6 transform group-hover:rotate-12 transition-transform duration-300" />
+              <Tag className="w-6 h-6 transform group-hover:rotate-6 transition-transform duration-300" />
 
               <span className="font-semibold text-center text-sm sm:text-base">
                 {tag.name}

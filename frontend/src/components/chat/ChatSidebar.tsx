@@ -199,7 +199,7 @@ export function ChatSidebar({
             )}
             
             <div className={cn(
-              "flex h-9 w-9 items-center justify-center rounded-lg transition-all",
+              "flex h-9 w-9 items-center justify-center rounded-lg transition-colors",
               selectedPrompt 
                 ? "bg-gradient-to-br from-cyan-500 to-blue-600 shadow-lg shadow-cyan-500/30" 
                 : "bg-gradient-to-br from-cyan-500/50 to-blue-600/50"

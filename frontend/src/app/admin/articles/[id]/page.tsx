@@ -504,7 +504,7 @@ export default function EditArticlePage() {
                     value={formData.title}
                     onChange={handleTitleChange}
                     placeholder="输入一个吸引人的标题..."
-                    className={`w-full px-4 py-3.5 rounded-xl bg-background/50 border text-foreground text-lg font-medium placeholder:text-foreground/30 focus:outline-none focus:ring-2 transition-all ${
+                    className={`w-full px-4 py-3.5 rounded-xl bg-background/50 border text-foreground text-lg font-medium placeholder:text-foreground/30 focus:outline-none focus:ring-2 transition-colors ${
                       validationErrors.title
                         ? 'border-red-500/50 focus:ring-red-500/20'
                         : 'border-border/50 focus:ring-tech-cyan/20 focus:border-tech-cyan/50'
@@ -579,7 +579,7 @@ export default function EditArticlePage() {
 > 引用
 `代码`"
                       rows={editorMode === 'split' ? 20 : 16}
-                      className={`w-full px-4 py-3 rounded-xl bg-background/50 border text-foreground placeholder:text-foreground/25 focus:outline-none focus:ring-2 transition-all resize-none font-mono text-sm leading-relaxed ${
+                      className={`w-full px-4 py-3 rounded-xl bg-background/50 border text-foreground placeholder:text-foreground/25 focus:outline-none focus:ring-2 transition-colors resize-none font-mono text-sm leading-relaxed ${
                         validationErrors.content
                           ? 'border-red-500/50 focus:ring-red-500/20'
                           : 'border-border/50 focus:ring-tech-cyan/20 focus:border-tech-cyan/50'
@@ -646,7 +646,7 @@ export default function EditArticlePage() {
                   onChange={handleInputChange}
                   placeholder="简短描述文章内容，用于 SEO 和列表展示..."
                   rows={3}
-                  className="w-full px-4 py-3 rounded-xl bg-background/50 border border-border/50 text-foreground placeholder:text-foreground/30 focus:outline-none focus:ring-2 focus:ring-tech-cyan/20 focus:border-tech-cyan/50 transition-all resize-none text-sm"
+                  className="w-full px-4 py-3 rounded-xl bg-background/50 border border-border/50 text-foreground placeholder:text-foreground/30 focus:outline-none focus:ring-2 focus:ring-tech-cyan/20 focus:border-tech-cyan/50 transition-colors resize-none text-sm"
                 />
                 <div className="flex items-center justify-between mt-2">
                   <p className="text-xs text-foreground/40">用于搜索引擎和社交分享</p>
@@ -667,7 +667,7 @@ export default function EditArticlePage() {
                     value={formData.cover_image}
                     onChange={handleInputChange}
                     placeholder="https://example.com/image.jpg"
-                    className="flex-1 px-4 py-3 rounded-xl bg-background/50 border border-border/50 text-foreground placeholder:text-foreground/30 focus:outline-none focus:ring-2 focus:ring-tech-cyan/20 focus:border-tech-cyan/50 transition-all"
+                    className="flex-1 px-4 py-3 rounded-xl bg-background/50 border border-border/50 text-foreground placeholder:text-foreground/30 focus:outline-none focus:ring-2 focus:ring-tech-cyan/20 focus:border-tech-cyan/50 transition-colors"
                   />
                 </div>
                 {formData.cover_image && (
@@ -775,7 +775,7 @@ export default function EditArticlePage() {
                     name="category_id"
                     value={formData.category_id}
                     onChange={handleSelectChange}
-                    className="w-full px-4 py-2.5 rounded-xl bg-background/50 border border-border/50 text-foreground focus:outline-none focus:ring-2 focus:ring-tech-cyan/20 focus:border-tech-cyan/50 transition-all appearance-none cursor-pointer pr-10"
+                    className="w-full px-4 py-2.5 rounded-xl bg-background/50 border border-border/50 text-foreground focus:outline-none focus:ring-2 focus:ring-tech-cyan/20 focus:border-tech-cyan/50 transition-colors appearance-none cursor-pointer pr-10"
                   >
                     <option value="" className="bg-card text-foreground">选择分类...</option>
                     {categories.map(category => (
@@ -802,7 +802,7 @@ export default function EditArticlePage() {
                       value={tagSearchQuery}
                       onChange={(e) => setTagSearchQuery(e.target.value)}
                       onFocus={() => setShowTagDropdown(true)}
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-background/50 border border-border/50 text-foreground placeholder:text-foreground/30 focus:outline-none focus:ring-2 focus:ring-tech-cyan/20 focus:border-tech-cyan/50 transition-all text-sm"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-background/50 border border-border/50 text-foreground placeholder:text-foreground/30 focus:outline-none focus:ring-2 focus:ring-tech-cyan/20 focus:border-tech-cyan/50 transition-colors text-sm"
                     />
                   </div>
                   <AnimatePresence>

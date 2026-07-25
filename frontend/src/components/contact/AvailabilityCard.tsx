@@ -1,9 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { motion } from '@/lib/framer-motion';
 import { CheckCircle, XCircle, Clock, Calendar, MessageSquare, AlertCircle } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
-import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { ScrollRevealLine } from '@/components/gsap/ScrollNarrative';
 import { cn } from '@/lib/utils';
 
@@ -22,7 +20,6 @@ interface AvailabilityInfo {
   icon: React.ReactNode;
 }
 export default function AvailabilityCard() {
-  const reducedMotion = useReducedMotion();
   const [availability, setAvailability] = useState<AvailabilityInfo>({
     status: 'available',
     label: '在线',
@@ -113,38 +110,20 @@ export default function AvailabilityCard() {
           </div>
           <GlassCard padding="lg">
             <div className="flex items-center gap-6 mb-8">
-              {/* 呼吸循环动画：reduced-motion 时回退为静态 */}
-              <motion.div
-                animate={reducedMotion ? undefined : {
-                  scale: [1, 1.1, 1],
-                  opacity: [1, 0.7, 1],
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: 'easeInOut',
-                }}
+              {/* 状态图标：静态展示，无循环呼吸动画 */}
+              <div
                 className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${availability.gradientClass} to-foreground/10 flex items-center justify-center`}
               >
                 <div className={availability.color}>
                   {availability.icon}
                 </div>
-              </motion.div>
+              </div>
               <div className="flex-grow">
                 <div className="flex items-center gap-3 mb-1">
                   <h3 className="font-sf-pro-display text-2xl font-semibold text-foreground">
                     {availability.label}
                   </h3>
-                  <motion.div
-                    animate={reducedMotion ? undefined : {
-                      scale: [1, 1.2, 1],
-                      opacity: [0.5, 1, 0.5],
-                    }}
-                    transition={{
-                      duration: 1.5,
-                      repeat: Infinity,
-                      ease: 'easeInOut',
-                    }}
+                  <div
                     className={`w-3 h-3 rounded-full ${availability.dotClass}`}
                   />
                 </div>

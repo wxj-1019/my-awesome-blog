@@ -252,7 +252,7 @@ export default function UsersPage() {
                           <motion.button
                             onClick={() => toggleUserStatus(user)}
                             className={cn(
-                              "px-3 py-1 text-xs font-medium rounded-full transition-all duration-200",
+                              "px-3 py-1 text-xs font-medium rounded-full transition-colors duration-200",
                               user.is_active 
                                 ? "bg-green-500/20 text-green-400 border border-green-500/30" 
                                 : "bg-gray-500/20 text-gray-400 dark:text-gray-500 dark:text-gray-400 border border-gray-500/30"

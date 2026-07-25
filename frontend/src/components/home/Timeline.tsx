@@ -257,7 +257,7 @@ function TimelineEventItem({ event, index }: TimelineEventItemProps) {
 
           <p
             className={cn(
-              'text-xs sm:text-sm text-muted-foreground transition-all duration-300',
+              'text-xs sm:text-sm text-muted-foreground transition-colors duration-300',
               !isExpanded && 'line-clamp-2'
             )}
           >

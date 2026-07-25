@@ -471,7 +471,7 @@ export default function CommentsPage() {
                 onChange={(e) => setReplyContent(e.target.value)}
                 placeholder="输入回复内容..."
                 rows={4}
-                className="w-full px-4 py-3 bg-glass/20 border border-glass-border/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-tech-cyan/50 focus:border-transparent transition-all duration-200 text-foreground placeholder:text-foreground/30 resize-none"
+                className="w-full px-4 py-3 bg-glass/20 border border-glass-border/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-tech-cyan/50 focus:border-transparent transition-colors duration-200 text-foreground placeholder:text-foreground/30 resize-none"
               />
               
               <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-glass-border/30">

@@ -115,7 +115,7 @@ export default function PasswordField({
           placeholder={placeholder}
           disabled={disabled}
           className={cn(
-            'w-full pl-4 pr-12 py-3 rounded-lg border transition-all',
+            'w-full pl-4 pr-12 py-3 rounded-lg border transition-colors',
             error
               ? 'border-destructive focus:ring-destructive/20 text-foreground'
               : 'border-border focus:ring-primary/20 text-foreground',

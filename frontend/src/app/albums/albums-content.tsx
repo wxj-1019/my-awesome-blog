@@ -240,15 +240,15 @@ const AlbumsPageContent = () => {
             </div>
 
             <div className="relative z-10 text-center min-h-[400px] flex flex-col justify-center items-center pointer-events-none">
-              {/* 相机图标循环旋转：reduced-motion 时渲染静态终态 */}
+              {/* 相机图标轻微上下浮动：reduced-motion 时渲染静态终态 */}
               {prefersReducedMotion ? (
                 <div className="inline-flex items-center justify-center w-12 h-12 mb-3 rounded-2xl bg-tech-cyan/15 backdrop-blur-sm border border-tech-cyan/30">
                   <Camera className="w-6 h-6 text-tech-cyan" />
                 </div>
               ) : (
                 <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                  animate={{ y: [0, -4] }}
+                  transition={{ duration: 5, repeat: Infinity, repeatType: 'reverse', ease: 'easeInOut' }}
                   className="inline-flex items-center justify-center w-12 h-12 mb-3 rounded-2xl bg-tech-cyan/15 backdrop-blur-sm border border-tech-cyan/30"
                 >
                   <Camera className="w-6 h-6 text-tech-cyan" />
@@ -268,15 +268,15 @@ const AlbumsPageContent = () => {
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-tech-cyan/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                   <div className="relative z-10 flex items-center justify-center gap-3">
-                    {/* 循环旋转：reduced-motion 时渲染静态终态 */}
+                    {/* 图片图标轻微上下浮动：reduced-motion 时渲染静态终态 */}
                     {prefersReducedMotion ? (
                       <div className="p-2 rounded-xl bg-tech-cyan/10 border border-tech-cyan/30">
                         <ImageIcon className="w-5 h-5 text-tech-cyan" />
                       </div>
                     ) : (
                       <motion.div
-                        animate={{ rotate: [0, 360] }}
-                        transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                        animate={{ y: [0, -4] }}
+                        transition={{ duration: 4.5, repeat: Infinity, repeatType: 'reverse', ease: 'easeInOut' }}
                         className="p-2 rounded-xl bg-tech-cyan/10 border border-tech-cyan/30"
                       >
                         <ImageIcon className="w-5 h-5 text-tech-cyan" />
@@ -300,15 +300,15 @@ const AlbumsPageContent = () => {
                   <div className="absolute inset-0 bg-gradient-to-br from-tech-sky/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                   <div className="relative z-10 flex items-center justify-center gap-3">
-                    {/* 反向循环旋转：reduced-motion 时渲染静态终态 */}
+                    {/* 文件夹图标轻微上下浮动：reduced-motion 时渲染静态终态 */}
                     {prefersReducedMotion ? (
                       <div className="p-2 rounded-xl bg-tech-sky/10 border border-tech-sky/30">
                         <FolderOpen className="w-5 h-5 text-tech-sky" />
                       </div>
                     ) : (
                       <motion.div
-                        animate={{ rotate: [360, 0] }}
-                        transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                        animate={{ y: [0, -4] }}
+                        transition={{ duration: 5.5, repeat: Infinity, repeatType: 'reverse', ease: 'easeInOut' }}
                         className="p-2 rounded-xl bg-tech-sky/10 border border-tech-sky/30"
                       >
                         <FolderOpen className="w-5 h-5 text-tech-sky" />

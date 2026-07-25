@@ -180,7 +180,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         />
 
         <div className={cn(
-          "transition-all duration-500 ease-out relative z-10",
+          "transition-[margin] duration-500 ease-out relative z-10",
           sidebarOpen ? "lg:ml-64" : "lg:ml-20"
         )}>
           <motion.header 

@@ -643,7 +643,7 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="搜索提示词..."
-                      className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-all"
+                      className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-colors"
                     />
                   </div>
                   <div className="flex items-center gap-2">
@@ -776,7 +776,7 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
                       value={editForm.name}
                       onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
                       placeholder="提示词名称"
-                      className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-all"
+                      className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-colors"
                     />
                   </div>
 
@@ -789,7 +789,7 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
                       onChange={(e) => setEditForm(prev => ({ ...prev, content: e.target.value }))}
                       placeholder="输入提示词内容..."
                       rows={8}
-                      className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-all resize-none"
+                      className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-colors resize-none"
                     />
                   </div>
 
@@ -802,7 +802,7 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
                       value={editForm.description}
                       onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
                       placeholder="简短描述（可选）"
-                      className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-all"
+                      className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-colors"
                     />
                   </div>
 
@@ -816,7 +816,7 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
                         value={editForm.category}
                         onChange={(e) => setEditForm(prev => ({ ...prev, category: e.target.value }))}
                         placeholder="如：翻译、写作、编程"
-                        className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-all"
+                        className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-colors"
                       />
                     </div>
 
@@ -827,7 +827,7 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
                       <select
                         value={editForm.folder_id}
                         onChange={(e) => setEditForm(prev => ({ ...prev, folder_id: e.target.value }))}
-                        className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-all"
+                        className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-colors"
                       >
                         <option value="">根目录</option>
                         {folders.map(folder => (
@@ -848,7 +848,7 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
                       value={editForm.tags}
                       onChange={(e) => setEditForm(prev => ({ ...prev, tags: e.target.value }))}
                       placeholder="标签1, 标签2, 标签3"
-                      className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-all"
+                      className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-colors"
                     />
                   </div>
 

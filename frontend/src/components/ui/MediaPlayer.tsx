@@ -211,7 +211,7 @@ export default function MediaPlayer({
               <button
                 key={item.src}
                 onClick={() => setCurrentIndex(index)}
-                className={`h-2 rounded-full transition-all ${
+                className={`h-2 rounded-full transition-[width,background-color] ${
                   index === currentIndex ? 'w-6 bg-white' : 'w-3 bg-white/50'
                 }`}
               />

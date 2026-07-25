@@ -371,7 +371,7 @@ export default function MessagesPageContent() {
           onClick={() => setIsPaused(!isPaused)}
           className={cn(
             "flex items-center gap-2 px-4 py-2 rounded-full",
-            "backdrop-blur-md border transition-all duration-300 cursor-pointer",
+            "backdrop-blur-md border transition-colors duration-300 cursor-pointer",
             isPaused
               ? "bg-warning/20 text-warning border-warning/50"
               : "bg-tech-cyan/20 text-tech-cyan border-tech-cyan/50"
@@ -385,7 +385,7 @@ export default function MessagesPageContent() {
           onClick={() => setRainbowMode(!rainbowMode)}
           className={cn(
             "flex items-center gap-2 px-4 py-2 rounded-full",
-            "backdrop-blur-md border transition-all duration-300 cursor-pointer",
+            "backdrop-blur-md border transition-colors duration-300 cursor-pointer",
             rainbowMode
               ? "bg-primary/20 text-primary border-primary/50"
               : "bg-glass text-muted-foreground border-glass-border"
@@ -405,7 +405,8 @@ export default function MessagesPageContent() {
         />
 
         <FadeIn direction="up" delay={0.1} className="w-full max-w-xl">
-          <div className="bg-glass/30 backdrop-blur-xl border border-glass-border rounded-2xl p-6 shadow-2xl">
+          {/* 玻璃卡片用柔和影令牌，避免 shadow-2xl 重黑影压暗通透感 */}
+          <div className="bg-glass/30 backdrop-blur-xl border border-glass-border rounded-2xl p-6 shadow-[var(--glass-shadow)]">
             {!isLoggedIn ? (
               <div className="text-center py-8">
                 <MessageSquare className="w-12 h-12 mx-auto mb-4 text-tech-cyan/50" />
@@ -449,7 +450,7 @@ export default function MessagesPageContent() {
                       "bg-glass border border-glass-border",
                       "focus:outline-none focus:ring-2 focus:ring-tech-cyan/50 focus:border-tech-cyan",
                       "placeholder:text-muted-foreground/60 text-foreground",
-                      "transition-all duration-200"
+                      "transition-[colors,box-shadow] duration-200"
                     )}
                   />
                   <div className="absolute bottom-2 right-3 text-xs text-muted-foreground/60">
@@ -487,7 +488,7 @@ export default function MessagesPageContent() {
                       "flex items-center gap-2 px-6 py-2.5 rounded-xl",
                       "bg-gradient-to-r from-tech-cyan to-tech-lightcyan",
                       "text-primary-foreground font-medium",
-                      "hover:opacity-90 transition-all duration-200",
+                      "hover:opacity-90 transition-[colors,opacity] duration-200",
                       "disabled:opacity-50 disabled:cursor-not-allowed",
                       "cursor-pointer"
                     )}

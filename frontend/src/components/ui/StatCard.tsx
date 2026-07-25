@@ -4,6 +4,7 @@ import * as React from 'react';
 import Link, { LinkProps } from 'next/link';
 import { motion, useSpring, useMotionValue, useTransform } from '@/lib/framer-motion';
 import { cn } from '@/lib/utils';
+import { TRANSITION } from '@/lib/animation-utils';
 
 export interface StatCardProps {
   label: string;
@@ -39,11 +40,13 @@ const StatCard = React.forwardRef<HTMLDivElement, StatCardProps>(
     const x = useMotionValue(0);
     const y = useMotionValue(0);
     
-    const mouseXSpring = useSpring(x, { stiffness: 150, damping: 15 });
-    const mouseYSpring = useSpring(y, { stiffness: 150, damping: 15 });
+    // 柔和化：加大阻尼减少回弹
+    const mouseXSpring = useSpring(x, { stiffness: 120, damping: 22 });
+    const mouseYSpring = useSpring(y, { stiffness: 120, damping: 22 });
     
-    const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["7deg", "-7deg"]);
-    const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-7deg", "7deg"]);
+    // 柔和化：倾斜角由 ±7° 降至 ±2.5°
+    const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["2.5deg", "-2.5deg"]);
+    const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-2.5deg", "2.5deg"]);
 
     const handleMouseMove = React.useCallback(
       (e: React.MouseEvent<HTMLDivElement>) => {
@@ -134,8 +137,8 @@ const StatCard = React.forwardRef<HTMLDivElement, StatCardProps>(
           aria-label={`${label}: ${value}`}
           className={cn(
             'relative overflow-hidden rounded-2xl p-6 transition-[colors,transform] duration-300',
-            'bg-white/50 dark:bg-slate-800/40 backdrop-blur-xl border border-slate-200/50 dark:border-slate-700/50 shadow-lg',
-            'hover:-translate-y-1 hover:shadow-2xl',
+            // 柔和化：双主题硬编码分支改为 glass 语义 token
+            'bg-glass backdrop-blur-xl border border-glass-border shadow-glass',
             'transform-gpu',
             className
           )}
@@ -144,16 +147,16 @@ const StatCard = React.forwardRef<HTMLDivElement, StatCardProps>(
             animationFillMode: 'both'
           }}
           whileHover={{ 
-            y: -8,
-            scale: 1.02,
-            boxShadow: `0 20px 40px ${color}20, 0 0 0 1px ${color}30`
+            // 柔和化：位移/缩放减半，彩色发光换柔和玻璃阴影
+            y: -4,
+            scale: 1.01,
+            boxShadow: 'var(--glass-shadow)'
           }}
           whileTap={{ scale: 0.98 }}
           initial={{ opacity: 0, y: 30, scale: 0.9 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ 
-            duration: 0.5, 
-            ease: [0.25, 0.1, 0.25, 1],
+            ...TRANSITION.DEFAULT,
             delay: animationDelay / 1000
           }}
         >
@@ -250,13 +253,6 @@ const StatCard = React.forwardRef<HTMLDivElement, StatCardProps>(
               </motion.div>
             )}
           </div>
-
-          <motion.div
-            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -skew-x-12 pointer-events-none"
-            initial={{ x: '-100%' }}
-            whileHover={{ x: '100%' }}
-            transition={{ duration: 0.6, ease: 'easeInOut' }}
-          />
         </motion.div>
       </motion.div>
     );

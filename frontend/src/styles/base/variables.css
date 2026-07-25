@@ -70,8 +70,8 @@
   --tech-pink: #f43f5e;
   --tech-purple-rgb: 124, 58, 237;
   --tech-pink-rgb: 244, 63, 94;
-  --shadow-tech-purple: rgba(124, 58, 237, 0.4);
-  --shadow-tech-pink: rgba(244, 63, 94, 0.4);
+  --shadow-tech-purple: rgba(124, 58, 237, 0.2);
+  --shadow-tech-pink: rgba(244, 63, 94, 0.2);
 
   /* 主色/中性色/强调色色阶 - Tailwind 引用 */
   --primary-50: #f0f9ff;
@@ -193,7 +193,7 @@
   --glass-default: rgba(15, 23, 42, 0.9);
   --glass-border: rgba(94, 234, 212, 0.2);
   --glass-glow: rgba(94, 234, 212, 0.2);
-  --glass-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+  --glass-shadow: 0 16px 48px rgba(0, 0, 0, 0.28);
 
   /* 暗色主题科技色 - 更亮的青色确保对比度 */
   --tech-darkblue: #0c4a6e;
@@ -210,8 +210,8 @@
   --tech-pink: #fb7185;
   --tech-purple-rgb: 167, 139, 250;
   --tech-pink-rgb: 251, 113, 133;
-  --shadow-tech-purple: rgba(167, 139, 250, 0.5);
-  --shadow-tech-pink: rgba(251, 113, 133, 0.5);
+  --shadow-tech-purple: rgba(167, 139, 250, 0.25);
+  --shadow-tech-pink: rgba(251, 113, 133, 0.25);
 
   --text-primary: #f1f5f9;
   --text-secondary: #cbd5e1;

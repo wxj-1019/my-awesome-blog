@@ -99,7 +99,7 @@ const AlbumFilter: React.FC<AlbumFilterProps> = ({
               value={searchTerm}
               onChange={handleSearchChange}
               className={cn(
-                'w-full pl-10 pr-4 py-2 bg-muted/20 rounded-lg border border-glass-border focus:outline-none focus:ring-2 focus:ring-tech-cyan focus:border-transparent transition-all',
+                'w-full pl-10 pr-4 py-2 bg-muted/20 rounded-lg border border-glass-border focus:outline-none focus:ring-2 focus:ring-tech-cyan focus:border-transparent transition-colors',
                 themedClasses.textClass
               )}
             />

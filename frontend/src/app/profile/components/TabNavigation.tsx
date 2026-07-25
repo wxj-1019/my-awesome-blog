@@ -39,7 +39,7 @@ export default function TabNavigation({
             key={tab.id}
             onClick={() => handleTabChange(tab.id)}
             className={cn(
-              'relative overflow-hidden transition-all duration-300',
+              'relative overflow-hidden transition-colors duration-300',
               isVertical
                 ? cn(
                     'flex items-start gap-3 p-4 rounded-lg mb-2 text-left',

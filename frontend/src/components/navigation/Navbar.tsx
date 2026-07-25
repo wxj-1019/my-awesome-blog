@@ -205,7 +205,7 @@ export default function Navbar() {
         className={cn(
           // overflow-visible：桌面下拉与移动端面板从 h-16 顶栏向下展开，不可裁剪
           // header 高度固定 h-16，移动端面板为独立绝对定位层，不做高度补间推挤整页
-          'fixed top-0 left-0 right-0 z-[100] w-full h-16 overflow-visible transition-all duration-300',
+          'fixed top-0 left-0 right-0 z-[100] w-full h-16 overflow-visible transition-[background-color,box-shadow,backdrop-filter] duration-300',
           reducedMotion ? 'transition-none' : '',
           scrolled || isHovered || mobileMenuOpen
             ? 'bg-glass backdrop-blur-xl shadow-2xl'

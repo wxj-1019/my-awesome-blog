@@ -46,7 +46,7 @@ export default function MemorySearch({ onSearch, results, searching }: MemorySea
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="搜索记忆（语义检索）..."
-            className="w-full bg-white/5 text-white placeholder:text-white/50 rounded-lg pl-10 pr-10 py-2.5 text-sm outline-none focus:ring-2 focus:ring-tech-cyan/50 transition-all"
+            className="w-full bg-white/5 text-white placeholder:text-white/50 rounded-lg pl-10 pr-10 py-2.5 text-sm outline-none focus:ring-2 focus:ring-tech-cyan/50 transition-colors"
           />
           {query && (
             <button

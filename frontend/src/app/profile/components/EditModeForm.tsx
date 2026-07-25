@@ -168,7 +168,7 @@ export default function EditModeForm({ initialData, onSave, onCancel }: EditMode
                         onBlur={() => handleBlur(field.name)}
                         rows={4}
                         placeholder="介绍一下自己..."
-                        className={`bg-muted/50 border-tech-cyan/20 focus:border-tech-cyan/50 focus:ring-2 focus:ring-tech-cyan/20 transition-all duration-300 resize-none ${
+                        className={`bg-muted/50 border-tech-cyan/20 focus:border-tech-cyan/50 focus:ring-2 focus:ring-tech-cyan/20 transition-colors duration-300 resize-none ${
                           hasError ? 'border-destructive focus:border-destructive focus:ring-destructive/20' : ''
                         }`}
                       />
@@ -181,7 +181,7 @@ export default function EditModeForm({ initialData, onSave, onCancel }: EditMode
                         onChange={handleChange}
                         onBlur={() => handleBlur(field.name)}
                         placeholder={field.placeholder || ''}
-                        className={`bg-muted/50 border-tech-cyan/20 focus:border-tech-cyan/50 focus:ring-2 focus:ring-tech-cyan/20 transition-all duration-300 ${
+                        className={`bg-muted/50 border-tech-cyan/20 focus:border-tech-cyan/50 focus:ring-2 focus:ring-tech-cyan/20 transition-colors duration-300 ${
                           hasError ? 'border-destructive focus:border-destructive focus:ring-destructive/20' : ''
                         }`}
                       />

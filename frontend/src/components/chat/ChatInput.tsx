@@ -69,7 +69,7 @@ export function ChatInput({ onSend, onStop, isLoading, disabled }: ChatInputProp
           placeholder="输入消息与 AI 对话..."
           disabled={disabled || isSending}
           rows={1}
-          className="max-h-[200px] min-h-[44px] w-full resize-none bg-transparent py-3 px-2 text-base text-white placeholder-zinc-500 focus:outline-none scrollbar-thin scrollbar-thumb-zinc-600 scrollbar-track-transparent transition-all duration-300"
+          className="max-h-[200px] min-h-[44px] w-full resize-none bg-transparent py-3 px-2 text-base text-white placeholder-zinc-500 focus:outline-none scrollbar-thin scrollbar-thumb-zinc-600 scrollbar-track-transparent transition-colors duration-300"
           style={{ height: '44px' }}
         />
         <div className="flex shrink-0 pb-1 pr-1">

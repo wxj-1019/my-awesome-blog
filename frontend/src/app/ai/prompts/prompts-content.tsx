@@ -122,7 +122,7 @@ export default function PromptsPageContent() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="搜索提示词..."
-                    className="w-full bg-white/5 text-white placeholder:text-white/50 rounded-lg pl-10 pr-4 py-2 text-sm outline-none focus:ring-2 focus:ring-tech-cyan/50 transition-all"
+                    className="w-full bg-white/5 text-white placeholder:text-white/50 rounded-lg pl-10 pr-4 py-2 text-sm outline-none focus:ring-2 focus:ring-tech-cyan/50 transition-colors"
                   />
                 </div>
                 <div className="flex gap-2">

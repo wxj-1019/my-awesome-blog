@@ -1,6 +1,7 @@
 'use client';
 
 import { motion, Variants } from '@/lib/framer-motion';
+import { TRANSITION } from '@/lib/animation-utils';
 import { ReactNode, isValidElement } from 'react';
 
 export type TransitionType = 'fade' | 'slide' | 'scale' | 'flip' | 'none';
@@ -24,30 +25,31 @@ const transitionVariants: Record<TransitionType, Variants> = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: { duration: 0.4, ease: 'easeInOut' },
+      transition: TRANSITION.DEFAULT,
     },
     exit: {
       opacity: 0,
-      transition: { duration: 0.3, ease: 'easeInOut' },
+      transition: TRANSITION.FAST,
     },
   },
   slide: {
+    // 柔和化：位移从 ±100 降到 ±40，避免大幅度飞入飞出
     hidden: (direction: 'left' | 'right' | 'up' | 'down' = 'right') => ({
-      x: direction === 'left' ? -100 : direction === 'right' ? 100 : 0,
-      y: direction === 'up' ? -100 : direction === 'down' ? 100 : 0,
+      x: direction === 'left' ? -40 : direction === 'right' ? 40 : 0,
+      y: direction === 'up' ? -40 : direction === 'down' ? 40 : 0,
       opacity: 0,
     }),
     visible: {
       x: 0,
       y: 0,
       opacity: 1,
-      transition: { duration: 0.4, ease: [0.25, 0.1, 0.25, 1] },
+      transition: TRANSITION.DEFAULT,
     },
     exit: (direction: 'left' | 'right' | 'up' | 'down' = 'right') => ({
-      x: direction === 'left' ? 100 : direction === 'right' ? -100 : 0,
-      y: direction === 'up' ? 100 : direction === 'down' ? -100 : 0,
+      x: direction === 'left' ? 40 : direction === 'right' ? -40 : 0,
+      y: direction === 'up' ? 40 : direction === 'down' ? -40 : 0,
       opacity: 0,
-      transition: { duration: 0.3, ease: [0.25, 0.1, 0.25, 1] },
+      transition: TRANSITION.FAST,
     }),
   },
   scale: {
@@ -55,25 +57,28 @@ const transitionVariants: Record<TransitionType, Variants> = {
     visible: {
       opacity: 1,
       scale: 1,
-      transition: { duration: 0.4, ease: [0.25, 0.1, 0.25, 1] },
+      transition: TRANSITION.DEFAULT,
     },
     exit: {
       opacity: 0,
       scale: 0.95,
-      transition: { duration: 0.3, ease: [0.25, 0.1, 0.25, 1] },
+      transition: TRANSITION.FAST,
     },
   },
   flip: {
-    hidden: { opacity: 0, rotateY: 90 },
+    // 柔和化：rotateY ±90° 降到 ±15°，加轻微 scale 补偿，避免页面翻飞感
+    hidden: { opacity: 0, rotateY: 15, scale: 0.98 },
     visible: {
       opacity: 1,
       rotateY: 0,
-      transition: { duration: 0.5, ease: [0.25, 0.1, 0.25, 1] },
+      scale: 1,
+      transition: TRANSITION.DEFAULT,
     },
     exit: {
       opacity: 0,
-      rotateY: -90,
-      transition: { duration: 0.4, ease: [0.25, 0.1, 0.25, 1] },
+      rotateY: -15,
+      scale: 0.98,
+      transition: TRANSITION.FAST,
     },
   },
 };
@@ -82,7 +87,8 @@ export default function PageTransition({
   children,
   type = 'fade',
   direction = 'right',
-  duration = 0.4,
+  // 默认时长取统一预设（DEFAULT 0.48s），保持与全局节奏一致
+  duration = TRANSITION.DEFAULT.duration ?? 0.48,
   delay = 0,
   className
 }: PageTransitionProps) {
@@ -128,7 +134,7 @@ export function StaggeredChildren({
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.4, ease: [0.25, 0.1, 0.25, 1] },
+      transition: TRANSITION.DEFAULT,
     },
   };
 

@@ -19,7 +19,7 @@ const socialConfig = {
 export default function SocialLinksCard({ socialLinks, isEditing = false }: SocialLinksCardProps) {
   const validLinks = socialLinks.filter(link => link.value);
   return (
-    <GlassCard padding="lg" className="border-tech-cyan/20 hover:shadow-[0_0_30px_var(--shadow-tech-cyan)] transition-[colors,transform] duration-300 hover:-translate-y-1 animate-fade-in-up">
+    <GlassCard padding="lg" className="border-tech-cyan/20 hover:shadow-[var(--glass-shadow)] transition-[colors,transform,box-shadow] duration-300 hover:-translate-y-1 animate-fade-in-up">
       <h3 className="text-lg font-semibold text-foreground mb-6 flex items-center gap-2">
         <LinkIcon className="w-5 h-5 text-tech-cyan" />
         <span className="text-gradient-primary">社交链接</span>
@@ -34,7 +34,7 @@ export default function SocialLinksCard({ socialLinks, isEditing = false }: Soci
               href={getLinkUrl(link.type, link.value)}
               target="_blank"
               rel="noopener noreferrer"
-              className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-tech-cyan/10 to-tech-sky/10 hover:from-tech-cyan/20 hover:to-tech-sky/20 border border-tech-cyan/20 hover:border-tech-cyan/40 p-4 transition-[colors,transform] duration-300 hover:scale-105 hover:shadow-lg"
+              className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-tech-cyan/10 to-tech-sky/10 hover:from-tech-cyan/20 hover:to-tech-sky/20 border border-tech-cyan/20 hover:border-tech-cyan/40 p-4 transition-[colors,transform,box-shadow] duration-300 hover:scale-[1.01] hover:shadow-[var(--glass-shadow)]"
               style={{ animationDelay: `${index * 100}ms` }}
             >
               {/* 背景动画 */}

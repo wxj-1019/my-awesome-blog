@@ -196,7 +196,7 @@ const SlugInput = React.forwardRef<HTMLInputElement, SlugInputProps>(
         </div>
         <motion.div
           className={cn(
-            'relative flex items-center rounded-xl border transition-all duration-200',
+            'relative flex items-center rounded-xl border transition-colors duration-200',
             'bg-background/50 backdrop-blur-sm',
             validationResult?.valid && 'border-green-500/50 focus-within:border-green-500',
             validationResult && !validationResult.valid && 'border-red-500/50 focus-within:border-red-500',

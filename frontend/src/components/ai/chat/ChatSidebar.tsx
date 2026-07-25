@@ -58,7 +58,7 @@ export default function ChatSidebar({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="搜索对话..."
-            className="w-full bg-secondary dark:bg-muted/20 text-foreground dark:text-foreground placeholder:text-muted-foreground rounded-lg pl-10 pr-4 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+            className="w-full bg-secondary dark:bg-muted/20 text-foreground dark:text-foreground placeholder:text-muted-foreground rounded-lg pl-10 pr-4 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/50 transition-colors"
           />
         </div>
 

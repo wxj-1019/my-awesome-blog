@@ -149,9 +149,9 @@ export default function HeroSection() {
                   initial={{ x: '-100%' }}
                   animate={{ x: '100%' }}
                   transition={{
-                    duration: 1.5,
+                    duration: 2.5,
                     repeat: Infinity,
-                    ease: 'linear',
+                    ease: 'easeInOut',
                   }}
                 />
               </div>

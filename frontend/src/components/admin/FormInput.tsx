@@ -156,7 +156,7 @@ const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
 
         <motion.div
           className={cn(
-            'relative rounded-xl border transition-all duration-200',
+            'relative rounded-xl border transition-[border-color,box-shadow] duration-200',
             currentVariant.container,
             currentVariant.border,
             currentVariant.focusBorder,
@@ -200,7 +200,7 @@ const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
             onFocus={handleFocus}
             onBlur={handleBlur}
             className={cn(
-              'w-full bg-transparent outline-none transition-all duration-200',
+              'w-full bg-transparent outline-none transition-colors duration-200',
               'placeholder:text-foreground/40',
               'text-foreground',
               currentSize.input,

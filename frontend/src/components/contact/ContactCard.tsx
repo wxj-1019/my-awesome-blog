@@ -17,7 +17,7 @@ function ContactCard({ icon, title, description, href, onClick, delay = 0 }: Con
     <div className="group relative">
       <div className="absolute inset-0 bg-glass backdrop-blur-xl border border-glass-border rounded-xl p-6 transition-[colors,transform] duration-300 hover:shadow-xl hover:border-primary/40">
         <div className="flex items-start gap-4 mb-3">
-          <div className="w-12 h-12 bg-gradient-to-br from-primary to-tech-purple rounded-xl flex items-center justify-center text-primary-foreground shadow-lg group-hover:scale-110 transition-transform duration-300">
+          <div className="w-12 h-12 bg-gradient-to-br from-primary to-tech-sky rounded-xl flex items-center justify-center text-primary-foreground shadow-lg group-hover:scale-105 transition-transform duration-300">
             {icon}
           </div>
           <div className="flex-1">

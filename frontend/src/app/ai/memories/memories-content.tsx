@@ -128,7 +128,7 @@ export default function MemoriesPageContent() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="搜索记忆..."
-                  className="w-full bg-white/5 text-white placeholder:text-white/50 rounded-lg pl-10 pr-4 py-2 text-sm outline-none focus:ring-2 focus:ring-tech-cyan/50 transition-all"
+                  className="w-full bg-white/5 text-white placeholder:text-white/50 rounded-lg pl-10 pr-4 py-2 text-sm outline-none focus:ring-2 focus:ring-tech-cyan/50 transition-colors"
                 />
               </div>
 
@@ -355,7 +355,7 @@ export default function MemoriesPageContent() {
                         setEditingMemory({ ...editingMemory, memory_type: e.target.value as 'short_term' | 'long_term' });
                       }
                     }}
-                    className="w-full bg-white/5 text-white rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-tech-cyan/50 transition-all"
+                    className="w-full bg-white/5 text-white rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-tech-cyan/50 transition-colors"
                   >
                     <option value="short_term">短期记忆</option>
                     <option value="long_term">长期记忆</option>
@@ -374,7 +374,7 @@ export default function MemoriesPageContent() {
                       }
                     }}
                     id="memory-content-input"
-                    className="w-full bg-black/30 text-white placeholder:text-white/50 rounded-lg px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-tech-cyan/50 transition-all resize-none"
+                    className="w-full bg-black/30 text-white placeholder:text-white/50 rounded-lg px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-tech-cyan/50 transition-colors resize-none"
                   />
                 </div>
 
@@ -387,7 +387,7 @@ export default function MemoriesPageContent() {
                     step="0.1"
                     defaultValue={editingMemory?.importance || 0.5}
                     placeholder="0.5"
-                    className="w-full bg-white/5 text-white placeholder:text-white/50 rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-tech-cyan/50 transition-all"
+                    className="w-full bg-white/5 text-white placeholder:text-white/50 rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-tech-cyan/50 transition-colors"
                   />
                 </div>
 
@@ -396,7 +396,7 @@ export default function MemoriesPageContent() {
                   <input
                     type="datetime-local"
                     defaultValue={editingMemory?.expires_at?.split('.')[0] || ''}
-                    className="w-full bg-white/5 text-white placeholder:text-white/50 rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-tech-cyan/50 transition-all"
+                    className="w-full bg-white/5 text-white placeholder:text-white/50 rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-tech-cyan/50 transition-colors"
                   />
                 </div>
               </div>

@@ -209,7 +209,7 @@ export default function ContactForm() {
                 whileTap={{ scale: status === 'submitting' ? 1 : 0.98 }}
                 className={`
                   w-full py-4 rounded-2xl font-semibold font-sf-pro-text
-                  transition-all duration-300
+                  transition-shadow duration-300
                   flex items-center justify-center gap-3
                   shadow-lg
                   ${status === 'submitting'

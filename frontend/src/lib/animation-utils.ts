@@ -12,7 +12,8 @@ import { Variants, Transition } from '@/lib/framer-motion'
 export const EASE = {
   // Apple 风格缓动 - 硬件加速友好
   APPLE: [0.25, 0.1, 0.25, 1] as const,
-  // 弹性缓动（阶段 A：几乎不用于默认 UI）
+  // 弹性缓动：极端过冲曲线，观感生硬刺眼。
+  // ⚠️ 避免使用 —— 仅保留导出以防断引用；新代码请改用 EASE.SMOOTH / EASE.SNAPPY。
   BOUNCE: [0.68, -0.55, 0.265, 1.55] as const,
   // 平滑缓动 — 默认入场/页面更自然
   SMOOTH: [0.4, 0, 0.2, 1] as const,
@@ -130,7 +131,7 @@ export const slideDown: Variants = {
 }
 
 export const slideLeft: Variants = {
-  hidden: { opacity: 0, x: -80 },
+  hidden: { opacity: 0, x: -40 },
   visible: {
     opacity: 1,
     x: 0,
@@ -144,7 +145,7 @@ export const slideLeft: Variants = {
 }
 
 export const slideRight: Variants = {
-  hidden: { opacity: 0, x: 80 },
+  hidden: { opacity: 0, x: 40 },
   visible: {
     opacity: 1,
     x: 0,
@@ -172,7 +173,8 @@ export const scaleIn: Variants = {
 }
 
 export const scaleUp: Variants = {
-  hidden: { opacity: 0, scale: 0.5, y: 30 },
+  // 柔和化：起始 scale 0.5→0.92、y 30→12，damping 20→26 减少回弹
+  hidden: { opacity: 0, scale: 0.92, y: 12 },
   visible: {
     opacity: 1,
     scale: 1,
@@ -180,7 +182,7 @@ export const scaleUp: Variants = {
     transition: {
       type: 'spring',
       stiffness: 300,
-      damping: 20,
+      damping: 26,
     },
   },
   exit: {
@@ -190,16 +192,16 @@ export const scaleUp: Variants = {
   },
 }
 
-// 弹跳入场 - 优化spring参数
+// 弹跳入场 - 柔和化 spring 参数（降低 stiffness 与起始幅度，减少过冲）
 export const bounceIn: Variants = {
-  hidden: { opacity: 0, scale: 0.3, y: 50 },
+  hidden: { opacity: 0, scale: 0.8, y: 16 },
   visible: {
     opacity: 1,
     scale: 1,
     y: 0,
     transition: {
       type: 'spring',
-      stiffness: 400,
+      stiffness: 260,
       damping: 25, // 增加damping减少过冲
       mass: 0.8,   // 降低质量提升响应
     },

@@ -68,7 +68,7 @@ export default function PromptEditor({ prompt, onSave, onCancel }: PromptEditorP
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="输入 Prompt 名称"
-            className="w-full bg-white/5 text-white placeholder:text-white/50 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-tech-cyan/50 transition-all"
+            className="w-full bg-white/5 text-white placeholder:text-white/50 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-tech-cyan/50 transition-colors"
           />
         </div>
         <div>
@@ -78,7 +78,7 @@ export default function PromptEditor({ prompt, onSave, onCancel }: PromptEditorP
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             placeholder="输入分类（可选）"
-            className="w-full bg-white/5 text-white placeholder:text-white/50 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-tech-cyan/50 transition-all"
+            className="w-full bg-white/5 text-white placeholder:text-white/50 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-tech-cyan/50 transition-colors"
           />
         </div>
       </div>
@@ -89,7 +89,7 @@ export default function PromptEditor({ prompt, onSave, onCancel }: PromptEditorP
           onChange={(e) => setDescription(e.target.value)}
           placeholder="输入描述（可选）"
           rows={2}
-          className="w-full bg-white/5 text-white placeholder:text-white/50 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-tech-cyan/50 transition-all resize-none"
+          className="w-full bg-white/5 text-white placeholder:text-white/50 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-tech-cyan/50 transition-colors resize-none"
         />
       </div>
       <div>
@@ -108,7 +108,7 @@ export default function PromptEditor({ prompt, onSave, onCancel }: PromptEditorP
           onChange={(e) => setContent(e.target.value)}
           placeholder="输入 Prompt 内容，使用 {{variable_name}} 表示变量"
           rows={8}
-          className="w-full bg-black/30 text-white placeholder:text-white/50 rounded-lg px-3 py-3 text-sm font-mono outline-none focus:ring-2 focus:ring-tech-cyan/50 transition-all resize-none"
+          className="w-full bg-black/30 text-white placeholder:text-white/50 rounded-lg px-3 py-3 text-sm font-mono outline-none focus:ring-2 focus:ring-tech-cyan/50 transition-colors resize-none"
         />
       </div>
       {Object.keys(variables).length > 0 && (

@@ -173,7 +173,7 @@ export default function ProfilePageContent() {
       <div className="min-h-screen pt-24 pb-12 transition-colors duration-300">
         <div className="container mx-auto px-4 max-w-4xl">
           {saveStatus && (
-            <div className={`mb-6 p-4 rounded-lg transition-all duration-300 ${
+            <div className={`mb-6 p-4 rounded-lg transition-colors duration-300 ${
               saveStatus.success 
                 ? 'bg-success/20 text-success border border-success/30' 
                 : 'bg-destructive/20 text-destructive border border-destructive/30'

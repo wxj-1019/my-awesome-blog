@@ -419,7 +419,7 @@ export default function EnhancedDanmaku({
           <button
             onClick={onTogglePause}
             className={cn(
-              "flex items-center gap-2 px-3 py-1.5 rounded-full border backdrop-blur-md transition-all duration-300",
+              "flex items-center gap-2 px-3 py-1.5 rounded-full border backdrop-blur-md transition-colors duration-300",
               isPaused
                 ? "bg-warning/20 text-warning border-warning/50"
                 : "bg-tech-cyan/20 text-tech-cyan border-tech-cyan/50"

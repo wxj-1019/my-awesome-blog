@@ -404,7 +404,7 @@ export function ChatWindow({
               className={cn(
                 'w-full resize-none rounded-2xl px-4 py-3 pr-12 text-white placeholder-zinc-500',
                 'bg-white/5 border border-white/10 focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20',
-                'transition-all disabled:opacity-50 disabled:cursor-not-allowed',
+                'transition-colors disabled:opacity-50 disabled:cursor-not-allowed',
                 'min-h-[48px] max-h-[200px]'
               )}
               style={{

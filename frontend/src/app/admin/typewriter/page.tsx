@@ -341,7 +341,7 @@ export default function TypewriterPage() {
                     onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                     rows={3}
                     placeholder="输入打字机效果显示的文字"
-                    className="w-full px-4 py-3 bg-glass/20 border border-glass-border/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-tech-cyan/50 focus:border-transparent transition-all duration-200 text-foreground placeholder:text-foreground/30 resize-none"
+                    className="w-full px-4 py-3 bg-glass/20 border border-glass-border/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-tech-cyan/50 focus:border-transparent transition-colors duration-200 text-foreground placeholder:text-foreground/30 resize-none"
                     required
                   />
                 </div>
@@ -367,7 +367,7 @@ export default function TypewriterPage() {
                     type="button"
                     onClick={() => setFormData({ ...formData, is_active: !formData.is_active })}
                     className={cn(
-                      "relative w-12 h-6 rounded-full transition-all duration-300",
+                      "relative w-12 h-6 rounded-full transition-colors duration-300",
                       formData.is_active ? "bg-tech-cyan" : "bg-gray-500/30"
                     )}
                     whileTap={{ scale: 0.95 }}

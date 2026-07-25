@@ -85,7 +85,7 @@ export default function PlayerBar({
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50">
       <div className={cn(
-        'h-20 bg-card/95 backdrop-blur-md border-t border-glass-border shadow-2xl shadow-black/50 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]',
+        'h-20 bg-card/95 backdrop-blur-md border-t border-glass-border shadow-[var(--glass-shadow)] transition-[height] duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]',
         isExpanded && 'h-screen'
       )}>
         <div className="flex items-center h-20 px-6 max-w-screen-2xl mx-auto">
@@ -221,7 +221,7 @@ export default function PlayerBar({
                 <div className="absolute inset-0 h-1.5 bg-foreground/10 rounded-full overflow-hidden">
                   {/* Progress with gradient */}
                   <div
-                    className="h-full bg-gradient-to-r from-tech-cyan to-tech-sky rounded-full transition-all duration-100"
+                    className="h-full bg-gradient-to-r from-tech-cyan to-tech-sky rounded-full transition-[width] duration-100"
                     style={{ width: `${(progress / duration) * 100}%` }}
                   />
                 </div>
