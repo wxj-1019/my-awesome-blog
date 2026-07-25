@@ -156,7 +156,9 @@ class DeepSeekProvider(LLMProvider):
             return None
 
         delta = data['choices'][0].get('delta', {})
-        content = delta.get('content', '')
+        # DeepSeek v4 部分 chunk（如 role 帧/结束帧）会显式返回 content: null，
+        # delta.get('content', '') 此时返回 None 而非默认空串，需兜底为 ''。
+        content = delta.get('content') or ''
         finish_reason = data['choices'][0].get('finish_reason')
 
         return ChatStreamChunk(
