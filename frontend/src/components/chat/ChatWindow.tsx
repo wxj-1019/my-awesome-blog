@@ -15,7 +15,7 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { API_BASE_URL } from '@/lib/api-client';
+import { API_BASE_URL, TOKEN_KEY } from '@/lib/api-client';
 import type { SelectedPromptInfo } from './ChatSidebar';
 
 export interface ChatMessage {
@@ -80,9 +80,16 @@ export function ChatWindow({
         ? `Using prompt "${selectedPrompt.name}": ${selectedPrompt.description || ''}`
         : '';
 
+      // 流式请求需裸 fetch，手动带 JWT（与 apiRequest 的认证逻辑一致）
+      const token =
+        typeof window !== 'undefined' ? localStorage.getItem(TOKEN_KEY) : null;
+
       const response = await fetch(`${API_BASE_URL}/llm/chat/stream`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
         body: JSON.stringify({
           messages: [...newMessages.map((m) => ({ role: m.role, content: m.content }))],
           stream: true,
