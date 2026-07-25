@@ -11,13 +11,11 @@ import {
   Loader2,
   AlertCircle,
   FileText,
-  Check,
   RefreshCw,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { API_BASE_URL, TOKEN_KEY, USER_KEY } from '@/lib/api-client';
 import MarkdownRenderer from '@/components/ui/MarkdownRenderer';
-import type { SelectedPromptInfo } from './ChatSidebar';
 
 export interface ChatMessage {
   id: string;
@@ -26,12 +24,16 @@ export interface ChatMessage {
   timestamp: number;
 }
 
+/** 默认系统提示：写作助手定位（站内文章撰写、润色、校对） */
+const WRITING_ASSISTANT_PROMPT =
+  '你是这个个人博客的写作助手，主要帮助用户撰写、润色、校对中文文章与站内各类内容。' +
+  '输出使用适合直接发布的 Markdown 格式，语言自然流畅，避免模板化表达。';
+
 interface ChatWindowProps {
   onToggleSidebar: () => void;
   sessionMessages: ChatMessage[];
   onMessagesChange: (messages: ChatMessage[]) => void;
   onNewSession: () => void;
-  selectedPrompt?: SelectedPromptInfo | null;
 }
 
 export function ChatWindow({
@@ -39,7 +41,6 @@ export function ChatWindow({
   sessionMessages,
   onMessagesChange,
   onNewSession,
-  selectedPrompt,
 }: ChatWindowProps) {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -72,14 +73,17 @@ export function ChatWindow({
     const newMessages = [...sessionMessages, userMessage];
     onMessagesChange(newMessages);
     setInput('');
+    // 清空后把输入框高度复位，避免下次输入沿用上次撑开的高度
+    if (inputRef.current) {
+      inputRef.current.style.height = 'auto';
+    }
     setError(null);
     setIsLoading(true);
     setStreamingContent('');
 
     try {
-      const systemPrompt = selectedPrompt?.id
-        ? `Using prompt "${selectedPrompt.name}": ${selectedPrompt.description || ''}`
-        : '';
+      // 固定走写作助手系统提示（定位：站内文章撰写与内容打磨）
+      const systemPrompt = WRITING_ASSISTANT_PROMPT;
 
       // 流式请求需裸 fetch，手动带 JWT（与 apiRequest 的认证逻辑一致）
       const token =
@@ -95,7 +99,6 @@ export function ChatWindow({
           messages: [...newMessages.map((m) => ({ role: m.role, content: m.content }))],
           stream: true,
           system_prompt: systemPrompt,
-          prompt_id: selectedPrompt?.id,
         }),
         cache: 'no-store',
       });
@@ -199,17 +202,10 @@ export function ChatWindow({
             <Menu size={20} aria-hidden />
           </button>
 
-          {selectedPrompt ? (
-            <div className="flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5">
-              <Sparkles size={14} className="text-primary" aria-hidden />
-              <span className="text-sm font-medium text-primary">{selectedPrompt.name}</span>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <FileText size={14} aria-hidden />
-              <span>未选择提示词</span>
-            </div>
-          )}
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <FileText size={14} aria-hidden />
+            <span>写作助手模式</span>
+          </div>
         </div>
 
         {/* 「新对话」入口移除：侧边栏已有，避免重复 */}
@@ -238,37 +234,14 @@ export function ChatWindow({
               </div>
 
               <div>
-                <h2 className="text-2xl font-bold text-foreground">开始对话</h2>
+                <h2 className="text-2xl font-bold text-foreground">写作助手</h2>
                 <p className="mt-2 text-muted-foreground">
-                  {selectedPrompt
-                    ? `当前使用「${selectedPrompt.name}」提示词`
-                    : '选择一个提示词开始智能对话'}
+                  辅助你撰写站内文章、润色草稿、打磨各类内容
                 </p>
               </div>
 
-              {selectedPrompt?.description && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.2 }}
-                  className="rounded-xl border border-glass-border bg-glass p-4 text-left"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
-                      <Sparkles size={16} aria-hidden />
-                    </div>
-                    <div>
-                      <div className="text-sm font-medium text-foreground">{selectedPrompt.name}</div>
-                      <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
-                        {selectedPrompt.description}
-                      </p>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-
               <div className="flex flex-wrap justify-center gap-2">
-                {['写一首诗', '解释概念', '翻译文本', '编写代码'].map((example) => (
+                {['润色这段文字', '为草稿拟 5 个标题', '把大纲扩写成初稿', '检查语病与错别字'].map((example) => (
                   <button
                     key={example}
                     onClick={() => setInput(example)}
@@ -308,7 +281,7 @@ export function ChatWindow({
                     )}
                   >
                     {message.role === 'assistant' ? (
-                      <div className="text-sm leading-relaxed [&_p]:mb-2 [&_p:last-child]:mb-0 [&_pre]:my-2 [&_code]:rounded [&_code]:bg-muted/40 [&_code]:px-1 [&_code]:py-0.5 [&_a]:text-primary [&_a]:underline">
+                      <div className="text-sm leading-relaxed [&_p]:mb-2 [&_p:last-child]:mb-0 [&_pre]:my-2 [&_pre]:overflow-x-auto [&_code]:rounded [&_code]:bg-muted/40 [&_code]:px-1 [&_code]:py-0.5 [&_a]:text-primary [&_a]:underline">
                         <MarkdownRenderer content={message.content} />
                       </div>
                     ) : (
@@ -336,7 +309,7 @@ export function ChatWindow({
                   <Bot size={16} aria-hidden />
                 </div>
                 <div className="max-w-[80%] rounded-2xl border border-glass-border bg-glass px-4 py-3 text-foreground">
-                  <div className="text-sm leading-relaxed [&_p]:mb-2 [&_p:last-child]:mb-0 [&_pre]:my-2 [&_code]:rounded [&_code]:bg-muted/40 [&_code]:px-1 [&_code]:py-0.5 [&_a]:text-primary [&_a]:underline">
+                  <div className="text-sm leading-relaxed [&_p]:mb-2 [&_p:last-child]:mb-0 [&_pre]:my-2 [&_pre]:overflow-x-auto [&_code]:rounded [&_code]:bg-muted/40 [&_code]:px-1 [&_code]:py-0.5 [&_a]:text-primary [&_a]:underline">
                     <MarkdownRenderer content={streamingContent} />
                     <span className="ml-1 inline-block h-4 w-2 animate-pulse bg-primary align-middle" aria-hidden />
                   </div>
@@ -388,43 +361,29 @@ export function ChatWindow({
       {/* Input Area - 底部固定（token 化 + 降 blur） */}
       <div className="shrink-0 border-t border-glass-border bg-glass/40 p-4 backdrop-blur-md">
         <div className="mx-auto max-w-3xl">
-          {selectedPrompt && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-3 flex items-center justify-center"
-            >
-              <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5 text-xs text-primary">
-                <Sparkles size={12} aria-hidden />
-                <span>使用提示词: {selectedPrompt.name}</span>
-                <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary/20">
-                  <Check size={10} aria-hidden />
-                </span>
-              </div>
-            </motion.div>
-          )}
-
           <form onSubmit={handleSubmit} className="relative">
             <textarea
               ref={inputRef}
               value={input}
-              onChange={(e) => setInput(e.target.value)}
+              onChange={(e) => {
+                setInput(e.target.value);
+                // 自适应增高：随内容撑高，封顶 200px，超出后内部滚动
+                const el = e.target;
+                el.style.height = 'auto';
+                el.style.height = `${Math.min(el.scrollHeight, 200)}px`;
+              }}
               onKeyDown={handleKeyDown}
-              placeholder={selectedPrompt ? `使用「${selectedPrompt.name}」进行对话...` : '输入消息...'}
+              placeholder="输入想写或想润色的内容..."
               rows={1}
               disabled={isLoading}
               className={cn(
-                'w-full resize-none rounded-2xl px-4 py-3 pr-12',
+                'w-full resize-none overflow-y-auto rounded-2xl px-4 py-3 pr-12',
                 'placeholder:text-muted-foreground/70',
                 'border border-glass-border bg-glass text-foreground',
                 'focus:border-primary/50 focus:ring-1 focus:ring-primary/20',
                 'transition-[border-color,box-shadow] disabled:cursor-not-allowed disabled:opacity-50',
                 'min-h-[48px] max-h-[200px]'
               )}
-              style={{
-                height: 'auto',
-                overflow: input.split('\n').length > 3 || input.length > 200 ? 'auto' : 'hidden',
-              }}
             />
             <button
               type="submit"

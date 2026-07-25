@@ -1,11 +1,10 @@
 'use client';
 
 import { motion, AnimatePresence } from '@/lib/framer-motion';
-import { MessageSquare, Plus, Trash2, FileText, X, Cpu, Check, Sparkles } from 'lucide-react';
+import { MessageSquare, Plus, Trash2, X, Cpu, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useState } from 'react';
-import type { Prompt } from '@/types';
-import PromptSettings from './PromptSettings';
+import Link from 'next/link';
+import type { Route } from 'next';
 import EmptyState from '@/components/ui/EmptyState';
 
 export interface ChatSession {
@@ -13,13 +12,6 @@ export interface ChatSession {
   title: string;
   updatedAt: number;
   preview?: string;
-}
-
-export interface SelectedPromptInfo {
-  id: string;
-  name: string;
-  description?: string;
-  category?: string;
 }
 
 interface ChatSidebarProps {
@@ -30,8 +22,6 @@ interface ChatSidebarProps {
   onDeleteSession: (id: string, e: React.MouseEvent) => void;
   isOpen: boolean;
   onClose: () => void;
-  onSelectPrompt?: (prompt: Prompt) => void;
-  selectedPrompt?: SelectedPromptInfo | null;
 }
 
 export function ChatSidebar({
@@ -42,15 +32,7 @@ export function ChatSidebar({
   onDeleteSession,
   isOpen,
   onClose,
-  onSelectPrompt,
-  selectedPrompt,
 }: ChatSidebarProps) {
-  const [isPromptSettingsOpen, setIsPromptSettingsOpen] = useState(false);
-
-  const handleSelectPrompt = (prompt: Prompt) => {
-    onSelectPrompt?.(prompt);
-  };
-
   return (
     <>
       {/* Mobile Overlay */}
@@ -81,7 +63,7 @@ export function ChatSidebar({
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/15 text-primary">
               <Cpu size={18} aria-hidden />
             </div>
-            <span className="font-bold tracking-wide">AI Chat</span>
+            <span className="font-bold tracking-wide">写作助手</span>
           </div>
           <button
             onClick={onClose}
@@ -179,69 +161,30 @@ export function ChatSidebar({
           </div>
         </div>
 
-        {/* Footer - 提示词设置入口 */}
+        {/* Footer - AI 工具收藏入口 */}
         <div className="shrink-0 border-t border-glass-border p-4">
-          <button
-            onClick={() => setIsPromptSettingsOpen(true)}
+          <Link
+            href={'/tools/skills' as Route}
             className={cn(
               'flex w-full items-center gap-3 rounded-xl p-3 transition-colors',
-              selectedPrompt
-                ? 'border border-primary/30 bg-primary/10'
-                : 'border border-glass-border bg-glass hover:border-primary/40'
+              'border border-glass-border bg-glass hover:border-primary/40'
             )}
           >
-            <div
-              className={cn(
-                'flex h-9 w-9 items-center justify-center rounded-lg',
-                selectedPrompt ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'
-              )}
-            >
-              {selectedPrompt ? <Sparkles size={18} aria-hidden /> : <FileText size={18} aria-hidden />}
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <Sparkles size={18} aria-hidden />
             </div>
 
             <div className="flex-1 overflow-hidden text-left">
-              <div className="flex items-center gap-2">
-                <span
-                  className={cn(
-                    'truncate text-sm font-medium',
-                    selectedPrompt ? 'text-primary' : 'text-foreground'
-                  )}
-                >
-                  {selectedPrompt?.name || '提示词设置'}
-                </span>
-                {selectedPrompt && (
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary">
-                    <Check size={12} className="text-primary-foreground" aria-hidden />
-                  </span>
-                )}
-              </div>
-              <div className="truncate text-xs text-muted-foreground">
-                {selectedPrompt
-                  ? selectedPrompt.description?.slice(0, 30) || '点击更换提示词'
-                  : '点击选择提示词'}
-              </div>
-            </div>
-          </button>
-
-          {/* Category badge when selected */}
-          {selectedPrompt?.category && (
-            <div className="mt-2 flex justify-center">
-              <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 text-xs text-primary">
-                <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden />
-                {selectedPrompt.category}
+              <span className="truncate text-sm font-medium text-foreground">
+                AI 工具收藏
               </span>
+              <div className="truncate text-xs text-muted-foreground">
+                收藏的 MCP 与 Skill
+              </div>
             </div>
-          )}
+          </Link>
         </div>
       </motion.aside>
-
-      {/* Prompt Settings Panel */}
-      <PromptSettings
-        isOpen={isPromptSettingsOpen}
-        onClose={() => setIsPromptSettingsOpen(false)}
-        onSelectPrompt={handleSelectPrompt}
-        selectedPromptId={selectedPrompt?.id}
-      />
     </>
   );
 }
