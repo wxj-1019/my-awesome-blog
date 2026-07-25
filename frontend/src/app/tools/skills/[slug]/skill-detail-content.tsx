@@ -49,8 +49,8 @@ export default function SkillDetailContent({
     <>
       <SkillDetailHero skill={skill} />
 
-      {/* ===== 内容区：窄列，FadeIn 入场 ===== */}
-      <div className="container mx-auto max-w-2xl px-4 sm:px-6 pb-24">
+      {/* ===== 内容区：加宽容器，部分区块双栏 ===== */}
+      <div className="container mx-auto max-w-5xl px-4 sm:px-6 pb-24">
         {/* 简介 */}
         <FadeIn>
           <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">
@@ -77,42 +77,45 @@ export default function SkillDetailContent({
           </ul>
         </FadeIn>
 
-        {/* 工作原理（可选） */}
-        {skill.howItWorks && skill.howItWorks.length > 0 ? (
-          <FadeIn delay={0.1} className="mt-12">
-            <h2 className="font-display text-2xl font-bold text-foreground tracking-tight">
-              工作原理
-            </h2>
-            <ul className="mt-6 space-y-3">
-              {skill.howItWorks.map((point) => (
-                <li key={point} className="flex items-start gap-3">
-                  <span className="mt-0.5 p-1 rounded-md bg-primary/15 text-primary shrink-0">
-                    <Workflow className="w-4 h-4" aria-hidden />
-                  </span>
-                  <span className="text-foreground/90 leading-relaxed">{point}</span>
-                </li>
-              ))}
-            </ul>
-          </FadeIn>
-        ) : null}
-
-        {/* 最佳实践（可选） */}
-        {skill.bestPractices && skill.bestPractices.length > 0 ? (
-          <FadeIn delay={0.1} className="mt-12">
-            <h2 className="font-display text-2xl font-bold text-foreground tracking-tight">
-              最佳实践
-            </h2>
-            <ul className="mt-6 space-y-3">
-              {skill.bestPractices.map((tip) => (
-                <li key={tip} className="flex items-start gap-3">
-                  <span className="mt-0.5 p-1 rounded-md bg-emerald-500/15 text-emerald-500 shrink-0">
-                    <CheckCircle className="w-4 h-4" aria-hidden />
-                  </span>
-                  <span className="text-foreground/90 leading-relaxed">{tip}</span>
-                </li>
-              ))}
-            </ul>
-          </FadeIn>
+        {/* 工作原理 + 最佳实践：双栏并排（体量对等，要点列表） */}
+        {((skill.howItWorks && skill.howItWorks.length > 0) ||
+          (skill.bestPractices && skill.bestPractices.length > 0)) ? (
+          <div className="mt-12 grid gap-8 md:grid-cols-2 md:gap-12">
+            {skill.howItWorks && skill.howItWorks.length > 0 ? (
+              <FadeIn delay={0.1}>
+                <h2 className="font-display text-2xl font-bold text-foreground tracking-tight">
+                  工作原理
+                </h2>
+                <ul className="mt-6 space-y-3">
+                  {skill.howItWorks.map((point) => (
+                    <li key={point} className="flex items-start gap-3">
+                      <span className="mt-0.5 p-1 rounded-md bg-primary/15 text-primary shrink-0">
+                        <Workflow className="w-4 h-4" aria-hidden />
+                      </span>
+                      <span className="text-foreground/90 leading-relaxed">{point}</span>
+                    </li>
+                  ))}
+                </ul>
+              </FadeIn>
+            ) : null}
+            {skill.bestPractices && skill.bestPractices.length > 0 ? (
+              <FadeIn delay={0.1}>
+                <h2 className="font-display text-2xl font-bold text-foreground tracking-tight">
+                  最佳实践
+                </h2>
+                <ul className="mt-6 space-y-3">
+                  {skill.bestPractices.map((tip) => (
+                    <li key={tip} className="flex items-start gap-3">
+                      <span className="mt-0.5 p-1 rounded-md bg-emerald-500/15 text-emerald-500 shrink-0">
+                        <CheckCircle className="w-4 h-4" aria-hidden />
+                      </span>
+                      <span className="text-foreground/90 leading-relaxed">{tip}</span>
+                    </li>
+                  ))}
+                </ul>
+              </FadeIn>
+            ) : null}
+          </div>
         ) : null}
 
         {/* 适合 / 不适合（可选） */}
@@ -163,29 +166,34 @@ export default function SkillDetailContent({
           </FadeIn>
         ) : null}
 
-        {/* 关联 skill（可选） */}
-        {related.length > 0 ? (
-          <FadeIn delay={0.1} className="mt-12">
-            <h2 className="font-display text-2xl font-bold text-foreground tracking-tight mb-6">
-              关联 skill
-            </h2>
-            <SkillRelated related={related} />
-          </FadeIn>
-        ) : null}
-
-        {/* 来源外链（可选） */}
-        {skill.sourceUrl ? (
-          <FadeIn delay={0.1} className="mt-8">
-            <a
-              href={skill.sourceUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium border border-glass-border bg-glass text-foreground transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              查看来源
-              <ExternalLink className="w-4 h-4" aria-hidden />
-            </a>
-          </FadeIn>
+        {/* 关联 skill + 来源外链：双栏并排（都有/任一有时渲染） */}
+        {related.length > 0 || skill.sourceUrl ? (
+          <div className="mt-12 grid gap-8 md:grid-cols-2 md:gap-12">
+            {related.length > 0 ? (
+              <FadeIn delay={0.1}>
+                <h2 className="font-display text-2xl font-bold text-foreground tracking-tight mb-6">
+                  关联 skill
+                </h2>
+                <SkillRelated related={related} />
+              </FadeIn>
+            ) : null}
+            {skill.sourceUrl ? (
+              <FadeIn delay={0.1}>
+                <h2 className="font-display text-2xl font-bold text-foreground tracking-tight mb-6">
+                  来源
+                </h2>
+                <a
+                  href={skill.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium border border-glass-border bg-glass text-foreground transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  查看来源
+                  <ExternalLink className="w-4 h-4" aria-hidden />
+                </a>
+              </FadeIn>
+            ) : null}
+          </div>
         ) : null}
 
         {/* ===== 底部导航：上一个 / 返回全览 / 下一个 ===== */}
