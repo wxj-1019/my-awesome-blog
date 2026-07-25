@@ -266,8 +266,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             </div>
           </motion.header>
 
-          <main className="p-4 lg:p-8 pb-20">
-            <motion.div 
+          <main className="p-4 lg:p-8 pb-20 scroll-pt-24">
+            <motion.div
               className="max-w-7xl mx-auto"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}

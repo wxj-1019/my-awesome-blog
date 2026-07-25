@@ -693,7 +693,7 @@ export default function EditArticlePage() {
           </GlassCardAdmin>
         </div>
         <div className="space-y-6">
-          <GlassCardAdmin className="p-5 sticky top-6">
+          <GlassCardAdmin className="p-5 sticky top-20">
             <div className="flex items-center gap-2 mb-4">
               <div className="relative flex-1">
                 <div className={`h-2 rounded-full overflow-hidden ${progressPercentage === 100 ? 'animate-pulse' : ''} bg-background/50`}>

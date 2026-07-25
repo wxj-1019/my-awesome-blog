@@ -253,9 +253,9 @@ export default function ArticlesPage() {
                     key={btn.key}
                     onClick={() => { setFilter(btn.key); setCurrentPage(1); }}
                     className={cn(
-                      "px-4 py-2.5 text-sm font-medium transition-colors duration-200 flex items-center gap-2",
-                      filter === btn.key 
-                        ? "bg-gradient-to-r from-tech-cyan to-tech-sky text-white dark:text-gray-100" 
+                      "px-4 py-2.5 text-sm font-medium transition-colors duration-200 flex items-center gap-2 scroll-mt-24",
+                      filter === btn.key
+                        ? "bg-gradient-to-r from-tech-cyan to-tech-sky text-white dark:text-gray-100"
                         : "text-foreground/70 hover:text-foreground hover:bg-glass/30"
                     )}
                     whileHover={{ scale: 1.02 }}
