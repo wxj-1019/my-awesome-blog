@@ -192,7 +192,7 @@ async def chat(
     
     - **conversation_id**: 对话 ID（不指定则创建新对话）
     - **message**: 用户消息
-    - **model**: 使用的模型（默认为 deepseek-chat）
+    - **model**: 使用的模型（默认为 deepseek-v4-flash）
     - **temperature**: 温度参数（0.0-2.0）
     - **max_tokens**: 最大 Token 数（可选）
     - **stream**: 是否流式响应（此处固定为 False）
@@ -220,7 +220,7 @@ async def chat_stream(
     
     - **conversation_id**: 对话 ID（不指定则创建新对话）
     - **message**: 用户消息
-    - **model**: 使用的模型（默认为 deepseek-chat）
+    - **model**: 使用的模型（默认为 deepseek-v4-flash）
     - **temperature**: 温度参数（0.0-2.0）
     - **max_tokens**: 最大 Token 数（可选）
     - **stream**: 是否流式响应（此处固定为 True）

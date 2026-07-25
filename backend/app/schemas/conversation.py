@@ -118,7 +118,7 @@ class ChatRequest(BaseModel):
     """
     conversation_id: Optional[str] = Field(None, description="对话 ID（不指定则创建新对话）")
     message: str = Field(..., min_length=1, description="用户消息")
-    model: str = Field(default="deepseek-chat", description="使用的模型")
+    model: str = Field(default="deepseek-v4-flash", description="使用的模型")
     temperature: float = Field(default=0.7, ge=0.0, le=2.0, description="温度参数")
     max_tokens: Optional[int] = Field(None, ge=1, description="最大 Token 数")
     stream: bool = Field(default=False, description="是否流式响应")

@@ -60,7 +60,7 @@ export default function ChatPageContent() {
     try {
       const conversation = await conversationService.createConversation({
         title: '新对话',
-        model: 'deepseek-chat',
+        model: 'deepseek-v4-flash',
       });
       setConversations([conversation, ...conversations]);
       setCurrentConversation(conversation);

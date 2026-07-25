@@ -97,7 +97,7 @@ class Settings(BaseSettings):
     CACHE_USERS_TTL: int = Field(default=900, description="用户缓存TTL（秒）")
 
     # LLM Configuration
-    LLM_DEFAULT_MODEL: str = Field(default="deepseek-chat", description="默认使用的LLM模型")
+    LLM_DEFAULT_MODEL: str = Field(default="deepseek-v4-flash", description="默认使用的LLM模型")
     LLM_TIMEOUT: int = Field(default=120, description="LLM API请求超时时间（秒）")
     LLM_MAX_RETRIES: int = Field(default=3, description="LLM API请求最大重试次数")
     LLM_STREAM_ENABLED: bool = Field(default=True, description="是否启用流式响应")
@@ -105,7 +105,7 @@ class Settings(BaseSettings):
     # DeepSeek Configuration
     DEEPSEEK_API_KEY: str = Field(default="", description="DeepSeek API密钥")
     DEEPSEEK_BASE_URL: str = Field(default="https://api.deepseek.com/v1", description="DeepSeek API基础URL")
-    DEEPSEEK_MODEL: str = Field(default="deepseek-chat", description="DeepSeek模型名称")
+    DEEPSEEK_MODEL: str = Field(default="deepseek-v4-flash", description="DeepSeek模型名称（deepseek-v4-flash 快速版 / deepseek-v4-pro 专业版）")
 
     # GLM (智谱) Configuration
     GLM_API_KEY: str = Field(default="", description="智谱AI API密钥")
@@ -135,7 +135,7 @@ class Settings(BaseSettings):
     CONTEXT_MAX_WINDOW_SIZE: int = Field(default=50, description="最大上下文窗口大小")
     CONTEXT_SUMMARIZATION_ENABLED: bool = Field(default=True, description="是否启用上下文摘要")
     CONTEXT_SUMMARIZATION_THRESHOLD: int = Field(default=20, description="触发摘要的消息数阈值")
-    CONTEXT_SUMMARIZATION_MODEL: str = Field(default="deepseek-chat", description="上下文摘要使用的模型")
+    CONTEXT_SUMMARIZATION_MODEL: str = Field(default="deepseek-v4-flash", description="上下文摘要使用的模型")
 
     # Memory Management
     MEMORY_SHORT_TERM_ENABLED: bool = Field(default=True, description="是否启用短期记忆（Redis）")
@@ -148,7 +148,7 @@ class Settings(BaseSettings):
     # Conversation Management
     CONVERSATION_MAX_MESSAGES: int = Field(default=1000, description="单个会话最大消息数")
     CONVERSATION_AUTO_TITLE_ENABLED: bool = Field(default=True, description="是否自动生成会话标题")
-    CONVERSATION_TITLE_MODEL: str = Field(default="deepseek-chat", description="生成会话标题使用的模型")
+    CONVERSATION_TITLE_MODEL: str = Field(default="deepseek-v4-flash", description="生成会话标题使用的模型")
 
     # Tenant Management
     TENANT_ENABLED: bool = Field(default=True, description="是否启用多租户功能")
