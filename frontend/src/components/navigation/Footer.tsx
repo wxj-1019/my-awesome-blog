@@ -33,8 +33,8 @@ const SOCIAL_LINKS: {
 ];
 
 /**
- * 站点页脚：渐变引线 + 三栏（品牌 / 导航 / 社媒订阅）+ 版权行。
- * 「深海 × 电影」叙事收尾：引线与幕标引线同源，玻璃拟态承托内容。
+ * 站点页脚：渐变引线 + 单行紧凑布局（品牌 / 横排导航 / 社媒订阅）+ 细版权行。
+ * 移动端垂直堆叠居中，整体高度约为原三栏布局的一半。
  */
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -53,25 +53,24 @@ export default function Footer() {
       />
 
       <FadeIn>
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-            {/* 左：品牌区 */}
-            <div>
-              <p className="text-lg font-bold text-foreground">我的优秀博客</p>
-              <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
-                深海 × 电影 —— 在光影与深流之间，记录技术与生活。
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex flex-col items-center gap-4 md:flex-row md:justify-between">
+            {/* 品牌区：名称 + 一句话，同行排列 */}
+            <div className="flex items-baseline gap-3">
+              <p className="text-sm font-bold text-foreground">我的优秀博客</p>
+              <p className="hidden sm:block text-xs text-muted-foreground">
+                深海 × 电影 —— 记录技术与生活
               </p>
             </div>
 
-            {/* 中：导航区 */}
-            <nav aria-label="页脚导航" className="md:justify-self-center">
-              <p className="text-sm font-semibold text-foreground mb-3">导航</p>
-              <ul className="space-y-2">
+            {/* 导航区：横排链接 */}
+            <nav aria-label="页脚导航">
+              <ul className="flex items-center gap-5">
                 {NAV_LINKS.map(({ href, label }) => (
                   <li key={href}>
                     <Link
                       href={href}
-                      className="text-sm text-muted-foreground transition-colors hover:text-primary"
+                      className="text-xs text-muted-foreground transition-colors hover:text-primary"
                     >
                       {label}
                     </Link>
@@ -80,30 +79,27 @@ export default function Footer() {
               </ul>
             </nav>
 
-            {/* 右：社媒/订阅区 */}
-            <div className="md:justify-self-end">
-              <p className="text-sm font-semibold text-foreground mb-3">关注与订阅</p>
-              <div className="flex items-center gap-3">
-                {SOCIAL_LINKS.map(({ href, label, icon: Icon, external }) => (
-                  <a
-                    key={href}
-                    href={href}
-                    aria-label={label}
-                    {...(external
-                      ? { target: '_blank', rel: 'noopener noreferrer' }
-                      : {})}
-                    className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted/40 border border-border/60 text-muted-foreground transition-colors hover:text-primary hover:border-primary/40"
-                  >
-                    <Icon className="h-4 w-4" aria-hidden />
-                  </a>
-                ))}
-              </div>
+            {/* 社媒/订阅区 */}
+            <div className="flex items-center gap-2.5">
+              {SOCIAL_LINKS.map(({ href, label, icon: Icon, external }) => (
+                <a
+                  key={href}
+                  href={href}
+                  aria-label={label}
+                  {...(external
+                    ? { target: '_blank', rel: 'noopener noreferrer' }
+                    : {})}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted/40 border border-border/60 text-muted-foreground transition-colors hover:text-primary hover:border-primary/40"
+                >
+                  <Icon className="h-3.5 w-3.5" aria-hidden />
+                </a>
+              ))}
             </div>
           </div>
 
-          {/* 底部版权行 */}
-          <div className="mt-8 border-t border-border/40 pt-6 flex flex-col items-center gap-1 text-center">
-            <p className="text-sm text-muted-foreground">
+          {/* 底部版权行：单行紧凑 */}
+          <div className="mt-4 border-t border-border/40 pt-4 flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-1 text-center">
+            <p className="text-xs text-muted-foreground">
               © {currentYear} 我的优秀博客. 保留所有权利。
             </p>
             <p className="text-xs text-muted-foreground/70">

@@ -353,8 +353,8 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
             className={cn(
               'group flex items-center gap-1 px-2 py-1.5 rounded-lg cursor-pointer transition-colors',
               selectedFolder === folder.id
-                ? 'bg-cyan-500/20 text-cyan-400'
-                : 'hover:bg-white/5 text-zinc-400 hover:text-zinc-200'
+                ? 'bg-primary/15 text-primary'
+                : 'hover:bg-glass text-muted-foreground hover:text-foreground'
             )}
             style={{ paddingLeft: `${level * 16 + 8}px` }}
             onClick={() => {
@@ -374,7 +374,7 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
             {!hasChildren && <span className="w-4" />}
             <Folder size={14} style={{ color: folder.color || '#71717a' }} />
             <span className="text-sm truncate flex-1">{folder.name}</span>
-            <span className="text-xs text-zinc-600 opacity-0 group-hover:opacity-100">
+            <span className="text-xs text-muted-foreground/70 opacity-0 group-hover:opacity-100">
               {folderPrompts.length}
             </span>
             <button
@@ -399,15 +399,15 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
                     className={cn(
                       'group flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer transition-colors',
                       isSelected 
-                        ? 'bg-gradient-to-r from-cyan-500/30 to-blue-600/30 text-cyan-300 border border-cyan-500/30' 
-                        : 'hover:bg-white/5 text-zinc-400 hover:text-zinc-200'
+                        ? 'bg-gradient-to-r bg-primary/20 text-primary border border-cyan-500/30' 
+                        : 'hover:bg-glass text-muted-foreground hover:text-foreground'
                     )}
                     style={{ paddingLeft: `${(level + 1) * 16 + 24}px` }}
                     onClick={() => handleSelectPrompt(prompt)}
                     onContextMenu={(e) => handleContextMenu(e, prompt.id)}
                   >
                     {isSelected ? (
-                      <Sparkles size={12} className="text-cyan-400" />
+                      <Sparkles size={12} className="text-primary" />
                     ) : (
                       <FileText size={12} />
                     )}
@@ -421,7 +421,7 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
                         animate={{ scale: 1 }}
                         className="flex h-4 w-4 items-center justify-center rounded-full bg-cyan-500"
                       >
-                        <Check size={10} className="text-white" />
+                        <Check size={10} className="text-foreground" />
                       </motion.div>
                     )}
                   </div>
@@ -447,15 +447,15 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
         className={cn(
           "group relative rounded-xl p-4 cursor-pointer transition-colors overflow-hidden",
           isSelected 
-            ? "bg-gradient-to-r from-cyan-500/20 to-blue-600/20 border-2 border-cyan-500/50 shadow-lg shadow-cyan-500/10" 
-            : "bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/10"
+            ? "bg-gradient-to-r bg-primary/10 border-2 border-cyan-500/50 shadow-lg shadow-cyan-500/10" 
+            : "bg-glass hover:bg-glass border border-glass-border/60 hover:border-glass-border"
         )}
         onClick={() => handleSelectPrompt(prompt)}
         onContextMenu={(e) => handleContextMenu(e, prompt.id)}
       >
         {isSelected && (
           <motion.div
-            className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 to-blue-600/5"
+            className="absolute inset-0 bg-gradient-to-r bg-primary/5"
             animate={{
               opacity: [0.5, 1, 0.5],
             }}
@@ -474,18 +474,18 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 shadow-lg shadow-cyan-500/30"
+                  className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br bg-primary text-primary-foreground shadow-lg shadow-cyan-500/30"
                 >
-                  <Sparkles size={14} className="text-white" />
+                  <Sparkles size={14} className="text-foreground" />
                 </motion.div>
               ) : (
-                <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-white/10">
-                  <FileText size={14} className="text-zinc-400" />
+                <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-glass">
+                  <FileText size={14} className="text-muted-foreground" />
                 </div>
               )}
               <span className={cn(
                 "text-sm font-medium truncate",
-                isSelected ? "text-cyan-300" : "text-white"
+                isSelected ? "text-primary" : "text-foreground"
               )}>
                 {prompt.name}
               </span>
@@ -496,8 +496,8 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
                 <span className={cn(
                   "text-xs px-2 py-0.5 rounded-full shrink-0",
                   isSelected 
-                    ? "bg-cyan-500/30 text-cyan-300" 
-                    : "bg-cyan-500/20 text-cyan-400"
+                    ? "bg-primary/20 text-primary" 
+                    : "bg-primary/15 text-primary"
                 )}>
                   {prompt.category}
                 </span>
@@ -516,14 +516,14 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
             {prompt.description && (
               <p className={cn(
                 "text-xs mt-2 line-clamp-2",
-                isSelected ? "text-cyan-400/70" : "text-zinc-500"
+                isSelected ? "text-primary/70" : "text-muted-foreground"
               )}>
                 {prompt.description}
               </p>
             )}
             <div className={cn(
               "flex items-center gap-4 mt-3 text-xs",
-              isSelected ? "text-cyan-500/60" : "text-zinc-600"
+              isSelected ? "text-primary/60" : "text-muted-foreground/70"
             )}>
               <span className="flex items-center gap-1">
                 <Zap size={10} />
@@ -553,7 +553,7 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
                 e.stopPropagation();
                 handleEditPrompt(prompt);
               }}
-              className="p-1.5 hover:bg-white/10 rounded-lg text-zinc-400 hover:text-white transition-colors"
+              className="p-1.5 hover:bg-glass rounded-lg text-muted-foreground hover:text-foreground transition-colors"
               title="编辑"
               aria-label="编辑"
             >
@@ -564,7 +564,7 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
                 e.stopPropagation();
                 handleDuplicatePrompt(prompt.id);
               }}
-              className="p-1.5 hover:bg-white/10 rounded-lg text-zinc-400 hover:text-white transition-colors"
+              className="p-1.5 hover:bg-glass rounded-lg text-muted-foreground hover:text-foreground transition-colors"
               title="复制"
               aria-label="复制"
             >
@@ -575,7 +575,7 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
                 e.stopPropagation();
                 handleDeletePrompt(prompt.id);
               }}
-              className="p-1.5 hover:bg-red-500/20 rounded-lg text-zinc-400 hover:text-red-400 transition-colors"
+              className="p-1.5 hover:bg-red-500/20 rounded-lg text-muted-foreground hover:text-red-400 transition-colors"
               title="删除"
               aria-label="删除"
             >
@@ -586,7 +586,7 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
 
         {isSelected && (
           <motion.div
-            className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-500 to-blue-600"
+            className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r bg-primary text-primary-foreground"
             initial={{ scaleX: 0 }}
             animate={{ scaleX: 1 }}
             transition={{ duration: 0.5 }}
@@ -605,28 +605,28 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm"
+            className="fixed inset-0 z-50 bg-background/70 backdrop-blur-sm"
           />
           <motion.div
             initial={{ x: '-100%', opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: '-100%', opacity: 0 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed left-0 top-0 bottom-0 z-50 w-[520px] max-w-[90vw] bg-zinc-900/95 backdrop-blur-xl border-r border-white/10 flex flex-col"
+            className="fixed left-0 top-0 bottom-0 z-50 w-[520px] max-w-[90vw] bg-card backdrop-blur-xl border-r border-glass-border flex flex-col"
           >
-            <div className="flex items-center justify-between p-4 border-b border-white/10">
+            <div className="flex items-center justify-between p-4 border-b border-glass-border">
               <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600">
-                  <Sparkles size={18} className="text-white" />
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br bg-primary text-primary-foreground">
+                  <Sparkles size={18} className="text-foreground" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold text-white">提示词管理</h2>
-                  <p className="text-xs text-zinc-500">选择一个提示词开始对话</p>
+                  <h2 className="text-lg font-semibold text-foreground">提示词管理</h2>
+                  <p className="text-xs text-muted-foreground">选择一个提示词开始对话</p>
                 </div>
               </div>
               <button
                 onClick={onClose}
-                className="p-2 hover:bg-white/10 rounded-lg text-zinc-400 hover:text-white transition-colors"
+                className="p-2 hover:bg-glass rounded-lg text-muted-foreground hover:text-foreground transition-colors"
                 aria-label="关闭"
               >
                 <X size={20} aria-hidden="true" />
@@ -635,28 +635,28 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
 
             {viewMode === 'list' ? (
               <>
-                <div className="p-4 border-b border-white/10 space-y-3">
+                <div className="p-4 border-b border-glass-border space-y-3">
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={16} />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
                     <input
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="搜索提示词..."
-                      className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-colors"
+                      className="w-full pl-10 pr-4 py-2.5 bg-glass border border-glass-border rounded-xl text-foreground placeholder-muted-foreground/70 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-colors"
                     />
                   </div>
                   <div className="flex items-center gap-2">
                     <button
                       onClick={handleCreatePrompt}
-                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white rounded-xl transition-colors shadow-lg shadow-cyan-500/20"
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r bg-primary text-primary-foreground hover:from-cyan-600 hover:to-blue-700 text-foreground rounded-xl transition-colors shadow-lg shadow-cyan-500/20"
                     >
                       <Plus size={16} />
                       <span className="text-sm font-medium">新建提示词</span>
                     </button>
                     <button
                       onClick={() => setIsCreatingFolder(true)}
-                      className="px-3 py-2.5 bg-white/5 hover:bg-white/10 text-zinc-300 rounded-xl transition-colors"
+                      className="px-3 py-2.5 bg-glass hover:bg-glass text-foreground/90 rounded-xl transition-colors"
                       title="新建文件夹"
                       aria-label="新建文件夹"
                     >
@@ -664,7 +664,7 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
                     </button>
                     <button
                       onClick={() => handleExport()}
-                      className="px-3 py-2.5 bg-white/5 hover:bg-white/10 text-zinc-300 rounded-xl transition-colors"
+                      className="px-3 py-2.5 bg-glass hover:bg-glass text-foreground/90 rounded-xl transition-colors"
                       title="导出"
                       aria-label="导出"
                     >
@@ -672,7 +672,7 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
                     </button>
                     <button
                       onClick={() => fileInputRef.current?.click()}
-                      className="px-3 py-2.5 bg-white/5 hover:bg-white/10 text-zinc-300 rounded-xl transition-colors"
+                      className="px-3 py-2.5 bg-glass hover:bg-glass text-foreground/90 rounded-xl transition-colors"
                       title="导入"
                       aria-label="导入"
                     >
@@ -689,27 +689,27 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
                 </div>
 
                 <div className="flex flex-1 overflow-hidden">
-                  <div className="w-52 border-r border-white/10 flex flex-col">
-                    <div className="p-2 border-b border-white/10">
+                  <div className="w-52 border-r border-glass-border flex flex-col">
+                    <div className="p-2 border-b border-glass-border">
                       <button
                         onClick={() => setSelectedFolder(null)}
                         className={cn(
                           'w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm transition-colors',
                           !selectedFolder
-                            ? 'bg-gradient-to-r from-cyan-500/20 to-blue-600/20 text-cyan-400 border border-cyan-500/30'
-                            : 'hover:bg-white/5 text-zinc-400 hover:text-zinc-200'
+                            ? 'bg-gradient-to-r bg-primary/10 text-primary border border-cyan-500/30'
+                            : 'hover:bg-glass text-muted-foreground hover:text-foreground'
                         )}
                       >
                         <FileText size={14} />
                         全部提示词
-                        <span className="ml-auto text-xs text-zinc-600">{prompts.length}</span>
+                        <span className="ml-auto text-xs text-muted-foreground/70">{prompts.length}</span>
                       </button>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto p-2 space-y-0.5 scrollbar-thin scrollbar-thumb-white/10">
+                    <div className="flex-1 overflow-y-auto p-2 space-y-0.5 scrollbar-thin scrollbar-thumb-glass-border">
                       {isCreatingFolder ? (
-                        <div className="flex items-center gap-1 px-2 py-1.5 bg-white/5 rounded-lg mb-2">
-                          <Folder size={14} className="text-cyan-400" />
+                        <div className="flex items-center gap-1 px-2 py-1.5 bg-glass rounded-lg mb-2">
+                          <Folder size={14} className="text-primary" />
                           <input
                             type="text"
                             value={newFolderName}
@@ -722,12 +722,12 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
                               }
                             }}
                             placeholder="文件夹名称"
-                            className="flex-1 bg-transparent text-sm text-white placeholder-zinc-500 focus:outline-none"
+                            className="flex-1 bg-transparent text-sm text-foreground placeholder-muted-foreground/70 focus:outline-none"
                             autoFocus
                           />
                           <button
                             onClick={handleCreateFolder}
-                            className="p-1 hover:bg-white/10 rounded text-cyan-400"
+                            className="p-1 hover:bg-glass rounded text-primary"
                             aria-label="确认"
                           >
                             <Check size={12} aria-hidden="true" />
@@ -738,10 +738,10 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
                     </div>
                   </div>
 
-                  <div className="flex-1 overflow-y-auto p-4 scrollbar-thin scrollbar-thumb-white/10">
+                  <div className="flex-1 overflow-y-auto p-4 scrollbar-thin scrollbar-thumb-glass-border">
                     {loading ? (
                       <div className="flex items-center justify-center h-32">
-                        <Loader2 className="animate-spin text-cyan-400" size={24} />
+                        <Loader2 className="animate-spin text-primary" size={24} />
                       </div>
                     ) : filteredPrompts.length === 0 ? (
                       <EmptyState
@@ -768,7 +768,7 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
               <div className="flex-1 overflow-y-auto p-4">
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-zinc-300 mb-1.5">
+                    <label className="block text-sm font-medium text-foreground/90 mb-1.5">
                       名称 <span className="text-red-400">*</span>
                     </label>
                     <input
@@ -776,12 +776,12 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
                       value={editForm.name}
                       onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
                       placeholder="提示词名称"
-                      className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-colors"
+                      className="w-full px-3 py-2.5 bg-glass border border-glass-border rounded-xl text-foreground placeholder-muted-foreground/70 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-colors"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-zinc-300 mb-1.5">
+                    <label className="block text-sm font-medium text-foreground/90 mb-1.5">
                       内容 <span className="text-red-400">*</span>
                     </label>
                     <textarea
@@ -789,12 +789,12 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
                       onChange={(e) => setEditForm(prev => ({ ...prev, content: e.target.value }))}
                       placeholder="输入提示词内容..."
                       rows={8}
-                      className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-colors resize-none"
+                      className="w-full px-3 py-2.5 bg-glass border border-glass-border rounded-xl text-foreground placeholder-muted-foreground/70 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-colors resize-none"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-zinc-300 mb-1.5">
+                    <label className="block text-sm font-medium text-foreground/90 mb-1.5">
                       描述
                     </label>
                     <input
@@ -802,13 +802,13 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
                       value={editForm.description}
                       onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
                       placeholder="简短描述（可选）"
-                      className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-colors"
+                      className="w-full px-3 py-2.5 bg-glass border border-glass-border rounded-xl text-foreground placeholder-muted-foreground/70 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-colors"
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-zinc-300 mb-1.5">
+                      <label className="block text-sm font-medium text-foreground/90 mb-1.5">
                         分类
                       </label>
                       <input
@@ -816,18 +816,18 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
                         value={editForm.category}
                         onChange={(e) => setEditForm(prev => ({ ...prev, category: e.target.value }))}
                         placeholder="如：翻译、写作、编程"
-                        className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-colors"
+                        className="w-full px-3 py-2.5 bg-glass border border-glass-border rounded-xl text-foreground placeholder-muted-foreground/70 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-colors"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-zinc-300 mb-1.5">
+                      <label className="block text-sm font-medium text-foreground/90 mb-1.5">
                         文件夹
                       </label>
                       <select
                         value={editForm.folder_id}
                         onChange={(e) => setEditForm(prev => ({ ...prev, folder_id: e.target.value }))}
-                        className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-colors"
+                        className="w-full px-3 py-2.5 bg-glass border border-glass-border rounded-xl text-foreground focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-colors"
                       >
                         <option value="">根目录</option>
                         {folders.map(folder => (
@@ -840,7 +840,7 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-zinc-300 mb-1.5">
+                    <label className="block text-sm font-medium text-foreground/90 mb-1.5">
                       标签（逗号分隔）
                     </label>
                     <input
@@ -848,21 +848,21 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
                       value={editForm.tags}
                       onChange={(e) => setEditForm(prev => ({ ...prev, tags: e.target.value }))}
                       placeholder="标签1, 标签2, 标签3"
-                      className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-colors"
+                      className="w-full px-3 py-2.5 bg-glass border border-glass-border rounded-xl text-foreground placeholder-muted-foreground/70 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-colors"
                     />
                   </div>
 
                   <div className="flex items-center gap-3 pt-4">
                     <button
                       onClick={() => setViewMode('list')}
-                      className="px-4 py-2.5 bg-white/5 hover:bg-white/10 text-zinc-300 rounded-xl transition-colors"
+                      className="px-4 py-2.5 bg-glass hover:bg-glass text-foreground/90 rounded-xl transition-colors"
                     >
                       取消
                     </button>
                     <button
                       onClick={handleSavePrompt}
                       disabled={loading}
-                      className="flex-1 px-4 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20"
+                      className="flex-1 px-4 py-2.5 bg-gradient-to-r bg-primary text-primary-foreground hover:from-cyan-600 hover:to-blue-700 text-foreground rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20"
                     >
                       {loading && <Loader2 className="animate-spin" size={16} />}
                       {viewMode === 'create' ? '创建' : '保存'}
@@ -879,7 +879,7 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="fixed z-50 bg-zinc-800/95 backdrop-blur-sm border border-white/10 rounded-xl shadow-2xl py-1 min-w-[160px]"
+                className="fixed z-50 bg-card backdrop-blur-sm border border-glass-border rounded-xl shadow-2xl py-1 min-w-[160px]"
                 style={{ left: contextMenu.x, top: contextMenu.y }}
               >
                 <button
@@ -888,7 +888,7 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
                     if (prompt) {handleEditPrompt(prompt);}
                     setContextMenu(null);
                   }}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-zinc-300 hover:bg-white/5 transition-colors"
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground/90 hover:bg-glass transition-colors"
                 >
                   <Pencil size={14} />
                   编辑
@@ -898,7 +898,7 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
                     handleDuplicatePrompt(contextMenu.promptId);
                     setContextMenu(null);
                   }}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-zinc-300 hover:bg-white/5 transition-colors"
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground/90 hover:bg-glass transition-colors"
                 >
                   <Copy size={14} />
                   复制
@@ -908,7 +908,7 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
                     handleSetDefault(contextMenu.promptId);
                     setContextMenu(null);
                   }}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-zinc-300 hover:bg-white/5 transition-colors"
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground/90 hover:bg-glass transition-colors"
                 >
                   <Star size={14} />
                   设为默认
@@ -918,12 +918,12 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
                     handleExport([contextMenu.promptId]);
                     setContextMenu(null);
                   }}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-zinc-300 hover:bg-white/5 transition-colors"
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground/90 hover:bg-glass transition-colors"
                 >
                   <Download size={14} />
                   导出
                 </button>
-                <div className="border-t border-white/10 my-1" />
+                <div className="border-t border-glass-border my-1" />
                 <button
                   onClick={() => {
                     handleDeletePrompt(contextMenu.promptId);
@@ -957,9 +957,9 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
                   exit={{ opacity: 0, x: 100, scale: 0.9 }}
                   className={cn(
                     'flex items-center gap-2 px-4 py-3 rounded-xl shadow-2xl backdrop-blur-sm',
-                    toast.type === 'success' && 'bg-green-500/90 text-white',
-                    toast.type === 'error' && 'bg-red-500/90 text-white',
-                    toast.type === 'info' && 'bg-zinc-700/90 text-white'
+                    toast.type === 'success' && 'bg-green-500/90 text-foreground',
+                    toast.type === 'error' && 'bg-red-500/90 text-foreground',
+                    toast.type === 'info' && 'bg-card text-foreground'
                   )}
                 >
                   {toast.type === 'success' && <Check size={16} />}

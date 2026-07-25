@@ -78,7 +78,7 @@ export default function ChatPageContent() {
     const newId = Date.now().toString();
     const newSession: ChatSession = {
       id: newId,
-      title: 'New Chat',
+      title: '新对话',
       updatedAt: Date.now(),
     };
     

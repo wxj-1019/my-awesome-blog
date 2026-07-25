@@ -15,7 +15,8 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { API_BASE_URL, TOKEN_KEY } from '@/lib/api-client';
+import { API_BASE_URL, TOKEN_KEY, USER_KEY } from '@/lib/api-client';
+import MarkdownRenderer from '@/components/ui/MarkdownRenderer';
 import type { SelectedPromptInfo } from './ChatSidebar';
 
 export interface ChatMessage {
@@ -153,7 +154,15 @@ export function ChatWindow({
       setStreamingContent('');
     } catch (err) {
       console.error('Chat error:', err);
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      const msg = err instanceof Error ? err.message : 'An error occurred';
+      // 401：token 失效，清凭据并跳登录（与 apiRequest 的处理一致）
+      if (msg.includes('401') && typeof window !== 'undefined') {
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(USER_KEY);
+        window.location.href = '/login';
+        return;
+      }
+      setError(msg);
     } finally {
       setIsLoading(false);
     }
@@ -298,9 +307,15 @@ export function ChatWindow({
                         : 'border border-glass-border bg-glass text-foreground'
                     )}
                   >
-                    <div className="whitespace-pre-wrap break-words text-sm leading-relaxed">
-                      {message.content}
-                    </div>
+                    {message.role === 'assistant' ? (
+                      <div className="text-sm leading-relaxed [&_p]:mb-2 [&_p:last-child]:mb-0 [&_pre]:my-2 [&_code]:rounded [&_code]:bg-muted/40 [&_code]:px-1 [&_code]:py-0.5 [&_a]:text-primary [&_a]:underline">
+                        <MarkdownRenderer content={message.content} />
+                      </div>
+                    ) : (
+                      <div className="whitespace-pre-wrap break-words text-sm leading-relaxed">
+                        {message.content}
+                      </div>
+                    )}
                   </div>
                   {message.role === 'user' && (
                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-glass text-muted-foreground">
@@ -321,9 +336,9 @@ export function ChatWindow({
                   <Bot size={16} aria-hidden />
                 </div>
                 <div className="max-w-[80%] rounded-2xl border border-glass-border bg-glass px-4 py-3 text-foreground">
-                  <div className="whitespace-pre-wrap break-words text-sm leading-relaxed">
-                    {streamingContent}
-                    <span className="ml-1 inline-block h-4 w-2 animate-pulse bg-primary" aria-hidden />
+                  <div className="text-sm leading-relaxed [&_p]:mb-2 [&_p:last-child]:mb-0 [&_pre]:my-2 [&_code]:rounded [&_code]:bg-muted/40 [&_code]:px-1 [&_code]:py-0.5 [&_a]:text-primary [&_a]:underline">
+                    <MarkdownRenderer content={streamingContent} />
+                    <span className="ml-1 inline-block h-4 w-2 animate-pulse bg-primary align-middle" aria-hidden />
                   </div>
                 </div>
               </motion.div>
