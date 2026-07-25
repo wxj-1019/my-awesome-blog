@@ -41,7 +41,7 @@ export function Toaster() {
             key={id}
             className={cn(
               "group pointer-events-auto relative flex w-full items-start justify-between space-x-4 overflow-hidden rounded-lg border p-4 shadow-2xl",
-              "transition-all duration-300 ease-out",
+              "transition-transform duration-300 ease-out",
               "data-[swipe=cancel]:translate-x-0",
               "data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)]",
               "data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)]",
@@ -90,7 +90,7 @@ export function Toaster() {
               onClick={() => dismiss(id)}
               className={cn(
                 "absolute right-2 top-2 rounded-md p-1.5",
-                "text-white/50 opacity-0 transition-all duration-200",
+                "text-white/50 opacity-0 transition-colors duration-200",
                 "hover:text-white hover:bg-white/10",
                 "focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-white/20",
                 "group-hover:opacity-100"

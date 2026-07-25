@@ -70,7 +70,7 @@ export default function ChatInput({ onSend, disabled = false, placeholder = '输
           type="button"
           onClick={handleSend}
           disabled={disabled || !message.trim()}
-          className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary hover:bg-primary/90 text-white transition-all duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
+          className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary hover:bg-primary/90 text-white transition-colors duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
         >
           <Send className="w-5 h-5" />
         </button>

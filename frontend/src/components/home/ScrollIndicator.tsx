@@ -32,7 +32,7 @@ export default function ScrollIndicator() {
 
       <motion.div
         className="relative w-10 h-10 rounded-full border-2 border-white/40 dark:border-white/40 flex items-center justify-center
-          group-hover:border-tech-cyan group-hover:bg-tech-cyan/10 transition-all duration-300"
+          group-hover:border-tech-cyan group-hover:bg-tech-cyan/10 transition-colors duration-300"
         animate={shouldReduceMotion ? {} : {
           y: [0, 8, 0],
         }}

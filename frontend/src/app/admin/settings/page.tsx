@@ -522,7 +522,7 @@ export default function SettingsPage() {
                       setHasChanges(true)
                     }}
                     className={cn(
-                      'p-4 rounded-lg border-2 transition-all',
+                      'p-4 rounded-lg border-2 transition-colors',
                       theme === opt.id
                         ? 'border-primary bg-primary/10'
                         : 'border-border bg-card/40 hover:border-primary/40'
@@ -659,7 +659,7 @@ export default function SettingsPage() {
                   key={section.id}
                   onClick={() => setActiveSection(section.id)}
                   className={cn(
-                    "w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all duration-200",
+                    "w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-colors duration-200",
                     activeSection === section.id
                       ? "bg-tech-cyan/20 text-tech-cyan"
                       : "text-foreground/70 hover:bg-glass/20 hover:text-foreground"

@@ -50,10 +50,10 @@ const AdminSidebar = React.forwardRef<HTMLDivElement, AdminSidebarProps>(
           "fixed top-0 left-0 z-50 h-full",
           "bg-gradient-to-b from-white/80 via-white/70 to-white/60",
           "dark:from-slate-800/60 dark:via-slate-800/50 dark:to-slate-900/50",
-          "backdrop-blur-2xl",
+          "backdrop-blur-md",
           "border-r border-slate-200/50 dark:border-slate-700/50",
           "text-slate-800 dark:text-slate-200",
-          "transition-all duration-500 ease-out",
+          "transition-transform duration-500 ease-out",
           "shadow-2xl shadow-slate-900/5 dark:shadow-slate-950/20",
           sidebarOpen ? "w-64" : "w-20",
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
@@ -103,7 +103,7 @@ const AdminSidebar = React.forwardRef<HTMLDivElement, AdminSidebarProps>(
             whileHover={{ scale: 1.1, rotate: sidebarOpen ? 0 : 180 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => onSidebarToggle(!sidebarOpen)}
-            className="p-2.5 rounded-xl hover:bg-slate-100/50 dark:hover:bg-slate-700/50 transition-all duration-200 relative z-10 hidden lg:flex items-center justify-center group"
+            className="p-2.5 rounded-xl hover:bg-slate-100/50 dark:hover:bg-slate-700/50 transition-colors duration-200 relative z-10 hidden lg:flex items-center justify-center group"
             aria-label={sidebarOpen ? '收起侧边栏' : '展开侧边栏'}
           >
             <motion.div
@@ -122,7 +122,7 @@ const AdminSidebar = React.forwardRef<HTMLDivElement, AdminSidebarProps>(
             whileHover={{ scale: 1.1, rotate: 90 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => onMobileToggle(false)}
-            className="p-2.5 rounded-xl hover:bg-glass/50 transition-all duration-200 lg:hidden relative z-10"
+            className="p-2.5 rounded-xl hover:bg-glass/50 transition-colors duration-200 lg:hidden relative z-10"
             animate={{ opacity: mobileOpen ? 1 : 0 }}
             aria-label="关闭"
           >
@@ -200,7 +200,7 @@ const AdminSidebar = React.forwardRef<HTMLDivElement, AdminSidebarProps>(
                           href={item.href as React.ComponentProps<typeof Link>['href']}
                           onClick={() => onMobileToggle(false)}
                           className={cn(
-                            "flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300 ease-out",
+                            "flex items-center gap-3 px-3 py-3 rounded-xl transition-colors duration-300 ease-out",
                             "relative overflow-hidden group",
                             isActive 
                               ? "bg-gradient-to-r from-tech-cyan/15 via-tech-sky/10 to-transparent text-slate-800 dark:text-slate-100 shadow-lg shadow-tech-cyan/10 border border-tech-cyan/20 dark:border-tech-cyan/30" 
@@ -218,7 +218,7 @@ const AdminSidebar = React.forwardRef<HTMLDivElement, AdminSidebarProps>(
                           
                           <motion.div
                             className={cn(
-                              "relative p-2 rounded-lg transition-all duration-300",
+                              "relative p-2 rounded-lg transition-colors duration-300",
                               isActive 
                                 ? "bg-gradient-to-br from-tech-cyan/25 to-tech-sky/25 shadow-md shadow-tech-cyan/20" 
                                 : "group-hover:bg-foreground/5"
@@ -227,7 +227,7 @@ const AdminSidebar = React.forwardRef<HTMLDivElement, AdminSidebarProps>(
                             animate={{ scale: isActive ? 1.05 : 1 }}
                           >
                             <Icon className={cn(
-                              "w-5 h-5 transition-all duration-300",
+                              "w-5 h-5 transition-colors duration-300",
                               isActive ? "text-tech-cyan" : "group-hover:text-tech-cyan/70"
                             )} />
                             
@@ -283,7 +283,7 @@ const AdminSidebar = React.forwardRef<HTMLDivElement, AdminSidebarProps>(
             className={cn(
               "flex items-center gap-3 px-3 py-3 rounded-xl text-slate-500 dark:text-slate-400",
               "hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-slate-700/30",
-              "transition-all duration-300 group relative overflow-hidden"
+              "transition-colors duration-300 group relative overflow-hidden"
             )}
           >
             <motion.div

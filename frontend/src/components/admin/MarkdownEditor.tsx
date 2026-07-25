@@ -137,7 +137,7 @@ const MarkdownEditor = React.forwardRef<HTMLDivElement, MarkdownEditorProps>(
               <button
                 type="button"
                 onClick={() => onChange(value + '**粗体**')}
-                className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-all"
+                className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-colors"
                 title="粗体 (Ctrl+B)"
                 aria-label="粗体"
               >
@@ -146,7 +146,7 @@ const MarkdownEditor = React.forwardRef<HTMLDivElement, MarkdownEditorProps>(
               <button
                 type="button"
                 onClick={() => onChange(value + '*斜体*')}
-                className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-all"
+                className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-colors"
                 title="斜体 (Ctrl+I)"
                 aria-label="斜体"
               >
@@ -156,7 +156,7 @@ const MarkdownEditor = React.forwardRef<HTMLDivElement, MarkdownEditorProps>(
               <button
                 type="button"
                 onClick={() => onChange(value + '\n# ')}
-                className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-all"
+                className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-colors"
                 title="标题 1"
                 aria-label="标题 1"
               >
@@ -165,7 +165,7 @@ const MarkdownEditor = React.forwardRef<HTMLDivElement, MarkdownEditorProps>(
               <button
                 type="button"
                 onClick={() => onChange(value + '\n## ')}
-                className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-all"
+                className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-colors"
                 title="标题 2"
                 aria-label="标题 2"
               >
@@ -174,7 +174,7 @@ const MarkdownEditor = React.forwardRef<HTMLDivElement, MarkdownEditorProps>(
               <button
                 type="button"
                 onClick={() => onChange(value + '\n### ')}
-                className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-all"
+                className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-colors"
                 title="标题 3"
                 aria-label="标题 3"
               >
@@ -184,7 +184,7 @@ const MarkdownEditor = React.forwardRef<HTMLDivElement, MarkdownEditorProps>(
               <button
                 type="button"
                 onClick={() => onChange(value + '\n- ')}
-                className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-all"
+                className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-colors"
                 title="无序列表"
                 aria-label="无序列表"
               >
@@ -193,7 +193,7 @@ const MarkdownEditor = React.forwardRef<HTMLDivElement, MarkdownEditorProps>(
               <button
                 type="button"
                 onClick={() => onChange(value + '\n1. ')}
-                className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-all"
+                className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-colors"
                 title="有序列表"
                 aria-label="有序列表"
               >
@@ -202,7 +202,7 @@ const MarkdownEditor = React.forwardRef<HTMLDivElement, MarkdownEditorProps>(
               <button
                 type="button"
                 onClick={() => onChange(value + '\n> ')}
-                className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-all"
+                className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-colors"
                 title="引用"
                 aria-label="引用"
               >
@@ -212,7 +212,7 @@ const MarkdownEditor = React.forwardRef<HTMLDivElement, MarkdownEditorProps>(
               <button
                 type="button"
                 onClick={() => onChange(value + '\n```\n代码\n```')}
-                className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-all"
+                className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-colors"
                 title="代码块"
                 aria-label="代码块"
               >
@@ -221,7 +221,7 @@ const MarkdownEditor = React.forwardRef<HTMLDivElement, MarkdownEditorProps>(
               <button
                 type="button"
                 onClick={() => onChange(value + '[链接文字](url)')}
-                className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-all"
+                className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-colors"
                 title="链接"
                 aria-label="链接"
               >
@@ -239,7 +239,7 @@ const MarkdownEditor = React.forwardRef<HTMLDivElement, MarkdownEditorProps>(
                   };
                   input.click();
                 }}
-                className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-all"
+                className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-colors"
                 title="插入图片"
                 aria-label="插入图片"
               >
@@ -248,7 +248,7 @@ const MarkdownEditor = React.forwardRef<HTMLDivElement, MarkdownEditorProps>(
               <button
                 type="button"
                 onClick={() => onChange(value + '\n| 列1 | 列2 | 列3 |\n|------|------|------|\n| 内容 | 内容 | 内容 |')}
-                className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-all"
+                className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-colors"
                 title="表格"
                 aria-label="表格"
               >
@@ -257,7 +257,7 @@ const MarkdownEditor = React.forwardRef<HTMLDivElement, MarkdownEditorProps>(
               <button
                 type="button"
                 onClick={() => onChange(value + '\n---\n')}
-                className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-all"
+                className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-colors"
                 title="分割线"
                 aria-label="分割线"
               >
@@ -275,7 +275,7 @@ const MarkdownEditor = React.forwardRef<HTMLDivElement, MarkdownEditorProps>(
               <button
                 type="button"
                 onClick={togglePreview}
-                className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-all"
+                className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-colors"
                 title={currentPreview === 'preview' ? '编辑' : currentPreview === 'live' ? '仅预览' : '实时预览'}
                 aria-label={currentPreview === 'preview' ? '编辑' : currentPreview === 'live' ? '仅预览' : '实时预览'}
               >
@@ -284,7 +284,7 @@ const MarkdownEditor = React.forwardRef<HTMLDivElement, MarkdownEditorProps>(
               <button
                 type="button"
                 onClick={toggleFullscreen}
-                className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-all"
+                className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-colors"
                 title={isFullscreen ? '退出全屏' : '全屏'}
                 aria-label={isFullscreen ? '退出全屏' : '全屏'}
               >

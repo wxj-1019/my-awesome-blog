@@ -173,7 +173,7 @@ const SlugInput = React.forwardRef<HTMLInputElement, SlugInputProps>(
               type="button"
               onClick={toggleLock}
               className={cn(
-                'flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-md transition-all',
+                'flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-md transition-colors',
                 isLocked
                   ? 'bg-amber-500/10 text-amber-500'
                   : 'bg-tech-cyan/10 text-tech-cyan hover:bg-tech-cyan/20'
@@ -239,7 +239,7 @@ const SlugInput = React.forwardRef<HTMLInputElement, SlugInputProps>(
               onClick={handleRegenerate}
               disabled={disabled || !title}
               className={cn(
-                'p-1.5 rounded-md transition-all',
+                'p-1.5 rounded-md transition-colors',
                 'text-foreground/40 hover:text-foreground hover:bg-background/50',
                 'disabled:opacity-40 disabled:cursor-not-allowed'
               )}
@@ -252,7 +252,7 @@ const SlugInput = React.forwardRef<HTMLInputElement, SlugInputProps>(
               onClick={handleCopy}
               disabled={!value}
               className={cn(
-                'p-1.5 rounded-md transition-all',
+                'p-1.5 rounded-md transition-colors',
                 'text-foreground/40 hover:text-foreground hover:bg-background/50',
                 'disabled:opacity-40 disabled:cursor-not-allowed'
               )}

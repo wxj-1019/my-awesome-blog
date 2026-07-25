@@ -116,7 +116,7 @@ function FeaturedCarousel({ articles }: FeaturedCarouselProps) {
                 >
                   <Link
                     href={`/articles/${currentArticle.id}`}
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-tech-cyan text-white rounded-full font-semibold hover:bg-tech-cyan/90 transition-all active:scale-95"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-tech-cyan text-white rounded-full font-semibold hover:bg-tech-cyan/90 transition-[colors,transform] active:scale-95"
                   >
                     阅读文章
                     <ArrowRight className="w-5 h-5" />
@@ -150,7 +150,7 @@ function FeaturedCarousel({ articles }: FeaturedCarouselProps) {
               )}
               <button
                 onClick={() => paginate(1)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 p-4 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm transition-all z-20 active:scale-95"
+                className="absolute right-4 top-1/2 -translate-y-1/2 p-4 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm transition-[colors,transform] z-20 active:scale-95"
                 aria-label="下一篇"
               >
                 <ArrowRight className="w-6 h-6 text-white" aria-hidden="true" />
@@ -164,7 +164,7 @@ function FeaturedCarousel({ articles }: FeaturedCarouselProps) {
           <button
             key={article.id}
             onClick={() => handleDotClick(index)}
-            className={`w-3 h-3 rounded-full transition-all ${
+            className={`w-3 h-3 rounded-full transition-colors ${
               index === currentIndex 
                 ? 'bg-tech-cyan w-8' 
                 : 'bg-white/30 hover:bg-white/50'

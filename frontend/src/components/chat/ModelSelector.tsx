@@ -39,7 +39,7 @@ export function ModelSelector({ models, currentModel, onSelect, disabled }: Mode
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
         className={cn(
-          "flex items-center gap-2 rounded-lg bg-white/5 px-3 py-1.5 text-sm font-medium text-white transition-all hover:bg-white/10 border border-white/10",
+          "flex items-center gap-2 rounded-lg bg-white/5 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-white/10 border border-white/10",
           disabled && "opacity-50 cursor-not-allowed"
         )}
       >

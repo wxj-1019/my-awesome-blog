@@ -471,7 +471,7 @@ export default function MessagesPageContent() {
                           type="button"
                           onClick={() => setSelectedColor(color)}
                           className={cn(
-                            "w-6 h-6 rounded-full transition-all duration-200 cursor-pointer",
+                            "w-6 h-6 rounded-full transition-transform duration-200 cursor-pointer",
                             selectedColor === color && "ring-2 ring-primary ring-offset-2 ring-offset-transparent scale-110"
                           )}
                           style={{ backgroundColor: color }}

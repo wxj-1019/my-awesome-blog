@@ -134,7 +134,7 @@ export default function MemoriesPageContent() {
 
               <button
                 onClick={() => handleOpenCreate()}
-                className="flex items-center gap-2 bg-tech-cyan hover:bg-tech-lightcyan text-white rounded-lg px-4 py-2 text-sm transition-all duration-200"
+                className="flex items-center gap-2 bg-tech-cyan hover:bg-tech-lightcyan text-white rounded-lg px-4 py-2 text-sm transition-colors duration-200"
               >
                 <Plus className="w-4 h-4" />
                 <span>新建</span>
@@ -147,7 +147,7 @@ export default function MemoriesPageContent() {
                   <button
                     key={type}
                     onClick={() => setTypeFilter(type)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors duration-200 ${
                       typeFilter === type
                         ? 'bg-tech-cyan text-white'
                         : 'bg-white/10 text-white/70 hover:bg-white/20'
@@ -311,7 +311,7 @@ export default function MemoriesPageContent() {
                       });
                     });
                   }}
-                  className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white/70 hover:text-white text-sm transition-all"
+                  className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white/70 hover:text-white text-sm transition-colors"
                 >
                   <Trash2 className="w-4 h-4" />
                   <span>清理过期记忆</span>
@@ -337,7 +337,7 @@ export default function MemoriesPageContent() {
                 </h2>
                 <button
                   onClick={handleCloseCreate}
-                  className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition-all"
+                  className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition-colors"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -404,7 +404,7 @@ export default function MemoriesPageContent() {
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/10">
                 <button
                   onClick={handleCloseCreate}
-                  className="px-6 py-2.5 rounded-lg bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition-all"
+                  className="px-6 py-2.5 rounded-lg bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition-colors"
                 >
                   取消
                 </button>
@@ -423,7 +423,7 @@ export default function MemoriesPageContent() {
                       handleCreateMemory(data);
                     }
                   }}
-                  className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-tech-cyan hover:bg-tech-lightcyan text-white transition-all"
+                  className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-tech-cyan hover:bg-tech-lightcyan text-white transition-colors"
                 >
                   <Plus className="w-4 h-4" />
                   <span>{editingMemory ? '更新' : '创建'}</span>

@@ -192,7 +192,7 @@ export default function TypewriterPage() {
                   <motion.div
                     key={content.id}
                     className={cn(
-                      "group relative overflow-hidden rounded-xl border-2 p-4 transition-all duration-300 cursor-pointer",
+                      "group relative overflow-hidden rounded-xl border-2 p-4 transition-colors duration-300 cursor-pointer",
                       content.is_active 
                         ? "border-glass-border/30 hover:border-tech-cyan/50 bg-glass/10 hover:bg-glass/20" 
                         : "border-gray-500/30 bg-gray-500/5 hover:bg-gray-500/10 opacity-60"
@@ -242,7 +242,7 @@ export default function TypewriterPage() {
                             handleToggleActive(content)
                           }}
                           className={cn(
-                            "p-2 rounded-lg transition-all duration-200",
+                            "p-2 rounded-lg transition-colors duration-200",
                             content.is_active 
                               ? "text-green-400 hover:bg-green-500/10" 
                               : "text-gray-400 hover:bg-gray-500/10"
@@ -257,7 +257,7 @@ export default function TypewriterPage() {
                             e.stopPropagation()
                             openEditModal(content)
                           }}
-                          className="p-2 text-foreground/40 hover:text-tech-cyan hover:bg-tech-cyan/10 rounded-lg transition-all duration-200"
+                          className="p-2 text-foreground/40 hover:text-tech-cyan hover:bg-tech-cyan/10 rounded-lg transition-colors duration-200"
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.95 }}
                         >
@@ -268,7 +268,7 @@ export default function TypewriterPage() {
                             e.stopPropagation()
                             setDeleteDialog({ open: true, content })
                           }}
-                          className="p-2 text-foreground/40 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all duration-200"
+                          className="p-2 text-foreground/40 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors duration-200"
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.95 }}
                         >
@@ -323,7 +323,7 @@ export default function TypewriterPage() {
                 </div>
                 <motion.button
                   onClick={() => setShowModal(false)}
-                  className="p-2 text-foreground/40 hover:text-foreground hover:bg-glass/20 rounded-lg transition-all duration-200"
+                  className="p-2 text-foreground/40 hover:text-foreground hover:bg-glass/20 rounded-lg transition-colors duration-200"
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
                 >

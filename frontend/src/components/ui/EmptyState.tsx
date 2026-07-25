@@ -142,7 +142,7 @@ const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
 
     // CTA 复用 ui/Button（default 变体即 bg-primary），仅补充尺寸与悬停上浮
     const ctaClass =
-      'gap-2 px-6 py-3 rounded-lg transition-all duration-200 hover:scale-105 shadow-lg shadow-primary/20';
+      'gap-2 px-6 py-3 rounded-lg transition-transform duration-200 hover:scale-105 shadow-lg shadow-primary/20';
 
     const iconFallback = (
       <div

@@ -61,7 +61,7 @@ export default function MemorySearch({ onSearch, results, searching }: MemorySea
         <button
           onClick={handleSearch}
           disabled={!query.trim() || searching}
-          className="flex items-center gap-2 bg-tech-cyan hover:bg-tech-lightcyan text-white rounded-lg px-4 py-2.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-2 bg-tech-cyan hover:bg-tech-lightcyan text-white rounded-lg px-4 py-2.5 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {searching ? (
             <div className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -86,7 +86,7 @@ export default function MemorySearch({ onSearch, results, searching }: MemorySea
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.2, delay: index * 0.05 }}
-              className="bg-white/5 rounded-lg p-3 hover:bg-white/10 transition-all"
+              className="bg-white/5 rounded-lg p-3 hover:bg-white/10 transition-colors"
             >
               <div className="flex items-start justify-between gap-2 mb-2">
                 <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium ${

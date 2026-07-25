@@ -182,7 +182,7 @@ export default function TagsPage() {
                 {tags.map((tag, index) => (
                   <motion.div
                     key={tag.id}
-                    className="group relative overflow-hidden rounded-2xl border-2 border-glass-border/30 hover:border-tech-cyan/50 px-4 py-3 bg-glass/10 hover:bg-glass/20 backdrop-blur-lg transition-all duration-300 cursor-pointer"
+                    className="group relative overflow-hidden rounded-2xl border-2 border-glass-border/30 hover:border-tech-cyan/50 px-4 py-3 bg-glass/10 hover:bg-glass/20 backdrop-blur-lg transition-colors duration-300 cursor-pointer"
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.9 }}
@@ -217,7 +217,7 @@ export default function TagsPage() {
                             e.stopPropagation()
                             openEditModal(tag)
                           }}
-                          className="p-1.5 text-foreground/40 hover:text-tech-cyan hover:bg-tech-cyan/10 rounded-lg transition-all duration-200"
+                          className="p-1.5 text-foreground/40 hover:text-tech-cyan hover:bg-tech-cyan/10 rounded-lg transition-colors duration-200"
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.95 }}
                         >
@@ -228,7 +228,7 @@ export default function TagsPage() {
                             e.stopPropagation()
                             setDeleteDialog({ open: true, tag })
                           }}
-                          className="p-1.5 text-foreground/40 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all duration-200"
+                          className="p-1.5 text-foreground/40 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors duration-200"
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.95 }}
                         >
@@ -283,7 +283,7 @@ export default function TagsPage() {
                 </div>
                 <motion.button
                   onClick={() => setShowModal(false)}
-                  className="p-2 text-foreground/40 hover:text-foreground hover:bg-glass/20 rounded-lg transition-all duration-200"
+                  className="p-2 text-foreground/40 hover:text-foreground hover:bg-glass/20 rounded-lg transition-colors duration-200"
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
                 >
@@ -334,7 +334,7 @@ export default function TagsPage() {
                         type="button"
                         onClick={() => setFormData({ ...formData, color })}
                         className={cn(
-                          "w-8 h-8 rounded-full transition-all duration-200 shadow-lg",
+                          "w-8 h-8 rounded-full transition-transform duration-200 shadow-lg",
                           formData.color === color && "ring-2 ring-offset-2 ring-tech-cyan scale-110 shadow-tech-cyan/40"
                         )}
                         style={{ backgroundColor: color, boxShadow: formData.color === color ? `0 0 20px ${color}40` : `0 4px 6px -1px ${color}30` }}

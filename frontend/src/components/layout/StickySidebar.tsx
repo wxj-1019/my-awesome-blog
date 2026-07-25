@@ -120,7 +120,7 @@ export default function StickySidebar({
           className={cn(
             'absolute top-1/2 -translate-y-1/2 z-50 p-2 rounded-full',
             'bg-tech-cyan hover:bg-tech-lightcyan',
-            'text-white shadow-lg transition-all duration-200',
+            'text-white shadow-lg transition-[colors,transform] duration-200',
             isLeft ? '-right-3' : '-left-3'
           )}
           whileHover={{ scale: 1.1 }}

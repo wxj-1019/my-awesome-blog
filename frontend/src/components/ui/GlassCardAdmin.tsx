@@ -42,7 +42,7 @@ const variantStyles = {
 const GlassCardAdmin = React.forwardRef<HTMLDivElement, GlassCardAdminProps>(
   ({ children, className, variant = 'default', hover = false, animate = true, ...props }, ref) => {
     const baseClasses = cn(
-      'rounded-2xl transition-all duration-300',
+      'rounded-2xl transition-[colors,transform] duration-300',
       variantStyles[variant],
       hover && 'hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-200/30 dark:hover:shadow-black/30 cursor-pointer'
     )

@@ -55,7 +55,7 @@ function MiniStats({
         {stats.map((stat) => (
           <div
             key={stat.label}
-            className="flex items-center gap-2 p-2 rounded-lg transition-all duration-200 hover:scale-105"
+            className="flex items-center gap-2 p-2 rounded-lg transition-transform duration-200 hover:scale-105"
           >
             <div className={`p-1.5 rounded-lg bg-tech-cyan/10`}>
               <stat.icon className={`h-4 w-4 ${stat.color}`} />

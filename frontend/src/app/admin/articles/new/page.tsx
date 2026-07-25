@@ -77,7 +77,7 @@ const MarkdownToolbar = ({ onInsert }: { onInsert: (text: string) => void }) => 
           type="button"
           title={tool.title}
           onClick={() => onInsert(tool.insert)}
-          className="p-2 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-all"
+          className="p-2 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-colors"
         >
           <tool.icon className="w-4 h-4" />
         </button>
@@ -421,7 +421,7 @@ export default function NewArticlePage() {
                     <button
                       key={mode}
                       onClick={() => setEditorMode(mode)}
-                      className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                      className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                         editorMode === mode
                           ? 'bg-tech-cyan text-white dark:text-gray-100 shadow-sm shadow-tech-cyan/20'
                           : 'text-foreground/60 hover:text-foreground hover:bg-background/50'
@@ -433,7 +433,7 @@ export default function NewArticlePage() {
                 </div>
                 <button
                   onClick={() => setIsFullscreen(!isFullscreen)}
-                  className="p-2 rounded-lg bg-background/30 hover:bg-background/50 text-foreground/60 hover:text-foreground transition-all border border-transparent hover:border-border/30"
+                  className="p-2 rounded-lg bg-background/30 hover:bg-background/50 text-foreground/60 hover:text-foreground transition-colors border border-transparent hover:border-border/30"
                   title={isFullscreen ? '退出全屏' : '全屏编辑'}
                 >
                   {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
@@ -781,7 +781,7 @@ export default function NewArticlePage() {
                               key={tag.id}
                               type="button"
                               onClick={() => handleTagToggle(tag.id)}
-                              className={`w-full px-3 py-2 rounded-lg text-sm text-left transition-all flex items-center justify-between cursor-pointer ${
+                              className={`w-full px-3 py-2 rounded-lg text-sm text-left transition-colors flex items-center justify-between cursor-pointer ${
                                 formData.tags.includes(tag.id)
                                   ? 'bg-tech-cyan/20 text-tech-cyan'
                                   : 'hover:bg-background/50 text-foreground/60'

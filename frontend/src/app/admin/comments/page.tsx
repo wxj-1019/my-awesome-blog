@@ -336,7 +336,7 @@ export default function CommentsPage() {
                           {!comment.is_approved && (
                             <motion.button
                               onClick={() => approveComment(comment.id)}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-green-500/20 text-green-400 border border-green-500/30 rounded-lg hover:bg-green-500/30 transition-all"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-green-500/20 text-green-400 border border-green-500/30 rounded-lg hover:bg-green-500/30 transition-colors"
                               whileHover={{ scale: 1.05 }}
                               whileTap={{ scale: 0.95 }}
                             >
@@ -347,7 +347,7 @@ export default function CommentsPage() {
                           {comment.is_approved && (
                             <motion.button
                               onClick={() => rejectComment(comment.id)}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-orange-500/20 text-orange-400 border border-orange-500/30 rounded-lg hover:bg-orange-500/30 transition-all"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-orange-500/20 text-orange-400 border border-orange-500/30 rounded-lg hover:bg-orange-500/30 transition-colors"
                               whileHover={{ scale: 1.05 }}
                               whileTap={{ scale: 0.95 }}
                             >
@@ -357,7 +357,7 @@ export default function CommentsPage() {
                           )}
                           <motion.button
                             onClick={() => setSelectedComment(comment)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-glass/20 text-foreground/70 border border-glass-border/30 rounded-lg hover:bg-glass/30 transition-all"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-glass/20 text-foreground/70 border border-glass-border/30 rounded-lg hover:bg-glass/30 transition-colors"
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                           >
@@ -366,7 +366,7 @@ export default function CommentsPage() {
                           </motion.button>
                           <motion.button
                             onClick={() => setDeleteDialog({ open: true, comment })}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg hover:bg-red-500/30 transition-all"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg hover:bg-red-500/30 transition-colors"
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                           >
@@ -391,7 +391,7 @@ export default function CommentsPage() {
                 <motion.button
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-glass-border/30 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-glass/10 transition-all"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-glass-border/30 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-glass/10 transition-colors"
                   whileHover={{ scale: currentPage === 1 ? 1 : 1.05 }}
                   whileTap={{ scale: currentPage === 1 ? 1 : 0.95 }}
                 >
@@ -401,7 +401,7 @@ export default function CommentsPage() {
                 <motion.button
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-glass-border/30 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-glass/10 transition-all"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-glass-border/30 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-glass/10 transition-colors"
                   whileHover={{ scale: currentPage === totalPages ? 1 : 1.05 }}
                   whileTap={{ scale: currentPage === totalPages ? 1 : 0.95 }}
                 >
@@ -453,7 +453,7 @@ export default function CommentsPage() {
                 </div>
                 <motion.button
                   onClick={() => setSelectedComment(null)}
-                  className="p-2 text-foreground/40 hover:text-foreground hover:bg-glass/20 rounded-lg transition-all duration-200"
+                  className="p-2 text-foreground/40 hover:text-foreground hover:bg-glass/20 rounded-lg transition-colors duration-200"
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
                 >

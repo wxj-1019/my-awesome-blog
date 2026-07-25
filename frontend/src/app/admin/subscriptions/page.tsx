@@ -309,7 +309,7 @@ export default function SubscriptionsPage() {
                         <motion.button
                           onClick={() => toggleSubscriptionStatus(subscription)}
                           className={cn(
-                            "px-3 py-1.5 text-sm font-medium rounded-lg border transition-all",
+                            "px-3 py-1.5 text-sm font-medium rounded-lg border transition-colors",
                             subscription.is_active 
                               ? "bg-green-500/20 text-green-400 border-green-500/30 hover:bg-green-500/30" 
                               : "bg-orange-500/20 text-orange-400 border-orange-500/30 hover:bg-orange-500/30"
@@ -322,7 +322,7 @@ export default function SubscriptionsPage() {
                         
                         <motion.button
                           onClick={() => setDeleteDialog({ open: true, subscription })}
-                          className="p-2 text-foreground/40 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all duration-200"
+                          className="p-2 text-foreground/40 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors duration-200"
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.95 }}
                           title="删除"
@@ -346,7 +346,7 @@ export default function SubscriptionsPage() {
                 <motion.button
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-glass-border/30 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-glass/10 transition-all"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-glass-border/30 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-glass/10 transition-colors"
                   whileHover={{ scale: currentPage === 1 ? 1 : 1.05 }}
                   whileTap={{ scale: currentPage === 1 ? 1 : 0.95 }}
                 >
@@ -356,7 +356,7 @@ export default function SubscriptionsPage() {
                 <motion.button
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-glass-border/30 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-glass/10 transition-all"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-glass-border/30 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-glass/10 transition-colors"
                   whileHover={{ scale: currentPage === totalPages ? 1 : 1.05 }}
                   whileTap={{ scale: currentPage === totalPages ? 1 : 0.95 }}
                 >

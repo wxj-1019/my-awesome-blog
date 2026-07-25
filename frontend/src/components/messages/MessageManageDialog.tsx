@@ -261,7 +261,7 @@ function MessageManageDialog({
                       <button
                         key={tag}
                         onClick={() => handleAddSuggestedTag(tag)}
-                        className="px-3 py-1 rounded-full border border-white/10 text-white/70 text-xs hover:bg-white/5 hover:border-tech-cyan/30 hover:text-tech-cyan transition-all"
+                        className="px-3 py-1 rounded-full border border-white/10 text-white/70 text-xs hover:bg-white/5 hover:border-tech-cyan/30 hover:text-tech-cyan transition-colors"
                       >
                         #{tag}
                       </button>

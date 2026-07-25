@@ -48,13 +48,13 @@ export default function ProfileView({
   const mutedClass = themedClasses.mutedTextClass;
 
   return (
-    <GlassCard className={`overflow-hidden border-border shadow-lg transition-all duration-300 hover:shadow-xl ${cardBgClass}`}>
+    <GlassCard className={`overflow-hidden border-border shadow-lg transition-colors duration-300 hover:shadow-xl ${cardBgClass}`}>
       {/* 个人资料头部 */}
       <div className="bg-gradient-to-r from-primary/10 to-primary/5 pb-8 border-b border-dashed border-opacity-30 p-6">
         <div className="flex flex-col items-center gap-6">
           {/* 头像区域 */}
           <div className="relative group">
-            <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-background shadow-xl transition-all duration-300 group-hover:shadow-2xl">
+            <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-background shadow-xl transition-colors duration-300 group-hover:shadow-2xl">
               {formData.avatar ? (
                 <img 
                   src={formData.avatar} 
@@ -70,7 +70,7 @@ export default function ProfileView({
             {isEditing && (
               <label 
                 htmlFor="avatar-upload" 
-                className="absolute bottom-2 right-2 bg-tech-cyan p-2 rounded-full cursor-pointer hover:bg-tech-cyan/90 transition-all duration-200 hover:scale-110 shadow-lg"
+                className="absolute bottom-2 right-2 bg-tech-cyan p-2 rounded-full cursor-pointer hover:bg-tech-cyan/90 transition-[colors,transform] duration-200 hover:scale-110 shadow-lg"
               >
                 <Camera className="w-5 h-5 text-primary-foreground" />
                 <input 
@@ -113,7 +113,7 @@ export default function ProfileView({
             {!isEditing ? (
               <Button 
                 onClick={() => setEditing(true)} 
-                className="cursor-pointer transition-all duration-200 hover:scale-105 flex items-center gap-2 bg-tech-cyan hover:bg-tech-cyan/90"
+                className="cursor-pointer transition-[colors,transform] duration-200 hover:scale-105 flex items-center gap-2 bg-tech-cyan hover:bg-tech-cyan/90"
               >
                 <Edit3 className="w-4 h-4" />
                 编辑个人资料
@@ -123,14 +123,14 @@ export default function ProfileView({
                 <Button 
                   variant="outline" 
                   onClick={onCancel}
-                  className="cursor-pointer transition-all duration-200 hover:scale-105 flex items-center gap-2 border-border text-foreground hover:bg-muted/40"
+                  className="cursor-pointer transition-[colors,transform] duration-200 hover:scale-105 flex items-center gap-2 border-border text-foreground hover:bg-muted/40"
                 >
                   <X className="w-4 h-4" />
                   取消
                 </Button>
                 <Button 
                   onClick={onSave} 
-                  className="cursor-pointer transition-all duration-200 hover:scale-105 flex items-center gap-2 bg-tech-cyan hover:bg-tech-cyan/90"
+                  className="cursor-pointer transition-[colors,transform] duration-200 hover:scale-105 flex items-center gap-2 bg-tech-cyan hover:bg-tech-cyan/90"
                 >
                   <Save className="w-4 h-4" />
                   保存更改

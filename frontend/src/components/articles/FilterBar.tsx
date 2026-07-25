@@ -107,7 +107,7 @@ function FilterBar({
                 aria-pressed={active}
                 aria-label={mode === 'grid' ? '网格视图' : '列表视图'}
                 className={cn(
-                  'p-2 rounded-lg transition-all duration-200',
+                  'p-2 rounded-lg transition-colors duration-200',
                   active
                     ? 'bg-primary text-primary-foreground shadow-sm'
                     : 'text-muted-foreground hover:text-foreground'
@@ -122,7 +122,7 @@ function FilterBar({
         {/* 归档入口（保留 ArchiveDrawer） */}
         <button
           onClick={onOpenDrawer}
-          className="flex-shrink-0 p-2.5 rounded-xl bg-muted/40 border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
+          className="flex-shrink-0 p-2.5 rounded-xl bg-muted/40 border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
           aria-label="打开归档抽屉"
           title="归档与热门"
         >

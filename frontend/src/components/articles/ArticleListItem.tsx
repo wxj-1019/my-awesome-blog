@@ -28,7 +28,7 @@ function ArticleListItem({ article, className }: ArticleListItemProps) {
       href={`/articles/${article.id}` as Route}
       className={cn(
         'glass-card group flex gap-4 sm:gap-5 overflow-hidden p-3 sm:p-4',
-        'transition-all duration-300 hover:-translate-y-1 hover:shadow-xl',
+        'transition-[colors,transform] duration-300 hover:-translate-y-1 hover:shadow-xl',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
         className
       )}
@@ -90,7 +90,7 @@ function ArticleListItem({ article, className }: ArticleListItemProps) {
             ) : null}
           </div>
           <ArrowRight
-            className="w-4 h-4 flex-shrink-0 text-muted-foreground transition-all group-hover:translate-x-1 group-hover:text-tech-cyan"
+            className="w-4 h-4 flex-shrink-0 text-muted-foreground transition-[colors,transform] group-hover:translate-x-1 group-hover:text-tech-cyan"
             aria-hidden
           />
         </div>

@@ -36,7 +36,7 @@ export default function AILayout({ children, title, currentPath }: AILayoutProps
               <Link
                 key={item.href}
                 href={item.href as never}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors duration-200 ${
                   currentPath === item.href
                     ? 'bg-primary text-white shadow-md'
                     : 'text-muted-foreground dark:text-foreground/70 hover:text-foreground dark:hover:text-foreground hover:bg-accent/50 dark:hover:bg-muted/10'

@@ -46,7 +46,7 @@ export function ChatInput({ onSend, onStop, isLoading, disabled }: ChatInputProp
   return (
     <div className="relative mx-auto w-full max-w-3xl p-4">
       <div className={cn(
-        "relative flex items-end gap-2 rounded-3xl bg-white/5 p-2 backdrop-blur-xl border border-white/10 transition-all duration-300",
+        "relative flex items-end gap-2 rounded-3xl bg-white/5 p-2 backdrop-blur-xl border border-white/10 transition-transform duration-300",
         isFocused && "bg-white/10 shadow-[0_0_40px_-15px_rgba(6,182,212,0.25)]",
         isSending && "scale-95 opacity-80"
       )}>
@@ -76,7 +76,7 @@ export function ChatInput({ onSend, onStop, isLoading, disabled }: ChatInputProp
           {isLoading ? (
             <button
               onClick={onStop}
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all duration-200 hover:scale-110 active:scale-95"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-[colors,transform] duration-200 hover:scale-110 active:scale-95"
               title="停止生成"
             >
               <StopCircle size={20} className="animate-pulse" />
@@ -86,7 +86,7 @@ export function ChatInput({ onSend, onStop, isLoading, disabled }: ChatInputProp
               onClick={handleSend}
               disabled={!input.trim() || disabled || isSending}
               className={cn(
-                "flex h-10 w-10 items-center justify-center rounded-full transition-all duration-300",
+                "flex h-10 w-10 items-center justify-center rounded-full transition-[colors,transform] duration-300",
                 input.trim() && !disabled && !isSending
                   ? "bg-gradient-to-tr from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20 hover:scale-110 hover:shadow-cyan-500/40 active:scale-95 hover:rotate-3"
                   : "bg-zinc-700/50 text-zinc-500 cursor-not-allowed"

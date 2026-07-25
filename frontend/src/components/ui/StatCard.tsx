@@ -133,7 +133,7 @@ const StatCard = React.forwardRef<HTMLDivElement, StatCardProps>(
           tabIndex={href ? 0 : undefined}
           aria-label={`${label}: ${value}`}
           className={cn(
-            'relative overflow-hidden rounded-2xl p-6 transition-all duration-300',
+            'relative overflow-hidden rounded-2xl p-6 transition-[colors,transform] duration-300',
             'bg-white/50 dark:bg-slate-800/40 backdrop-blur-xl border border-slate-200/50 dark:border-slate-700/50 shadow-lg',
             'hover:-translate-y-1 hover:shadow-2xl',
             'transform-gpu',

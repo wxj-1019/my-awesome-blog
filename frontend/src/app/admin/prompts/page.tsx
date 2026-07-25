@@ -339,7 +339,7 @@ export default function PromptsPage() {
                 {filteredPrompts.map((prompt, index) => (
                   <motion.div
                     key={prompt.id}
-                    className="group relative overflow-hidden rounded-xl border-2 border-glass-border/30 hover:border-tech-cyan/50 p-4 bg-glass/10 hover:bg-glass/20 backdrop-blur-lg transition-all duration-300 cursor-pointer"
+                    className="group relative overflow-hidden rounded-xl border-2 border-glass-border/30 hover:border-tech-cyan/50 p-4 bg-glass/10 hover:bg-glass/20 backdrop-blur-lg transition-colors duration-300 cursor-pointer"
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
@@ -397,7 +397,7 @@ export default function PromptsPage() {
                             setPreviewContent(prompt.content)
                             setShowCodePreview(true)
                           }}
-                          className="p-2 text-foreground/40 hover:text-tech-cyan hover:bg-tech-cyan/10 rounded-lg transition-all"
+                          className="p-2 text-foreground/40 hover:text-tech-cyan hover:bg-tech-cyan/10 rounded-lg transition-colors"
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.95 }}
                           title="预览"
@@ -409,7 +409,7 @@ export default function PromptsPage() {
                             e.stopPropagation()
                             handleSetDefault(prompt)
                           }}
-                          className="p-2 text-foreground/40 hover:text-yellow-400 hover:bg-yellow-500/10 rounded-lg transition-all"
+                          className="p-2 text-foreground/40 hover:text-yellow-400 hover:bg-yellow-500/10 rounded-lg transition-colors"
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.95 }}
                           title="设为默认"
@@ -421,7 +421,7 @@ export default function PromptsPage() {
                             e.stopPropagation()
                             handleDuplicate(prompt)
                           }}
-                          className="p-2 text-foreground/40 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-all"
+                          className="p-2 text-foreground/40 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.95 }}
                           title="复制"
@@ -433,7 +433,7 @@ export default function PromptsPage() {
                             e.stopPropagation()
                             openEditModal(prompt)
                           }}
-                          className="p-2 text-foreground/40 hover:text-tech-cyan hover:bg-tech-cyan/10 rounded-lg transition-all"
+                          className="p-2 text-foreground/40 hover:text-tech-cyan hover:bg-tech-cyan/10 rounded-lg transition-colors"
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.95 }}
                         >
@@ -444,7 +444,7 @@ export default function PromptsPage() {
                             e.stopPropagation()
                             setDeleteDialog({ open: true, prompt })
                           }}
-                          className="p-2 text-foreground/40 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
+                          className="p-2 text-foreground/40 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.95 }}
                         >

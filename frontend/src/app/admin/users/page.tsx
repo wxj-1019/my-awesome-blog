@@ -283,7 +283,7 @@ export default function UsersPage() {
                           <div className="flex items-center justify-end gap-1">
                             <motion.button
                               onClick={() => openEditModal(user)}
-                              className="p-2 text-foreground/40 hover:text-tech-cyan hover:bg-tech-cyan/10 rounded-lg transition-all duration-200"
+                              className="p-2 text-foreground/40 hover:text-tech-cyan hover:bg-tech-cyan/10 rounded-lg transition-colors duration-200"
                               whileHover={{ scale: 1.1 }}
                               whileTap={{ scale: 0.95 }}
                               title="编辑"
@@ -292,7 +292,7 @@ export default function UsersPage() {
                             </motion.button>
                             <motion.button
                               onClick={() => setDeleteDialog({ open: true, user })}
-                              className="p-2 text-foreground/40 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all duration-200"
+                              className="p-2 text-foreground/40 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors duration-200"
                               whileHover={{ scale: 1.1 }}
                               whileTap={{ scale: 0.95 }}
                               title="删除"
@@ -349,7 +349,7 @@ export default function UsersPage() {
                 </div>
                 <motion.button
                   onClick={() => setShowModal(false)}
-                  className="p-2 text-foreground/40 hover:text-foreground hover:bg-glass/20 rounded-lg transition-all duration-200"
+                  className="p-2 text-foreground/40 hover:text-foreground hover:bg-glass/20 rounded-lg transition-colors duration-200"
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
                 >

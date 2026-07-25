@@ -206,7 +206,7 @@ export default function ArticlesPage() {
             >
               <Link
                 href="/admin/articles/new"
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-tech-cyan to-tech-sky text-white dark:text-gray-100 rounded-xl hover:shadow-lg hover:shadow-tech-cyan/25 transition-all duration-300 font-medium"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-tech-cyan to-tech-sky text-white dark:text-gray-100 rounded-xl hover:shadow-lg hover:shadow-tech-cyan/25 transition-colors duration-300 font-medium"
               >
                 <Plus className="w-5 h-5" />
                 新建文章
@@ -239,7 +239,7 @@ export default function ArticlesPage() {
             <div className="flex items-center gap-2">
               <motion.button
                 onClick={fetchArticles}
-                className="p-2.5 rounded-xl bg-glass/30 hover:bg-glass/50 border border-glass-border/30 transition-all duration-200"
+                className="p-2.5 rounded-xl bg-glass/30 hover:bg-glass/50 border border-glass-border/30 transition-colors duration-200"
                 whileHover={{ scale: 1.05, rotate: 180 }}
                 whileTap={{ scale: 0.95 }}
                 disabled={loading}
@@ -253,7 +253,7 @@ export default function ArticlesPage() {
                     key={btn.key}
                     onClick={() => { setFilter(btn.key); setCurrentPage(1); }}
                     className={cn(
-                      "px-4 py-2.5 text-sm font-medium transition-all duration-200 flex items-center gap-2",
+                      "px-4 py-2.5 text-sm font-medium transition-colors duration-200 flex items-center gap-2",
                       filter === btn.key 
                         ? "bg-gradient-to-r from-tech-cyan to-tech-sky text-white dark:text-gray-100" 
                         : "text-foreground/70 hover:text-foreground hover:bg-glass/30"
@@ -317,7 +317,7 @@ export default function ArticlesPage() {
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Link
                   href="/admin/articles/new"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-tech-cyan to-tech-sky text-white dark:text-gray-100 rounded-xl font-medium hover:shadow-lg hover:shadow-tech-cyan/25 transition-all duration-300"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-tech-cyan to-tech-sky text-white dark:text-gray-100 rounded-xl font-medium hover:shadow-lg hover:shadow-tech-cyan/25 transition-colors duration-300"
                 >
                   <Plus className="w-5 h-5" />
                   创建第一篇文章
@@ -487,7 +487,7 @@ export default function ArticlesPage() {
                                   onClick={action.onClick}
                                   disabled={actionLoading === article.id}
                                   className={cn(
-                                    "p-2 rounded-lg transition-all duration-200",
+                                    "p-2 rounded-lg transition-colors duration-200",
                                     action.active ? action.activeColor : action.hoverColor || 'text-foreground/40 hover:text-foreground/70 hover:bg-glass/30',
                                     "disabled:opacity-50 disabled:cursor-not-allowed"
                                   )}
@@ -501,7 +501,7 @@ export default function ArticlesPage() {
                               
                               <motion.a
                                 href={`/admin/articles/${article.id}`}
-                                className="p-2 text-foreground/40 hover:text-tech-cyan hover:bg-tech-cyan/10 rounded-lg transition-all duration-200"
+                                className="p-2 text-foreground/40 hover:text-tech-cyan hover:bg-tech-cyan/10 rounded-lg transition-colors duration-200"
                                 title="编辑"
                                 whileHover={{ scale: 1.1 }}
                                 whileTap={{ scale: 0.9 }}
@@ -516,7 +516,7 @@ export default function ArticlesPage() {
                                 <Link
                                   href={`/posts/${article.slug}`}
                                   target="_blank"
-                                  className="p-2 text-foreground/40 hover:text-green-500 hover:bg-green-500/10 rounded-lg transition-all duration-200 inline-block"
+                                  className="p-2 text-foreground/40 hover:text-green-500 hover:bg-green-500/10 rounded-lg transition-colors duration-200 inline-block"
                                   title="预览"
                                 >
                                   <Eye className="w-4 h-4" />
@@ -526,7 +526,7 @@ export default function ArticlesPage() {
                               <motion.button
                                 onClick={() => setDeleteDialog({ open: true, article })}
                                 disabled={actionLoading === article.id}
-                                className="p-2 text-foreground/40 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all duration-200 disabled:opacity-50"
+                                className="p-2 text-foreground/40 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors duration-200 disabled:opacity-50"
                                 title="删除"
                                 whileHover={{ scale: 1.1 }}
                                 whileTap={{ scale: 0.9 }}
@@ -556,7 +556,7 @@ export default function ArticlesPage() {
                     <motion.button
                       onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                       disabled={currentPage === 1}
-                      className="flex items-center gap-1 px-4 py-2 text-sm border border-glass-border/50 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed hover:bg-glass/30 transition-all duration-200"
+                      className="flex items-center gap-1 px-4 py-2 text-sm border border-glass-border/50 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed hover:bg-glass/30 transition-colors duration-200"
                       whileHover={{ scale: currentPage === 1 ? 1 : 1.02 }}
                       whileTap={{ scale: currentPage === 1 ? 1 : 0.98 }}
                     >
@@ -566,7 +566,7 @@ export default function ArticlesPage() {
                     <motion.button
                       onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                       disabled={currentPage === totalPages}
-                      className="flex items-center gap-1 px-4 py-2 text-sm border border-glass-border/50 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed hover:bg-glass/30 transition-all duration-200"
+                      className="flex items-center gap-1 px-4 py-2 text-sm border border-glass-border/50 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed hover:bg-glass/30 transition-colors duration-200"
                       whileHover={{ scale: currentPage === totalPages ? 1 : 1.02 }}
                       whileTap={{ scale: currentPage === totalPages ? 1 : 0.98 }}
                     >

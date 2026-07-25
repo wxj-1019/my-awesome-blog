@@ -19,7 +19,7 @@ const socialConfig = {
 export default function SocialLinksCard({ socialLinks, isEditing = false }: SocialLinksCardProps) {
   const validLinks = socialLinks.filter(link => link.value);
   return (
-    <GlassCard padding="lg" className="border-tech-cyan/20 hover:shadow-[0_0_30px_var(--shadow-tech-cyan)] transition-all duration-300 hover:-translate-y-1 animate-fade-in-up">
+    <GlassCard padding="lg" className="border-tech-cyan/20 hover:shadow-[0_0_30px_var(--shadow-tech-cyan)] transition-[colors,transform] duration-300 hover:-translate-y-1 animate-fade-in-up">
       <h3 className="text-lg font-semibold text-foreground mb-6 flex items-center gap-2">
         <LinkIcon className="w-5 h-5 text-tech-cyan" />
         <span className="text-gradient-primary">社交链接</span>
@@ -34,14 +34,14 @@ export default function SocialLinksCard({ socialLinks, isEditing = false }: Soci
               href={getLinkUrl(link.type, link.value)}
               target="_blank"
               rel="noopener noreferrer"
-              className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-tech-cyan/10 to-tech-sky/10 hover:from-tech-cyan/20 hover:to-tech-sky/20 border border-tech-cyan/20 hover:border-tech-cyan/40 p-4 transition-all duration-300 hover:scale-105 hover:shadow-lg"
+              className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-tech-cyan/10 to-tech-sky/10 hover:from-tech-cyan/20 hover:to-tech-sky/20 border border-tech-cyan/20 hover:border-tech-cyan/40 p-4 transition-[colors,transform] duration-300 hover:scale-105 hover:shadow-lg"
               style={{ animationDelay: `${index * 100}ms` }}
             >
               {/* 背景动画 */}
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-tech-cyan/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
               
               <div className="relative flex items-center gap-3">
-                <div className={`p-2 rounded-lg bg-tech-cyan/10 ${config.color} transition-all duration-300 group-hover:scale-110 group-hover:bg-tech-cyan/20`}>
+                <div className={`p-2 rounded-lg bg-tech-cyan/10 ${config.color} transition-[colors,transform] duration-300 group-hover:scale-110 group-hover:bg-tech-cyan/20`}>
                   <Icon className="w-5 h-5" />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -51,7 +51,7 @@ export default function SocialLinksCard({ socialLinks, isEditing = false }: Soci
                   </div>
                 </div>
                 {/* 悬浮箭头 */}
-                <div className="opacity-0 group-hover:opacity-100 transform translate-x-[-10px] group-hover:translate-x-0 transition-all duration-300">
+                <div className="opacity-0 group-hover:opacity-100 transform translate-x-[-10px] group-hover:translate-x-0 transition-transform duration-300">
                   <LinkIcon className="w-4 h-4 text-tech-cyan" />
                 </div>
               </div>

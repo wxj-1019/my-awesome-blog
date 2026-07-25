@@ -52,7 +52,7 @@ function SidebarTagCloud({
         {/* 显示全部标签按钮 */}
         <button
           onClick={() => onTagSelect(null)}
-          className={`rounded-full border transition-all duration-200 hover:scale-105 ${
+          className={`rounded-full border transition-transform duration-200 hover:scale-105 ${
             !selectedTag
               ? 'bg-tech-cyan text-white border-tech-cyan'
               : getColorClass(maxCount, maxCount, false)
@@ -64,7 +64,7 @@ function SidebarTagCloud({
           <button
             key={tag.id}
             onClick={() => onTagSelect(tag.id)}
-            className={`rounded-full border transition-all duration-200 hover:scale-105 ${
+            className={`rounded-full border transition-transform duration-200 hover:scale-105 ${
               selectedTag === tag.id
                 ? 'bg-tech-cyan text-white border-tech-cyan'
                 : getColorClass(tag.article_count, maxCount, false)

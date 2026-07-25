@@ -49,7 +49,7 @@ export default function RecentArticles({ articles }: RecentArticlesProps) {
             articles.map((article, index) => (
               <motion.div
                 key={article.id}
-                className="flex items-center gap-4 p-3 rounded-xl hover:bg-glass/20 transition-all duration-300 group cursor-pointer"
+                className="flex items-center gap-4 p-3 rounded-xl hover:bg-glass/20 transition-colors duration-300 group cursor-pointer"
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.7 + index * 0.1, duration: 0.4 }}

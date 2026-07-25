@@ -59,7 +59,7 @@ function QuickActionCard({
     <motion.div
       className={cn(
         'relative overflow-hidden rounded-xl border-2 border-dashed border-glass-border/30 hover:border-tech-cyan/50 p-4',
-        'transition-all duration-300 group bg-glass/10 hover:bg-glass/20 backdrop-blur-lg cursor-pointer'
+        'transition-colors duration-300 group bg-glass/10 hover:bg-glass/20 backdrop-blur-lg cursor-pointer'
       )}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -68,7 +68,7 @@ function QuickActionCard({
     >
       <Link href={href as React.ComponentProps<typeof Link>['href']}>
         <div className="flex flex-col items-center text-center">
-          <div className="p-2 rounded-lg bg-gradient-to-br from-foreground/10 to-foreground/5 transition-all duration-300 group-hover:from-tech-cyan/20 group-hover:to-tech-sky/20">
+          <div className="p-2 rounded-lg bg-gradient-to-br from-foreground/10 to-foreground/5 transition-colors duration-300 group-hover:from-tech-cyan/20 group-hover:to-tech-sky/20">
             <Icon className="w-6 h-6 text-foreground/50 group-hover:text-tech-cyan transition-colors" />
           </div>
           <h3 className="text-sm font-medium text-foreground mt-2 group-hover:text-tech-cyan transition-colors">

@@ -93,7 +93,7 @@ const MessageCard = memo(function MessageCard({
     >
       <div
         className={cn(
-          'h-full rounded-xl border p-4 transition-all duration-200',
+          'h-full rounded-xl border p-4 transition-colors duration-200',
           'bg-slate-900/50 backdrop-blur-sm',
           'border-white/10 hover:border-tech-cyan/50 hover:shadow-lg hover:shadow-tech-cyan/10'
         )}
@@ -198,14 +198,14 @@ const MessageCard = memo(function MessageCard({
             <div className="flex gap-2">
               <button
                 onClick={() => onReply(msg)}
-                className="flex items-center gap-1.5 text-xs sm:text-sm text-white/50 hover:text-tech-cyan transition-all px-3 py-2 rounded-lg hover:bg-white/5 active:scale-95 min-h-[44px] sm:min-h-0 sm:min-w-0"
+                className="flex items-center gap-1.5 text-xs sm:text-sm text-white/50 hover:text-tech-cyan transition-[colors,transform] px-3 py-2 rounded-lg hover:bg-white/5 active:scale-95 min-h-[44px] sm:min-h-0 sm:min-w-0"
               >
                 <Reply className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
                 <span className="hidden sm:inline">回复</span>
               </button>
               <button
                 onClick={() => onReport(msg)}
-                className="flex items-center gap-1.5 text-xs sm:text-sm text-white/50 hover:text-tech-pink transition-all px-3 py-2 rounded-lg hover:bg-white/5 active:scale-95 min-h-[44px] sm:min-h-0 sm:min-w-0"
+                className="flex items-center gap-1.5 text-xs sm:text-sm text-white/50 hover:text-tech-pink transition-[colors,transform] px-3 py-2 rounded-lg hover:bg-white/5 active:scale-95 min-h-[44px] sm:min-h-0 sm:min-w-0"
               >
                 <Flag className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
                 <span className="hidden sm:inline">举报</span>
@@ -215,7 +215,7 @@ const MessageCard = memo(function MessageCard({
               <button
                 onClick={() => onLike(msg.id)}
                 className={cn(
-                  'flex items-center gap-1.5 text-sm transition-all px-3 py-2 rounded-lg active:scale-95 min-h-[44px]',
+                  'flex items-center gap-1.5 text-sm transition-[colors,transform] px-3 py-2 rounded-lg active:scale-95 min-h-[44px]',
                   msg.likes && msg.likes > 0
                     ? 'text-tech-pink hover:text-tech-pink/80 bg-tech-pink/5'
                     : 'text-white/50 hover:text-tech-pink hover:bg-white/5'
@@ -230,14 +230,14 @@ const MessageCard = memo(function MessageCard({
                 <>
                   <button
                     onClick={() => onOpenEdit(msg)}
-                    className="text-white/30 hover:text-tech-cyan transition-all p-2 rounded-lg hover:bg-tech-cyan/10 active:scale-95 min-h-[44px] min-w-[44px]"
+                    className="text-white/30 hover:text-tech-cyan transition-[colors,transform] p-2 rounded-lg hover:bg-tech-cyan/10 active:scale-95 min-h-[44px] min-w-[44px]"
                     title="编辑留言"
                   >
                     <Edit2 className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => onDelete(msg.id)}
-                    className="text-white/30 hover:text-red-500 transition-all p-2 rounded-lg hover:bg-red-500/10 active:scale-95 min-h-[44px] min-w-[44px]"
+                    className="text-white/30 hover:text-red-500 transition-[colors,transform] p-2 rounded-lg hover:bg-red-500/10 active:scale-95 min-h-[44px] min-w-[44px]"
                     title="删除留言"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -248,7 +248,7 @@ const MessageCard = memo(function MessageCard({
               {isAdmin && (
                 <button
                   onClick={() => onOpenManage(msg)}
-                  className="text-white/30 hover:text-tech-purple transition-all p-2 rounded-lg hover:bg-tech-purple/10 active:scale-95 min-h-[44px] min-w-[44px]"
+                  className="text-white/30 hover:text-tech-purple transition-[colors,transform] p-2 rounded-lg hover:bg-tech-purple/10 active:scale-95 min-h-[44px] min-w-[44px]"
                   title="内容管理"
                 >
                   <Settings className="w-4 h-4" />

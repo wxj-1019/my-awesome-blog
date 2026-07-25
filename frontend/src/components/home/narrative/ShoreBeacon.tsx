@@ -108,7 +108,7 @@ export default function ShoreBeacon({ className }: { className?: string }) {
                       <span className="font-semibold text-foreground mb-1 inline-flex items-center gap-1">
                         {title}
                         <ArrowRight
-                          className="h-3.5 w-3.5 opacity-0 -translate-x-1 transition-all group-hover:opacity-100 group-hover:translate-x-0 text-primary"
+                          className="h-3.5 w-3.5 opacity-0 -translate-x-1 transition-transform group-hover:opacity-100 group-hover:translate-x-0 text-primary"
                           aria-hidden
                         />
                       </span>

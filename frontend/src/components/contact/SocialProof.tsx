@@ -74,7 +74,7 @@ function StatCard({ stat, delay }: { stat: StatItem; delay: number }) {
   return (
     <FadeIn
       delay={delay}
-      className="bg-glass backdrop-blur-xl rounded-xl p-6 border border-glass-border group hover:shadow-xl transition-all duration-300"
+      className="bg-glass backdrop-blur-xl rounded-xl p-6 border border-glass-border group hover:shadow-xl transition-[colors,transform] duration-300"
     >
       <div className={`w-12 h-12 bg-gradient-to-br ${stat.color} rounded-xl flex items-center justify-center text-primary-foreground shadow-lg mb-4 group-hover:scale-110 transition-transform duration-300`}>
         {stat.icon}
@@ -93,7 +93,7 @@ function TestimonialCard({ testimonial, delay }: { testimonial: Testimonial; del
   return (
     <FadeIn
       delay={delay}
-      className="bg-glass backdrop-blur-xl rounded-xl p-6 border border-glass-border hover:shadow-xl transition-all duration-300"
+      className="bg-glass backdrop-blur-xl rounded-xl p-6 border border-glass-border hover:shadow-xl transition-colors duration-300"
     >
       <div className="flex items-start gap-4 mb-4">
         <div className="w-12 h-12 bg-gradient-to-br from-primary to-tech-purple rounded-full flex items-center justify-center text-primary-foreground font-bold flex-shrink-0">

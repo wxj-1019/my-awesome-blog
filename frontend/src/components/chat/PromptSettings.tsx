@@ -397,7 +397,7 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
                   <div
                     key={prompt.id}
                     className={cn(
-                      'group flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer transition-all',
+                      'group flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer transition-colors',
                       isSelected 
                         ? 'bg-gradient-to-r from-cyan-500/30 to-blue-600/30 text-cyan-300 border border-cyan-500/30' 
                         : 'hover:bg-white/5 text-zinc-400 hover:text-zinc-200'
@@ -445,7 +445,7 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
         animate={{ opacity: 1, y: 0 }}
         whileHover={{ scale: 1.01 }}
         className={cn(
-          "group relative rounded-xl p-4 cursor-pointer transition-all overflow-hidden",
+          "group relative rounded-xl p-4 cursor-pointer transition-colors overflow-hidden",
           isSelected 
             ? "bg-gradient-to-r from-cyan-500/20 to-blue-600/20 border-2 border-cyan-500/50 shadow-lg shadow-cyan-500/10" 
             : "bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/10"
@@ -649,7 +649,7 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
                   <div className="flex items-center gap-2">
                     <button
                       onClick={handleCreatePrompt}
-                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white rounded-xl transition-all shadow-lg shadow-cyan-500/20"
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white rounded-xl transition-colors shadow-lg shadow-cyan-500/20"
                     >
                       <Plus size={16} />
                       <span className="text-sm font-medium">新建提示词</span>
@@ -694,7 +694,7 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
                       <button
                         onClick={() => setSelectedFolder(null)}
                         className={cn(
-                          'w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm transition-all',
+                          'w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm transition-colors',
                           !selectedFolder
                             ? 'bg-gradient-to-r from-cyan-500/20 to-blue-600/20 text-cyan-400 border border-cyan-500/30'
                             : 'hover:bg-white/5 text-zinc-400 hover:text-zinc-200'
@@ -862,7 +862,7 @@ export default function PromptSettings({ isOpen, onClose, onSelectPrompt, select
                     <button
                       onClick={handleSavePrompt}
                       disabled={loading}
-                      className="flex-1 px-4 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20"
+                      className="flex-1 px-4 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20"
                     >
                       {loading && <Loader2 className="animate-spin" size={16} />}
                       {viewMode === 'create' ? '创建' : '保存'}

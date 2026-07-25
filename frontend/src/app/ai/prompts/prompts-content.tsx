@@ -130,7 +130,7 @@ export default function PromptsPageContent() {
                     <button
                       key={cat}
                       onClick={() => setCategoryFilter(categoryFilter === cat ? '' : cat)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors duration-200 ${
                         categoryFilter === cat
                           ? 'bg-tech-cyan text-white'
                           : 'bg-white/10 text-white/70 hover:bg-white/20'
@@ -146,7 +146,7 @@ export default function PromptsPageContent() {
                   <button
                     key={status}
                     onClick={() => setStatusFilter(status)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors duration-200 ${
                       statusFilter === status
                         ? 'bg-tech-cyan text-white'
                         : 'bg-white/10 text-white/70 hover:bg-white/20'
@@ -163,7 +163,7 @@ export default function PromptsPageContent() {
               </p>
               <button
                 onClick={() => handleOpenEditor()}
-                className="flex items-center gap-2 bg-tech-cyan hover:bg-tech-lightcyan text-white rounded-lg px-4 py-2 text-sm transition-all duration-200"
+                className="flex items-center gap-2 bg-tech-cyan hover:bg-tech-lightcyan text-white rounded-lg px-4 py-2 text-sm transition-colors duration-200"
               >
                 <Plus className="w-4 h-4" />
                 <span>新建</span>

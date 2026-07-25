@@ -77,7 +77,7 @@ export default function TabNavigation({
               />
             )}
             <Icon className={cn(
-              'transition-all duration-300',
+              'transition-transform duration-300',
               isActive ? 'scale-110' : 'scale-100',
               isVertical ? 'w-5 h-5 mt-0.5' : 'w-4 h-4'
             )} />

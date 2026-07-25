@@ -238,7 +238,7 @@ export default function ImagesPage() {
             {images.map((image) => (
               <div 
                 key={image.id} 
-                className="group relative aspect-square rounded-xl overflow-hidden bg-gray-100 cursor-pointer hover:shadow-lg transition-all"
+                className="group relative aspect-square rounded-xl overflow-hidden bg-gray-100 cursor-pointer hover:shadow-lg transition-colors"
                 onClick={() => setSelectedImage(image)}
               >
                 <Image

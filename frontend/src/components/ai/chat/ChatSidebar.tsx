@@ -43,7 +43,7 @@ export default function ChatSidebar({
       <div className="p-4 border-b border-border dark:border-glass-border bg-gradient-to-b from-card to-accent/20 dark:from-card dark:to-transparent">
         <button
           onClick={onCreateConversation}
-          className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white rounded-lg py-3 transition-all duration-200 shadow-md hover:shadow-lg"
+          className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white rounded-lg py-3 transition-colors duration-200 shadow-md hover:shadow-lg"
         >
           <Plus className="w-5 h-5" />
           <span className="font-medium">新建对话</span>
@@ -67,7 +67,7 @@ export default function ChatSidebar({
             <button
               key={status}
               onClick={() => setFilterStatus(status)}
-              className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-medium transition-all duration-200 ${
+              className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-medium transition-colors duration-200 ${
                 filterStatus === status
                   ? 'bg-primary text-white shadow-sm'
                   : 'bg-secondary dark:bg-muted/30 text-muted-foreground dark:text-foreground/70 hover:bg-secondary/80 dark:hover:bg-muted/40'
@@ -89,7 +89,7 @@ export default function ChatSidebar({
               exit={{ opacity: 0, x: 20 }}
               transition={{ duration: 0.2, delay: index * 0.05 }}
               onClick={() => onSelectConversation(conv.id)}
-              className={`group relative p-3 rounded-lg cursor-pointer transition-all duration-200 ${
+              className={`group relative p-3 rounded-lg cursor-pointer transition-colors duration-200 ${
                 currentConversationId === conv.id
                   ? 'bg-primary/10 border-primary/30 shadow-sm'
                   : 'bg-card dark:bg-muted/30 hover:bg-accent/50 dark:hover:bg-muted/40 border border-border dark:border-transparent hover:border-primary/20 dark:hover:border-muted/50'
@@ -118,7 +118,7 @@ export default function ChatSidebar({
                       e.stopPropagation();
                       onArchiveConversation(conv.id);
                     }}
-                    className="p-1.5 rounded-lg bg-secondary dark:bg-muted/30 hover:bg-secondary/80 dark:hover:bg-muted/40 text-muted-foreground dark:text-foreground/70 hover:text-foreground dark:hover:text-foreground transition-all"
+                    className="p-1.5 rounded-lg bg-secondary dark:bg-muted/30 hover:bg-secondary/80 dark:hover:bg-muted/40 text-muted-foreground dark:text-foreground/70 hover:text-foreground dark:hover:text-foreground transition-colors"
                     aria-label="归档对话"
                   >
                     <Archive className="w-4 h-4" aria-hidden="true" />
@@ -128,7 +128,7 @@ export default function ChatSidebar({
                       e.stopPropagation();
                       onDeleteConversation(conv.id);
                     }}
-                    className="p-1.5 rounded-lg bg-error/10 dark:bg-red-500/20 hover:bg-error/20 dark:hover:bg-red-500/40 text-error dark:text-red-400 hover:text-error dark:hover:text-red-300 transition-all"
+                    className="p-1.5 rounded-lg bg-error/10 dark:bg-red-500/20 hover:bg-error/20 dark:hover:bg-red-500/40 text-error dark:text-red-400 hover:text-error dark:hover:text-red-300 transition-colors"
                     aria-label="删除对话"
                   >
                     <Trash2 className="w-4 h-4" aria-hidden="true" />

@@ -97,7 +97,7 @@ export function ChatSidebar({
               onNewChat();
               if (window.innerWidth < 768) {onClose();}
             }}
-            className="group flex w-full items-center gap-3 rounded-xl bg-white/5 px-4 py-3 text-sm font-medium text-white transition-all hover:bg-gradient-to-r hover:from-cyan-600 hover:to-blue-600 hover:shadow-lg hover:shadow-cyan-500/20 border border-white/10 hover:border-transparent"
+            className="group flex w-full items-center gap-3 rounded-xl bg-white/5 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-gradient-to-r hover:from-cyan-600 hover:to-blue-600 hover:shadow-lg hover:shadow-cyan-500/20 border border-white/10 hover:border-transparent"
           >
             <Plus size={18} className="text-cyan-400 group-hover:text-white transition-colors" />
             <span>新对话</span>
@@ -118,7 +118,7 @@ export function ChatSidebar({
                   if (window.innerWidth < 768) {onClose();}
                 }}
                 className={cn(
-                  "group relative flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left text-sm transition-all",
+                  "group relative flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left text-sm transition-colors",
                   currentSessionId === session.id
                     ? "bg-white/10 text-white shadow-md"
                     : "text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
@@ -177,7 +177,7 @@ export function ChatSidebar({
           <button
             onClick={() => setIsPromptSettingsOpen(true)}
             className={cn(
-              "w-full flex items-center gap-3 rounded-xl p-3 transition-all group relative overflow-hidden",
+              "w-full flex items-center gap-3 rounded-xl p-3 transition-colors group relative overflow-hidden",
               selectedPrompt 
                 ? "bg-gradient-to-r from-cyan-500/20 to-blue-600/20 border border-cyan-500/30" 
                 : "bg-white/5 hover:bg-white/10"

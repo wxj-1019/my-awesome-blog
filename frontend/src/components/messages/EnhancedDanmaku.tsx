@@ -294,7 +294,7 @@ export default function EnhancedDanmaku({
                 <span
                   className={cn(
                     "text-lg font-bold px-4 py-1.5 rounded-full backdrop-blur-md border",
-                    "inline-block transition-all duration-200",
+                    "inline-block transition-[colors,transform] duration-200",
                     "hover:scale-105 hover:shadow-lg",
                     rainbowMode && !reducedMotion ? "animate-rainbow-shift" : ""
                   )}
@@ -434,7 +434,7 @@ export default function EnhancedDanmaku({
           <button
             onClick={onToggleRainbow}
             className={cn(
-              "flex items-center gap-2 px-3 py-1.5 rounded-full border backdrop-blur-md transition-all duration-300",
+              "flex items-center gap-2 px-3 py-1.5 rounded-full border backdrop-blur-md transition-colors duration-300",
               rainbowMode
                 ? "bg-primary/20 text-primary border-primary/50"
                 : "bg-glass text-muted-foreground border-glass-border hover:border-primary/30"

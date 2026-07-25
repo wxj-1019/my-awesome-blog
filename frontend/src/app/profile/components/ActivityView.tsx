@@ -110,7 +110,7 @@ export default function ActivityView() {
               activities.map(activity => (
                 <div 
                   key={activity.id} 
-                  className="flex items-start gap-4 p-4 rounded-lg bg-glass/30 backdrop-blur-sm border border-glass-border transition-all duration-200 hover:bg-glass/50"
+                  className="flex items-start gap-4 p-4 rounded-lg bg-glass/30 backdrop-blur-sm border border-glass-border transition-colors duration-200 hover:bg-glass/50"
                 >
                   <div className="mt-1">
                     {getActivityIcon(activity.type)}

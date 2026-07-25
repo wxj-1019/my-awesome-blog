@@ -155,7 +155,7 @@ export default function ProfilePageContent() {
             <Button
               asChild
               variant="glass"
-              className="hover:scale-105 transition-all duration-200"
+              className="hover:scale-105 transition-transform duration-200"
             >
               <Link href="/login">
                 前往登录

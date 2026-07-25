@@ -295,7 +295,7 @@ export default function FriendLinksPage() {
                       <motion.button
                         onClick={() => moveLink(index, 'up')}
                         disabled={index === 0}
-                        className="p-1 text-foreground/40 hover:text-foreground disabled:opacity-30 transition-all"
+                        className="p-1 text-foreground/40 hover:text-foreground disabled:opacity-30 transition-colors"
                         whileHover={{ scale: index === 0 ? 1 : 1.1 }}
                         whileTap={{ scale: index === 0 ? 1 : 0.9 }}
                       >
@@ -304,7 +304,7 @@ export default function FriendLinksPage() {
                       <motion.button
                         onClick={() => moveLink(index, 'down')}
                         disabled={index === links.length - 1}
-                        className="p-1 text-foreground/40 hover:text-foreground disabled:opacity-30 transition-all"
+                        className="p-1 text-foreground/40 hover:text-foreground disabled:opacity-30 transition-colors"
                         whileHover={{ scale: index === links.length - 1 ? 1 : 1.1 }}
                         whileTap={{ scale: index === links.length - 1 ? 1 : 0.9 }}
                       >
@@ -364,7 +364,7 @@ export default function FriendLinksPage() {
                       <motion.button
                         onClick={() => toggleActive(link)}
                         className={cn(
-                          "p-2 rounded-lg transition-all",
+                          "p-2 rounded-lg transition-colors",
                           link.is_active 
                             ? "text-green-400 hover:bg-green-500/20" 
                             : "text-foreground/40 hover:text-green-400 hover:bg-green-500/20"
@@ -377,7 +377,7 @@ export default function FriendLinksPage() {
                       </motion.button>
                       <motion.button
                         onClick={() => openEditModal(link)}
-                        className="p-2 text-foreground/40 hover:text-tech-cyan hover:bg-tech-cyan/10 rounded-lg transition-all"
+                        className="p-2 text-foreground/40 hover:text-tech-cyan hover:bg-tech-cyan/10 rounded-lg transition-colors"
                         title="编辑"
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.95 }}
@@ -386,7 +386,7 @@ export default function FriendLinksPage() {
                       </motion.button>
                       <motion.button
                         onClick={() => setDeleteDialog({ open: true, link })}
-                        className="p-2 text-foreground/40 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
+                        className="p-2 text-foreground/40 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
                         title="删除"
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.95 }}
@@ -441,7 +441,7 @@ export default function FriendLinksPage() {
                 </div>
                 <motion.button
                   onClick={() => setShowModal(false)}
-                  className="p-2 text-foreground/40 hover:text-foreground hover:bg-glass/20 rounded-lg transition-all duration-200"
+                  className="p-2 text-foreground/40 hover:text-foreground hover:bg-glass/20 rounded-lg transition-colors duration-200"
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
                 >

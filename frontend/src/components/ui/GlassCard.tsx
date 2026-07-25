@@ -40,7 +40,7 @@ const GlassCard = React.forwardRef<HTMLDivElement, GlassCardProps>(
         className={cn(
           'rounded-xl border shadow-lg transition-all duration-300',
           /* 略加强模糊，配合更高不透明度，复杂背景下更易读 */
-          'backdrop-blur-2xl',
+          'backdrop-blur-md',
           'bg-glass border-glass-border text-foreground',
           'shadow-[var(--glass-shadow)]',
           paddingClasses[padding],

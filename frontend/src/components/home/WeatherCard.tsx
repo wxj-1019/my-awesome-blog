@@ -268,7 +268,7 @@ export default function WeatherCard() {
                         fetchWeather();
                       }}
                       className={cn(
-                        'w-5 h-5 text-muted-foreground transition-all',
+                        'w-5 h-5 text-muted-foreground transition-[colors,transform]',
                         'hover:text-tech-cyan hover:rotate-180'
                       )}
                     />

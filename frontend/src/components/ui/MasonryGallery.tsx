@@ -149,7 +149,7 @@ const MasonryGallery: React.FC<MasonryGalleryProps> = ({
                   src={image.src}
                   alt={image.alt}
                   className={cn(
-                    'w-full object-cover transition-all duration-500',
+                    'w-full object-cover transition-transform duration-500',
                     loadedImages.has(image.id) ? 'opacity-100' : 'opacity-0',
                     'group-hover:scale-105'
                   )}

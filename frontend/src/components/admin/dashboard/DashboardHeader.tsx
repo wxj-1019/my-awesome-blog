@@ -11,7 +11,7 @@ export default function DashboardHeader() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
     >
-      <div className="absolute inset-0 bg-gradient-to-r from-tech-cyan/20 via-purple-500/10 to-tech-sky/20 backdrop-blur-2xl" />
+      <div className="absolute inset-0 bg-gradient-to-r from-tech-cyan/20 via-purple-500/10 to-tech-sky/20 backdrop-blur-md" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(6,182,212,0.1)_0%,transparent_50%)]" />
 
       <div className="relative z-10">

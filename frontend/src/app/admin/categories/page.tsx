@@ -201,7 +201,7 @@ export default function CategoriesPage() {
                 {categories.map((category, index) => (
                   <motion.div
                     key={category.id}
-                    className="relative overflow-hidden rounded-2xl border-2 border-glass-border/30 hover:border-tech-cyan/50 p-6 bg-glass/10 hover:bg-glass/20 backdrop-blur-lg transition-all duration-300 cursor-pointer group"
+                    className="relative overflow-hidden rounded-2xl border-2 border-glass-border/30 hover:border-tech-cyan/50 p-6 bg-glass/10 hover:bg-glass/20 backdrop-blur-lg transition-colors duration-300 cursor-pointer group"
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.9 }}
@@ -227,7 +227,7 @@ export default function CategoriesPage() {
                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                           <motion.button
                             onClick={(e) => { e.stopPropagation(); openEditModal(category) }}
-                            className="p-2 text-foreground/60 hover:text-tech-cyan hover:bg-tech-cyan/10 rounded-lg transition-all duration-200"
+                            className="p-2 text-foreground/60 hover:text-tech-cyan hover:bg-tech-cyan/10 rounded-lg transition-colors duration-200"
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                           >
@@ -235,7 +235,7 @@ export default function CategoriesPage() {
                           </motion.button>
                           <motion.button
                             onClick={(e) => { e.stopPropagation(); setDeleteDialog({ open: true, category }) }}
-                            className="p-2 text-foreground/60 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all duration-200"
+                            className="p-2 text-foreground/60 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors duration-200"
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                           >
@@ -317,7 +317,7 @@ export default function CategoriesPage() {
                 </div>
                 <motion.button
                   onClick={() => setShowModal(false)}
-                  className="p-2 text-foreground/60 hover:text-foreground hover:bg-glass/10 rounded-xl transition-all duration-200"
+                  className="p-2 text-foreground/60 hover:text-foreground hover:bg-glass/10 rounded-xl transition-colors duration-200"
                   whileHover={{ scale: 1.1, rotate: 90 }}
                   whileTap={{ scale: 0.9 }}
                 >
@@ -389,7 +389,7 @@ export default function CategoriesPage() {
                   <motion.button
                     type="button"
                     onClick={() => setShowModal(false)}
-                    className="px-6 py-2.5 text-foreground hover:bg-glass/10 rounded-xl font-medium transition-all duration-200"
+                    className="px-6 py-2.5 text-foreground hover:bg-glass/10 rounded-xl font-medium transition-colors duration-200"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
@@ -397,7 +397,7 @@ export default function CategoriesPage() {
                   </motion.button>
                   <motion.button
                     type="submit"
-                    className="px-6 py-2.5 bg-gradient-to-r from-tech-cyan to-tech-sky text-white dark:text-gray-100 rounded-xl font-medium hover:shadow-lg hover:shadow-tech-cyan/25 transition-all duration-300"
+                    className="px-6 py-2.5 bg-gradient-to-r from-tech-cyan to-tech-sky text-white dark:text-gray-100 rounded-xl font-medium hover:shadow-lg hover:shadow-tech-cyan/25 transition-colors duration-300"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >

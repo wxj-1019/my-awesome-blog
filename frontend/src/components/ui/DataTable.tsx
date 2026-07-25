@@ -276,7 +276,7 @@ function DataTable<T>({
           whileTap={{ scale: 0.98 }}
           onClick={() => setShowFilters(!showFilters)}
           className={cn(
-            'px-4 py-2.5 rounded-xl font-medium transition-all duration-200 flex items-center gap-2',
+            'px-4 py-2.5 rounded-xl font-medium transition-colors duration-200 flex items-center gap-2',
             showFilters
               ? 'bg-tech-cyan text-white'
               : 'bg-white/50 dark:bg-slate-800/40 border border-slate-200/50 dark:border-slate-700/50 text-foreground hover:bg-slate-100 dark:hover:bg-slate-700/40'
@@ -383,7 +383,7 @@ function DataTable<T>({
                     exit={{ opacity: 0, x: 20 }}
                     transition={{ delay: index * 0.03, duration: 0.2 }}
                     className={cn(
-                      'group transition-all duration-200',
+                      'group transition-colors duration-200',
                       onRowClick && 'cursor-pointer hover:bg-tech-cyan/5',
                       isSelected && 'bg-tech-cyan/10',
                       rowClassName
@@ -459,7 +459,7 @@ function DataTable<T>({
                     whileTap={{ scale: 0.95 }}
                     onClick={() => setCurrentPage(pageNum)}
                     className={cn(
-                      'w-10 h-10 rounded-lg font-medium transition-all duration-200',
+                      'w-10 h-10 rounded-lg font-medium transition-colors duration-200',
                       isCurrentPage
                         ? 'bg-tech-cyan text-white'
                         : 'border border-slate-200/50 dark:border-slate-700/50 bg-white/50 dark:bg-slate-800/40 hover:bg-slate-100 dark:hover:bg-slate-700/40'

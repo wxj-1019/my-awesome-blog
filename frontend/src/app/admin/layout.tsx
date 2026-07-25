@@ -192,7 +192,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             <div className="flex items-center gap-4">
               <motion.button 
                 onClick={() => setMobileOpen(true)}
-                className="p-2.5 rounded-xl hover:bg-slate-100/50 dark:hover:bg-slate-700/50 transition-all duration-200 lg:hidden group"
+                className="p-2.5 rounded-xl hover:bg-slate-100/50 dark:hover:bg-slate-700/50 transition-colors duration-200 lg:hidden group"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -236,7 +236,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               
               <div className="hidden md:flex items-center gap-1">
                 <motion.button 
-                  className="p-2.5 rounded-xl hover:bg-slate-100/50 dark:hover:bg-slate-700/50 transition-all duration-200 group relative"
+                  className="p-2.5 rounded-xl hover:bg-slate-100/50 dark:hover:bg-slate-700/50 transition-colors duration-200 group relative"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setSearchOpen(!searchOpen)}
@@ -245,7 +245,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 </motion.button>
                 
                 <motion.button 
-                  className="p-2.5 rounded-xl hover:bg-slate-100/50 dark:hover:bg-slate-700/50 transition-all duration-200 group relative"
+                  className="p-2.5 rounded-xl hover:bg-slate-100/50 dark:hover:bg-slate-700/50 transition-colors duration-200 group relative"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setNotificationOpen(!notificationOpen)}
@@ -256,7 +256,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               </div>
               
               <motion.button 
-                className="p-2.5 rounded-xl hover:bg-slate-100/50 dark:hover:bg-slate-700/50 transition-all duration-200 group"
+                className="p-2.5 rounded-xl hover:bg-slate-100/50 dark:hover:bg-slate-700/50 transition-colors duration-200 group"
                 whileHover={{ scale: 1.05, rotate: 180 }}
                 whileTap={{ scale: 0.95 }}
                 transition={{ rotate: { duration: 0.5 } }}

@@ -73,7 +73,7 @@ function ArchiveDrawer({
                   </h2>
                   <button
                     onClick={onClose}
-                    className="p-2 rounded-full hover:bg-muted/40 transition-all"
+                    className="p-2 rounded-full hover:bg-muted/40 transition-colors"
                     aria-label="关闭"
                   >
                     <X className="w-6 h-6 text-foreground" aria-hidden="true" />
@@ -84,7 +84,7 @@ function ArchiveDrawer({
                   <button
                     onClick={() => setActiveTab('categories')}
                     className={`
-                      flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all
+                      flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors
                       ${activeTab === 'categories'
                         ? 'bg-primary text-primary-foreground'
                         : 'hover:bg-muted/40 text-foreground'
@@ -96,7 +96,7 @@ function ArchiveDrawer({
                   <button
                     onClick={() => setActiveTab('tags')}
                     className={`
-                      flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all
+                      flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors
                       ${activeTab === 'tags'
                         ? 'bg-primary text-primary-foreground'
                         : 'hover:bg-muted/40 text-foreground'
@@ -108,7 +108,7 @@ function ArchiveDrawer({
                   <button
                     onClick={() => setActiveTab('timeline')}
                     className={`
-                      flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all
+                      flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors
                       ${activeTab === 'timeline'
                         ? 'bg-primary text-primary-foreground'
                         : 'hover:bg-muted/40 text-foreground'
@@ -135,7 +135,7 @@ function ArchiveDrawer({
                           onClose();
                         }}
                         className="
-                          w-full text-left px-4 py-3 rounded-xl transition-all
+                          w-full text-left px-4 py-3 rounded-xl transition-colors
                           flex items-center justify-between
                           hover:bg-muted/40 text-foreground
                         "
@@ -167,7 +167,7 @@ function ArchiveDrawer({
                             onClose();
                           }}
                           className="
-                            px-4 py-2 rounded-full text-sm transition-all
+                            px-4 py-2 rounded-full text-sm transition-colors
                             bg-primary/10 border border-primary/30 hover:bg-primary/20 text-foreground
                           "
                         >
@@ -202,7 +202,7 @@ function ArchiveDrawer({
                                 href={`/articles/${article.id}`}
                                 onClick={onClose}
                                 className="
-                                  block px-4 py-2 rounded-lg transition-all
+                                  block px-4 py-2 rounded-lg transition-colors
                                   hover:bg-muted/40 text-foreground
                                 "
                               >
@@ -264,7 +264,7 @@ function ArchiveDrawer({
                           href={`/articles/${article.id}`}
                           onClick={onClose}
                           className="
-                            block px-4 py-2 rounded-lg transition-all flex items-start gap-3
+                            block px-4 py-2 rounded-lg transition-colors flex items-start gap-3
                             hover:bg-muted/40 text-foreground
                           "
                         >

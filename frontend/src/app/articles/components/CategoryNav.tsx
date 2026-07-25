@@ -31,7 +31,7 @@ function CategoryNav({ categories, selectedCategory, onCategorySelect }: Categor
       <div className="space-y-1">
         <button
           onClick={() => onCategorySelect(null)}
-          className={`w-full text-left px-3 py-2.5 rounded-lg flex items-center justify-between transition-all duration-200 ${
+          className={`w-full text-left px-3 py-2.5 rounded-lg flex items-center justify-between transition-colors duration-200 ${
             !selectedCategory
               ? 'bg-tech-cyan/20 text-tech-cyan font-medium'
               : 'hover:bg-muted/40 text-foreground'
@@ -52,7 +52,7 @@ function CategoryNav({ categories, selectedCategory, onCategorySelect }: Categor
               pathname: '/articles',
               query: { category: category.id }
             }}
-            className={`block w-full text-left px-3 py-2.5 rounded-lg flex items-center justify-between transition-all duration-200 ${
+            className={`block w-full text-left px-3 py-2.5 rounded-lg flex items-center justify-between transition-colors duration-200 ${
               selectedCategory === category.id
                 ? 'bg-tech-cyan/20 text-tech-cyan font-medium'
                 : 'hover:bg-muted/40 text-foreground'

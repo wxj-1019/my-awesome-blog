@@ -78,7 +78,7 @@ const SearchFilter = ({
           <motion.button
             onClick={() => setShowFilters(!showFilters)}
             className={cn(
-              "flex items-center gap-2 px-4 py-3 rounded-xl border transition-all duration-300",
+              "flex items-center gap-2 px-4 py-3 rounded-xl border transition-colors duration-300",
               showFilters || hasActiveFilters
                 ? "bg-tech-cyan/20 border-tech-cyan text-tech-cyan"
                 : "bg-glass/30 border-glass-border text-foreground/70 hover:bg-glass/50 hover:text-foreground"

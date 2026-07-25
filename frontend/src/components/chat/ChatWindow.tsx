@@ -418,7 +418,7 @@ export function ChatWindow({
               className={cn(
                 'absolute right-2 top-1/2 -translate-y-1/2',
                 'flex h-9 w-9 items-center justify-center rounded-xl',
-                'transition-all duration-200',
+                'transition-[colors,transform] duration-200',
                 input.trim() && !isLoading
                   ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/30 hover:shadow-cyan-500/50'
                   : 'bg-white/10 text-zinc-500 cursor-not-allowed'

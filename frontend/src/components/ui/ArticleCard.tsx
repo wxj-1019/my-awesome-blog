@@ -61,7 +61,7 @@ export default function ArticleCard({
     <Link
       href={targetHref as Route}
       className={cn(
-        `${glassCardClass} group overflow-hidden h-full flex flex-col transition-all duration-300 hover:-translate-y-2 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2`,
+        `${glassCardClass} group overflow-hidden h-full flex flex-col transition-[colors,transform] duration-300 hover:-translate-y-2 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2`,
         className
       )}
       aria-labelledby={`post-title-${id}`}

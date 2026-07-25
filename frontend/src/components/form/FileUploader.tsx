@@ -144,7 +144,7 @@ export default function FileUploader({
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         className={cn(
-          'relative border-2 border-dashed rounded-lg p-8 transition-all duration-300 cursor-pointer',
+          'relative border-2 border-dashed rounded-lg p-8 transition-[colors,transform] duration-300 cursor-pointer',
           isDragging
             ? 'border-tech-cyan bg-tech-cyan/5 scale-105'
             : 'border-glass-border hover:border-tech-cyan/50 hover:bg-glass/20',
@@ -252,7 +252,7 @@ export default function FileUploader({
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: index * 0.05 }}
                 className={cn(
-                  'relative group p-3 rounded-lg border transition-all',
+                  'relative group p-3 rounded-lg border transition-colors',
                   'bg-muted/40 border-border hover:border-primary/50'
                 )}
               >

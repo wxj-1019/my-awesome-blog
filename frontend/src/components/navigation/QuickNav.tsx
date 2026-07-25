@@ -74,7 +74,7 @@ export default function QuickNav({ items, trigger, className }: QuickNavProps) {
       <motion.button
         onClick={() => setIsOpen(true)}
         className={cn(
-          'flex items-center gap-2 px-4 py-2 rounded-lg transition-all',
+          'flex items-center gap-2 px-4 py-2 rounded-lg transition-colors',
           'bg-muted/40 border border-border text-foreground hover:bg-muted',
           className
         )}
@@ -152,7 +152,7 @@ export default function QuickNav({ items, trigger, className }: QuickNavProps) {
                         key={item.id}
                         onClick={() => handleItemClick(item)}
                         className={cn(
-                          'relative flex items-start gap-3 p-3 rounded-lg text-left transition-all',
+                          'relative flex items-start gap-3 p-3 rounded-lg text-left transition-colors',
                           selectedIndex === index
                             ? 'bg-tech-cyan/20 border-tech-cyan/50'
                             : 'hover:bg-muted/40',

@@ -56,7 +56,7 @@ export default function HeroSection() {
                 whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.95 }}
                 href="mailto:contact@example.com"
-                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-tech-cyan to-tech-sky text-primary-foreground rounded-2xl font-medium shadow-lg hover:shadow-xl transition-all duration-200"
+                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-tech-cyan to-tech-sky text-primary-foreground rounded-2xl font-medium shadow-lg hover:shadow-xl transition-colors duration-200"
               >
                 <Mail className="w-5 h-5" />
                 邮件联系
@@ -67,7 +67,7 @@ export default function HeroSection() {
                 href="https://github.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 px-6 py-3 bg-foreground/5 text-foreground rounded-2xl font-medium border border-foreground/20 hover:bg-foreground/10 transition-all duration-200 shadow-lg hover:shadow-xl"
+                className="flex items-center gap-2 px-6 py-3 bg-foreground/5 text-foreground rounded-2xl font-medium border border-foreground/20 hover:bg-foreground/10 transition-colors duration-200 shadow-lg hover:shadow-xl"
               >
                 <Github className="w-5 h-5" />
                 GitHub
@@ -78,7 +78,7 @@ export default function HeroSection() {
                 href="https://twitter.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 px-6 py-3 bg-foreground/5 text-foreground rounded-2xl font-medium border border-foreground/20 hover:bg-foreground/10 transition-all duration-200 shadow-lg hover:shadow-xl"
+                className="flex items-center gap-2 px-6 py-3 bg-foreground/5 text-foreground rounded-2xl font-medium border border-foreground/20 hover:bg-foreground/10 transition-colors duration-200 shadow-lg hover:shadow-xl"
               >
                 <Twitter className="w-5 h-5" />
                 Twitter
@@ -89,7 +89,7 @@ export default function HeroSection() {
                 href="https://linkedin.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 px-6 py-3 bg-foreground/5 text-foreground rounded-2xl font-medium border border-foreground/20 hover:bg-foreground/10 transition-all duration-200 shadow-lg hover:shadow-xl"
+                className="flex items-center gap-2 px-6 py-3 bg-foreground/5 text-foreground rounded-2xl font-medium border border-foreground/20 hover:bg-foreground/10 transition-colors duration-200 shadow-lg hover:shadow-xl"
               >
                 <Linkedin className="w-5 h-5" />
                 LinkedIn

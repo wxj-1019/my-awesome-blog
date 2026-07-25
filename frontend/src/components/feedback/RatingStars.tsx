@@ -74,7 +74,7 @@ export default forwardRef<HTMLDivElement, RatingStarsProps>(function RatingStars
         onMouseEnter={() => handleMouseEnter(index)}
         onMouseLeave={handleMouseLeave}
         className={cn(
-          'transition-all duration-200 cursor-pointer',
+          'transition-transform duration-200 cursor-pointer',
           readonly && 'cursor-default',
           !readonly && 'hover:scale-110'
         )}

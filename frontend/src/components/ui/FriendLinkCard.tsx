@@ -33,7 +33,7 @@ const FriendLinkCard = React.forwardRef<HTMLDivElement, FriendLinkCardProps>(
       <div
         ref={ref}
         className={cn(
-          'relative rounded-xl border border-glass-border shadow-lg text-foreground transition-all duration-300 overflow-hidden',
+          'relative rounded-xl border border-glass-border shadow-lg text-foreground transition-[colors,transform] duration-300 overflow-hidden',
           'bg-glass backdrop-blur-xl',
           hoverEffect && 'hover:-translate-y-1 hover:shadow-2xl hover:border-glass-glow',
           glowEffect && 'hover:shadow-[0_0_30px_var(--shadow-tech-cyan)]',
