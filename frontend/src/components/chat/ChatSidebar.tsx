@@ -61,7 +61,7 @@ export function ChatSidebar({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden"
+            className="fixed inset-0 z-40 bg-background/60 backdrop-blur-sm md:hidden"
           />
         )}
       </AnimatePresence>
@@ -69,44 +69,51 @@ export function ChatSidebar({
       {/* Sidebar Container */}
       <motion.aside
         className={cn(
-          "fixed top-16 bottom-0 left-0 z-50 flex w-72 flex-col border-r border-white/10 bg-black/80 backdrop-blur-xl transition-transform duration-300 md:translate-x-0",
-          isOpen ? "translate-x-0" : "-translate-x-full"
+          'fixed top-16 bottom-0 left-0 z-50 flex w-72 flex-col',
+          'border-r border-glass-border bg-glass/60 backdrop-blur-md',
+          'transition-transform duration-300 md:translate-x-0',
+          isOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
         {/* Header */}
-        <div className="flex h-16 items-center justify-between px-4 border-b border-white/5">
-          <div className="flex items-center gap-2 text-white">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600">
-              <Cpu size={18} className="text-white" />
+        <div className="flex h-16 shrink-0 items-center justify-between border-b border-glass-border px-4">
+          <div className="flex items-center gap-2 text-foreground">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/15 text-primary">
+              <Cpu size={18} aria-hidden />
             </div>
             <span className="font-bold tracking-wide">AI Chat</span>
           </div>
-          <button 
+          <button
             onClick={onClose}
-            className="rounded-lg p-2 text-zinc-400 hover:bg-white/10 hover:text-white md:hidden"
+            className="rounded-lg p-2 text-muted-foreground hover:bg-glass hover:text-foreground md:hidden"
             aria-label="关闭"
           >
-            <X size={20} aria-hidden="true" />
+            <X size={20} aria-hidden />
           </button>
         </div>
 
         {/* New Chat Button */}
-        <div className="p-4">
+        <div className="shrink-0 p-4">
           <button
             onClick={() => {
               onNewChat();
               if (window.innerWidth < 768) {onClose();}
             }}
-            className="group flex w-full items-center gap-3 rounded-xl bg-white/5 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-gradient-to-r hover:from-cyan-600 hover:to-blue-600 hover:shadow-lg hover:shadow-cyan-500/20 border border-white/10 hover:border-transparent"
+            className={cn(
+              'group flex w-full items-center gap-3 rounded-xl px-4 py-3',
+              'text-sm font-medium text-foreground',
+              'border border-glass-border bg-glass',
+              'transition-colors hover:border-primary/40 hover:text-primary'
+            )}
           >
-            <Plus size={18} className="text-cyan-400 group-hover:text-white transition-colors" />
+            <Plus size={18} className="text-primary" />
             <span>新对话</span>
           </button>
         </div>
 
         {/* Sessions List */}
-        <div className="flex-1 overflow-y-auto px-2 py-2 scrollbar-none">
-          <div className="mb-2 px-2 text-xs font-medium text-zinc-500 uppercase tracking-wider">
+        <div className="flex-1 overflow-y-auto px-2 py-2">
+          <div className="mb-2 px-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
             History
           </div>
           <div className="space-y-1">
@@ -118,47 +125,47 @@ export function ChatSidebar({
                   if (window.innerWidth < 768) {onClose();}
                 }}
                 className={cn(
-                  "group relative flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left text-sm transition-colors",
+                  'group relative flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left text-sm',
+                  'transition-colors',
                   currentSessionId === session.id
-                    ? "bg-white/10 text-white shadow-md"
-                    : "text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
+                    ? 'bg-primary/10 text-foreground'
+                    : 'text-muted-foreground hover:bg-glass hover:text-foreground'
                 )}
               >
-                <MessageSquare size={16} className={cn(
-                  "shrink-0 transition-colors",
-                  currentSessionId === session.id ? "text-cyan-400" : "text-zinc-600 group-hover:text-zinc-400"
-                )} />
+                <MessageSquare
+                  size={16}
+                  className={cn(
+                    'shrink-0',
+                    currentSessionId === session.id ? 'text-primary' : 'text-muted-foreground'
+                  )}
+                  aria-hidden
+                />
                 <div className="flex-1 truncate">
                   <div className="truncate font-medium">{session.title}</div>
                   {session.preview && (
-                    <div className="truncate text-xs text-zinc-500 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="mt-0.5 truncate text-xs text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
                       {session.preview}
                     </div>
                   )}
                 </div>
-                
-                {/* Delete Button (Visible on Hover/Active) */}
-                <div 
-                  className={cn(
-                    "absolute right-2 top-1/2 -translate-y-1/2 opacity-0 transition-opacity",
-                    "group-hover:opacity-100"
-                  )}
-                >
+
+                {/* Delete Button (Visible on Hover) */}
+                <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover:opacity-100">
                   <div
                     role="button"
                     onClick={(e) => {
                       e.stopPropagation();
                       onDeleteSession(session.id, e);
                     }}
-                    className="rounded p-1.5 hover:bg-red-500/20 hover:text-red-400 text-zinc-500"
+                    className="rounded p-1.5 text-muted-foreground hover:bg-red-500/20 hover:text-red-400"
                     aria-label="删除会话"
                   >
-                    <Trash2 size={14} aria-hidden="true" />
+                    <Trash2 size={14} aria-hidden />
                   </div>
                 </div>
               </button>
             ))}
-            
+
             {sessions.length === 0 && (
               <EmptyState
                 size="sm"
@@ -173,94 +180,57 @@ export function ChatSidebar({
         </div>
 
         {/* Footer - 提示词设置入口 */}
-        <div className="border-t border-white/5 p-4">
+        <div className="shrink-0 border-t border-glass-border p-4">
           <button
             onClick={() => setIsPromptSettingsOpen(true)}
             className={cn(
-              "w-full flex items-center gap-3 rounded-xl p-3 transition-colors group relative overflow-hidden",
-              selectedPrompt 
-                ? "bg-gradient-to-r from-cyan-500/20 to-blue-600/20 border border-cyan-500/30" 
-                : "bg-white/5 hover:bg-white/10"
+              'flex w-full items-center gap-3 rounded-xl p-3 transition-colors',
+              selectedPrompt
+                ? 'border border-primary/30 bg-primary/10'
+                : 'border border-glass-border bg-glass hover:border-primary/40'
             )}
           >
-            {/* Animated glow effect when prompt is selected */}
-            {selectedPrompt && (
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-blue-600/10"
-                animate={{
-                  opacity: [0.5, 1, 0.5],
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              />
-            )}
-            
-            <div className={cn(
-              "flex h-9 w-9 items-center justify-center rounded-lg transition-colors",
-              selectedPrompt 
-                ? "bg-gradient-to-br from-cyan-500 to-blue-600 shadow-lg shadow-cyan-500/30" 
-                : "bg-gradient-to-br from-cyan-500/50 to-blue-600/50"
-            )}>
-              {selectedPrompt ? (
-                <Sparkles size={18} className="text-white" />
-              ) : (
-                <FileText size={18} className="text-white" />
+            <div
+              className={cn(
+                'flex h-9 w-9 items-center justify-center rounded-lg',
+                selectedPrompt ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'
               )}
+            >
+              {selectedPrompt ? <Sparkles size={18} aria-hidden /> : <FileText size={18} aria-hidden />}
             </div>
-            
-            <div className="flex-1 overflow-hidden text-left relative z-10">
+
+            <div className="flex-1 overflow-hidden text-left">
               <div className="flex items-center gap-2">
-                <span className={cn(
-                  "truncate text-sm font-medium transition-colors",
-                  selectedPrompt ? "text-cyan-300" : "text-white"
-                )}>
+                <span
+                  className={cn(
+                    'truncate text-sm font-medium',
+                    selectedPrompt ? 'text-primary' : 'text-foreground'
+                  )}
+                >
                   {selectedPrompt?.name || '提示词设置'}
                 </span>
                 {selectedPrompt && (
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="flex h-5 w-5 items-center justify-center rounded-full bg-cyan-500"
-                  >
-                    <Check size={12} className="text-white" />
-                  </motion.div>
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary">
+                    <Check size={12} className="text-primary-foreground" aria-hidden />
+                  </span>
                 )}
               </div>
-              <div className={cn(
-                "truncate text-xs transition-colors",
-                selectedPrompt ? "text-cyan-400/70" : "text-zinc-500"
-              )}>
-                {selectedPrompt ? selectedPrompt.description?.slice(0, 30) || '点击更换提示词' : '点击选择提示词'}
+              <div className="truncate text-xs text-muted-foreground">
+                {selectedPrompt
+                  ? selectedPrompt.description?.slice(0, 30) || '点击更换提示词'
+                  : '点击选择提示词'}
               </div>
             </div>
-
-            {/* Arrow indicator */}
-            <motion.div
-              animate={{ x: [0, 4, 0] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-              className="text-zinc-500"
-            >
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M6 12L10 8L6 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </motion.div>
           </button>
 
           {/* Category badge when selected */}
           {selectedPrompt?.category && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-2 flex justify-center"
-            >
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400 text-xs">
-                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+            <div className="mt-2 flex justify-center">
+              <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 text-xs text-primary">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden />
                 {selectedPrompt.category}
               </span>
-            </motion.div>
+            </div>
           )}
         </div>
       </motion.aside>

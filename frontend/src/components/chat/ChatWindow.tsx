@@ -10,7 +10,6 @@ import {
   Sparkles,
   Loader2,
   AlertCircle,
-  Plus,
   FileText,
   Check,
   RefreshCw,
@@ -172,9 +171,43 @@ export function ChatWindow({
   };
 
   return (
-    <div className="relative h-full">
-      {/* Messages Area - Full height, content scrolls under header and input */}
-      <div className="absolute inset-0 overflow-y-auto px-4 pt-20 pb-32 scrollbar-thin scrollbar-thumb-white/10">
+    <div className="flex h-full flex-col">
+      {/* Header - 顶部固定栏（token 化 + 降 blur） */}
+      <div className="flex h-16 shrink-0 items-center justify-between border-b border-glass-border bg-glass/40 px-4 backdrop-blur-md">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={onToggleSidebar}
+            className="rounded-lg p-2 text-muted-foreground hover:bg-glass hover:text-foreground"
+            aria-label="打开侧边栏"
+          >
+            <Menu size={20} aria-hidden />
+          </button>
+
+          {selectedPrompt ? (
+            <div className="flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5">
+              <Sparkles size={14} className="text-primary" aria-hidden />
+              <span className="text-sm font-medium text-primary">{selectedPrompt.name}</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <FileText size={14} aria-hidden />
+              <span>未选择提示词</span>
+            </div>
+          )}
+        </div>
+
+        {/* 「新对话」入口移除：侧边栏已有，避免重复 */}
+        <button
+          onClick={onNewSession}
+          className="rounded-lg p-2 text-muted-foreground hover:bg-glass hover:text-foreground md:hidden"
+          aria-label="新对话"
+        >
+          <Sparkles size={18} aria-hidden />
+        </button>
+      </div>
+
+      {/* Messages Area - flex-1 占满中间 */}
+      <div className="flex-1 overflow-y-auto px-4 py-6">
         {sessionMessages.length === 0 && !streamingContent ? (
           <div className="flex h-full flex-col items-center justify-center text-center">
             <motion.div
@@ -183,14 +216,14 @@ export function ChatWindow({
               className="max-w-md space-y-6"
             >
               <div className="flex justify-center">
-                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 shadow-lg shadow-cyan-500/30">
-                  <Bot size={32} className="text-white" />
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/15 text-primary">
+                  <Bot size={32} aria-hidden />
                 </div>
               </div>
 
               <div>
-                <h2 className="text-2xl font-bold text-white">开始对话</h2>
-                <p className="mt-2 text-zinc-400">
+                <h2 className="text-2xl font-bold text-foreground">开始对话</h2>
+                <p className="mt-2 text-muted-foreground">
                   {selectedPrompt
                     ? `当前使用「${selectedPrompt.name}」提示词`
                     : '选择一个提示词开始智能对话'}
@@ -202,15 +235,15 @@ export function ChatWindow({
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.2 }}
-                  className="p-4 rounded-xl bg-white/5 border border-white/10 text-left"
+                  className="rounded-xl border border-glass-border bg-glass p-4 text-left"
                 >
                   <div className="flex items-start gap-3">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-500/20 shrink-0">
-                      <Sparkles size={16} className="text-cyan-400" />
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
+                      <Sparkles size={16} aria-hidden />
                     </div>
                     <div>
-                      <div className="text-sm font-medium text-white">{selectedPrompt.name}</div>
-                      <p className="mt-1 text-xs text-zinc-400 line-clamp-2">
+                      <div className="text-sm font-medium text-foreground">{selectedPrompt.name}</div>
+                      <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
                         {selectedPrompt.description}
                       </p>
                     </div>
@@ -223,7 +256,7 @@ export function ChatWindow({
                   <button
                     key={example}
                     onClick={() => setInput(example)}
-                    className="px-3 py-1.5 text-sm text-zinc-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-colors"
+                    className="rounded-full bg-glass px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
                   >
                     {example}
                   </button>
@@ -246,16 +279,16 @@ export function ChatWindow({
                   )}
                 >
                   {message.role === 'assistant' && (
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600">
-                      <Bot size={16} className="text-white" />
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
+                      <Bot size={16} aria-hidden />
                     </div>
                   )}
                   <div
                     className={cn(
                       'max-w-[80%] rounded-2xl px-4 py-3',
                       message.role === 'user'
-                        ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white'
-                        : 'bg-white/5 text-zinc-200 border border-white/10'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'border border-glass-border bg-glass text-foreground'
                     )}
                   >
                     <div className="whitespace-pre-wrap break-words text-sm leading-relaxed">
@@ -263,8 +296,8 @@ export function ChatWindow({
                     </div>
                   </div>
                   {message.role === 'user' && (
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-zinc-700">
-                      <User size={16} className="text-zinc-300" />
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-glass text-muted-foreground">
+                      <User size={16} aria-hidden />
                     </div>
                   )}
                 </motion.div>
@@ -277,13 +310,13 @@ export function ChatWindow({
                 animate={{ opacity: 1 }}
                 className="flex gap-4"
               >
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600">
-                  <Bot size={16} className="text-white" />
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
+                  <Bot size={16} aria-hidden />
                 </div>
-                <div className="max-w-[80%] rounded-2xl px-4 py-3 bg-white/5 text-zinc-200 border border-white/10">
+                <div className="max-w-[80%] rounded-2xl border border-glass-border bg-glass px-4 py-3 text-foreground">
                   <div className="whitespace-pre-wrap break-words text-sm leading-relaxed">
                     {streamingContent}
-                    <span className="inline-block w-2 h-4 ml-1 bg-cyan-400 animate-pulse" />
+                    <span className="ml-1 inline-block h-4 w-2 animate-pulse bg-primary" aria-hidden />
                   </div>
                 </div>
               </motion.div>
@@ -295,12 +328,12 @@ export function ChatWindow({
                 animate={{ opacity: 1 }}
                 className="flex gap-4"
               >
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600">
-                  <Bot size={16} className="text-white" />
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
+                  <Bot size={16} aria-hidden />
                 </div>
-                <div className="flex items-center gap-2 px-4 py-3 rounded-2xl bg-white/5 border border-white/10">
-                  <Loader2 className="animate-spin text-cyan-400" size={16} />
-                  <span className="text-sm text-zinc-400">正在思考...</span>
+                <div className="flex items-center gap-2 rounded-2xl border border-glass-border bg-glass px-4 py-3">
+                  <Loader2 className="animate-spin text-primary" size={16} aria-hidden />
+                  <span className="text-sm text-muted-foreground">正在思考...</span>
                 </div>
               </motion.div>
             )}
@@ -309,17 +342,17 @@ export function ChatWindow({
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="flex items-center gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/20"
+                className="flex items-center gap-3 rounded-xl border border-red-500/20 bg-red-500/10 p-4"
               >
-                <AlertCircle className="text-red-400 shrink-0" size={20} />
+                <AlertCircle className="shrink-0 text-red-400" size={20} aria-hidden />
                 <div className="flex-1">
                   <p className="text-sm text-red-400">{error}</p>
                 </div>
                 <button
                   onClick={handleRetry}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
+                  className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm text-red-400 transition-colors hover:bg-red-500/20"
                 >
-                  <RefreshCw size={14} />
+                  <RefreshCw size={14} aria-hidden />
                   重试
                 </button>
               </motion.div>
@@ -330,51 +363,8 @@ export function ChatWindow({
         )}
       </div>
 
-      {/* Header - Fixed overlay with blur */}
-      <div className="absolute top-0 left-0 right-0 z-20 flex h-16 items-center justify-between border-b border-white/10 px-4 bg-black/20 backdrop-blur-xl">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={onToggleSidebar}
-            className="rounded-lg p-2 text-zinc-400 hover:bg-white/10 hover:text-white transition-colors"
-            aria-label="打开侧边栏"
-          >
-            <Menu size={20} aria-hidden="true" />
-          </button>
-
-          {selectedPrompt ? (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-cyan-500/20 to-blue-600/20 border border-cyan-500/30"
-            >
-              <motion.div
-                animate={{ rotate: [0, 360] }}
-                transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
-              >
-                <Sparkles size={14} className="text-cyan-400" />
-              </motion.div>
-              <span className="text-sm font-medium text-cyan-300">{selectedPrompt.name}</span>
-              <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-            </motion.div>
-          ) : (
-            <div className="flex items-center gap-2 text-zinc-500 text-sm">
-              <FileText size={14} />
-              <span>未选择提示词</span>
-            </div>
-          )}
-        </div>
-
-        <button
-          onClick={onNewSession}
-          className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 hover:bg-white/10 hover:text-white transition-colors"
-        >
-          <Plus size={16} />
-          <span className="hidden sm:inline">新对话</span>
-        </button>
-      </div>
-
-      {/* Input Area - Fixed overlay with blur */}
-      <div className="absolute bottom-0 left-0 right-0 z-20 border-t border-white/10 p-4 bg-black/20 backdrop-blur-xl">
+      {/* Input Area - 底部固定（token 化 + 降 blur） */}
+      <div className="shrink-0 border-t border-glass-border bg-glass/40 p-4 backdrop-blur-md">
         <div className="mx-auto max-w-3xl">
           {selectedPrompt && (
             <motion.div
@@ -382,12 +372,12 @@ export function ChatWindow({
               animate={{ opacity: 1, y: 0 }}
               className="mb-3 flex items-center justify-center"
             >
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-cyan-500/10 to-blue-600/10 border border-cyan-500/20 text-xs text-cyan-400">
-                <Sparkles size={12} />
+              <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5 text-xs text-primary">
+                <Sparkles size={12} aria-hidden />
                 <span>使用提示词: {selectedPrompt.name}</span>
-                <div className="flex items-center justify-center w-4 h-4 rounded-full bg-cyan-500/20">
-                  <Check size={10} className="text-cyan-400" />
-                </div>
+                <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary/20">
+                  <Check size={10} aria-hidden />
+                </span>
               </div>
             </motion.div>
           )}
@@ -402,9 +392,11 @@ export function ChatWindow({
               rows={1}
               disabled={isLoading}
               className={cn(
-                'w-full resize-none rounded-2xl px-4 py-3 pr-12 text-white placeholder-zinc-500',
-                'bg-white/5 border border-white/10 focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20',
-                'transition-colors disabled:opacity-50 disabled:cursor-not-allowed',
+                'w-full resize-none rounded-2xl px-4 py-3 pr-12',
+                'placeholder:text-muted-foreground/70',
+                'border border-glass-border bg-glass text-foreground',
+                'focus:border-primary/50 focus:ring-1 focus:ring-primary/20',
+                'transition-[border-color,box-shadow] disabled:cursor-not-allowed disabled:opacity-50',
                 'min-h-[48px] max-h-[200px]'
               )}
               style={{
@@ -420,15 +412,19 @@ export function ChatWindow({
                 'flex h-9 w-9 items-center justify-center rounded-xl',
                 'transition-[colors,transform] duration-200',
                 input.trim() && !isLoading
-                  ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/30 hover:shadow-cyan-500/50'
-                  : 'bg-white/10 text-zinc-500 cursor-not-allowed'
+                  ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-primary/50'
+                  : 'cursor-not-allowed bg-muted text-muted-foreground'
               )}
               aria-label="发送"
             >
-              {isLoading ? <Loader2 className="animate-spin" size={18} aria-hidden="true" /> : <Send size={18} aria-hidden="true" />}
+              {isLoading ? (
+                <Loader2 className="animate-spin" size={18} aria-hidden />
+              ) : (
+                <Send size={18} aria-hidden />
+              )}
             </button>
           </form>
-          <p className="mt-2 text-center text-xs text-zinc-600">
+          <p className="mt-2 text-center text-xs text-muted-foreground">
             按 Enter 发送 · Shift + Enter 换行
           </p>
         </div>
