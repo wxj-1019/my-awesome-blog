@@ -21,15 +21,19 @@ import { EASE, TRANSITION } from '@/lib/animation-utils';
 
 export const HOME_EASE = EASE.SNAPPY;
 
+/**
+ * 阶段 B 柔和：入场时长整体拉长一档——
+ * 位移不变、速度放缓，reveal 从「弹入」变为「浮出水面」。
+ */
 export const HOME_DURATION = {
-  act: 0.55,
-  content: 0.5,
-  dive: 0.9,
-  waveEnter: 1.1,
-  reelSnap: 0.45,
+  act: 0.72,
+  content: 0.66,
+  dive: 1.05,
+  waveEnter: 1.25,
+  reelSnap: 0.55,
 } as const;
 
-export const HOME_STAGGER = 0.08;
+export const HOME_STAGGER = 0.09;
 
 export const HOME_VIEWPORT = {
   once: true,

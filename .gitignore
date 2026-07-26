@@ -184,5 +184,8 @@ dmypy.json
 
 .superpowers/
 
+# ZCode 编辑器本地工作目录（plans 等，不入版本库）
+.zcode/
+
 # Git worktrees（隔离工作区）
 .worktrees/

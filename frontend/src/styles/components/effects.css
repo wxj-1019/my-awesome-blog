@@ -50,7 +50,7 @@
 }
 
 .hero-bg {
-  animation: drift 20s ease-in-out infinite;
+  animation: drift 26s var(--ease-breathe) infinite;
 }
 
 .clip-path-cyber {
@@ -89,7 +89,7 @@
       var(--dynamic-bg-gradient-2) 50%,
       var(--dynamic-bg-gradient-3) 100%
     );
-  animation: dynamic-bg-shift 15s ease-in-out infinite;
+  animation: dynamic-bg-shift 24s var(--ease-breathe) infinite;
   opacity: 0.6;
 }
 
@@ -107,7 +107,7 @@
       var(--dynamic-bg-gradient-3) 50%,
       var(--dynamic-bg-gradient-1) 100%
     );
-  animation: dynamic-bg-shift 20s ease-in-out infinite reverse;
+  animation: dynamic-bg-shift 30s var(--ease-breathe) infinite reverse;
   opacity: 0.4;
 }
 

@@ -1,16 +1,26 @@
+/* 阶段 B 柔和：环境循环从「0/50/100 对称乒乓」改为多节点有机路径——
+   每个节点的位移/缩放幅度不同，顶点停留更久、回位更缓，
+   观感从节拍器变为水中漂移（参考沉浸式自然场景的浮游手法） */
 @keyframes drift {
-  0%, 100% { transform: scale(1) translateX(0) translateY(0); }
-  50% { transform: scale(1.02) translateX(-10px) translateY(-5px); }
+  0% { transform: scale(1) translateX(0) translateY(0); }
+  32% { transform: scale(1.015) translateX(-6px) translateY(-4px); }
+  58% { transform: scale(1.02) translateX(-10px) translateY(-6px); }
+  82% { transform: scale(1.008) translateX(-4px) translateY(-2px); }
+  100% { transform: scale(1) translateX(0) translateY(0); }
 }
 
 @keyframes glass-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+  0% { transform: translateY(0) translateX(0); }
+  28% { transform: translateY(-7px) translateX(1.5px); }
+  55% { transform: translateY(-11px) translateX(-1px); }
+  80% { transform: translateY(-5px) translateX(0.5px); }
+  100% { transform: translateY(0) translateX(0); }
 }
 
 @keyframes pulse-glow {
   0%, 100% { box-shadow: 0 0 15px var(--shadow-tech-cyan); }
-  50% { box-shadow: 0 0 25px var(--shadow-tech-cyan); }
+  42% { box-shadow: 0 0 24px var(--shadow-tech-cyan); }
+  60% { box-shadow: 0 0 25px var(--shadow-tech-cyan); }
 }
 
 @keyframes gradient-move {
@@ -77,11 +87,17 @@
 }
 
 @keyframes dynamic-bg-shift {
-  0%, 100% {
+  0% {
     transform: translate(0, 0) scale(1);
   }
-  50% {
+  30% {
+    transform: translate(6%, -6%) scale(1.06);
+  }
+  55% {
     transform: translate(10%, -10%) scale(1.1);
+  }
+  80% {
+    transform: translate(4%, -3%) scale(1.03);
   }
   100% {
     transform: translate(0, 0) scale(1);

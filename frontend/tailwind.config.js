@@ -179,13 +179,18 @@ export default {
           from: { height: 'var(--radix-accordion-content-height)' },
           to: { height: 0 },
         },
+        // 阶段 B：循环关键帧与 styles/animations/keyframes.css 同款有机路径
         'glass-float': {
-          '0%, 100%': { transform: 'translateY(0)' },
-          '50%': { transform: 'translateY(-10px)' },
+          '0%': { transform: 'translateY(0) translateX(0)' },
+          '28%': { transform: 'translateY(-7px) translateX(1.5px)' },
+          '55%': { transform: 'translateY(-11px) translateX(-1px)' },
+          '80%': { transform: 'translateY(-5px) translateX(0.5px)' },
+          '100%': { transform: 'translateY(0) translateX(0)' },
         },
         'pulse-glow': {
           '0%, 100%': { boxShadow: '0 0 15px rgba(6, 182, 212, 0.15)' },
-          '50%': { boxShadow: '0 0 25px rgba(6, 182, 212, 0.3)' },
+          '42%': { boxShadow: '0 0 24px rgba(6, 182, 212, 0.28)' },
+          '60%': { boxShadow: '0 0 25px rgba(6, 182, 212, 0.3)' },
         },
         'gradient-move': {
           '0%': { backgroundPosition: '0% 50%' },
@@ -193,15 +198,15 @@ export default {
           '100%': { backgroundPosition: '0% 50%' },
         },
         'fade-in-up': {
-          '0%': { opacity: '0', transform: 'translateY(20px)' },
+          '0%': { opacity: '0', transform: 'translateY(16px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
         },
         'slide-in-left': {
-          '0%': { opacity: '0', transform: 'translateX(-30px)' },
+          '0%': { opacity: '0', transform: 'translateX(-24px)' },
           '100%': { opacity: '1', transform: 'translateX(0)' },
         },
         'scale-fade-in': {
-          '0%': { opacity: '0', transform: 'scale(0.95)' },
+          '0%': { opacity: '0', transform: 'scale(0.96)' },
           '100%': { opacity: '1', transform: 'scale(1)' },
         },
         'fade-in': {
@@ -209,14 +214,15 @@ export default {
           '100%': { opacity: '1' },
         },
         'fade-scale-up': {
-          from: { opacity: 0, transform: 'translateY(30px) scale(0.95)' },
+          from: { opacity: 0, transform: 'translateY(20px) scale(0.96)' },
           to: { opacity: 1, transform: 'translateY(0) scale(1)' },
         },
+        // 阶段 B：漂浮幅度 15/20px → 9/13px、scale 1.05 → 1.03，退去「跳跃感」
         'float-improved': {
           '0%, 100%': { transform: 'translateY(0px) translateX(0px) scale(1)' },
-          '25%': { transform: 'translateY(-15px) translateX(5px) scale(1.02)' },
-          '50%': { transform: 'translateY(-20px) translateX(-5px) scale(1.05)' },
-          '75%': { transform: 'translateY(-10px) translateX(3px) scale(1.02)' },
+          '25%': { transform: 'translateY(-9px) translateX(3px) scale(1.01)' },
+          '50%': { transform: 'translateY(-13px) translateX(-3px) scale(1.03)' },
+          '75%': { transform: 'translateY(-6px) translateX(2px) scale(1.01)' },
         },
         'glow-pulse': {
           '0%, 100%': { boxShadow: '0 0 20px rgba(6, 182, 212, 0.15), 0 0 40px rgba(6, 182, 212, 0.05)' },
@@ -245,23 +251,24 @@ export default {
         },
       },
       // 统一定义animation（与keyframes一一对应，避免重复键）
+      // 阶段 B：循环用 --ease-breathe 长周期；入场用 --ease-soft 软出曲线拉长时长
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
-        'glass-float': 'glass-float 6s ease-in-out infinite',
-        'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
-        'gradient-move': 'gradient-move 8s ease infinite',
-        'fade-in-up': 'fade-in-up 0.6s ease-out forwards',
-        'slide-in-left': 'slide-in-left 0.6s ease-out forwards',
-        'scale-fade-in': 'scale-fade-in 0.5s ease-out forwards',
-        'fade-in': 'fade-in 0.6s ease-out forwards',
-        'fade-scale-up': 'fade-scale-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-        'float-improved': 'float-improved 8s ease-in-out infinite',
-        'glow-pulse': 'glow-pulse 3s ease-in-out infinite',
-        'slide-in-right': 'slide-in-right 0.6s ease-out forwards',
+        'glass-float': 'glass-float 9s var(--ease-breathe) infinite',
+        'pulse-glow': 'pulse-glow 3.6s var(--ease-breathe) infinite',
+        'gradient-move': 'gradient-move 14s var(--ease-breathe) infinite',
+        'fade-in-up': 'fade-in-up 0.7s var(--ease-soft) forwards',
+        'slide-in-left': 'slide-in-left 0.7s var(--ease-soft) forwards',
+        'scale-fade-in': 'scale-fade-in 0.6s var(--ease-soft) forwards',
+        'fade-in': 'fade-in 0.7s var(--ease-soft) forwards',
+        'fade-scale-up': 'fade-scale-up 0.75s var(--ease-soft) forwards',
+        'float-improved': 'float-improved 12s var(--ease-breathe) infinite',
+        'glow-pulse': 'glow-pulse 4.5s var(--ease-breathe) infinite',
+        'slide-in-right': 'slide-in-right 0.7s var(--ease-soft) forwards',
         'vertical-scroll': 'vertical-scroll 20s linear infinite',
         'scanline': 'scanline 2s linear infinite',
         'rainbow-shift': 'rainbow-shift 3s linear infinite',
-        'pulse-slow': 'pulse-slow 4s ease-in-out infinite',
+        'pulse-slow': 'pulse-slow 5.5s var(--ease-breathe) infinite',
       },
       transitionProperty: {
         'height': 'height',

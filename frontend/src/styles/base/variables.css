@@ -15,7 +15,9 @@
  * 阶段 A 柔和：略降饱和/描边/光晕，增大 radius，深色主色偏 teal
  */
 :root {
-  --background: #f4f6f8;
+  /* 阶段 B 柔和：浅底从中性灰蓝转为「晨雾海面」——低饱和青灰，
+     白卡在其上仍有足够对比，整体观感更湿润柔和 */
+  --background: #edf3f4;
   --foreground: #0f172a;
   /* 统一品牌色：科技青（浅色取深一档保证对比度） */
   --primary: #0284c7;
@@ -53,7 +55,8 @@
   --glass-default: rgba(255, 255, 255, 0.96);
   --glass-border: rgba(14, 165, 233, 0.2);
   --glass-glow: rgba(14, 165, 233, 0.16);
-  --glass-shadow: 0 12px 40px rgba(15, 23, 42, 0.08);
+  /* 阶段 B 柔和：更大弥散 + 更低不透明度，阴影如雾中投影 */
+  --glass-shadow: 0 14px 44px rgba(15, 23, 42, 0.06);
 
   /* 统一科技色系 - 使用青色系 */
   --tech-darkblue: #0c4a6e;
@@ -124,8 +127,12 @@
   --text-primary-high-contrast: #0f172a;
   --text-secondary-high-contrast: #475569;
 
-  --transition-duration: 0.22s;
-  --transition-easing: cubic-bezier(0.4, 0, 0.2, 1);
+  /* 阶段 B 柔和：微交互稍慢一拍 + 软出曲线（无过冲的 easeOutCubic 家族） */
+  --transition-duration: 0.28s;
+  --transition-easing: cubic-bezier(0.33, 1, 0.68, 1);
+  /* 入场/ reveal 用软出曲线；无限环境循环用呼吸曲线（近似正弦，两端更绵） */
+  --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-breathe: cubic-bezier(0.45, 0.05, 0.55, 0.95);
 
   --ripple-color: rgba(14, 165, 233, 0.25);
 
@@ -150,8 +157,8 @@
   --rope-to: #8b4513;
   --rope-mid: #c4956a;
 
-  /* Wave 装饰填充（Wave.tsx / WaveStack.tsx） */
-  --wave-fill-from: #e2e8f0;
+  /* Wave 装饰填充（Wave.tsx / WaveStack.tsx）；浅色起点随晨雾海面基调 */
+  --wave-fill-from: #dce9eb;
   --wave-fill-to: #ffffff;
 }
 

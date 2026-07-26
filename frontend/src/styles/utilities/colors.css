@@ -81,19 +81,19 @@
 .gradient-bg {
   background: linear-gradient(-45deg, var(--background), var(--tech-deepblue), var(--tech-cyan), var(--tech-sky));
   background-size: 400% 400%;
-  animation: gradient-move 8s ease infinite;
+  animation: gradient-move 14s var(--ease-breathe) infinite;
 }
 
 .light .gradient-bg {
   background: linear-gradient(-45deg, #f8fafc, #e0f2fe, #bae6fd, #93c5fd);
   background-size: 400% 400%;
-  animation: gradient-move 8s ease infinite;
+  animation: gradient-move 14s var(--ease-breathe) infinite;
 }
 
 .dark .gradient-bg {
   background: linear-gradient(-45deg, var(--background), var(--tech-deepblue), var(--tech-lightcyan), var(--tech-sky));
   background-size: 400% 400%;
-  animation: gradient-move 8s ease infinite;
+  animation: gradient-move 14s var(--ease-breathe) infinite;
 }
 
 .glass-effect {

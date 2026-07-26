@@ -22,19 +22,26 @@ export default function ArticleHeroCover({ src, alt }: ArticleHeroCoverProps) {
   return (
     <div className="relative h-full w-full overflow-hidden">
       <style jsx>{`
+        /* 阶段 B：多节点缓推路径 + 呼吸曲线，镜头感从「往返推镜」变为「缓慢游移」 */
         @keyframes hero-kenburns {
           0% {
             transform: scale(1) translate3d(0, 0, 0);
           }
-          50% {
+          30% {
+            transform: scale(1.05) translate3d(-0.8%, -1%, 0);
+          }
+          55% {
             transform: scale(1.08) translate3d(-1.2%, -1.5%, 0);
+          }
+          80% {
+            transform: scale(1.03) translate3d(-0.4%, -0.5%, 0);
           }
           100% {
             transform: scale(1) translate3d(0, 0, 0);
           }
         }
         .hero-kenburns {
-          animation: hero-kenburns 26s ease-in-out infinite;
+          animation: hero-kenburns 32s var(--ease-breathe) infinite;
           will-change: transform;
         }
         @media (prefers-reduced-motion: reduce) {

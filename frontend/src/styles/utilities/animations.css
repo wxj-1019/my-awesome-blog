@@ -1,13 +1,15 @@
+/* 阶段 B 柔和：环境循环周期拉长 + 呼吸缓动 token，
+   运动从「可见的循环」退为「可感的氛围」 */
 .animate-gradient-move {
-  animation: gradient-move 8s ease infinite;
+  animation: gradient-move 14s var(--ease-breathe) infinite;
 }
 
 .animate-float {
-  animation: glass-float 6s ease-in-out infinite;
+  animation: glass-float 9s var(--ease-breathe) infinite;
 }
 
 .animate-pulse-glow {
-  animation: pulse-glow 2s ease-in-out infinite;
+  animation: pulse-glow 3.6s var(--ease-breathe) infinite;
 }
 
 .animate-glitch-1 {
