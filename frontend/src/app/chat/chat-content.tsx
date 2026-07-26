@@ -156,7 +156,6 @@ export default function ChatPageContent() {
       }
     >
       <ChatWindow
-        onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
         sessionMessages={currentMessages}
         onMessagesChange={updateMessages}
         onNewSession={createNewSession}

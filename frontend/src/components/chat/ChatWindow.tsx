@@ -3,7 +3,6 @@
 import { useRef, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from '@/lib/framer-motion';
 import {
-  Menu,
   Send,
   User,
   Bot,
@@ -33,7 +32,6 @@ const WRITING_ASSISTANT_PROMPT =
   '输出使用适合直接发布的 Markdown 格式，语言自然流畅，避免模板化表达。';
 
 interface ChatWindowProps {
-  onToggleSidebar: () => void;
   sessionMessages: ChatMessage[];
   onMessagesChange: (messages: ChatMessage[]) => void;
   onNewSession: () => void;
@@ -57,7 +55,6 @@ function buildFallbackPrompt(skill: ShowcaseSkill): string {
 }
 
 export function ChatWindow({
-  onToggleSidebar,
   sessionMessages,
   onMessagesChange,
   onNewSession,
@@ -249,44 +246,34 @@ export function ChatWindow({
     <div className="flex h-full flex-col">
       {/* Header - 顶部固定栏（token 化 + 降 blur） */}
       <div className="flex h-16 shrink-0 items-center justify-between border-b border-glass-border bg-glass/40 px-4 backdrop-blur-md">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={onToggleSidebar}
-            className="rounded-lg p-2 text-muted-foreground hover:bg-glass hover:text-foreground"
-            aria-label="打开侧边栏"
-          >
-            <Menu size={20} aria-hidden />
-          </button>
-
-          {/* 当前工具状态：选了 skill 显示 chip（可点开弹窗 / 可清除），否则显示选择按钮 */}
-          {selectedSkill ? (
-            <div className="flex items-center gap-1.5">
-              <button
-                onClick={onOpenSkillPicker}
-                className="flex items-center gap-1.5 rounded-lg border border-primary/40 bg-primary/10 px-2.5 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-primary/60"
-              >
-                <Sparkles size={13} className="text-primary" aria-hidden />
-                <span className="max-w-[8rem] truncate">{selectedSkill.name}</span>
-              </button>
-              <button
-                onClick={onClearSkill}
-                className="rounded-lg p-1 text-muted-foreground transition-colors hover:bg-glass hover:text-foreground"
-                aria-label="清除选中的工具，恢复写作助手"
-              >
-                <X size={14} aria-hidden />
-              </button>
-            </div>
-          ) : (
+        {/* 当前工具状态：选了 skill 显示 chip（可点开弹窗 / 可清除），否则显示选择按钮 */}
+        {selectedSkill ? (
+          <div className="flex items-center gap-1.5">
             <button
               onClick={onOpenSkillPicker}
-              className="flex items-center gap-1.5 rounded-lg border border-glass-border bg-glass px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+              className="flex items-center gap-1.5 rounded-lg border border-primary/40 bg-primary/10 px-2.5 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-primary/60"
             >
-              <FileText size={13} aria-hidden />
-              <span>写作助手</span>
-              <Plus size={12} aria-hidden />
+              <Sparkles size={13} className="text-primary" aria-hidden />
+              <span className="max-w-[8rem] truncate">{selectedSkill.name}</span>
             </button>
-          )}
-        </div>
+            <button
+              onClick={onClearSkill}
+              className="rounded-lg p-1 text-muted-foreground transition-colors hover:bg-glass hover:text-foreground"
+              aria-label="清除选中的工具，恢复写作助手"
+            >
+              <X size={14} aria-hidden />
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={onOpenSkillPicker}
+            className="flex items-center gap-1.5 rounded-lg border border-glass-border bg-glass px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+          >
+            <FileText size={13} aria-hidden />
+            <span>写作助手</span>
+            <Plus size={12} aria-hidden />
+          </button>
+        )}
 
         {/* 「新对话」入口移除：侧边栏已有，避免重复 */}
         <button

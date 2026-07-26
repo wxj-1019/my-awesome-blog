@@ -79,24 +79,25 @@ export default function SkillPickerDialog({
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* 遮罩 */}
+          {/* 遮罩 + 居中容器：用 flex 包裹面板，避免 translate-y 居中时长内容溢出顶部 */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
             onClick={onClose}
-          />
-          {/* 面板 */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.96, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: 20 }}
-            transition={{ duration: 0.2, ease: 'easeOut' }}
-            className="fixed left-1/2 top-1/2 z-50 w-full max-w-2xl -translate-x-1/2 -translate-y-1/2 px-4"
           >
-            <div className="flex max-h-[85vh] flex-col overflow-hidden rounded-2xl border border-glass-border bg-glass backdrop-blur-xl shadow-2xl">
+            {/* 面板：阻止点击事件冒泡到遮罩导致误关闭 */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 20 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-2xl"
+            >
+              <div className="flex max-h-[85vh] flex-col overflow-hidden rounded-2xl border border-glass-border bg-glass backdrop-blur-xl shadow-2xl">
               {/* 标题栏 */}
               <div className="flex items-center justify-between border-b border-glass-border px-6 py-4">
                 <div className="flex items-center gap-3">
@@ -202,7 +203,8 @@ export default function SkillPickerDialog({
               <div className="border-t border-glass-border px-6 py-3 text-xs text-muted-foreground">
                 提示：带 SKILL.md 全文的 skill 将注入完整正文；无正文的将注入描述与亮点。
               </div>
-            </div>
+              </div>
+            </motion.div>
           </motion.div>
         </>
       )}
