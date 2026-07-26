@@ -43,6 +43,13 @@
 | 2026-07-20 | `FeaturedHighlights.test.tsx` 断言过时 testid `featured-satellite-card` | 已修复：改为与 `ReelCard` 实际一致的 `featured-reel-card`（改动前复现确认） |
 | 2026-07-20 | `jest-axe` 在 devDependencies 声明但未安装，全部前端测试无法启动 | 已安装；`home` / `DiveTransition` / `HomeCyberLayers` / `FeaturedHighlights` 4 套件 13 用例通过 |
 | 2026-07-20 | 全局动态背景缺失；浅色模式挂 pastel 风 Canvas 粒子（`DynamicBackground`）与深海叙事冲突，且 `PageDecorations` / `FloatingParticles` 为无引用死代码 | 已处理：新建 `components/visual/AmbientBackground.tsx`（渐变基底 + 双光斑 CSS 漂移 + 稀疏气泡 + 噪点，全 token / 双主题 / RM 静态），经 `theme-wrapper` 全局挂载；`layout.tsx` 内层容器去 `bg-background` 让氛围透出（body 保留底色）；删除 `DynamicBackground` / `PageDecorations` / `FloatingParticles` 三个被替代/死代码组件 |
+| 2026-07-26 | DeepSeek 模型对话全链路不可用（401 / 模型名不支持 / 流式报错） | 已修复三层：① 前端 `ChatWindow` 流式请求未带 JWT（401）→ 加 `Authorization: Bearer` 头；② `deepseek-chat` / `deepseek-reasoner` 官方已于 2026-07-24 弃用 → 全量改为 `deepseek-v4-flash`（config / schema / .env.example / 前端 ai/chat，共 6 处）；③ V4 流式部分 chunk 返回 `content:null` 触发 Pydantic 校验错 → `deepseek_provider.py` 用 `delta.get('content') or ''` 兜底 |
+| 2026-07-26 | `/chat` 对话页 UI/UX 与全站设计体系脱节（非 token 配色、Footer 遮挡、缺 Markdown 渲染、死代码） | 已修复：PromptSettings.tsx（976 行）批量 token 化；ChatWindow assistant 消息接入 `MarkdownRenderer` + 401 跳登录；Footer 在 `/chat`、`/ai/chat` 路由 `return null`（原 z-30 遮盖 hack 移除）；删除零引用的 MessageBubble / ChatInput / ModelSelector 三组件；对话页定位「写作助手」（metadata + 移除提示词模块） |
+| 2026-07-26 | 后台 `/admin` 导航栏遮挡页面顶部内容（双层导航栏叠加） | 已定位真因：根布局渲染的前台 `<Navbar>`（`fixed top-0 z-[100]`）覆盖在 admin 的 `motion.header`（`sticky top-0 z-30`）之上。已修复：`Navbar` 在 `/admin` 路由 `return null`（与 Footer 在 `/chat` 的处理模式一致，条件 return 置于所有 hooks 之后）；顺带 `admin/layout.tsx` `<main>` 加 `scroll-pt-24`，文章编辑页 `sticky top-6` → `top-20` 避开 64px header |
+| 2026-07-26 | chat 页「AI 工具收藏」为跳转链接，离开对话才能浏览工具 | 已重构为页内弹窗选用：新建 `SkillPickerDialog.tsx`（domain 筛选 / ESC + overlay 关闭 / token 化）；`ChatSidebar` 底部 Link→button；`ChatWindow` 顶栏固定文案改可交互 skill chip（已选显示名称 + 清除，未选显示选择按钮）；选中 skill 的 SKILL.md 全文作为 `messages` 首位 `{role:system}` 注入（顺带修复死代码：原 `system_prompt` 字段后端 schema 不接收）；`chat-content.tsx` 持有 selectedSkill 状态 + localStorage 持久化 |
+| 2026-07-26 | chat 顶栏 Menu 图标按钮冗余；工具弹窗长列表居中偏上溢出 | 已修复：移除顶栏 Menu 按钮（侧栏桌面端常驻 / 移动端走自身遮罩），清理 `onToggleSidebar` 与 `Menu` import；弹窗居中由 `translate` 定位改为遮罩层 `flex items-center justify-center` 容器，避免 `max-h` 长列表配合 `translate-y` 时顶部溢出视口 |
+
+## 仍影响开发的约定（摘要）
 
 ## 仍影响开发的约定（摘要）
 
