@@ -3,17 +3,15 @@ Conversation Service
 对话管理服务层
 """
 
-from typing import List, Optional
+from typing import Optional
 from sqlalchemy.orm import Session
 from app.schemas.conversation import (
     ConversationCreate,
     ConversationUpdate,
     Conversation,
-    ConversationListResponse,
     ConversationSummary,
     ChatRequest,
     ChatResponse,
-    ChatStreamChunk,
 )
 from app.schemas.pagination import Page
 from app.conversation.engine import conversation_engine

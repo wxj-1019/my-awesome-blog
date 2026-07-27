@@ -8,8 +8,7 @@ from fastapi import APIRouter, Depends, status, Query, Request
 from fastapi.responses import StreamingResponse
 from app.exceptions import (
     NotFoundException,
-    ValidationException,
-    ResourceNotFoundException,
+    ForbiddenException,
 )
 from sqlalchemy.orm import Session
 from app.core.database import get_db
@@ -18,18 +17,15 @@ from app.schemas.conversation import (
     ConversationCreate,
     ConversationUpdate,
     Conversation,
-    ConversationListResponse,
     ConversationSummary,
     ChatRequest,
     ChatResponse,
-    ChatStreamChunk,
 )
 from app.schemas.pagination import Page
 from app.models.user import User
 from app.services.conversation_service import conversation_service
 from app.utils.logger import app_logger
 from app.utils.rate_limit import conversation_create_rate_limit, llm_chat_rate_limit
-import json
 
 
 router = APIRouter()
@@ -294,16 +290,10 @@ async def delete_conversation_messages(
     
     conversation = get_conversation(db, conversation_id)
     if not conversation:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Conversation not found",
-        )
+        raise NotFoundException(resource="Conversation", identifier=conversation_id)
     
     if str(conversation.user_id) != str(current_user.id) and not current_user.is_superuser:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to delete messages from this conversation",
-        )
+        raise ForbiddenException(message="Not authorized to delete messages from this conversation")
     
     delete_conversation_messages(db, conversation_id)
     
