@@ -52,6 +52,16 @@ export interface AIWritingPanelProps {
    * 为 true 时整个面板禁用输入与发送，避免两条流并发污染 content。
    */
   busy?: boolean;
+  /**
+   * Phase 1 全屏对话模式：去折叠头、扩大高度、居中布局，专注与 AI 讨论选题。
+   * 此模式下 onConfirmDraft 才生效。
+   */
+  fullScreen?: boolean;
+  /**
+   * Phase 1 专属：用户确认初稿时回调，把最后一条 AI 完整内容传给父组件填入编辑器。
+   * 仅 fullScreen=true 时显示对应按钮。
+   */
+  onConfirmDraft?: (draft: string) => void;
 }
 
 export default function AIWritingPanel({
@@ -59,6 +69,8 @@ export default function AIWritingPanel({
   onApply,
   defaultCollapsed = false,
   busy = false,
+  fullScreen = false,
+  onConfirmDraft,
 }: AIWritingPanelProps) {
   const { error: toastError, success: toastSuccess } = useToast();
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
@@ -223,53 +235,55 @@ export default function AIWritingPanel({
   const hasContent = currentContent.trim().length > 0;
 
   return (
-    <div className="rounded-2xl border border-primary/20 bg-primary/[0.03] overflow-hidden">
-      {/* 折叠头 */}
+    <div className={cn('rounded-2xl border border-primary/20 bg-primary/[0.03] overflow-hidden', fullScreen && 'min-h-[65vh] flex flex-col')}>
+      {/* 折叠头：fullScreen 时不可折叠，仅展示标题 */}
       <button
         type="button"
-        onClick={() => setCollapsed(c => !c)}
-        className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-primary/5 transition-colors"
-        aria-expanded={!collapsed}
+        onClick={fullScreen ? undefined : () => setCollapsed(c => !c)}
+        className={cn('w-full flex items-center justify-between px-5 py-3.5', !fullScreen && 'hover:bg-primary/5 transition-colors', fullScreen && 'cursor-default')}
+        aria-expanded={fullScreen ? true : !collapsed}
         aria-controls="ai-writing-panel-body"
       >
         <div className="flex items-center gap-2.5">
           <div className="p-1.5 rounded-lg bg-primary/15">
-            <Sparkles className="w-4 h-4 text-primary" />
+            <Sparkles className={cn('w-4 h-4 text-primary', fullScreen && 'w-5 h-5')} />
           </div>
           <div className="text-left">
-            <div className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <div className={cn('font-semibold text-foreground flex items-center gap-2', fullScreen ? 'text-base' : 'text-sm')}>
               AI 写作助手
               <span className="text-[10px] font-normal px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">
-                {hasContent ? '改稿模式' : '生成模式'}
+                {fullScreen ? '开始对话' : hasContent ? '改稿模式' : '生成模式'}
               </span>
             </div>
             <div className="text-xs text-foreground/50">
-              {hasContent ? '基于当前正文，输入指令让 AI 修改' : '告诉 AI 你想写什么，自动生成初稿'}
+              {fullScreen
+                ? '和 AI 聊聊你想写的主题，它会帮你规划大纲、生成初稿'
+                : hasContent ? '基于当前正文，输入指令让 AI 修改' : '告诉 AI 你想写什么，自动生成初稿'}
             </div>
           </div>
         </div>
-        {collapsed ? <ChevronDown className="w-4 h-4 text-foreground/40" /> : <ChevronUp className="w-4 h-4 text-foreground/40" />}
+        {!fullScreen && (collapsed ? <ChevronDown className="w-4 h-4 text-foreground/40" /> : <ChevronUp className="w-4 h-4 text-foreground/40" />)}
       </button>
 
       <AnimatePresence initial={false}>
-        {!collapsed && (
+        {(fullScreen || !collapsed) && (
           <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
+            initial={fullScreen ? false : { height: 0, opacity: 0 }}
+            animate={fullScreen ? {} : { height: 'auto', opacity: 1 }}
+            exit={fullScreen ? {} : { height: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="border-t border-primary/10"
+            className={cn('border-t border-primary/10', fullScreen && 'flex-1 flex flex-col')}
             id="ai-writing-panel-body"
           >
-            <div className="p-4 space-y-3">
-              {/* 对话区：aria-live 让屏幕阅读器感知 AI 输出，aria-busy 标记流式进行中 */}
+            <div className={cn('p-4 space-y-3', fullScreen && 'flex-1 flex flex-col')}>
+              {/* 对话区 */}
               {messages.length > 0 && (
                 <div
                   ref={scrollRef}
                   onScroll={trackScroll}
                   aria-live="polite"
                   aria-busy={isStreaming}
-                  className="space-y-3 max-h-[360px] overflow-y-auto pr-1"
+                  className={cn('space-y-3 overflow-y-auto pr-1', fullScreen ? 'flex-1 max-h-full' : 'max-h-[360px]')}
                 >
                   {messages.map(msg => (
                     <div
@@ -377,6 +391,25 @@ export default function AIWritingPanel({
               <p className="text-[11px] text-foreground/40">
                 Enter 发送 · Shift+Enter 换行 · 生成模式下 AI 会先检索站内文章保持风格一致
               </p>
+
+              {/* Phase 1 专属：确认初稿按钮（fullScreen 模式，有对话内容且非流式中可用） */}
+              {fullScreen && onConfirmDraft && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    // 找最后一条 assistant 完整消息作为初稿
+                    const lastAi = [...messages].reverse().find(m => m.role === 'assistant' && m.content.trim());
+                    if (lastAi) {
+                      onConfirmDraft(lastAi.content);
+                    }
+                  }}
+                  disabled={isStreaming || !messages.some(m => m.role === 'assistant' && m.content.trim())}
+                  className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-success text-success-foreground hover:bg-success/90 disabled:bg-success/40 disabled:cursor-not-allowed transition-colors text-sm font-semibold mt-2"
+                >
+                  <FileInput className="w-4 h-4" />
+                  确认初稿，开始编辑
+                </button>
+              )}
             </div>
           </motion.div>
         )}

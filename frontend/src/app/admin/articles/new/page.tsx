@@ -41,6 +41,7 @@ import FormInput from '@/components/admin/FormInput';
 import { useToast, ToastContainer } from '@/components/admin/Toast';
 import GlassCardAdmin from '@/components/ui/GlassCardAdmin';
 import AIWritingPanel from '@/components/admin/AIWritingPanel';
+import AIAssistSidebar from '@/components/admin/AIAssistSidebar';
 import CoverPicker from '@/components/admin/CoverPicker';
 interface Category {
   id: string;
@@ -103,6 +104,7 @@ export default function NewArticlePage() {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showTagDropdown, setShowTagDropdown] = useState(false);
   const [touchedFields, setTouchedFields] = useState<Set<string>>(new Set());
+  const [phase, setPhase] = useState<'chat' | 'editing'>('chat');
   const [formData, setFormData] = useState({
     title: '',
     slug: '',
@@ -449,7 +451,9 @@ export default function NewArticlePage() {
               </div>
               新建文章
             </h1>
-            <p className="text-sm text-foreground/50 mt-1 ml-11">创建一篇新的博客文章</p>
+            <p className="text-sm text-foreground/50 mt-1 ml-11">
+              {phase === 'chat' ? '先和 AI 聊聊选题，确认初稿后进入编辑' : '创建一篇新的博客文章'}
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-4">
@@ -478,13 +482,31 @@ export default function NewArticlePage() {
           </AnimatePresence>
         </div>
       </motion.div>
-      {/* AI 写作面板：默认展开，输入主题生成初稿或对话改稿 */}
-      <AIWritingPanel
-        currentContent={formData.content}
-        onApply={handleAiApply}
-        busy={isAiBusy}
-      />
-      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+      {/* Phase 1：纯 AI 对话；Phase 2：完整编辑器 */}
+      {phase === 'chat' ? (
+        <div className="max-w-3xl mx-auto">
+          <AIWritingPanel
+            currentContent=""
+            onApply={handleAiApply}
+            fullScreen
+            onConfirmDraft={(draft) => {
+              setFormData(prev => ({ ...prev, content: draft }));
+              setTouchedFields(prev => new Set(prev).add('content'));
+              setPhase('editing');
+              success('初稿已确认，开始编辑吧');
+            }}
+          />
+        </div>
+      ) : (
+        <>
+          {/* Phase 2：可折叠 AI 面板（顶部）+ 编辑器 + 右侧栏 */}
+          <AIWritingPanel
+            currentContent={formData.content}
+            onApply={handleAiApply}
+            busy={isAiBusy}
+            defaultCollapsed
+          />
+          <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
         <div className="xl:col-span-3 space-y-6">
           <GlassCardAdmin className="p-6">
             <div className="flex items-center justify-between mb-6">
@@ -832,6 +854,16 @@ export default function NewArticlePage() {
               </div>
             </div>
           </GlassCardAdmin>
+          {/* AI 协助面板：选中文字修改 + 全文对话（仅 Phase 2 显示） */}
+          <AIAssistSidebar
+            content={formData.content}
+            contentRef={contentTextareaRef}
+            onReplaceContent={fullContent => {
+              setFormData(prev => ({ ...prev, content: fullContent }));
+              setTouchedFields(prev => new Set(prev).add('content'));
+            }}
+            busy={isAiBusy}
+          />
           <GlassCardAdmin className="p-5">
             <div className="flex items-center gap-2 mb-4">
               <div className="p-1.5 rounded-lg bg-cat-1/10">
@@ -1009,6 +1041,8 @@ export default function NewArticlePage() {
           </GlassCardAdmin>
         </div>
       </div>
+        </>
+      )}
       {showTagDropdown && (
         <div
           className="fixed inset-0 z-10"

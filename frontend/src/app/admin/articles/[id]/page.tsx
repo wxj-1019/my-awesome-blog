@@ -41,6 +41,7 @@ import FormInput from '@/components/admin/FormInput';
 import { useToast, ToastContainer } from '@/components/admin/Toast';
 import GlassCardAdmin from '@/components/ui/GlassCardAdmin';
 import AIWritingPanel from '@/components/admin/AIWritingPanel';
+import AIAssistSidebar from '@/components/admin/AIAssistSidebar';
 import CoverPicker from '@/components/admin/CoverPicker';
 interface Category {
   id: string;
@@ -874,6 +875,17 @@ export default function EditArticlePage() {
               </div>
             </div>
           </GlassCardAdmin>
+          {/* AI 协助面板：选中文字修改 + 全文对话 */}
+          <AIAssistSidebar
+            content={formData.content}
+            contentRef={contentTextareaRef}
+            onReplaceContent={fullContent => {
+              setFormData(prev => ({ ...prev, content: fullContent }));
+              setTouchedFields(prev => new Set(prev).add('content'));
+              setHasUnsavedChanges(true);
+            }}
+            busy={isAiBusy}
+          />
           <GlassCardAdmin className="p-5">
             <div className="flex items-center gap-2 mb-4">
               <div className="p-1.5 rounded-lg bg-cat-1/10">
