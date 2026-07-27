@@ -3,11 +3,11 @@
 /**
  * 封面配图自动搜索组件。
  *
- * 流程：点「AI 找封面」→ AI 读文章生成英文搜索词 → 调 Unsplash →
+ * 流程：点「AI 找封面」→ AI 读文章生成英文搜索词 → 调图源（Openverse/Unsplash）→
  *      展示候选图网格 → 用户点选 → 回调 onPick(url) 填入 cover_image。
  *
- * 图片来源为 Unsplash（外部域名，不可控），按 frontend-rules §9 例外
- * 保留裸 <img>，并在旁加中文注释说明原因。
+ * 图源由后端 COVER_SOURCE 决定（默认 Openverse 零配置，配了 Unsplash key 也可用）。
+ * 图片来自外部域名（不可控），按 frontend-rules §9 例外保留裸 <img>。
  */
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from '@/lib/framer-motion';
@@ -161,7 +161,7 @@ export default function CoverPicker({ content, onPick, busy = false }: CoverPick
                     title={img.alt || '选为封面'}
                     aria-label={`选择图片：${img.alt || '候选封面'}`}
                   >
-                    {/* Unsplash 外部域名，不可控，按 frontend-rules §9 例外用 <img> */}
+                    {/* 图源为外部域名（Openverse/Unsplash），不可控，按 frontend-rules §9 例外用 <img> */}
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={img.thumb_url}
@@ -169,7 +169,7 @@ export default function CoverPicker({ content, onPick, busy = false }: CoverPick
                       loading="lazy"
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
-                    {/* 悬停遮罩：作者署名（Unsplash License 要求标注） */}
+                    {/* 悬停遮罩：作者署名（CC / Unsplash License 都要求标注） */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-2">
                       {img.author_name && (
                         <span className="text-[10px] text-white/90 truncate">
@@ -185,19 +185,19 @@ export default function CoverPicker({ content, onPick, busy = false }: CoverPick
               </div>
             )}
 
-            {/* Unsplash License 声明 */}
+            {/* 版权声明：Openverse 聚合 CC 协议 / Unsplash License，均要求署名 */}
             {images.length > 0 && (
               <p className="mt-3 text-[11px] text-foreground/40 flex items-center gap-1">
                 图片来自
                 <a
-                  href="https://unsplash.com/license"
+                  href="https://creativecommons.org/about/cclicenses/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-0.5 text-primary/70 hover:text-primary underline underline-offset-2"
                 >
-                  Unsplash License <ExternalLink className="w-2.5 h-2.5" />
+                  CC / Unsplash License <ExternalLink className="w-2.5 h-2.5" />
                 </a>
-                · 免费商用，建议保留作者署名
+                · 请保留作者署名
               </p>
             )}
           </motion.div>

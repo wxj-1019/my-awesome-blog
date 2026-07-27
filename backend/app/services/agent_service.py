@@ -342,17 +342,26 @@ class AgentService:
         raise ValueError("未找到平衡的 JSON 对象")
 
     # ── 封面配图搜索 ───────────────────────────────────────────────
-    async def suggest_cover(self, request: AgentCoverRequest) -> AgentCoverResponse:
-        """AI 生成搜索词（若未手填）→ 代理调 Unsplash → 返回候选图。
+    # 双源策略（COVER_SOURCE 控制）：
+    #   - auto（默认）：配了 Unsplash key 用 Unsplash，否则 Openverse（零配置）
+    #   - openverse / unsplash：强制指定
+    # Openverse 优势：无需 key 即可用，聚合 Wikimedia/Flickr 等 CC 版权图（8 亿张）。
+    # Unsplash 优势：图片质量更统一，但需申请 key。
 
-        错误自处理：未配置 key 或 Unsplash 不可达均抛 ValueError，由端点转 400。
+    async def suggest_cover(self, request: AgentCoverRequest) -> AgentCoverResponse:
+        """AI 生成搜索词（若未手填）→ 按图源搜索 → 返回候选图。
+
+        错误自处理：图源不可用/网络错误均抛 ValueError，由端点转 400。
         """
         from app.core.config import settings
-        import httpx
 
-        key = settings.UNSPLASH_ACCESS_KEY.strip()
-        if not key:
-            raise ValueError("未配置 UNSPLASH_ACCESS_KEY，封面搜索不可用")
+        source = (settings.COVER_SOURCE or "auto").strip().lower()
+        has_unsplash_key = bool(settings.UNSPLASH_ACCESS_KEY.strip())
+        # auto 模式下：有 key 用 Unsplash，否则 Openverse
+        use_unsplash = (source == "unsplash") or (source == "auto" and has_unsplash_key)
+
+        if use_unsplash and not has_unsplash_key:
+            raise ValueError("图源设为 unsplash 但未配置 UNSPLASH_ACCESS_KEY")
 
         # 1. 确定搜索词：用户手填优先，否则让 AI 从正文提取
         query = (request.query or "").strip()
@@ -365,11 +374,20 @@ class AgentService:
             )
             # 取首行、去标点、压成单空格分隔；模型偶尔会带句号或换行
             query = " ".join(raw_query.strip().splitlines())[:100].strip()
-            # 兜底：AI 吐空时用一个通用词，避免 Unsplash 报错
             if not query:
                 query = "technology"
 
-        # 2. 调 Unsplash search
+        # 2. 按图源搜索
+        if use_unsplash:
+            return await self._search_unsplash(query)
+        return await self._search_openverse(query)
+
+    async def _search_unsplash(self, query: str) -> AgentCoverResponse:
+        """Unsplash 搜索（需 access key）。"""
+        from app.core.config import settings
+        import httpx
+
+        key = settings.UNSPLASH_ACCESS_KEY.strip()
         per_page = settings.UNSPLASH_PER_PAGE
         try:
             async with httpx.AsyncClient(timeout=15.0) as client:
@@ -383,7 +401,6 @@ class AgentService:
             raise ValueError(f"无法访问 Unsplash 图库：{e}") from e
 
         if resp.status_code != 200:
-            # 常见：401 key 失效、403 超额、429 限流
             app_logger.warning(f"Unsplash 返回 {resp.status_code}: {resp.text[:200]}")
             raise ValueError(f"Unsplash 搜索失败（HTTP {resp.status_code}）")
 
@@ -397,8 +414,59 @@ class AgentService:
                 author_url=item.get("user", {}).get("links", {}).get("html", ""),
             )
             for item in results
-            if item.get("urls", {}).get("regular")  # 过滤缺 url 的脏数据
+            if item.get("urls", {}).get("regular")
         ]
+        return AgentCoverResponse(query=query, images=images)
+
+    async def _search_openverse(self, query: str) -> AgentCoverResponse:
+        """Openverse 搜索（无需 key）。聚合 Wikimedia/Flickr 等 CC 版权图。
+
+        注意：Openverse 图片版权为各类 CC 协议，部分含 NC（非商用）/ND（禁止演绎），
+        故默认只筛「允许商用且可改编」的宽松协议（by / by-sa / cc0 / public），
+        避免给博客封面引入版权风险。
+        """
+        from app.core.config import settings
+        import httpx
+
+        per_page = settings.UNSPLASH_PER_PAGE
+        try:
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                resp = await client.get(
+                    "https://api.openverse.org/v1/images/",
+                    params={
+                        "q": query,
+                        "page_size": per_page,
+                        # 仅取可商用 + 可改编的 CC 协议，过滤 NC/ND，保证博客封面无版权风险
+                        "license": "cc0,pdm,by,by-sa",
+                        "aspect_ratio": "wide",
+                    },
+                )
+        except httpx.HTTPError as e:
+            app_logger.warning(f"Openverse 请求失败：{e}")
+            raise ValueError(f"无法访问 Openverse 图库：{e}") from e
+
+        if resp.status_code != 200:
+            app_logger.warning(f"Openverse 返回 {resp.status_code}: {resp.text[:200]}")
+            raise ValueError(f"Openverse 搜索失败（HTTP {resp.status_code}）")
+
+        results = resp.json().get("results", [])
+        images = []
+        for item in results:
+            url = item.get("url") or ""
+            if not url:
+                continue
+            # Openverse 的 thumbnail 是相对路径（/v1/images/{id}/thumb/），需拼全
+            thumb = item.get("thumbnail") or ""
+            if thumb and thumb.startswith("/"):
+                thumb = f"https://api.openverse.org{thumb}"
+            images.append(CoverImage(
+                url=url,
+                # 无缩略图时退化用原图（候选网格会慢些但能用）
+                thumb_url=thumb or url,
+                alt=item.get("title") or "",
+                author_name=item.get("creator") or "",
+                author_url=item.get("creator_url") or "",
+            ))
         return AgentCoverResponse(query=query, images=images)
 
 
