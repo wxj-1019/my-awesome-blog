@@ -15,7 +15,7 @@ interface AgentStreamHandlers {
  * 事件形态：
  *   data: {"content": "..."}    正文增量
  *   data: {"tool": "search_articles", "arguments": {...}}  工具调用（仅生成）
- *   data: {"error": "..."}      错误
+ *   data: {"error": true, "message": "..."}  错误（格式对齐 llm_service）
  *   data: [DONE]                结束
  *
  * 复用 llmService.chatStream 的 getReader + TextDecoder + 行缓冲模式。
@@ -31,23 +31,17 @@ async function consumeAgentSse(
   const decoder = new TextDecoder();
   let buffer = '';
   let full = '';
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) {
-      handlers.onComplete?.(full);
-      break;
-    }
-    buffer += decoder.decode(value, { stream: true });
-    // SSE 事件以空行分隔；按 \n 切，最后一段留作缓冲
+
+  /** 把缓冲区里完整的行解析掉，未结尾的残行留在 buffer 里返回 */
+  const drainBuffer = (): boolean => {
+    // 没有换行 = 还没有完整行，留着等下一个 chunk
+    if (!buffer.includes('\n')) {return true;}
     const lines = buffer.split('\n');
     buffer = lines.pop() || '';
     for (const line of lines) {
       if (!line.startsWith('data: ')) {continue;}
       const data = line.slice(6).trim();
-      if (data === '[DONE]') {
-        handlers.onComplete?.(full);
-        return;
-      }
+      if (data === '[DONE]') {return false;}
       try {
         const payload = JSON.parse(data) as Record<string, unknown>;
         if (typeof payload.content === 'string' && payload.content) {
@@ -58,13 +52,32 @@ async function consumeAgentSse(
             tool: typeof payload.tool === 'string' ? payload.tool : undefined,
             arguments: payload.arguments,
           });
-        } else if (typeof payload.error === 'string') {
-          handlers.onError?.(payload.error);
-          return;
+        } else if (payload.error === true) {
+          // 错误事件格式与 llm_service 对齐：{error: true, message}
+          handlers.onError?.(typeof payload.message === 'string' ? payload.message : '未知错误');
+          return false;
         }
       } catch {
         // 单行解析失败不中断整条流
       }
+    }
+    return true;
+  };
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) {
+      // flush 解码器残留字节（末尾多字节字符被截断时），再处理残行
+      buffer += decoder.decode();
+      drainBuffer();
+      handlers.onComplete?.(full);
+      break;
+    }
+    buffer += decoder.decode(value, { stream: true });
+    const cont = drainBuffer();
+    if (!cont) {
+      handlers.onComplete?.(full);
+      return;
     }
   }
 }

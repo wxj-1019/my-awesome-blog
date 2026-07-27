@@ -61,7 +61,7 @@ class AgentGenerateRequest(BaseModel):
     context_mode: str = Field("auto", description="auto | none")
     provider: Optional[str] = Field(None, description="LLM provider，默认读配置")
     model: Optional[str] = Field(None, description="模型名，默认 provider 配置")
-    max_iterations: int = Field(6, ge=1, le=15, description="工具循环上限")
+    max_iterations: int = Field(3, ge=1, le=15, description="工具循环上限；检索阶段通常 1-2 轮即够，过大徒增首字延迟")
     temperature: float = Field(0.7, ge=0.0, le=2.0, description="生成温度")
     max_tokens: Optional[int] = Field(None, ge=256, le=8192, description="正文 token 上限")
 

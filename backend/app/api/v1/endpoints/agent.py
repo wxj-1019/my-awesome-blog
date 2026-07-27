@@ -79,17 +79,9 @@ async def agent_generate_stream(
     app_logger.info(
         f"Agent generate-stream by user={current_user.username} topic={generate_request.topic!r}"
     )
-
-    async def generate():
-        try:
-            async for chunk in agent_service.generate_stream(db, generate_request):
-                yield chunk
-        except ValueError as e:
-            yield agent_service._sse({"error": str(e)})
-            yield "data: [DONE]\n\n"
-
+    # 服务层已把 ValueError 转成 SSE error 事件，这里直接透传
     return StreamingResponse(
-        generate(),
+        agent_service.generate_stream(db, generate_request),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",
@@ -111,17 +103,8 @@ async def agent_revise_stream(
     app_logger.info(
         f"Agent revise-stream by user={current_user.username} instruction={revise_request.instruction!r}"
     )
-
-    async def generate():
-        try:
-            async for chunk in agent_service.revise_stream(revise_request):
-                yield chunk
-        except ValueError as e:
-            yield agent_service._sse({"error": str(e)})
-            yield "data: [DONE]\n\n"
-
     return StreamingResponse(
-        generate(),
+        agent_service.revise_stream(revise_request),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",

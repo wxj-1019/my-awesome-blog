@@ -164,6 +164,46 @@ def test_agent_meta_handles_code_fence(client, monkeypatch):
     assert resp.json()["title"] == "T"
 
 
+def test_agent_meta_handles_narrative_with_braces(client, monkeypatch):
+    """meta：模型在 JSON 前后夹带叙述且叙述含花括号，括号配平仍能提取正确对象"""
+    provider = FakeProvider([
+        _text_resp('好的，这是结果：{"title":"真实标题","slug":"real-slug","excerpt":"摘"} 希望满意 {footnote}')
+    ])
+    monkeypatch.setattr(agent_service_module, "get_llm_provider", lambda name=None: provider)
+
+    resp = client.post("/api/v1/agent/meta", json={"content": "正文"})
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["title"] == "真实标题"
+    assert data["slug"] == "real-slug"
+
+
+def test_agent_meta_handles_two_json_objects(client, monkeypatch):
+    """meta：模型吐了两个 JSON 对象，只取第一个完整的"""
+    provider = FakeProvider([
+        _text_resp('{"title":"第一个","slug":"first","excerpt":"一"} 解释 {"slug":"second"}')
+    ])
+    monkeypatch.setattr(agent_service_module, "get_llm_provider", lambda name=None: provider)
+
+    resp = client.post("/api/v1/agent/meta", json={"content": "正文"})
+    assert resp.status_code == 200
+    assert resp.json()["title"] == "第一个"
+
+
+def test_agent_generate_stream_error_format(client, monkeypatch):
+    """generate-stream：provider 不可用时错误事件格式为 {error:true,message}（对齐 llm_service）"""
+    monkeypatch.setattr(agent_service_module, "get_llm_provider", lambda name=None: None)
+    resp = client.post(
+        "/api/v1/agent/generate-stream",
+        json={"topic": "x", "context_mode": "none"},
+    )
+    assert resp.status_code == 200
+    events = _parse_sse(resp.text)
+    err_events = [e for e in events if e.get("error") is True]
+    assert len(err_events) >= 1
+    assert "message" in err_events[0]
+
+
 def test_agent_meta_provider_unavailable_400(client, monkeypatch):
     monkeypatch.setattr(agent_service_module, "get_llm_provider", lambda name=None: None)
     resp = client.post("/api/v1/agent/meta", json={"content": "正文"})

@@ -30,6 +30,8 @@ import { cn } from '@/lib/utils';
 
 /** 一条对话消息 */
 interface ChatMessage {
+  /** 稳定唯一 id，作 React key（禁止用 index） */
+  id: number;
   role: 'user' | 'assistant';
   content: string;
   /** 流式生成中标记（未完成时按钮不显示） */
@@ -45,12 +47,18 @@ export interface AIWritingPanelProps {
   onApply: (text: string, mode: 'replace' | 'append') => void;
   /** 默认折叠态（编辑现有文章时可默认折叠） */
   defaultCollapsed?: boolean;
+  /**
+   * 外部繁忙态（如编辑器侧的「AI 润色」正在流式替换全文）。
+   * 为 true 时整个面板禁用输入与发送，避免两条流并发污染 content。
+   */
+  busy?: boolean;
 }
 
 export default function AIWritingPanel({
   currentContent,
   onApply,
   defaultCollapsed = false,
+  busy = false,
 }: AIWritingPanelProps) {
   const { error: toastError, success: toastSuccess } = useToast();
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
@@ -59,43 +67,79 @@ export default function AIWritingPanel({
   const [isStreaming, setIsStreaming] = useState(false);
   const cancelRef = useRef<(() => void) | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  // 同步并发守卫：setState 是异步的，靠 ref 才能堵住「连点」的 stale 窗口
+  const streamingRef = useRef(false);
+  // 自增消息 id，保证 key 稳定（禁用 index 作 key）
+  const msgIdRef = useRef(0);
+  // 当前流的 assistant 消息 id，避免更新到上一轮残留消息
+  const activeAssistantIdRef = useRef<number>(-1);
+  // 用户是否在滚动区底部（用于流式时只在该case自动跟随）
+  const atBottomRef = useRef(true);
 
-  // 新消息时滚到底
-  useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
-  }, [messages]);
+  const trackScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) {return;}
+    atBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 40;
+  }, []);
+
+  // 滚动跟随：仅在追加新消息或流式（且用户已在底部）时触发，避免抢占用户滚动
+  const scrollToBottom = useCallback((force = false) => {
+    const el = scrollRef.current;
+    if (!el) {return;}
+    if (force || atBottomRef.current) {
+      el.scrollTop = el.scrollHeight;
+    }
+  }, []);
 
   const handleStop = useCallback(() => {
     cancelRef.current?.();
     cancelRef.current = null;
+    streamingRef.current = false;
     setIsStreaming(false);
-    // 标记最后一条 assistant 消息为已完成
-    setMessages(prev => prev.map((m, i) =>
-      i === prev.length - 1 && m.role === 'assistant' ? { ...m, streaming: false } : m
-    ));
+    const aid = activeAssistantIdRef.current;
+    if (aid !== -1) {
+      setMessages(prev => prev.map(m => m.id === aid ? { ...m, streaming: false } : m));
+    }
   }, []);
 
   const handleSend = useCallback(() => {
     const trimmed = input.trim();
-    if (!trimmed || isStreaming) {return;}
+    // ref 守卫堵住 stale-closure 窗口（比 isStreaming state 更可靠）
+    if (!trimmed || streamingRef.current || busy) {return;}
+    streamingRef.current = true;
 
     const hasContent = currentContent.trim().length > 0;
-    const userMsg: ChatMessage = { role: 'user', content: trimmed };
+    const userMsg: ChatMessage = { id: ++msgIdRef.current, role: 'user', content: trimmed };
     // 占位 assistant 消息，流式 chunk 逐步填入
-    const assistantMsg: ChatMessage = { role: 'assistant', content: '', streaming: true };
+    const assistantId = ++msgIdRef.current;
+    activeAssistantIdRef.current = assistantId;
+    const assistantMsg: ChatMessage = { id: assistantId, role: 'assistant', content: '', streaming: true };
     setMessages(prev => [...prev, userMsg, assistantMsg]);
     setInput('');
     setIsStreaming(true);
+    scrollToBottom(true);
+
+    // 节流：把高频 chunk 攒到 rAF 里一次性 flush，避免每 token 全量重渲染
+    let pendingDelta = '';
+    let rafScheduled = false;
+    const flush = () => {
+      rafScheduled = false;
+      if (!pendingDelta) {return;}
+      const delta = pendingDelta;
+      pendingDelta = '';
+      const aid = assistantId;
+      setMessages(prev => prev.map(m =>
+        m.id === aid && m.role === 'assistant' ? { ...m, content: m.content + delta } : m
+      ));
+      scrollToBottom();
+    };
 
     const onChunk = (delta: string) => {
-      setMessages(prev => {
-        const next = [...prev];
-        const last = next[next.length - 1];
-        if (last && last.role === 'assistant') {
-          next[next.length - 1] = { ...last, content: last.content + delta };
-        }
-        return next;
-      });
+      pendingDelta += delta;
+      if (!rafScheduled) {
+        rafScheduled = true;
+        requestAnimationFrame(flush);
+      }
     };
     const onTool = (info: { tool?: string }) => {
       const hint = info.tool === 'search_articles'
@@ -104,38 +148,49 @@ export default function AIWritingPanel({
           ? '正在读取站内文章详情…'
           : info.tool ? `正在调用工具：${info.tool}` : '';
       if (hint) {
-        setMessages(prev => {
-          const next = [...prev];
-          const last = next[next.length - 1];
-          if (last && last.role === 'assistant') {
-            next[next.length - 1] = { ...last, toolHint: hint };
-          }
-          return next;
-        });
+        const aid = assistantId;
+        setMessages(prev => prev.map(m =>
+          m.id === aid && m.role === 'assistant' ? { ...m, toolHint: hint } : m
+        ));
       }
     };
-    const onComplete = () => {
+    const finishStream = () => {
+      // flush 残留 chunk，避免最后一个 rAF 被取消导致末尾丢字
+      if (rafScheduled) {
+        cancelAnimationFrame(requestAnimationFrame(() => {}));
+        // 直接同步 flush 一次
+        if (pendingDelta) {
+          const delta = pendingDelta;
+          pendingDelta = '';
+          const aid = assistantId;
+          setMessages(prev => prev.map(m =>
+            m.id === aid && m.role === 'assistant' ? { ...m, content: m.content + delta } : m
+          ));
+        }
+      }
+      streamingRef.current = false;
       setIsStreaming(false);
       cancelRef.current = null;
-      setMessages(prev => prev.map((m, i) =>
-        i === prev.length - 1 && m.role === 'assistant' ? { ...m, streaming: false } : m
+    };
+    const onComplete = () => {
+      const aid = assistantId;
+      setMessages(prev => prev.map(m =>
+        m.id === aid && m.role === 'assistant' ? { ...m, streaming: false } : m
       ));
+      finishStream();
     };
     const onError = (msg: string) => {
-      setIsStreaming(false);
-      cancelRef.current = null;
       toastError(`AI 生成失败：${msg}`);
+      const aid = assistantId;
       setMessages(prev => {
-        const next = [...prev];
-        const last = next[next.length - 1];
-        if (last && last.role === 'assistant' && !last.content) {
+        const target = prev.find(m => m.id === aid && m.role === 'assistant');
+        if (target && !target.content) {
           // 失败且无内容：移除空占位
-          next.pop();
-        } else if (last) {
-          next[next.length - 1] = { ...last, streaming: false };
+          return prev.filter(m => m.id !== aid);
         }
-        return next;
+        return prev.map(m => m.id === aid ? { ...m, streaming: false } : m);
       });
+      finishStream();
     };
 
     if (hasContent) {
@@ -151,7 +206,7 @@ export default function AIWritingPanel({
         { onTool, onChunk, onComplete, onError }
       );
     }
-  }, [input, isStreaming, currentContent, toastError]);
+  }, [input, busy, currentContent, toastError, scrollToBottom]);
 
   const handleApply = useCallback((text: string, mode: 'replace' | 'append') => {
     if (!text.trim()) {
@@ -175,6 +230,7 @@ export default function AIWritingPanel({
         onClick={() => setCollapsed(c => !c)}
         className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-primary/5 transition-colors"
         aria-expanded={!collapsed}
+        aria-controls="ai-writing-panel-body"
       >
         <div className="flex items-center gap-2.5">
           <div className="p-1.5 rounded-lg bg-primary/15">
@@ -203,14 +259,21 @@ export default function AIWritingPanel({
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
             className="border-t border-primary/10"
+            id="ai-writing-panel-body"
           >
             <div className="p-4 space-y-3">
-              {/* 对话区 */}
+              {/* 对话区：aria-live 让屏幕阅读器感知 AI 输出，aria-busy 标记流式进行中 */}
               {messages.length > 0 && (
-                <div ref={scrollRef} className="space-y-3 max-h-[360px] overflow-y-auto pr-1">
-                  {messages.map((msg, i) => (
+                <div
+                  ref={scrollRef}
+                  onScroll={trackScroll}
+                  aria-live="polite"
+                  aria-busy={isStreaming}
+                  className="space-y-3 max-h-[360px] overflow-y-auto pr-1"
+                >
+                  {messages.map(msg => (
                     <div
-                      key={i}
+                      key={msg.id}
                       className={cn('flex', msg.role === 'user' ? 'justify-end' : 'justify-start')}
                     >
                       <div
@@ -266,8 +329,8 @@ export default function AIWritingPanel({
                 </div>
               )}
 
-              {/* 输入区 */}
-              <div className="flex items-end gap-2">
+              {/* 输入区：isStreaming 或外部 busy（润色中）时禁用，避免并发污染 content */}
+              <div className={cn('flex items-end gap-2 transition-opacity', (isStreaming || busy) && 'opacity-60')}>
                 <textarea
                   value={input}
                   onChange={e => setInput(e.target.value)}
@@ -277,18 +340,22 @@ export default function AIWritingPanel({
                       handleSend();
                     }
                   }}
-                  placeholder={hasContent
-                    ? '输入修改指令，如「加一段实际案例」「改成更口语化的风格」「总结一下结尾」…'
-                    : '描述你想写的文章，如「如何用 Docker 部署 Next.js 应用，面向初学者，含完整命令」…'
+                  placeholder={busy
+                    ? '编辑器正在执行 AI 操作，请稍候…'
+                    : hasContent
+                      ? '输入修改指令，如「加一段实际案例」「改成更口语化的风格」「总结一下结尾」…'
+                      : '描述你想写的文章，如「如何用 Docker 部署 Next.js 应用，面向初学者，含完整命令」…'
                   }
                   rows={2}
-                  className="flex-1 px-3.5 py-2.5 rounded-xl bg-background/60 border border-border/50 text-foreground text-sm placeholder:text-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40 transition-colors resize-none"
-                  disabled={isStreaming}
+                  aria-label="AI 写作指令输入"
+                  className="flex-1 px-3.5 py-2.5 rounded-xl bg-background/60 border border-border/50 text-foreground text-sm placeholder:text-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40 transition-colors resize-none disabled:cursor-not-allowed"
+                  disabled={isStreaming || busy}
                 />
                 {isStreaming ? (
                   <button
                     type="button"
                     onClick={handleStop}
+                    aria-label="停止 AI 生成"
                     className="shrink-0 inline-flex items-center justify-center gap-1.5 px-4 h-[42px] rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors"
                   >
                     <Square className="w-3.5 h-3.5 fill-current" />
@@ -298,7 +365,8 @@ export default function AIWritingPanel({
                   <button
                     type="button"
                     onClick={handleSend}
-                    disabled={!input.trim()}
+                    disabled={!input.trim() || busy}
+                    aria-label="发送给 AI"
                     className="shrink-0 inline-flex items-center justify-center gap-1.5 px-4 h-[42px] rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 disabled:bg-primary/40 disabled:cursor-not-allowed transition-colors"
                   >
                     <Send className="w-3.5 h-3.5" />

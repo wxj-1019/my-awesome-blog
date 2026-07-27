@@ -149,9 +149,15 @@ class AgentService:
 
     # ── SSE 辅助 ───────────────────────────────────────────────────
     @staticmethod
-    def _sse(payload: dict) -> str:
-        """格式化一条 SSE 事件（ensure_ascii=False 让中文原样流过）。"""
+    def event(payload: dict) -> str:
+        """格式化一条 SSE data 事件（ensure_ascii=False 让中文原样流过）。"""
         return f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"
+
+    @staticmethod
+    def error_event(message: str) -> str:
+        """SSE 错误事件。格式与 llm_service._format_sse_error 对齐：
+        {"error": true, "message": "..."}，前端按 data.error === true 判断。"""
+        return f"data: {json.dumps({'error': True, 'message': message}, ensure_ascii=False)}\n\n"
 
     async def _stream_final(
         self,
@@ -163,7 +169,7 @@ class AgentService:
     ) -> AsyncIterator[str]:
         """最终的流式生成：把拼好的 prompt 喂给 provider.stream_chat，逐 chunk 发 SSE。
 
-        content 事件：{"content": "..."}；最后发 [DONE]。错误发 {"error": "...}。
+        content 事件：{"content": "..."}；最后发 [DONE]。错误发 {"error": true, "message": "...}。
         """
         try:
             request = ChatCompletionRequest(
@@ -175,10 +181,10 @@ class AgentService:
             )
             async for chunk in provider.stream_chat(request):
                 if chunk.content:
-                    yield self._sse({"content": chunk.content})
+                    yield self.event({"content": chunk.content})
         except Exception as e:
             app_logger.exception("Agent 流式生成失败")
-            yield self._sse({"error": str(e)})
+            yield self.error_event(str(e))
             return
         yield "data: [DONE]\n\n"
 
@@ -193,7 +199,14 @@ class AgentService:
            每次工具调用先发一个 tool 事件，让前端显示「正在检索站内文章…」。
         2. 用 provider.stream_chat 流式吐 Markdown 正文，逐 chunk 发 content 事件。
         """
-        provider = self._get_provider_or_raise(request.provider)
+        # provider 解析在函数体首行：未配置时第一行就 yield error，endpoint 无需 catch
+        try:
+            provider = self._get_provider_or_raise(request.provider)
+        except ValueError as e:
+            yield self.error_event(str(e))
+            yield "data: [DONE]\n\n"
+            return
+
         context_block = ""
         if request.context_mode == "auto":
             registry = register_builtin_tools(ToolRegistry())
@@ -217,13 +230,13 @@ class AgentService:
                     model=request.model,
                 )
                 for trace in result.tool_trace:
-                    yield self._sse({"tool": trace.get("name"), "arguments": trace.get("arguments")})
+                    yield self.event({"tool": trace.get("name"), "arguments": trace.get("arguments")})
                 if result.reply.strip():
                     context_block = f"\n【站内相关参考】（写作时保持风格一致、避免与已发布内容重复）\n{result.reply.strip()}\n"
             except Exception as e:
                 # 检索失败不阻塞生成，降级为无上下文
                 app_logger.warning(f"Agent 站内检索失败，降级为无上下文生成：{e}")
-                yield self._sse({"tool": "error", "arguments": {"message": str(e)}})
+                yield self.event({"tool": "error", "arguments": {"message": str(e)}})
 
         requirements_block = (
             f"\n【附加要求】{request.requirements}\n" if request.requirements else ""
@@ -242,7 +255,12 @@ class AgentService:
         self, request: AgentReviseRequest
     ) -> AsyncIterator[str]:
         """流式改稿：当前正文 + 自然语言指令 → 流式输出修改后的完整正文。"""
-        provider = self._get_provider_or_raise(request.provider)
+        try:
+            provider = self._get_provider_or_raise(request.provider)
+        except ValueError as e:
+            yield self.error_event(str(e))
+            yield "data: [DONE]\n\n"
+            return
         prompt = REVISE_PROMPT.format(instruction=request.instruction, content=request.content)
         async for sse in self._stream_final(
             provider, prompt, request.model, request.temperature, request.max_tokens
@@ -254,25 +272,60 @@ class AgentService:
         provider = self._get_provider_or_raise(request.provider)
         prompt = META_PROMPT.format(content=request.content)
         raw = await self._ask(provider, prompt, temperature=0.3)
-        # 容错：模型偶尔会包 ```json 围栏或多余文本，提取首个 {...}
+        # 容错：模型偶尔会包 ```json 围栏或夹带叙述文本，用括号配平提取首个完整 JSON 对象
         raw = raw.strip()
         if raw.startswith("```"):
-            raw = raw.split("```", 2)[1]
-            if raw.lower().startswith("json"):
-                raw = raw[4:]
+            # 去掉首尾围栏；语言标记（json）也一并去掉
+            raw = raw.split("```", 2)[1] if raw.count("```") >= 2 else raw
             raw = raw.strip()
-        start, end = raw.find("{"), raw.rfind("}")
-        if start == -1 or end == -1 or end <= start:
-            raise ValueError("AI 返回的内容无法解析为标题/摘要，请重试或手填")
+            if raw.lower().startswith("json"):
+                raw = raw[4:].strip()
         try:
-            data = json.loads(raw[start: end + 1])
+            json_str = self._extract_first_json_object(raw)
+        except ValueError as e:
+            raise ValueError("AI 返回的内容无法解析为标题/摘要，请重试或手填") from e
+        try:
+            data = json.loads(json_str)
             return AgentMetaResponse(
                 title=str(data.get("title", "")).strip(),
                 slug=str(data.get("slug", "")).strip(),
                 excerpt=str(data.get("excerpt", "")).strip(),
             )
-        except (json.JSONDecodeError, KeyError) as e:
-            raise ValueError(f"解析 AI 元信息失败：{e}")
+        except json.JSONDecodeError as e:
+            raise ValueError(f"解析 AI 元信息失败：{e}") from e
+
+    @staticmethod
+    def _extract_first_json_object(raw: str) -> str:
+        """从可能夹带叙述的文本里提取首个**平衡**的 {...} JSON 对象。
+
+        比 find/rfind 更稳：正确处理字符串内的花括号（如代码示例）和
+        模型输出多个 JSON 对象的情况（只取第一个完整对象）。
+        """
+        depth = 0
+        start = -1
+        in_str = False
+        escaped = False
+        for i, ch in enumerate(raw):
+            if escaped:
+                escaped = False
+                continue
+            if ch == "\\":
+                escaped = True
+                continue
+            if ch == '"':
+                in_str = not in_str
+                continue
+            if in_str:
+                continue
+            if ch == "{":
+                if depth == 0:
+                    start = i
+                depth += 1
+            elif ch == "}":
+                depth -= 1
+                if depth == 0 and start != -1:
+                    return raw[start:i + 1]
+        raise ValueError("未找到平衡的 JSON 对象")
 
 
 agent_service = AgentService()

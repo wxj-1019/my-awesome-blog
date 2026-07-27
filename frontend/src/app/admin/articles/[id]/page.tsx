@@ -519,6 +519,7 @@ export default function EditArticlePage() {
       <AIWritingPanel
         currentContent={formData.content}
         onApply={handleAiApply}
+        busy={isAiBusy}
         defaultCollapsed
       />
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
@@ -672,6 +673,7 @@ export default function EditArticlePage() {
                       name="content"
                       value={formData.content}
                       onChange={handleContentChange}
+                      disabled={polishing}
                       placeholder="使用 Markdown 格式编写文章内容...
 支持的格式：
 # 标题
@@ -681,7 +683,7 @@ export default function EditArticlePage() {
 > 引用
 `代码`"
                       rows={editorMode === 'split' ? 20 : 16}
-                      className={`w-full px-4 py-3 rounded-xl bg-background/50 border text-foreground placeholder:text-foreground/25 focus:outline-none focus:ring-2 transition-colors resize-none font-mono text-sm leading-relaxed ${
+                      className={`w-full px-4 py-3 rounded-xl bg-background/50 border text-foreground placeholder:text-foreground/25 focus:outline-none focus:ring-2 transition-colors resize-none font-mono text-sm leading-relaxed disabled:opacity-60 disabled:cursor-not-allowed ${
                         validationErrors.content
                           ? 'border-destructive/50 focus:ring-destructive/20'
                           : 'border-border/50 focus:ring-tech-cyan/20 focus:border-tech-cyan/50'
