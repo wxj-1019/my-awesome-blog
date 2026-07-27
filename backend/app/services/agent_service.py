@@ -342,11 +342,10 @@ class AgentService:
         raise ValueError("未找到平衡的 JSON 对象")
 
     # ── 封面配图搜索 ───────────────────────────────────────────────
-    # 双源策略（COVER_SOURCE 控制）：
-    #   - auto（默认）：配了 Unsplash key 用 Unsplash，否则 Openverse（零配置）
-    #   - openverse / unsplash：强制指定
-    # Openverse 优势：无需 key 即可用，聚合 Wikimedia/Flickr 等 CC 版权图（8 亿张）。
-    # Unsplash 优势：图片质量更统一，但需申请 key。
+    # 多源策略（COVER_SOURCE 控制）：
+    #   - pexels（默认）：国内可达、注册即拿 key、图片质量高、免费商用
+    #   - auto：有 pexels key 用 pexels，否则尝试 openverse（国内可能超时）
+    #   - unsplash / openverse：强制指定（前者质量好需 key，后者零配置但国内常超时）
 
     async def suggest_cover(self, request: AgentCoverRequest) -> AgentCoverResponse:
         """AI 生成搜索词（若未手填）→ 按图源搜索 → 返回候选图。
@@ -355,13 +354,28 @@ class AgentService:
         """
         from app.core.config import settings
 
-        source = (settings.COVER_SOURCE or "auto").strip().lower()
-        has_unsplash_key = bool(settings.UNSPLASH_ACCESS_KEY.strip())
-        # auto 模式下：有 key 用 Unsplash，否则 Openverse
-        use_unsplash = (source == "unsplash") or (source == "auto" and has_unsplash_key)
+        source = (settings.COVER_SOURCE or "pexels").strip().lower()
+        has_pexels = bool(settings.PEXELS_API_KEY.strip())
+        has_unsplash = bool(settings.UNSPLASH_ACCESS_KEY.strip())
 
-        if use_unsplash and not has_unsplash_key:
-            raise ValueError("图源设为 unsplash 但未配置 UNSPLASH_ACCESS_KEY")
+        # 解析实际使用的图源
+        if source == "pexels":
+            if not has_pexels:
+                raise ValueError("图源设为 pexels 但未配置 PEXELS_API_KEY")
+            use = "pexels"
+        elif source == "unsplash":
+            if not has_unsplash:
+                raise ValueError("图源设为 unsplash 但未配置 UNSPLASH_ACCESS_KEY")
+            use = "unsplash"
+        elif source == "openverse":
+            use = "openverse"
+        else:  # auto
+            if has_pexels:
+                use = "pexels"
+            elif has_unsplash:
+                use = "unsplash"
+            else:
+                use = "openverse"
 
         # 1. 确定搜索词：用户手填优先，否则让 AI 从正文提取
         query = (request.query or "").strip()
@@ -372,23 +386,64 @@ class AgentService:
                 COVER_QUERY_PROMPT.format(content=request.content),
                 temperature=0.3,
             )
-            # 取首行、去标点、压成单空格分隔；模型偶尔会带句号或换行
             query = " ".join(raw_query.strip().splitlines())[:100].strip()
             if not query:
                 query = "technology"
 
         # 2. 按图源搜索
-        if use_unsplash:
+        if use == "pexels":
+            return await self._search_pexels(query)
+        if use == "unsplash":
             return await self._search_unsplash(query)
         return await self._search_openverse(query)
 
+    async def _search_pexels(self, query: str) -> AgentCoverResponse:
+        """Pexels 搜索（国内可达，需 API key，免费商用）。
+
+        响应字段：photos[].src.large（封面用）、.src.medium（缩略）、
+        .alt（描述）、.photographer（作者）、.photographer_url（作者主页）。
+        """
+        from app.core.config import settings
+        import httpx
+
+        key = settings.PEXELS_API_KEY.strip()
+        per_page = settings.COVER_PER_PAGE
+        try:
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                resp = await client.get(
+                    "https://api.pexels.com/v1/search",
+                    params={"query": query, "per_page": per_page, "orientation": "landscape"},
+                    headers={"Authorization": key},
+                )
+        except httpx.HTTPError as e:
+            app_logger.warning(f"Pexels 请求失败：{e}")
+            raise ValueError(f"无法访问 Pexels 图库：{e}") from e
+
+        if resp.status_code != 200:
+            app_logger.warning(f"Pexels 返回 {resp.status_code}: {resp.text[:200]}")
+            raise ValueError(f"Pexels 搜索失败（HTTP {resp.status_code}）")
+
+        photos = resp.json().get("photos", [])
+        images = [
+            CoverImage(
+                url=p.get("src", {}).get("large", ""),
+                thumb_url=p.get("src", {}).get("medium", "") or p.get("src", {}).get("large", ""),
+                alt=p.get("alt") or "",
+                author_name=p.get("photographer") or "",
+                author_url=p.get("photographer_url") or "",
+            )
+            for p in photos
+            if p.get("src", {}).get("large")
+        ]
+        return AgentCoverResponse(query=query, images=images)
+
     async def _search_unsplash(self, query: str) -> AgentCoverResponse:
-        """Unsplash 搜索（需 access key）。"""
+        """Unsplash 搜索（需 access key，国内可达）。"""
         from app.core.config import settings
         import httpx
 
         key = settings.UNSPLASH_ACCESS_KEY.strip()
-        per_page = settings.UNSPLASH_PER_PAGE
+        per_page = settings.COVER_PER_PAGE
         try:
             async with httpx.AsyncClient(timeout=15.0) as client:
                 resp = await client.get(
@@ -419,16 +474,15 @@ class AgentService:
         return AgentCoverResponse(query=query, images=images)
 
     async def _search_openverse(self, query: str) -> AgentCoverResponse:
-        """Openverse 搜索（无需 key）。聚合 Wikimedia/Flickr 等 CC 版权图。
+        """Openverse 搜索（无需 key，聚合 Wikimedia/Flickr 等 CC 版权图）。
 
-        注意：Openverse 图片版权为各类 CC 协议，部分含 NC（非商用）/ND（禁止演绎），
-        故默认只筛「允许商用且可改编」的宽松协议（by / by-sa / cc0 / public），
-        避免给博客封面引入版权风险。
+        注意：国内服务器访问 api.openverse.org 常超时，仅在无 key 时作 fallback。
+        默认只筛宽松协议（cc0/pdm/by/by-sa），避免 NC/ND 版权风险。
         """
         from app.core.config import settings
         import httpx
 
-        per_page = settings.UNSPLASH_PER_PAGE
+        per_page = settings.COVER_PER_PAGE
         try:
             async with httpx.AsyncClient(timeout=15.0) as client:
                 resp = await client.get(
@@ -436,7 +490,6 @@ class AgentService:
                     params={
                         "q": query,
                         "page_size": per_page,
-                        # 仅取可商用 + 可改编的 CC 协议，过滤 NC/ND，保证博客封面无版权风险
                         "license": "cc0,pdm,by,by-sa",
                         "aspect_ratio": "wide",
                     },
@@ -455,13 +508,11 @@ class AgentService:
             url = item.get("url") or ""
             if not url:
                 continue
-            # Openverse 的 thumbnail 是相对路径（/v1/images/{id}/thumb/），需拼全
             thumb = item.get("thumbnail") or ""
             if thumb and thumb.startswith("/"):
                 thumb = f"https://api.openverse.org{thumb}"
             images.append(CoverImage(
                 url=url,
-                # 无缩略图时退化用原图（候选网格会慢些但能用）
                 thumb_url=thumb or url,
                 alt=item.get("title") or "",
                 author_name=item.get("creator") or "",

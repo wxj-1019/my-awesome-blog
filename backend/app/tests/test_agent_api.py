@@ -213,44 +213,43 @@ def test_agent_meta_provider_unavailable_400(client, monkeypatch):
 # ── 封面配图搜索端点测试 ───────────────────────────────────────────
 
 
-def _setup_cover_source(monkeypatch, source: str, unsplash_key: str = ""):
-    """统一设置图源配置（COVER_SOURCE + UNSPLASH_ACCESS_KEY）"""
+def _setup_cover(monkeypatch, source: str, pexels_key: str = "", unsplash_key: str = ""):
+    """统一设置图源配置"""
     from app.core.config import settings
     monkeypatch.setattr(settings, "COVER_SOURCE", source)
+    monkeypatch.setattr(settings, "PEXELS_API_KEY", pexels_key)
     monkeypatch.setattr(settings, "UNSPLASH_ACCESS_KEY", unsplash_key)
 
 
-def test_agent_cover_forced_unsplash_without_key_400(client, monkeypatch):
-    """强制 unsplash 但未配 key：400"""
-    _setup_cover_source(monkeypatch, "unsplash", "")
+def test_agent_cover_pexels_without_key_400(client, monkeypatch):
+    """pexels 源但未配 key：400"""
+    _setup_cover(monkeypatch, "pexels", "")
     resp = client.post("/api/v1/agent/cover", json={"content": "# 文章\n正文", "query": "x"})
     assert resp.status_code == 400
-    assert "UNSPLASH_ACCESS_KEY" in resp.json()["error"]["message"]
+    assert "PEXELS_API_KEY" in resp.json()["error"]["message"]
 
 
-def test_agent_cover_openverse_manual_query(client, monkeypatch):
-    """Openverse 手动 query（默认零配置图源）：直接搜，返回候选"""
-    _setup_cover_source(monkeypatch, "openverse")
+def test_agent_cover_pexels_manual_query(client, monkeypatch):
+    """Pexels 手动 query：直接搜，解析 src.large / src.medium / photographer"""
+    _setup_cover(monkeypatch, "pexels", "pex-key")
 
     class FakeResp:
         status_code = 200
-        text = '{"results":[]}'
+        text = '{"photos":[]}'
         def json(self):
             return {
-                "results": [
+                "photos": [
                     {
-                        "url": "https://live.staticflickr.com/r1.jpg",
-                        "thumbnail": "/v1/images/id1/thumb/",
-                        "title": "a laptop",
-                        "creator": "Alice",
-                        "creator_url": "https://flickr.com/alice",
+                        "src": {"large": "https://images.pexels.com/large1.jpg", "medium": "https://images.pexels.com/med1.jpg"},
+                        "alt": "a laptop on desk",
+                        "photographer": "Alice",
+                        "photographer_url": "https://pexels.com/@alice",
                     },
                     {
-                        "url": "https://live.staticflickr.com/r2.jpg",
-                        "thumbnail": None,  # 缩略图缺失，应退化用原图
-                        "title": None,
-                        "creator": None,
-                        "creator_url": None,
+                        "src": {"large": "https://images.pexels.com/large2.jpg", "medium": None},
+                        "alt": None,
+                        "photographer": None,
+                        "photographer_url": None,
                     },
                 ]
             }
@@ -260,10 +259,9 @@ def test_agent_cover_openverse_manual_query(client, monkeypatch):
         async def __aenter__(self): return self
         async def __aexit__(self, *a): return False
         async def get(self, url, params=None, headers=None):
-            # 确认走的是 Openverse 端点 + 传了宽松协议过滤
-            assert "openverse.org" in url
-            assert params["q"] == "docker"
-            assert "cc0" in params["license"]  # 版权过滤生效
+            assert "pexels.com" in url
+            assert params["query"] == "docker"
+            assert headers["Authorization"] == "pex-key"
             return FakeResp()
 
     import httpx
@@ -274,19 +272,18 @@ def test_agent_cover_openverse_manual_query(client, monkeypatch):
     data = resp.json()
     assert data["query"] == "docker"
     assert len(data["images"]) == 2
-    assert data["images"][0]["url"] == "https://live.staticflickr.com/r1.jpg"
-    # 相对路径缩略图应拼成完整 URL
-    assert data["images"][0]["thumb_url"] == "https://api.openverse.org/v1/images/id1/thumb/"
+    assert data["images"][0]["url"] == "https://images.pexels.com/large1.jpg"
+    assert data["images"][0]["thumb_url"] == "https://images.pexels.com/med1.jpg"
     assert data["images"][0]["author_name"] == "Alice"
-    # 缩略图缺失时退化用原图
-    assert data["images"][1]["thumb_url"] == "https://live.staticflickr.com/r2.jpg"
+    # medium 缺失时退化用 large
+    assert data["images"][1]["thumb_url"] == "https://images.pexels.com/large2.jpg"
     assert data["images"][1]["alt"] == ""
     assert data["images"][1]["author_name"] == ""
 
 
-def test_agent_cover_openverse_ai_query(client, monkeypatch):
-    """Openverse + AI 生词：未手填 query 时 AI 提取后再搜"""
-    _setup_cover_source(monkeypatch, "openverse")
+def test_agent_cover_pexels_ai_query(client, monkeypatch):
+    """Pexels + AI 生词：未手填 query 时 AI 提取后再搜"""
+    _setup_cover(monkeypatch, "pexels", "pex-key")
 
     provider = FakeProvider([_text_resp("docker coding")])
     monkeypatch.setattr(agent_service_module, "get_llm_provider", lambda name=None: provider)
@@ -294,14 +291,14 @@ def test_agent_cover_openverse_ai_query(client, monkeypatch):
     captured = {}
     class FakeResp:
         status_code = 200
-        text = '{"results":[]}'
-        def json(self): return {"results": []}
+        text = '{"photos":[]}'
+        def json(self): return {"photos": []}
     class FakeClient:
         def __init__(self, *a, **kw): pass
         async def __aenter__(self): return self
         async def __aexit__(self, *a): return False
         async def get(self, url, params=None, headers=None):
-            captured["query"] = params["q"]
+            captured["query"] = params["query"]
             return FakeResp()
     import httpx
     monkeypatch.setattr(httpx, "AsyncClient", FakeClient)
@@ -312,22 +309,47 @@ def test_agent_cover_openverse_ai_query(client, monkeypatch):
     assert resp.json()["query"] == "docker coding"
 
 
-def test_agent_cover_auto_falls_back_to_openverse(client, monkeypatch):
-    """auto 模式 + 未配 Unsplash key：自动 fallback 到 Openverse"""
-    _setup_cover_source(monkeypatch, "auto", "")  # 默认 auto + 无 key
+def test_agent_cover_auto_prefers_pexels(client, monkeypatch):
+    """auto 模式 + 配了 Pexels key：优先 Pexels（即使也配了 Unsplash）"""
+    _setup_cover(monkeypatch, "auto", pexels_key="pex-key", unsplash_key="uns-key")
+
+    hit = {"pexels": False, "unsplash": False}
+    class FakeResp:
+        status_code = 200
+        text = '{}'
+        def json(self): return {"photos": [], "results": []}
+    class FakeClient:
+        def __init__(self, *a, **kw): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *a): return False
+        async def get(self, url, params=None, headers=None):
+            if "pexels.com" in url: hit["pexels"] = True
+            elif "unsplash.com" in url: hit["unsplash"] = True
+            return FakeResp()
+    import httpx
+    monkeypatch.setattr(httpx, "AsyncClient", FakeClient)
+
+    resp = client.post("/api/v1/agent/cover", json={"content": "正文", "query": "tech"})
+    assert resp.status_code == 200
+    assert hit["pexels"] is True
+    assert hit["unsplash"] is False
+
+
+def test_agent_cover_auto_fallback_openverse(client, monkeypatch):
+    """auto 模式 + 无任何 key：fallback 到 Openverse"""
+    _setup_cover(monkeypatch, "auto", "", "")
 
     hit = {"openverse": False}
     class FakeResp:
         status_code = 200
-        text = '{"results":[]}'
+        text = '{}'
         def json(self): return {"results": []}
     class FakeClient:
         def __init__(self, *a, **kw): pass
         async def __aenter__(self): return self
         async def __aexit__(self, *a): return False
         async def get(self, url, params=None, headers=None):
-            if "openverse.org" in url:
-                hit["openverse"] = True
+            if "openverse.org" in url: hit["openverse"] = True
             return FakeResp()
     import httpx
     monkeypatch.setattr(httpx, "AsyncClient", FakeClient)
@@ -337,41 +359,13 @@ def test_agent_cover_auto_falls_back_to_openverse(client, monkeypatch):
     assert hit["openverse"] is True
 
 
-def test_agent_cover_auto_uses_unsplash_when_keyed(client, monkeypatch):
-    """auto 模式 + 配了 Unsplash key：优先用 Unsplash"""
-    _setup_cover_source(monkeypatch, "auto", "test-key")
-
-    hit = {"unsplash": False, "openverse": False}
-    class FakeResp:
-        status_code = 200
-        text = '{"results":[]}'
-        def json(self): return {"results": []}
-    class FakeClient:
-        def __init__(self, *a, **kw): pass
-        async def __aenter__(self): return self
-        async def __aexit__(self, *a): return False
-        async def get(self, url, params=None, headers=None):
-            if "unsplash.com" in url:
-                hit["unsplash"] = True
-            elif "openverse.org" in url:
-                hit["openverse"] = True
-            return FakeResp()
-    import httpx
-    monkeypatch.setattr(httpx, "AsyncClient", FakeClient)
-
-    resp = client.post("/api/v1/agent/cover", json={"content": "正文", "query": "tech"})
-    assert resp.status_code == 200
-    assert hit["unsplash"] is True
-    assert hit["openverse"] is False  # 没回退到 Openverse
-
-
-def test_agent_cover_openverse_http_error_400(client, monkeypatch):
-    """Openverse 返回非 200：转 400"""
-    _setup_cover_source(monkeypatch, "openverse")
+def test_agent_cover_pexels_http_error_400(client, monkeypatch):
+    """Pexels 返回非 200：转 400"""
+    _setup_cover(monkeypatch, "pexels", "pex-key")
 
     class FakeResp:
-        status_code = 500
-        text = "server error"
+        status_code = 401
+        text = "unauthorized"
     class FakeClient:
         def __init__(self, *a, **kw): pass
         async def __aenter__(self): return self
@@ -382,4 +376,4 @@ def test_agent_cover_openverse_http_error_400(client, monkeypatch):
 
     resp = client.post("/api/v1/agent/cover", json={"content": "正文", "query": "x"})
     assert resp.status_code == 400
-    assert "500" in resp.json()["error"]["message"]
+    assert "401" in resp.json()["error"]["message"]

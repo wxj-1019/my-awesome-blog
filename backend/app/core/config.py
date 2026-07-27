@@ -124,11 +124,13 @@ class Settings(BaseSettings):
     LANGCHAIN_API_KEY: str = Field(default="", description="LangSmith API密钥（用于追踪和调试）")
     LANGCHAIN_PROJECT: str = Field(default="my-awesome-blog", description="LangSmith项目名称")
 
-    # Unsplash 图库（封面配图自动搜索；申请免费 access key：https://unsplash.com/oauth/applications）
-    UNSPLASH_ACCESS_KEY: str = Field(default="", description="Unsplash API access key（留空则封面搜索不可用）")
-    UNSPLASH_PER_PAGE: int = Field(default=6, ge=1, le=12, description="每次封面搜索返回的候选图数量")
-    # 封面图源：auto=有 Unsplash key 用它，否则 Openverse（零配置）；可强制 openverse / unsplash
-    COVER_SOURCE: str = Field(default="auto", description="封面图源：auto | openverse | unsplash")
+    # 封面配图图源（ COVER_SOURCE 控制：auto | pexels | unsplash | openverse）
+    # 默认 pexels：国内可达、注册即拿 key、图片质量高、免费商用。
+    # auto：按可用性自动选（有 pexels key 用 pexels，否则 openverse；unsplash 需显式指定）。
+    COVER_SOURCE: str = Field(default="pexels", description="封面图源：auto | pexels | unsplash | openverse")
+    PEXELS_API_KEY: str = Field(default="", description="Pexels API key（注册即得：https://www.pexels.com/api/）")
+    UNSPLASH_ACCESS_KEY: str = Field(default="", description="Unsplash API access key（申请：https://unsplash.com/oauth/applications）")
+    COVER_PER_PAGE: int = Field(default=6, ge=1, le=12, description="每次封面搜索返回的候选图数量")
 
     # Prompt Management
     PROMPT_DEFAULT_VERSION: str = Field(default="v1", description="默认提示词版本")
