@@ -4,7 +4,7 @@ from app.api.v1.endpoints import (
     categories, tags, friend_links, portfolio, timeline_events,
     statistics, subscriptions, images, audit_logs, analytics, oss_upload,
     messages, albums, monitoring, llm, prompts, weather, conversations, memories,
-    tenants, agent,
+    tenants, agent, writing_sessions,
 )
 
 api_router = APIRouter()
@@ -30,6 +30,11 @@ api_router.include_router(albums.router, prefix="/albums", tags=["albums"])
 api_router.include_router(monitoring.router, prefix="/monitoring", tags=["monitoring"])
 api_router.include_router(llm.router, prefix="/llm", tags=["llm"])
 api_router.include_router(agent.router, prefix="/agent", tags=["agent"])
+api_router.include_router(
+    writing_sessions.router,
+    prefix="/agent/writing-sessions",
+    tags=["agent-writing"],
+)
 api_router.include_router(prompts.router, prefix="/prompts", tags=["prompts"])
 api_router.include_router(weather.router, prefix="/weather", tags=["weather"])
 api_router.include_router(conversations.router, prefix="/conversations", tags=["conversations"])

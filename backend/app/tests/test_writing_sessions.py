@@ -180,3 +180,48 @@ def test_context_helpers_behavior(test_session):
     assert h1 == h2
     assert h1 != h3
     assert len(h1) == 64  # SHA-256 hex
+
+
+def test_create_and_recover_active_writing_session(client):
+    created = client.post("/api/v1/agent/writing-sessions/", json={})
+    assert created.status_code == 201
+    session = created.json()
+    assert session["stage"] == "clarifying"
+
+    active = client.get("/api/v1/agent/writing-sessions/active")
+    assert active.status_code == 200
+    assert active.json()["id"] == session["id"]
+
+
+def test_abandon_session_removes_it_from_active(client):
+    session_id = client.post("/api/v1/agent/writing-sessions/", json={}).json()["id"]
+    response = client.post(f"/api/v1/agent/writing-sessions/{session_id}/abandon")
+    assert response.status_code == 200
+    assert response.json()["status"] == "abandoned"
+    assert client.get("/api/v1/agent/writing-sessions/active").status_code == 404
+
+
+def test_session_cannot_be_read_by_another_user(client, test_session):
+    from app.core.dependencies import get_current_active_user
+    from app.main import app
+    from app.models.user import User
+
+    session_id = client.post("/api/v1/agent/writing-sessions/", json={}).json()["id"]
+    other = User(
+        username="other-writer",
+        email="other-writer@example.com",
+        hashed_password="x",
+        tenant_id=uuid.uuid4(),
+    )
+    test_session.add(other)
+    test_session.commit()
+
+    original_override = app.dependency_overrides.get(get_current_active_user)
+    app.dependency_overrides[get_current_active_user] = lambda: other
+    try:
+        assert client.get(f"/api/v1/agent/writing-sessions/{session_id}").status_code == 404
+    finally:
+        if original_override is not None:
+            app.dependency_overrides[get_current_active_user] = original_override
+        else:
+            app.dependency_overrides.pop(get_current_active_user, None)
