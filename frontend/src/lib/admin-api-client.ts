@@ -1,20 +1,39 @@
 import { getAuthHeaders } from '@/lib/auth-utils';
 import { API_BASE_URL } from '@/lib/api-client';
+import type {
+  WritingSession,
+  WritingSelectionRevisionRequest,
+  WritingSuggestionRevisionRequest,
+} from '@/types/writing-session';
 
-/** Agent SSE 流的载荷（generate-stream / revise-stream 共用） */
-interface AgentStreamHandlers {
-  onTool?: (info: { tool?: string; arguments?: unknown }) => void;
+/**
+ * SSE 事件处理器（统一接口）。
+ *
+ * 复用于：agent.generateStream / agent.reviseStream（旧），
+ * 以及 writingSessions.* 流式端点（新增）。
+ * 字段命名以既有 agent 调用方为准（onChunk / onTool），向后兼容；
+ * onMeta 为写作会话流式响应新增（推送会话状态等元信息）。
+ */
+export interface SseHandlers {
+  /** 正文增量 delta */
   onChunk?: (delta: string) => void;
+  /** 工具调用（仅生成流） */
+  onTool?: (info: { tool?: string; arguments?: unknown }) => void;
+  /** 会话级元信息（写作会话流的 meta 事件） */
+  onMeta?: (meta: Record<string, unknown>) => void;
+  /** 流正常结束，回传拼接后的完整正文 */
   onComplete?: (full: string) => void;
+  /** 错误回调 */
   onError?: (message: string) => void;
 }
 
 /**
- * 消费 /agent/generate-stream、/agent/revise-stream 的 SSE 响应。
+ * 消费 /agent/generate-stream、/agent/revise-stream 以及写作会话流式端点的 SSE 响应。
  *
  * 事件形态：
  *   data: {"content": "..."}    正文增量
  *   data: {"tool": "search_articles", "arguments": {...}}  工具调用（仅生成）
+ *   data: {"meta": {...}}       会话元信息（写作会话流式）
  *   data: {"error": true, "message": "..."}  错误（格式对齐 llm_service）
  *   data: [DONE]                结束
  *
@@ -22,7 +41,7 @@ interface AgentStreamHandlers {
  */
 async function consumeAgentSse(
   response: Response,
-  handlers: AgentStreamHandlers
+  handlers: SseHandlers
 ): Promise<void> {
   const reader = response.body?.getReader();
   if (!reader) {
@@ -52,6 +71,13 @@ async function consumeAgentSse(
             tool: typeof payload.tool === 'string' ? payload.tool : undefined,
             arguments: payload.arguments,
           });
+        } else if (payload.meta !== undefined) {
+          // 写作会话流式：推送会话状态等元信息
+          handlers.onMeta?.(
+            (payload.meta && typeof payload.meta === 'object'
+              ? payload.meta
+              : {}) as Record<string, unknown>
+          );
         } else if (payload.error === true) {
           // 错误事件格式与 llm_service 对齐：{error: true, message}
           handlers.onError?.(typeof payload.message === 'string' ? payload.message : '未知错误');
@@ -80,6 +106,45 @@ async function consumeAgentSse(
       return;
     }
   }
+}
+
+/**
+ * 可取消的 POST + SSE 流式请求封装。
+ *
+ * 与 agent.generateStream/reviseStream 同构：fetch → consumeAgentSse，
+ * 失败（非 abort）转交 handlers.onError。返回 cancel 函数供组件卸载/用户取消时中止。
+ *
+ * @param endpoint 形如 `/agent/writing-sessions/:id/...`，拼接到 API_BASE_URL 之后
+ * @param body     请求体（自动 JSON.stringify）
+ * @param handlers SSE 事件回调
+ * @returns cancel 函数，调用即 AbortController.abort()
+ */
+function postSse(endpoint: string, body: unknown, handlers: SseHandlers): () => void {
+  const controller = new AbortController();
+  const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+  // 不 await：调用方需要立即拿到 cancel 句柄
+  void (async () => {
+    try {
+      const resp = await fetch(`${API_BASE_URL}${endpoint}`, {
+        method: 'POST',
+        signal: controller.signal,
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(body),
+      });
+      if (!resp.ok) {
+        const txt = await resp.text().catch(() => '');
+        throw new Error(`HTTP ${resp.status}${txt ? `: ${txt}` : ''}`);
+      }
+      await consumeAgentSse(resp, handlers);
+    } catch (err) {
+      if ((err as Error).name === 'AbortError') {return;}
+      handlers.onError?.(err instanceof Error ? err.message : String(err));
+    }
+  })();
+  return () => controller.abort();
 }
 
 interface ApiError {
@@ -517,6 +582,83 @@ export const adminApi = {
       AdminApiClient.post('/memories/search', { query, ...params }),
     getStats: () => AdminApiClient.get('/memories/stats/summary'),
     cleanup: () => AdminApiClient.post('/memories/cleanup', {}),
+  },
+
+  // ── AI 写作会话（WritingSession：澄清 → 大纲 → 草稿 → 修改 → 完成）──
+  // JSON 端点走 AdminApiClient.post/get（含 auth）；SSE 端点走 postSse（可取消）。
+  writingSessions: {
+    /** 创建新写作会话（可选关联已有文章草稿）。 */
+    create: (articleId?: string): Promise<WritingSession> =>
+      AdminApiClient.post<WritingSession>(
+        '/agent/writing-sessions/',
+        articleId ? { article_id: articleId } : {}
+      ),
+    /** 恢复当前用户最近的活动会话（无则 404）。 */
+    active: (): Promise<WritingSession> =>
+      AdminApiClient.get<WritingSession>('/agent/writing-sessions/active'),
+    /** 按 id 获取会话详情。 */
+    get: (id: string): Promise<WritingSession> =>
+      AdminApiClient.get<WritingSession>(`/agent/writing-sessions/${id}`),
+    /** 放弃会话。 */
+    abandon: (id: string): Promise<WritingSession> =>
+      AdminApiClient.post<WritingSession>(`/agent/writing-sessions/${id}/abandon`, {}),
+    /** 澄清阶段：发送用户消息，流式返回助手回复。返回 cancel 函数。 */
+    messageStream: (id: string, message: string, handlers: SseHandlers): (() => void) =>
+      postSse(`/agent/writing-sessions/${id}/message/stream`, { message }, handlers),
+    /** 生成大纲（非流式，落库后随会话返回）。 */
+    generateOutline: (id: string): Promise<WritingSession> =>
+      AdminApiClient.post<WritingSession>(`/agent/writing-sessions/${id}/generate-outline`, {}),
+    /** 调整大纲（自然语言指令）。 */
+    adjustOutline: (id: string, message: string): Promise<WritingSession> =>
+      AdminApiClient.post<WritingSession>(`/agent/writing-sessions/${id}/outline/adjust`, { message }),
+    /** 确认大纲，进入草稿生成（流式输出正文）。返回 cancel 函数。 */
+    confirmOutline: (id: string, handlers: SseHandlers): (() => void) =>
+      postSse(`/agent/writing-sessions/${id}/confirm-outline`, {}, handlers),
+    /** 调整草稿（自然语言指令，流式输出改后正文）。返回 cancel 函数。 */
+    adjustDraft: (id: string, message: string, handlers: SseHandlers): (() => void) =>
+      postSse(`/agent/writing-sessions/${id}/draft/adjust`, { message }, handlers),
+    /** 确认草稿，进入修改阶段。 */
+    confirmDraft: (id: string): Promise<WritingSession> =>
+      AdminApiClient.post<WritingSession>(`/agent/writing-sessions/${id}/confirm-draft`, {}),
+    /** 分析正文，产出改稿建议（落库后随会话返回）。 */
+    analyze: (id: string, content: string, contentHash: string): Promise<WritingSession> =>
+      AdminApiClient.post<WritingSession>(`/agent/writing-sessions/${id}/analyze`, {
+        content,
+        content_hash: contentHash,
+      }),
+    /** 基于选区的改稿（流式输出替换文本）。返回 cancel 函数。 */
+    reviseSelection: (
+      id: string,
+      body: WritingSelectionRevisionRequest,
+      handlers: SseHandlers
+    ): (() => void) =>
+      postSse(`/agent/writing-sessions/${id}/revise-selection/stream`, body, handlers),
+    /** 基于建议的改稿（流式输出替换文本）。返回 cancel 函数。 */
+    reviseSuggestion: (
+      id: string,
+      body: WritingSuggestionRevisionRequest,
+      handlers: SseHandlers
+    ): (() => void) =>
+      postSse(`/agent/writing-sessions/${id}/revise-suggestion/stream`, body, handlers),
+    /** 应用某次修订到正文。 */
+    applyRevision: (id: string, revisionId: string, contentHash: string): Promise<WritingSession> =>
+      AdminApiClient.post<WritingSession>(`/agent/writing-sessions/${id}/apply-revision`, {
+        revision_id: revisionId,
+        content_hash: contentHash,
+      }),
+    /** 丢弃某次修订。 */
+    discardRevision: (id: string, revisionId: string): Promise<WritingSession> =>
+      AdminApiClient.post<WritingSession>(`/agent/writing-sessions/${id}/discard-revision`, {
+        revision_id: revisionId,
+      }),
+    /** 关联到已有文章。 */
+    linkArticle: (id: string, articleId: string): Promise<WritingSession> =>
+      AdminApiClient.post<WritingSession>(`/agent/writing-sessions/${id}/link-article`, {
+        article_id: articleId,
+      }),
+    /** 标记会话完成。 */
+    complete: (id: string): Promise<WritingSession> =>
+      AdminApiClient.post<WritingSession>(`/agent/writing-sessions/${id}/complete`, {}),
   },
 
   // ── AI 导向写作（生成 / 改稿 / 元信息）──────────────────────────
