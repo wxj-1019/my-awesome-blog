@@ -1,12 +1,13 @@
 from datetime import datetime
 from typing import Optional
 from uuid import UUID
-from pydantic import BaseModel, field_serializer
+from pydantic import BaseModel, Field, field_serializer
 
 
 # Base schemas
 class CommentBase(BaseModel):
-    content: str
+    # 与 ConversationMessage 等保持一致：内容非空且限长，避免空评论落库
+    content: str = Field(..., min_length=1, max_length=5000, description="评论内容")
 
 
 # Create schemas

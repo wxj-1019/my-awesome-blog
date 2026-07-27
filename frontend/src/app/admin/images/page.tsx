@@ -19,6 +19,7 @@ import { cn } from '@/lib/utils'
 import { adminApi } from '@/lib/admin-api-client'
 import { validateArrayData } from '@/utils/data-validation'
 import { useToast } from '@/components/admin/Toast'
+import DataTable, { type Column } from '@/components/ui/DataTable'
 import ConfirmDialog from '@/components/ui/ConfirmDialog'
 
 interface ImageItem {
@@ -148,15 +149,102 @@ export default function ImagesPage() {
 
   const totalPages = Math.ceil(total / pageSize)
 
+  /* DataTable 列定义（list 视图）：单元格内容与原手写表格一致，
+     顺带把裸调色板色收敛为语义 token（info / success / primary / destructive） */
+  const imageColumns: Column<ImageItem>[] = [
+    {
+      key: 'thumbnail_url',
+      title: '图片',
+      width: 80,
+      render: (_v, image) => (
+        <div
+          className="relative w-12 h-12 rounded-lg bg-foreground/5 overflow-hidden cursor-pointer"
+          onClick={() => setSelectedImage(image)}
+        >
+          <Image
+            src={image.thumbnail_url || image.url}
+            alt={image.original_filename}
+            width={48}
+            height={48}
+            className="object-cover"
+          />
+        </div>
+      ),
+    },
+    {
+      key: 'original_filename',
+      title: '文件名',
+      render: (_v, image) => (
+        <>
+          <p className="font-medium text-foreground">{image.original_filename}</p>
+          <p className="text-sm text-muted-foreground">{image.mime_type}</p>
+        </>
+      ),
+    },
+    {
+      key: 'width',
+      title: '尺寸',
+      cellClassName: 'text-muted-foreground',
+      render: (_v, image) => <>{image.width} × {image.height}</>,
+    },
+    {
+      key: 'file_size',
+      title: '大小',
+      cellClassName: 'text-muted-foreground',
+      render: (_v, image) => <>{formatFileSize(image.file_size)}</>,
+    },
+    {
+      key: 'used_in_articles',
+      title: '引用',
+      render: (_v, image) => (image.used_in_articles ? (
+        <span className="px-2 py-0.5 text-xs bg-info/15 text-info rounded-full">
+          {image.used_in_articles} 篇文章
+        </span>
+      ) : (
+        <span className="text-sm text-muted-foreground">未使用</span>
+      )),
+    },
+    {
+      key: 'actions',
+      title: '操作',
+      cellClassName: 'text-right',
+      render: (_v, image) => (
+        <div className="flex items-center justify-end gap-1">
+          <button
+            onClick={() => copyUrl(image.url, image.id)}
+            className="p-2 text-muted-foreground hover:text-primary hover:bg-foreground/5 rounded-lg transition-colors"
+            title="复制链接"
+          >
+            {copiedId === image.id ? <Check className="w-4 h-4 text-success" /> : <Copy className="w-4 h-4" />}
+          </button>
+          <button
+            onClick={() => setSelectedImage(image)}
+            className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
+            title="查看"
+          >
+            <ImageIcon className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => deleteImage(image.id)}
+            className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+            title="删除"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      ),
+    },
+  ]
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">图片管理</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">管理媒体图片和文件</p>
+          <h1 className="text-2xl font-bold text-foreground">图片管理</h1>
+          <p className="text-muted-foreground mt-1">管理媒体图片和文件</p>
         </div>
-        <label className="inline-flex items-center gap-2 px-4 py-2 bg-tech-cyan text-white dark:text-gray-100 rounded-lg hover:bg-tech-cyan/90 transition-colors cursor-pointer">
+        <label className="inline-flex items-center gap-2 px-4 py-2 bg-tech-cyan text-foreground rounded-lg hover:bg-tech-cyan/90 transition-colors cursor-pointer">
           <Upload className="w-5 h-5" />
           {uploading ? '上传中...' : '上传图片'}
           <input
@@ -174,13 +262,13 @@ export default function ImagesPage() {
       <div className="bg-white rounded-xl p-4 shadow-sm">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500 dark:text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <input
               type="text"
               placeholder="搜索图片..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-tech-cyan/50"
+              className="w-full pl-10 pr-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-tech-cyan/50"
             />
           </div>
           
@@ -190,8 +278,8 @@ export default function ImagesPage() {
               className={cn(
                 "p-2 rounded-lg transition-colors",
                 viewMode === 'grid' 
-                  ? "bg-tech-cyan text-white dark:text-gray-100" 
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  ? "bg-tech-cyan text-foreground" 
+                  : "bg-foreground/5 text-muted-foreground hover:bg-foreground/10"
               )}
               title="网格视图"
             >
@@ -202,8 +290,8 @@ export default function ImagesPage() {
               className={cn(
                 "p-2 rounded-lg transition-colors",
                 viewMode === 'list' 
-                  ? "bg-tech-cyan text-white dark:text-gray-100" 
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  ? "bg-tech-cyan text-foreground" 
+                  : "bg-foreground/5 text-muted-foreground hover:bg-foreground/10"
               )}
               title="列表视图"
             >
@@ -221,8 +309,8 @@ export default function ImagesPage() {
           </div>
         ) : images.length === 0 ? (
           <div className="text-center py-12">
-            <ImageIcon className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400" />
-            <p className="mt-4 text-gray-400 dark:text-gray-500 dark:text-gray-400">暂无图片</p>
+            <ImageIcon className="w-12 h-12 mx-auto text-muted-foreground" />
+            <p className="mt-4 text-muted-foreground">暂无图片</p>
             <label className="inline-block mt-4 text-tech-cyan hover:underline cursor-pointer">
               上传第一张图片
               <input
@@ -238,7 +326,7 @@ export default function ImagesPage() {
             {images.map((image) => (
               <div 
                 key={image.id} 
-                className="group relative aspect-square rounded-xl overflow-hidden bg-gray-100 cursor-pointer hover:shadow-lg transition-colors"
+                className="group relative aspect-square rounded-xl overflow-hidden bg-foreground/5 cursor-pointer hover:shadow-lg transition-colors"
                 onClick={() => setSelectedImage(image)}
               >
                 <Image
@@ -255,17 +343,17 @@ export default function ImagesPage() {
                         e.stopPropagation()
                         copyUrl(image.url, image.id)
                       }}
-                      className="p-2 bg-white rounded-lg text-gray-700 hover:text-tech-cyan transition-colors"
+                      className="p-2 bg-white rounded-lg text-foreground hover:text-tech-cyan transition-colors"
                       title="复制链接"
                     >
-                      {copiedId === image.id ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                      {copiedId === image.id ? <Check className="w-4 h-4 text-success" /> : <Copy className="w-4 h-4" />}
                     </button>
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
                         deleteImage(image.id)
                       }}
-                      className="p-2 bg-white rounded-lg text-gray-700 hover:text-red-600 transition-colors"
+                      className="p-2 bg-white rounded-lg text-foreground hover:text-destructive transition-colors"
                       title="删除"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -273,7 +361,7 @@ export default function ImagesPage() {
                   </div>
                 </div>
                 {image.used_in_articles ? (
-                  <div className="absolute top-2 right-2 px-2 py-0.5 text-xs bg-tech-cyan text-white dark:text-gray-100 rounded-full">
+                  <div className="absolute top-2 right-2 px-2 py-0.5 text-xs bg-tech-cyan text-foreground rounded-full">
                     {image.used_in_articles} 篇
                   </div>
                 ) : null}
@@ -281,97 +369,29 @@ export default function ImagesPage() {
             ))}
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">图片</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">文件名</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">尺寸</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">大小</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">引用</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">操作</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {images.map((image) => (
-                  <tr key={image.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3">
-                      <div 
-                        className="relative w-12 h-12 rounded-lg bg-gray-100 overflow-hidden cursor-pointer"
-                        onClick={() => setSelectedImage(image)}
-                      >
-                        <Image
-                          src={image.thumbnail_url || image.url}
-                          alt={image.original_filename}
-                          width={48}
-                          height={48}
-                          className="object-cover"
-                        />
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <p className="font-medium text-gray-900">{image.original_filename}</p>
-                      <p className="text-sm text-gray-400 dark:text-gray-500 dark:text-gray-400">{image.mime_type}</p>
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-600">
-                      {image.width} × {image.height}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-600">
-                      {formatFileSize(image.file_size)}
-                    </td>
-                    <td className="px-4 py-3">
-                      {image.used_in_articles ? (
-                        <span className="px-2 py-0.5 text-xs bg-blue-100 text-blue-700 rounded-full">
-                          {image.used_in_articles} 篇文章
-                        </span>
-                      ) : (
-                        <span className="text-sm text-gray-400 dark:text-gray-500 dark:text-gray-400">未使用</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center justify-end gap-1">
-                        <button
-                          onClick={() => copyUrl(image.url, image.id)}
-                          className="p-2 text-gray-400 dark:text-gray-500 dark:text-gray-400 hover:text-tech-cyan hover:bg-gray-100 rounded-lg transition-colors"
-                          title="复制链接"
-                        >
-                          {copiedId === image.id ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
-                        </button>
-                        <button
-                          onClick={() => setSelectedImage(image)}
-                          className="p-2 text-gray-400 dark:text-gray-500 dark:text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                          title="查看"
-                        >
-                          <ImageIcon className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => deleteImage(image.id)}
-                          className="p-2 text-gray-400 dark:text-gray-500 dark:text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          title="删除"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          /* list 视图改用 DataTable 基座。
+             pagination={false} —— 分页条在 grid/list 两个视图之外共用，
+             交给 DataTable 会出现两套分页。toolbar={false} —— 本页已有自己的搜索框。 */
+          <DataTable<ImageItem>
+            data={images}
+            keyField="id"
+            toolbar={false}
+            pagination={false}
+            columns={imageColumns}
+          />
         )}
 
         {/* Pagination */}
         {totalPages > 1 && (
           <div className="px-6 py-4 border-t flex items-center justify-between">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-sm text-muted-foreground">
               共 {total} 张图片，第 {currentPage}/{totalPages} 页
             </p>
             <div className="flex gap-2">
               <button
                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="flex items-center gap-1 px-3 py-1.5 text-sm border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+                className="flex items-center gap-1 px-3 py-1.5 text-sm border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-foreground/5 transition-colors"
               >
                 <ChevronLeft className="w-4 h-4" />
                 上一页
@@ -379,7 +399,7 @@ export default function ImagesPage() {
               <button
                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
-                className="flex items-center gap-1 px-3 py-1.5 text-sm border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+                className="flex items-center gap-1 px-3 py-1.5 text-sm border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-foreground/5 transition-colors"
               >
                 下一页
                 <ChevronRight className="w-4 h-4" />
@@ -410,7 +430,7 @@ export default function ImagesPage() {
               <h3 className="font-medium truncate pr-4">{selectedImage.original_filename}</h3>
               <button
                 onClick={() => setSelectedImage(null)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-foreground/5 rounded-lg transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -424,22 +444,22 @@ export default function ImagesPage() {
                 className="max-w-full h-auto mx-auto rounded-lg"
               />
             </div>
-            <div className="p-4 border-t bg-gray-50">
+            <div className="p-4 border-t bg-foreground/5">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div>
-                  <p className="text-gray-500 dark:text-gray-400">尺寸</p>
+                  <p className="text-muted-foreground">尺寸</p>
                   <p className="font-medium">{selectedImage.width} × {selectedImage.height}</p>
                 </div>
                 <div>
-                  <p className="text-gray-500 dark:text-gray-400">大小</p>
+                  <p className="text-muted-foreground">大小</p>
                   <p className="font-medium">{formatFileSize(selectedImage.file_size)}</p>
                 </div>
                 <div>
-                  <p className="text-gray-500 dark:text-gray-400">格式</p>
+                  <p className="text-muted-foreground">格式</p>
                   <p className="font-medium">{selectedImage.mime_type}</p>
                 </div>
                 <div>
-                  <p className="text-gray-500 dark:text-gray-400">上传时间</p>
+                  <p className="text-muted-foreground">上传时间</p>
                   <p className="font-medium">
                     {new Date(selectedImage.created_at).toLocaleDateString('zh-CN')}
                   </p>
@@ -448,7 +468,7 @@ export default function ImagesPage() {
               <div className="mt-4 flex gap-2">
                 <button
                   onClick={() => copyUrl(selectedImage.url, selectedImage.id)}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-tech-cyan text-white dark:text-gray-100 rounded-lg hover:bg-tech-cyan/90 transition-colors"
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-tech-cyan text-foreground rounded-lg hover:bg-tech-cyan/90 transition-colors"
                 >
                   {copiedId === selectedImage.id ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                   {copiedId === selectedImage.id ? '已复制' : '复制链接'}
@@ -458,7 +478,7 @@ export default function ImagesPage() {
                     deleteImage(selectedImage.id)
                     setSelectedImage(null)
                   }}
-                  className="flex items-center justify-center gap-2 px-4 py-2 bg-red-500 text-white dark:text-gray-100 rounded-lg hover:bg-red-600 transition-colors"
+                  className="flex items-center justify-center gap-2 px-4 py-2 bg-destructive text-foreground rounded-lg hover:bg-destructive transition-colors"
                 >
                   <Trash2 className="w-4 h-4" />
                   删除

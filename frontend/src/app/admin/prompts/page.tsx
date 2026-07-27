@@ -337,9 +337,9 @@ export default function PromptsPage() {
             <div className="space-y-3">
               <AnimatePresence>
                 {filteredPrompts.map((prompt, index) => (
-                  <motion.div
+                  <GlassCardAdmin variant="selectable" entrance={false}
                     key={prompt.id}
-                    className="group relative overflow-hidden rounded-xl border-2 border-glass-border/30 hover:border-tech-cyan/50 p-4 bg-glass/10 hover:bg-glass/20 backdrop-blur-lg transition-colors duration-300 cursor-pointer"
+                    className={'group rounded-xl p-4'}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
@@ -355,16 +355,16 @@ export default function PromptsPage() {
                             v{prompt.version}
                           </span>
                           {prompt.is_system && (
-                            <span className="text-xs px-2 py-0.5 bg-purple-500/20 text-purple-400 rounded">
+                            <span className="text-xs px-2 py-0.5 bg-cat-2/20 text-cat-2 rounded">
                               系统
                             </span>
                           )}
                           {prompt.is_active ? (
-                            <span className="text-xs px-2 py-0.5 bg-green-500/20 text-green-400 rounded">
+                            <span className="text-xs px-2 py-0.5 bg-success/20 text-success rounded">
                               启用
                             </span>
                           ) : (
-                            <span className="text-xs px-2 py-0.5 bg-gray-500/20 text-gray-400 rounded">
+                            <span className="text-xs px-2 py-0.5 bg-muted-foreground/20 text-muted-foreground rounded">
                               停用
                             </span>
                           )}
@@ -374,7 +374,7 @@ export default function PromptsPage() {
                             </span>
                           )}
                           {prompt.ab_test_group && (
-                            <span className="text-xs px-2 py-0.5 bg-orange-500/20 text-orange-400 rounded">
+                            <span className="text-xs px-2 py-0.5 bg-warning/20 text-warning rounded">
                               A/B: {prompt.ab_test_group}
                             </span>
                           )}
@@ -409,7 +409,7 @@ export default function PromptsPage() {
                             e.stopPropagation()
                             handleSetDefault(prompt)
                           }}
-                          className="p-2 text-foreground/40 hover:text-yellow-400 hover:bg-yellow-500/10 rounded-lg transition-colors"
+                          className="p-2 text-foreground/40 hover:text-warning hover:bg-warning/10 rounded-lg transition-colors"
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.95 }}
                           title="设为默认"
@@ -421,7 +421,7 @@ export default function PromptsPage() {
                             e.stopPropagation()
                             handleDuplicate(prompt)
                           }}
-                          className="p-2 text-foreground/40 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
+                          className="p-2 text-foreground/40 hover:text-cat-1 hover:bg-cat-1/10 rounded-lg transition-colors"
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.95 }}
                           title="复制"
@@ -444,7 +444,7 @@ export default function PromptsPage() {
                             e.stopPropagation()
                             setDeleteDialog({ open: true, prompt })
                           }}
-                          className="p-2 text-foreground/40 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                          className="p-2 text-foreground/40 hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.95 }}
                         >
@@ -452,7 +452,7 @@ export default function PromptsPage() {
                         </motion.button>
                       </motion.div>
                     </div>
-                  </motion.div>
+                  </GlassCardAdmin>
                 ))}
               </AnimatePresence>
             </div>
@@ -488,7 +488,7 @@ export default function PromptsPage() {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">内容 <span className="text-red-400">*</span></label>
+                  <label className="block text-sm font-medium text-foreground mb-2">内容 <span className="text-destructive">*</span></label>
                   <textarea
                     value={formData.content}
                     onChange={(e) => setFormData({ ...formData, content: e.target.value })}
@@ -519,7 +519,7 @@ export default function PromptsPage() {
                     <motion.button
                       type="button"
                       onClick={() => setFormData({ ...formData, is_active: !formData.is_active })}
-                      className={cn("relative w-12 h-6 rounded-full transition-colors", formData.is_active ? "bg-tech-cyan" : "bg-gray-500/30")}
+                      className={cn("relative w-12 h-6 rounded-full transition-colors", formData.is_active ? "bg-tech-cyan" : "bg-muted-foreground/30")}
                     >
                       <motion.div className="absolute top-1 w-4 h-4 bg-white rounded-full" animate={{ left: formData.is_active ? "28px" : "4px" }} />
                     </motion.button>
@@ -529,7 +529,7 @@ export default function PromptsPage() {
                     <motion.button
                       type="button"
                       onClick={() => setFormData({ ...formData, is_system: !formData.is_system })}
-                      className={cn("relative w-12 h-6 rounded-full transition-colors", formData.is_system ? "bg-purple-500" : "bg-gray-500/30")}
+                      className={cn("relative w-12 h-6 rounded-full transition-colors", formData.is_system ? "bg-cat-2" : "bg-muted-foreground/30")}
                     >
                       <motion.div className="absolute top-1 w-4 h-4 bg-white rounded-full" animate={{ left: formData.is_system ? "28px" : "4px" }} />
                     </motion.button>
@@ -598,7 +598,7 @@ export default function PromptsPage() {
                 <h2 className="text-xl font-bold">Prompt 预览</h2>
                 <Button onClick={() => setShowCodePreview(false)} variant="ghost">关闭</Button>
               </div>
-              <pre className="p-4 bg-gray-900/50 rounded-xl overflow-x-auto text-sm font-mono text-foreground/80 whitespace-pre-wrap">
+              <pre className="p-4 bg-foreground/5 rounded-xl overflow-x-auto text-sm font-mono text-foreground/80 whitespace-pre-wrap">
                 {previewContent}
               </pre>
             </motion.div>

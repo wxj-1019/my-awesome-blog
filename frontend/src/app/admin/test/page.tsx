@@ -58,9 +58,9 @@ export default function AdminTestPage() {
       title: '状态',
       render: (value) => {
         const statusMap = {
-          published: { label: '已发布', className: 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400' },
-          draft: { label: '草稿', className: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400' },
-          archived: { label: '已归档', className: 'bg-gray-100 dark:bg-gray-900/30 text-gray-600 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400' },
+          published: { label: '已发布', className: 'bg-success dark:bg-success/30 text-success dark:text-success' },
+          draft: { label: '草稿', className: 'bg-warning dark:bg-warning/30 text-warning dark:text-warning' },
+          archived: { label: '已归档', className: 'bg-foreground/5 text-muted-foreground' },
         };
         const config = statusMap[value as keyof typeof statusMap];
         return (
@@ -88,7 +88,7 @@ export default function AdminTestPage() {
     },
   ];
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-8">
+    <div className="min-h-screen bg-background p-8">
       <div className="max-w-7xl mx-auto space-y-8">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-tech-cyan to-tech-sky bg-clip-text text-transparent mb-4">

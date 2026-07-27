@@ -98,12 +98,12 @@ const getStatusIcon = (status: string) => {
     case 'configured':
     case 'running':
     case 'healthy':
-      return <CheckCircle className="w-4 h-4 text-green-400" />
+      return <CheckCircle className="w-4 h-4 text-success" />
     case 'warning':
     case 'degraded':
-      return <AlertTriangle className="w-4 h-4 text-yellow-400" />
+      return <AlertTriangle className="w-4 h-4 text-warning" />
     default:
-      return <XCircle className="w-4 h-4 text-red-400" />
+      return <XCircle className="w-4 h-4 text-destructive" />
   }
 }
 
@@ -114,12 +114,12 @@ const getStatusColor = (status: string) => {
     case 'configured':
     case 'running':
     case 'healthy':
-      return 'text-green-400'
+      return 'text-success'
     case 'warning':
     case 'degraded':
-      return 'text-yellow-400'
+      return 'text-warning'
     default:
-      return 'text-red-400'
+      return 'text-destructive'
   }
 }
 
@@ -141,18 +141,18 @@ const MetricCard = ({
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
-    className="p-4 rounded-lg bg-white/5 dark:bg-white/5 border border-white/10 dark:border-white/5"
+    className="p-4 rounded-lg bg-foreground/5 border border-foreground/10"
   >
     <div className="flex items-center justify-between mb-3">
-      <span className="text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 text-sm">{title}</span>
+      <span className="text-muted-foreground text-sm">{title}</span>
       <Icon className={cn('w-5 h-5', color)} />
     </div>
     <div className="flex items-baseline gap-1">
-      <span className="text-2xl font-bold text-white dark:text-gray-100 dark:text-gray-100">{value.toFixed(1)}</span>
-      <span className="text-gray-500 dark:text-gray-400 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 text-sm">{unit}</span>
+      <span className="text-2xl font-bold text-foreground">{value.toFixed(1)}</span>
+      <span className="text-muted-foreground text-sm">{unit}</span>
     </div>
     {progress !== undefined && (
-      <div className="mt-3 h-1.5 bg-white/10 rounded-full overflow-hidden">
+      <div className="mt-3 h-1.5 bg-foreground/10 rounded-full overflow-hidden">
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${Math.min(progress, 100)}%` }}
@@ -229,17 +229,17 @@ export default function MonitoringAdminPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white dark:text-gray-100 dark:text-gray-100">系统监控</h1>
-          <p className="text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 mt-1">实时监控系统运行状态</p>
+          <h1 className="text-2xl font-bold text-foreground">系统监控</h1>
+          <p className="text-muted-foreground mt-1">实时监控系统运行状态</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
-            <span className="text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 text-sm">自动刷新</span>
+            <span className="text-muted-foreground text-sm">自动刷新</span>
             <button
               onClick={() => setAutoRefresh(!autoRefresh)}
               className={cn(
                 'relative w-10 h-5 rounded-full transition-colors cursor-pointer',
-                autoRefresh ? 'bg-tech-cyan' : 'bg-white/20 dark:bg-white/10'
+                autoRefresh ? 'bg-tech-cyan' : 'bg-foreground/20'
               )}
             >
               <span
@@ -265,12 +265,12 @@ export default function MonitoringAdminPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <GlassCardAdmin className="p-6 lg:col-span-2">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-white dark:text-gray-100 flex items-center gap-2">
+            <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
               <Activity className="w-5 h-5 text-tech-cyan" />
               系统指标
             </h2>
             {metrics && (
-              <span className="text-xs text-gray-500 dark:text-gray-400">
+              <span className="text-xs text-muted-foreground">
                 更新于 {new Date().toLocaleTimeString()}
               </span>
             )}
@@ -283,7 +283,7 @@ export default function MonitoringAdminPage() {
                 value={metrics.cpu_percent}
                 unit="%"
                 icon={Cpu}
-                color="text-blue-400"
+                color="text-cat-1"
                 progress={metrics.cpu_percent}
               />
               <MetricCard
@@ -291,7 +291,7 @@ export default function MonitoringAdminPage() {
                 value={metrics.memory_percent}
                 unit="%"
                 icon={Layers}
-                color="text-purple-400"
+                color="text-cat-2"
                 progress={metrics.memory_percent}
               />
               <MetricCard
@@ -299,7 +299,7 @@ export default function MonitoringAdminPage() {
                 value={metrics.disk_usage_percent}
                 unit="%"
                 icon={HardDrive}
-                color="text-orange-400"
+                color="text-warning"
                 progress={metrics.disk_usage_percent}
               />
               <MetricCard
@@ -307,37 +307,37 @@ export default function MonitoringAdminPage() {
                 value={metrics.gpu_usage_percent}
                 unit="%"
                 icon={Zap}
-                color="text-green-400"
+                color="text-success"
                 progress={metrics.gpu_usage_percent}
               />
             </div>
           )}
 
           <div className="grid grid-cols-3 gap-4 mt-4">
-            <div className="p-4 rounded-lg bg-white/5 dark:bg-white/5 dark:bg-white/5 border border-white/10 dark:border-white/5 dark:border-white/5">
+            <div className="p-4 rounded-lg bg-foreground/5 border border-foreground/10">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 text-sm">活跃连接</span>
-                <Globe className="w-4 h-4 text-cyan-400" />
+                <span className="text-muted-foreground text-sm">活跃连接</span>
+                <Globe className="w-4 h-4 text-cat-3" />
               </div>
-              <span className="text-xl font-bold text-white dark:text-gray-100 dark:text-gray-100">
+              <span className="text-xl font-bold text-foreground">
                 {metrics?.active_connections || 0}
               </span>
             </div>
-            <div className="p-4 rounded-lg bg-white/5 dark:bg-white/5 dark:bg-white/5 border border-white/10 dark:border-white/5 dark:border-white/5">
+            <div className="p-4 rounded-lg bg-foreground/5 border border-foreground/10">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 text-sm">缓存命中率</span>
-                <BarChart3 className="w-4 h-4 text-green-400" />
+                <span className="text-muted-foreground text-sm">缓存命中率</span>
+                <BarChart3 className="w-4 h-4 text-success" />
               </div>
-              <span className="text-xl font-bold text-white dark:text-gray-100 dark:text-gray-100">
+              <span className="text-xl font-bold text-foreground">
                 {((metrics?.cache_hit_ratio || 0) * 100).toFixed(1)}%
               </span>
             </div>
-            <div className="p-4 rounded-lg bg-white/5 dark:bg-white/5 dark:bg-white/5 border border-white/10 dark:border-white/5 dark:border-white/5">
+            <div className="p-4 rounded-lg bg-foreground/5 border border-foreground/10">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 text-sm">响应时间</span>
-                <Clock className="w-4 h-4 text-yellow-400" />
+                <span className="text-muted-foreground text-sm">响应时间</span>
+                <Clock className="w-4 h-4 text-warning" />
               </div>
-              <span className="text-xl font-bold text-white dark:text-gray-100 dark:text-gray-100">
+              <span className="text-xl font-bold text-foreground">
                 {metrics?.response_time_ms.toFixed(1) || 0} ms
               </span>
             </div>
@@ -345,16 +345,16 @@ export default function MonitoringAdminPage() {
         </GlassCardAdmin>
 
         <GlassCardAdmin className="p-6">
-          <h2 className="text-lg font-semibold text-white dark:text-gray-100 dark:text-gray-100 flex items-center gap-2 mb-4">
+          <h2 className="text-lg font-semibold text-foreground flex items-center gap-2 mb-4">
             <Server className="w-5 h-5 text-tech-cyan" />
             服务状态
           </h2>
 
           {status && (
             <div className="space-y-4">
-              <div className="p-4 rounded-lg bg-white/5 dark:bg-white/5 dark:bg-white/5 border border-white/10 dark:border-white/5 dark:border-white/5">
+              <div className="p-4 rounded-lg bg-foreground/5 border border-foreground/10">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 text-sm">应用状态</span>
+                  <span className="text-muted-foreground text-sm">应用状态</span>
                   {getStatusIcon(status.status)}
                 </div>
                 <p className={cn('text-lg font-medium', getStatusColor(status.status))}>
@@ -362,29 +362,29 @@ export default function MonitoringAdminPage() {
                 </p>
               </div>
 
-              <div className="p-4 rounded-lg bg-white/5 dark:bg-white/5 dark:bg-white/5 border border-white/10 dark:border-white/5 dark:border-white/5">
+              <div className="p-4 rounded-lg bg-foreground/5 border border-foreground/10">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 text-sm">运行时间</span>
-                  <Clock className="w-4 h-4 text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400" />
+                  <span className="text-muted-foreground text-sm">运行时间</span>
+                  <Clock className="w-4 h-4 text-muted-foreground" />
                 </div>
-                <p className="text-lg font-medium text-white dark:text-gray-100 dark:text-gray-100">
+                <p className="text-lg font-medium text-foreground">
                   {formatUptime(status.uptime_seconds)}
                 </p>
               </div>
 
               <div className="space-y-3">
-                <span className="text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 text-sm">依赖服务</span>
+                <span className="text-muted-foreground text-sm">依赖服务</span>
                 <div className="space-y-2">
                   {Object.entries(status.dependencies).map(([name, depStatus]) => (
                     <div
                       key={name}
-                      className="flex items-center justify-between p-3 rounded-lg bg-white/5 dark:bg-white/5"
+                      className="flex items-center justify-between p-3 rounded-lg bg-foreground/5"
                     >
                       <div className="flex items-center gap-2">
-                        {name === 'database' && <Database className="w-4 h-4 text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400" />}
-                        {name === 'redis' && <Zap className="w-4 h-4 text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400" />}
-                        {name === 'oss' && <HardDrive className="w-4 h-4 text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400" />}
-                        <span className="text-gray-300 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 capitalize">{name}</span>
+                        {name === 'database' && <Database className="w-4 h-4 text-muted-foreground" />}
+                        {name === 'redis' && <Zap className="w-4 h-4 text-muted-foreground" />}
+                        {name === 'oss' && <HardDrive className="w-4 h-4 text-muted-foreground" />}
+                        <span className="text-muted-foreground capitalize">{name}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className={cn('text-sm', getStatusColor(depStatus))}>
@@ -409,17 +409,17 @@ export default function MonitoringAdminPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <GlassCardAdmin className="p-6">
-          <h2 className="text-lg font-semibold text-white dark:text-gray-100 dark:text-gray-100 flex items-center gap-2 mb-4">
+          <h2 className="text-lg font-semibold text-foreground flex items-center gap-2 mb-4">
             <CheckCircle className="w-5 h-5 text-tech-cyan" />
             健康检查
           </h2>
 
           {health && (
             <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 rounded-lg bg-white/5 dark:bg-white/5 dark:bg-white/5 border border-white/10 dark:border-white/5 dark:border-white/5">
+              <div className="flex items-center justify-between p-4 rounded-lg bg-foreground/5 border border-foreground/10">
                 <div>
-                  <p className="text-white dark:text-gray-100 dark:text-gray-100 font-medium">{health.service}</p>
-                  <p className="text-gray-500 dark:text-gray-400 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 text-sm">版本 {health.version}</p>
+                  <p className="text-foreground font-medium">{health.service}</p>
+                  <p className="text-muted-foreground text-sm">版本 {health.version}</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className={cn('text-sm', getStatusColor(health.status))}>
@@ -433,22 +433,22 @@ export default function MonitoringAdminPage() {
                 {Object.entries(health.checks).map(([name, check]) => (
                   <div
                     key={name}
-                    className="flex items-center justify-between p-3 rounded-lg bg-white/5 dark:bg-white/5"
+                    className="flex items-center justify-between p-3 rounded-lg bg-foreground/5"
                   >
                     <div className="flex items-center gap-2">
-                      {name === 'database' && <Database className="w-4 h-4 text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400" />}
-                      {name === 'redis' && <Zap className="w-4 h-4 text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400" />}
-                      <span className="text-gray-300 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 capitalize">{name}</span>
+                      {name === 'database' && <Database className="w-4 h-4 text-muted-foreground" />}
+                      {name === 'redis' && <Zap className="w-4 h-4 text-muted-foreground" />}
+                      <span className="text-muted-foreground capitalize">{name}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 text-sm">{check.message}</span>
+                      <span className="text-muted-foreground text-sm">{check.message}</span>
                       {getStatusIcon(check.status)}
                     </div>
                   </div>
                 ))}
               </div>
 
-              <div className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 mt-2">
+              <div className="text-xs text-muted-foreground mt-2">
                 最后检查: {new Date(health.timestamp).toLocaleString()}
               </div>
             </div>
@@ -456,7 +456,7 @@ export default function MonitoringAdminPage() {
         </GlassCardAdmin>
 
         <GlassCardAdmin className="p-6">
-          <h2 className="text-lg font-semibold text-white dark:text-gray-100 dark:text-gray-100 flex items-center gap-2 mb-4">
+          <h2 className="text-lg font-semibold text-foreground flex items-center gap-2 mb-4">
             <TrendingUp className="w-5 h-5 text-tech-cyan" />
             应用分析
           </h2>
@@ -464,43 +464,43 @@ export default function MonitoringAdminPage() {
           {analytics && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 rounded-lg bg-white/5 dark:bg-white/5 dark:bg-white/5 border border-white/10 dark:border-white/5 dark:border-white/5">
-                  <span className="text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 text-sm">总请求数</span>
-                  <p className="text-2xl font-bold text-white dark:text-gray-100 dark:text-gray-100 mt-1">
+                <div className="p-4 rounded-lg bg-foreground/5 border border-foreground/10">
+                  <span className="text-muted-foreground text-sm">总请求数</span>
+                  <p className="text-2xl font-bold text-foreground mt-1">
                     {analytics.total_requests.toLocaleString()}
                   </p>
                 </div>
-                <div className="p-4 rounded-lg bg-white/5 dark:bg-white/5 dark:bg-white/5 border border-white/10 dark:border-white/5 dark:border-white/5">
-                  <span className="text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 text-sm">今日请求</span>
-                  <p className="text-2xl font-bold text-white dark:text-gray-100 dark:text-gray-100 mt-1">
+                <div className="p-4 rounded-lg bg-foreground/5 border border-foreground/10">
+                  <span className="text-muted-foreground text-sm">今日请求</span>
+                  <p className="text-2xl font-bold text-foreground mt-1">
                     {analytics.requests_today.toLocaleString()}
                   </p>
                 </div>
-                <div className="p-4 rounded-lg bg-white/5 dark:bg-white/5 dark:bg-white/5 border border-white/10 dark:border-white/5 dark:border-white/5">
-                  <span className="text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 text-sm">活跃用户</span>
-                  <p className="text-2xl font-bold text-white dark:text-gray-100 dark:text-gray-100 mt-1">{analytics.active_users}</p>
+                <div className="p-4 rounded-lg bg-foreground/5 border border-foreground/10">
+                  <span className="text-muted-foreground text-sm">活跃用户</span>
+                  <p className="text-2xl font-bold text-foreground mt-1">{analytics.active_users}</p>
                 </div>
-                <div className="p-4 rounded-lg bg-white/5 dark:bg-white/5 dark:bg-white/5 border border-white/10 dark:border-white/5 dark:border-white/5">
-                  <span className="text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 text-sm">缓存大小</span>
-                  <p className="text-2xl font-bold text-white dark:text-gray-100 dark:text-gray-100 mt-1">
+                <div className="p-4 rounded-lg bg-foreground/5 border border-foreground/10">
+                  <span className="text-muted-foreground text-sm">缓存大小</span>
+                  <p className="text-2xl font-bold text-foreground mt-1">
                     {analytics.cache_size.toLocaleString()}
                   </p>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 rounded-lg bg-white/5 dark:bg-white/5 border border-white/10 dark:border-white/5">
-                  <span className="text-gray-400 dark:text-gray-500 dark:text-gray-400 text-sm">平均响应时间</span>
-                  <p className="text-xl font-bold text-white dark:text-gray-100 mt-1">
+                <div className="p-4 rounded-lg bg-foreground/5 border border-foreground/10">
+                  <span className="text-muted-foreground text-sm">平均响应时间</span>
+                  <p className="text-xl font-bold text-foreground mt-1">
                     {analytics.average_response_time.toFixed(1)} ms
                   </p>
                 </div>
-                <div className="p-4 rounded-lg bg-white/5 dark:bg-white/5 border border-white/10 dark:border-white/5">
-                  <span className="text-gray-400 dark:text-gray-500 dark:text-gray-400 text-sm">错误率</span>
+                <div className="p-4 rounded-lg bg-foreground/5 border border-foreground/10">
+                  <span className="text-muted-foreground text-sm">错误率</span>
                   <p
                     className={cn(
                       'text-xl font-bold mt-1',
-                      analytics.error_rate > 0.05 ? 'text-red-400' : 'text-green-400'
+                      analytics.error_rate > 0.05 ? 'text-destructive' : 'text-success'
                     )}
                   >
                     {(analytics.error_rate * 100).toFixed(2)}%
@@ -509,29 +509,29 @@ export default function MonitoringAdminPage() {
               </div>
 
               <div>
-                <span className="text-gray-400 dark:text-gray-500 dark:text-gray-400 text-sm">热门端点</span>
+                <span className="text-muted-foreground text-sm">热门端点</span>
                 <div className="mt-2 space-y-2">
                   {analytics.top_endpoints.map((endpoint, index) => (
                     <div
                       key={endpoint.endpoint}
-                      className="flex items-center justify-between p-2 rounded bg-white/5"
+                      className="flex items-center justify-between p-2 rounded bg-foreground/5"
                     >
                       <div className="flex items-center gap-2">
                         <span
                           className={cn(
                             'w-5 h-5 rounded text-xs flex items-center justify-center',
                             index === 0
-                              ? 'bg-yellow-500/20 text-yellow-400'
+                              ? 'bg-warning/20 text-warning'
                               : index === 1
-                                ? 'bg-gray-500/20 text-gray-400 dark:text-gray-500 dark:text-gray-400'
-                                : 'bg-orange-500/20 text-orange-400'
+                                ? 'bg-muted-foreground/20 text-muted-foreground'
+                                : 'bg-warning/20 text-warning'
                           )}
                         >
                           {index + 1}
                         </span>
-                        <span className="text-gray-300 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 text-sm font-mono">{endpoint.endpoint}</span>
+                        <span className="text-muted-foreground text-sm font-mono">{endpoint.endpoint}</span>
                       </div>
-                      <span className="text-gray-500 dark:text-gray-400 text-sm">{endpoint.hits.toLocaleString()}</span>
+                      <span className="text-muted-foreground text-sm">{endpoint.hits.toLocaleString()}</span>
                     </div>
                   ))}
                 </div>
@@ -542,12 +542,12 @@ export default function MonitoringAdminPage() {
       </div>
 
       {status?.app_info.debug && (
-        <GlassCardAdmin className="p-4 border-yellow-500/30">
+        <GlassCardAdmin className="p-4 border-warning/30">
           <div className="flex items-center gap-3">
-            <AlertCircle className="w-5 h-5 text-yellow-400" />
+            <AlertCircle className="w-5 h-5 text-warning" />
             <div>
-              <p className="text-yellow-400 font-medium">调试模式已启用</p>
-              <p className="text-gray-400 dark:text-gray-500 dark:text-gray-400 text-sm">生产环境请确保关闭调试模式</p>
+              <p className="text-warning font-medium">调试模式已启用</p>
+              <p className="text-muted-foreground text-sm">生产环境请确保关闭调试模式</p>
             </div>
           </div>
         </GlassCardAdmin>

@@ -19,10 +19,12 @@ from app.schemas.conversation import (
     ConversationUpdate,
     Conversation,
     ConversationListResponse,
+    ConversationSummary,
     ChatRequest,
     ChatResponse,
     ChatStreamChunk,
 )
+from app.schemas.pagination import Page
 from app.models.user import User
 from app.services.conversation_service import conversation_service
 from app.utils.logger import app_logger
@@ -89,7 +91,7 @@ async def get_conversation(
     return conversation
 
 
-@router.get("/", response_model=ConversationListResponse, status_code=status.HTTP_200_OK)
+@router.get("/", response_model=Page[ConversationSummary], status_code=status.HTTP_200_OK)
 async def list_conversations(
     *,
     db: Session = Depends(get_db),
@@ -97,10 +99,13 @@ async def list_conversations(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=100),
     status: Optional[str] = Query(None),
-) -> ConversationListResponse:
+) -> Page[ConversationSummary]:
     """
     获取对话列表
-    
+
+    返回分页信封 {items, total, skip, limit}；items 为**不含 messages** 的摘要，
+    消息请走 GET /conversations/{id}/messages。
+
     - **skip**: 跳过数量（分页）
     - **limit**: 限制数量（分页）
     - **status**: 状态筛选（可选）

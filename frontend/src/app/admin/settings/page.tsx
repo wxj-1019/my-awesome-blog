@@ -611,7 +611,7 @@ export default function SettingsPage() {
                 <p className="text-foreground/60 mt-0.5 flex items-center gap-4">
                   <span>管理网站配置</span>
                   {hasChanges && (
-                    <span className="text-xs px-2 py-0.5 bg-orange-500/20 text-orange-400 rounded-full flex items-center gap-1">
+                    <span className="text-xs px-2 py-0.5 bg-warning/20 text-warning rounded-full flex items-center gap-1">
                       <Info className="w-3 h-3" />
                       有未保存的更改
                     </span>

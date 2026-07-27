@@ -14,8 +14,9 @@ from app.crud.article import (
 )
 
 from app.crud.comment import (
-    get_comment, get_comments_by_article, get_comments_by_author,
-    get_replies as get_comment_replies, create_comment, update_comment, delete_comment,
+    get_comment, get_comments_by_article, get_comments_by_author, get_all_comments,
+    get_replies, get_replies as get_comment_replies,
+    create_comment, update_comment, delete_comment,
     approve_comment
 )
 

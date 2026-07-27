@@ -195,7 +195,7 @@ export default function TypewriterPage() {
                       "group relative overflow-hidden rounded-xl border-2 p-4 transition-colors duration-300 cursor-pointer",
                       content.is_active 
                         ? "border-glass-border/30 hover:border-tech-cyan/50 bg-glass/10 hover:bg-glass/20" 
-                        : "border-gray-500/30 bg-gray-500/5 hover:bg-gray-500/10 opacity-60"
+                        : "border-muted-foreground/30 bg-muted-foreground/5 hover:bg-muted-foreground/10 opacity-60"
                     )}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -209,7 +209,7 @@ export default function TypewriterPage() {
                         <div className="flex items-center gap-3">
                           <span className={cn(
                             "text-sm font-mono px-2 py-0.5 rounded",
-                            content.is_active ? "bg-tech-cyan/20 text-tech-cyan" : "bg-gray-500/20 text-gray-400"
+                            content.is_active ? "bg-tech-cyan/20 text-tech-cyan" : "bg-muted-foreground/20 text-muted-foreground"
                           )}>
                             #{content.priority}
                           </span>
@@ -217,11 +217,11 @@ export default function TypewriterPage() {
                             {content.content}
                           </p>
                           {content.is_active ? (
-                            <span className="flex items-center gap-1 text-xs text-green-400">
+                            <span className="flex items-center gap-1 text-xs text-success">
                               <Power className="w-3 h-3" /> 启用
                             </span>
                           ) : (
-                            <span className="flex items-center gap-1 text-xs text-gray-400">
+                            <span className="flex items-center gap-1 text-xs text-muted-foreground">
                               <PowerOff className="w-3 h-3" /> 停用
                             </span>
                           )}
@@ -244,8 +244,8 @@ export default function TypewriterPage() {
                           className={cn(
                             "p-2 rounded-lg transition-colors duration-200",
                             content.is_active 
-                              ? "text-green-400 hover:bg-green-500/10" 
-                              : "text-gray-400 hover:bg-gray-500/10"
+                              ? "text-success hover:bg-success/10" 
+                              : "text-muted-foreground hover:bg-muted-foreground/10"
                           )}
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.95 }}
@@ -268,7 +268,7 @@ export default function TypewriterPage() {
                             e.stopPropagation()
                             setDeleteDialog({ open: true, content })
                           }}
-                          className="p-2 text-foreground/40 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors duration-200"
+                          className="p-2 text-foreground/40 hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors duration-200"
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.95 }}
                         >
@@ -334,7 +334,7 @@ export default function TypewriterPage() {
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    显示内容 <span className="text-red-400">*</span>
+                    显示内容 <span className="text-destructive">*</span>
                   </label>
                   <textarea
                     value={formData.content}
@@ -368,7 +368,7 @@ export default function TypewriterPage() {
                     onClick={() => setFormData({ ...formData, is_active: !formData.is_active })}
                     className={cn(
                       "relative w-12 h-6 rounded-full transition-colors duration-300",
-                      formData.is_active ? "bg-tech-cyan" : "bg-gray-500/30"
+                      formData.is_active ? "bg-tech-cyan" : "bg-muted-foreground/30"
                     )}
                     whileTap={{ scale: 0.95 }}
                   >

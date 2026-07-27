@@ -181,11 +181,11 @@ export default function MemoriesPage() {
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'short_term': return 'bg-blue-500/20 text-blue-400'
-      case 'long_term': return 'bg-purple-500/20 text-purple-400'
-      case 'episodic': return 'bg-green-500/20 text-green-400'
-      case 'semantic': return 'bg-orange-500/20 text-orange-400'
-      default: return 'bg-gray-500/20 text-gray-400'
+      case 'short_term': return 'bg-cat-1/20 text-cat-1'
+      case 'long_term': return 'bg-cat-2/20 text-cat-2'
+      case 'episodic': return 'bg-success/20 text-success'
+      case 'semantic': return 'bg-warning/20 text-warning'
+      default: return 'bg-muted-foreground/20 text-muted-foreground'
     }
   }
 
@@ -200,9 +200,9 @@ export default function MemoriesPage() {
   }
 
   const getImportanceColor = (importance: number) => {
-    if (importance >= 80) {return 'text-red-400'}
-    if (importance >= 50) {return 'text-yellow-400'}
-    return 'text-green-400'
+    if (importance >= 80) {return 'text-destructive'}
+    if (importance >= 50) {return 'text-warning'}
+    return 'text-success'
   }
 
   const filteredMemories = searchQuery 
@@ -274,15 +274,15 @@ export default function MemoriesPage() {
                 <div className="text-sm text-foreground/50">总记忆数</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-purple-400">{Object.keys(stats.by_type || {}).length}</div>
+                <div className="text-2xl font-bold text-cat-2">{Object.keys(stats.by_type || {}).length}</div>
                 <div className="text-sm text-foreground/50">记忆类型</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-yellow-400">{stats.avg_importance?.toFixed(1) || 0}</div>
+                <div className="text-2xl font-bold text-warning">{stats.avg_importance?.toFixed(1) || 0}</div>
                 <div className="text-sm text-foreground/50">平均重要度</div>
               </div>
               <div className="text-center">
-                <div className="text-lg font-bold text-green-400">
+                <div className="text-lg font-bold text-success">
                   {stats.newest_memory ? new Date(stats.newest_memory).toLocaleDateString() : '-'}
                 </div>
                 <div className="text-sm text-foreground/50">最新记忆</div>
@@ -359,9 +359,9 @@ export default function MemoriesPage() {
             <div className="space-y-3">
               <AnimatePresence>
                 {filteredMemories.map((memory, index) => (
-                  <motion.div
+                  <GlassCardAdmin variant="selectable" entrance={false}
                     key={memory.id}
-                    className="group relative overflow-hidden rounded-xl border-2 border-glass-border/30 hover:border-tech-cyan/50 p-4 bg-glass/10 hover:bg-glass/20 backdrop-blur-lg transition-colors duration-300 cursor-pointer"
+                    className={'group rounded-xl p-4'}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
@@ -424,7 +424,7 @@ export default function MemoriesPage() {
                             e.stopPropagation()
                             setDeleteDialog({ open: true, memory })
                           }}
-                          className="p-2 text-foreground/40 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                          className="p-2 text-foreground/40 hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.95 }}
                         >
@@ -432,7 +432,7 @@ export default function MemoriesPage() {
                         </motion.button>
                       </motion.div>
                     </div>
-                  </motion.div>
+                  </GlassCardAdmin>
                 ))}
               </AnimatePresence>
             </div>
@@ -464,7 +464,7 @@ export default function MemoriesPage() {
               
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">内容 <span className="text-red-400">*</span></label>
+                  <label className="block text-sm font-medium text-foreground mb-2">内容 <span className="text-destructive">*</span></label>
                   <textarea
                     value={formData.content}
                     onChange={(e) => setFormData({ ...formData, content: e.target.value })}
@@ -561,7 +561,7 @@ export default function MemoriesPage() {
                 {showDetail.metadata && (
                   <div>
                     <label className="text-sm text-foreground/50">元数据</label>
-                    <pre className="text-sm bg-gray-900/50 rounded-xl p-4 overflow-x-auto">
+                    <pre className="text-sm bg-foreground/5 rounded-xl p-4 overflow-x-auto">
                       {JSON.stringify(showDetail.metadata, null, 2)}
                     </pre>
                   </div>

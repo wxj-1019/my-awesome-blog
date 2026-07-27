@@ -180,9 +180,9 @@ export default function TagsPage() {
             <div className="flex flex-wrap gap-3">
               <AnimatePresence>
                 {tags.map((tag, index) => (
-                  <motion.div
+                  <GlassCardAdmin variant="selectable" entrance={false}
                     key={tag.id}
-                    className="group relative overflow-hidden rounded-2xl border-2 border-glass-border/30 hover:border-tech-cyan/50 px-4 py-3 bg-glass/10 hover:bg-glass/20 backdrop-blur-lg transition-colors duration-300 cursor-pointer"
+                    className={'group rounded-2xl px-4 py-3'}
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.9 }}
@@ -228,7 +228,7 @@ export default function TagsPage() {
                             e.stopPropagation()
                             setDeleteDialog({ open: true, tag })
                           }}
-                          className="p-1.5 text-foreground/40 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors duration-200"
+                          className="p-1.5 text-foreground/40 hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors duration-200"
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.95 }}
                         >
@@ -236,7 +236,7 @@ export default function TagsPage() {
                         </motion.button>
                       </motion.div>
                     </div>
-                  </motion.div>
+                  </GlassCardAdmin>
                 ))}
               </AnimatePresence>
             </div>

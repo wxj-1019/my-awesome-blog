@@ -12,12 +12,17 @@ from app.core.database import get_db
 from app.core.dependencies import get_current_active_user, get_current_superuser
 from app import crud
 from app.schemas.article import Article, ArticleCreate, ArticleUpdate, ArticleWithAuthor
+from app.schemas.pagination import Page
 from app.models.article import Article as ArticleModel
 from app.models.user import User
 from uuid import UUID
 from app.services.cache_service import cache_service
 from app.utils.pagination import CursorPaginationParams
-from app.utils.db_utils import get_articles_by_multiple_filters, get_popular_articles_optimized
+from app.utils.db_utils import (
+    get_articles_by_multiple_filters,
+    count_articles_by_multiple_filters,
+    get_popular_articles_optimized,
+)
 from app.utils.common_helpers import parse_uuid_list
 from app.utils.logger import app_logger
 from app.utils.rate_limit import article_create_rate_limit, article_read_rate_limit
@@ -25,7 +30,7 @@ from app.utils.rate_limit import article_create_rate_limit, article_read_rate_li
 router = APIRouter()
 
 
-@router.get("/", response_model=List[ArticleWithAuthor])
+@router.get("/", response_model=Page[ArticleWithAuthor])
 @article_read_rate_limit
 async def read_articles(
     request: Request,
@@ -38,22 +43,33 @@ async def read_articles(
     search: Optional[str] = Query(None, description="Search in title and content"),
     db: Session = Depends(get_db)
 ) -> Any:
-    """Retrieve articles（热路径：同步查询放 to_thread）。"""
+    """
+    Retrieve articles（热路径：同步查询放 to_thread）。
+
+    返回分页信封 `{items, total, skip, limit}`：调用方需要 total 才能算出总页数，
+    原先直接返回数组导致前端只能拿当前页长度当 total、翻页恒为 1 页。
+    """
     author_ids = [author_id] if author_id else None
     category_ids = [category_id] if category_id else None
     tag_ids = [tag_id] if tag_id else None
 
-    return await asyncio.to_thread(
-        get_articles_by_multiple_filters,
-        db,
+    filters = dict(
         author_ids=author_ids,
         category_ids=category_ids,
         tag_ids=tag_ids,
         search=search,
         published_only=published_only,
-        limit=limit,
-        offset=skip,
     )
+
+    def _query_page():
+        """列表与计数在同一线程内完成，避免两次 to_thread 往返。"""
+        items = get_articles_by_multiple_filters(db, limit=limit, offset=skip, **filters)
+        total = count_articles_by_multiple_filters(db, **filters)
+        return items, total
+
+    items, total = await asyncio.to_thread(_query_page)
+
+    return Page[ArticleWithAuthor](items=items, total=total, skip=skip, limit=limit)
 
 
 @router.post("/", response_model=Article)

@@ -433,9 +433,9 @@ export default function EditArticlePage() {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
-                className="flex items-center gap-1.5 text-xs text-amber-500 bg-amber-500/10 px-2.5 py-1 rounded-full"
+                className="flex items-center gap-1.5 text-xs text-warning bg-warning/10 px-2.5 py-1 rounded-full"
               >
-                <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                <div className="w-1.5 h-1.5 rounded-full bg-warning animate-pulse" />
                 未保存更改
               </motion.div>
             )}
@@ -463,7 +463,7 @@ export default function EditArticlePage() {
                       onClick={() => setEditorMode(mode)}
                       className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                         editorMode === mode
-                          ? 'bg-tech-cyan text-white dark:text-gray-100 shadow-sm shadow-tech-cyan/20'
+                          ? 'bg-tech-cyan text-foreground shadow-sm shadow-tech-cyan/20'
                           : 'text-foreground/60 hover:text-foreground hover:bg-background/50'
                       }`}
                     >
@@ -484,13 +484,13 @@ export default function EditArticlePage() {
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label className="block text-sm font-medium text-foreground/80">
-                    文章标题 <span className="text-red-400">*</span>
+                    文章标题 <span className="text-destructive">*</span>
                   </label>
                   <div className="flex items-center gap-2">
                     <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
                       stats.titleLength < MIN_TITLE_LENGTH 
-                        ? 'text-amber-500 bg-amber-500/10' 
-                        : 'text-green-500 bg-green-500/10'
+                        ? 'text-warning bg-warning/10' 
+                        : 'text-success bg-success/10'
                     }`}>
                       {stats.titleLength} 字符
                     </span>
@@ -506,7 +506,7 @@ export default function EditArticlePage() {
                     placeholder="输入一个吸引人的标题..."
                     className={`w-full px-4 py-3.5 rounded-xl bg-background/50 border text-foreground text-lg font-medium placeholder:text-foreground/30 focus:outline-none focus:ring-2 transition-colors ${
                       validationErrors.title
-                        ? 'border-red-500/50 focus:ring-red-500/20'
+                        ? 'border-destructive/50 focus:ring-destructive/20'
                         : 'border-border/50 focus:ring-tech-cyan/20 focus:border-tech-cyan/50'
                     }`}
                     required
@@ -514,9 +514,9 @@ export default function EditArticlePage() {
                   {formData.title && (
                     <div className="absolute right-3 top-1/2 -translate-y-1/2">
                       {formProgress.title ? (
-                        <CheckCircle2 className="w-5 h-5 text-green-500" />
+                        <CheckCircle2 className="w-5 h-5 text-success" />
                       ) : (
-                        <AlertCircle className="w-5 h-5 text-amber-500" />
+                        <AlertCircle className="w-5 h-5 text-warning" />
                       )}
                     </div>
                   )}
@@ -525,7 +525,7 @@ export default function EditArticlePage() {
                   <motion.p
                     initial={{ opacity: 0, y: -5 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="text-xs text-red-400 mt-2 flex items-center gap-1.5"
+                    className="text-xs text-destructive mt-2 flex items-center gap-1.5"
                   >
                     <AlertCircle className="w-3 h-3" />
                     标题至少需要 {MIN_TITLE_LENGTH} 个字符
@@ -545,7 +545,7 @@ export default function EditArticlePage() {
                 <div className={editorMode === 'preview' ? 'hidden' : ''}>
                   <div className="flex items-center justify-between mb-3">
                     <label className="block text-sm font-medium text-foreground/80">
-                      文章内容 <span className="text-red-400">*</span>
+                      文章内容 <span className="text-destructive">*</span>
                     </label>
                     <div className="flex items-center gap-3 text-xs text-foreground/40">
                       <span className="flex items-center gap-1">
@@ -581,7 +581,7 @@ export default function EditArticlePage() {
                       rows={editorMode === 'split' ? 20 : 16}
                       className={`w-full px-4 py-3 rounded-xl bg-background/50 border text-foreground placeholder:text-foreground/25 focus:outline-none focus:ring-2 transition-colors resize-none font-mono text-sm leading-relaxed ${
                         validationErrors.content
-                          ? 'border-red-500/50 focus:ring-red-500/20'
+                          ? 'border-destructive/50 focus:ring-destructive/20'
                           : 'border-border/50 focus:ring-tech-cyan/20 focus:border-tech-cyan/50'
                       }`}
                       required
@@ -594,7 +594,7 @@ export default function EditArticlePage() {
                     <motion.p
                       initial={{ opacity: 0, y: -5 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="text-xs text-red-400 mt-2 flex items-center gap-1.5"
+                      className="text-xs text-destructive mt-2 flex items-center gap-1.5"
                     >
                       <AlertCircle className="w-3 h-3" />
                       内容至少需要 {MIN_CONTENT_LENGTH} 个字符
@@ -619,8 +619,8 @@ export default function EditArticlePage() {
           </GlassCardAdmin>
           <GlassCardAdmin className="p-6">
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 rounded-lg bg-purple-500/10">
-                <Sparkles className="w-5 h-5 text-purple-400" />
+              <div className="p-2 rounded-lg bg-cat-2/10">
+                <Sparkles className="w-5 h-5 text-cat-2" />
               </div>
               <div>
                 <h2 className="text-lg font-semibold text-foreground">附加信息</h2>
@@ -650,7 +650,7 @@ export default function EditArticlePage() {
                 />
                 <div className="flex items-center justify-between mt-2">
                   <p className="text-xs text-foreground/40">用于搜索引擎和社交分享</p>
-                  <p className={`text-xs ${formData.excerpt.length > 200 ? 'text-amber-500' : 'text-foreground/40'}`}>
+                  <p className={`text-xs ${formData.excerpt.length > 200 ? 'text-warning' : 'text-foreground/40'}`}>
                     {formData.excerpt.length} / 200
                   </p>
                 </div>
@@ -699,7 +699,7 @@ export default function EditArticlePage() {
                 <div className={`h-2 rounded-full overflow-hidden ${progressPercentage === 100 ? 'animate-pulse' : ''} bg-background/50`}>
                   <motion.div
                     className={`h-full rounded-full transition-colors ${
-                      progressPercentage === 100 ? 'bg-green-500' : progressPercentage >= 60 ? 'bg-tech-cyan' : 'bg-amber-500'
+                      progressPercentage === 100 ? 'bg-success' : progressPercentage >= 60 ? 'bg-tech-cyan' : 'bg-warning'
                     }`}
                     initial={{ width: 0 }}
                     animate={{ width: `${progressPercentage}%` }}
@@ -708,7 +708,7 @@ export default function EditArticlePage() {
                 </div>
               </div>
               <span className={`text-sm font-bold ${
-                progressPercentage === 100 ? 'text-green-500' : 'text-foreground/60'
+                progressPercentage === 100 ? 'text-success' : 'text-foreground/60'
               }`}>{progressPercentage}%</span>
             </div>
             <div className="space-y-2.5 mb-5">
@@ -727,7 +727,7 @@ export default function EditArticlePage() {
                         animate={{ scale: 1 }}
                         transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                       >
-                        <CheckCircle2 className="w-4 h-4 text-green-500" />
+                        <CheckCircle2 className="w-4 h-4 text-success" />
                       </motion.div>
                     ) : (
                       <div className="w-4 h-4 rounded-full border-2 border-foreground/20" />
@@ -762,8 +762,8 @@ export default function EditArticlePage() {
           </GlassCardAdmin>
           <GlassCardAdmin className="p-5">
             <div className="flex items-center gap-2 mb-4">
-              <div className="p-1.5 rounded-lg bg-blue-500/10">
-                <FolderTree className="w-4 h-4 text-blue-400" />
+              <div className="p-1.5 rounded-lg bg-cat-1/10">
+                <FolderTree className="w-4 h-4 text-cat-1" />
               </div>
               <h2 className="text-base font-semibold text-foreground">分类与标签</h2>
             </div>
@@ -876,8 +876,8 @@ export default function EditArticlePage() {
           </GlassCardAdmin>
           <GlassCardAdmin className="p-5">
             <h2 className="text-base font-semibold text-foreground mb-4 flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-green-500/10">
-                <Send className="w-4 h-4 text-green-400" />
+              <div className="p-1.5 rounded-lg bg-success/10">
+                <Send className="w-4 h-4 text-success" />
               </div>
               保存操作
             </h2>
@@ -928,9 +928,9 @@ export default function EditArticlePage() {
               <motion.div
                 initial={{ opacity: 0, y: 5 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mt-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20"
+                className="mt-4 p-3 rounded-lg bg-warning/10 border border-warning/20"
               >
-                <p className="text-xs text-amber-500 flex items-center gap-2">
+                <p className="text-xs text-warning flex items-center gap-2">
                   <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
                   请完成至少 40% 的内容再发布
                 </p>

@@ -157,16 +157,16 @@ const SlugInput = React.forwardRef<HTMLInputElement, SlugInputProps>(
         return null;
       }
       if (validationResult.valid) {
-        return <CheckCircle2 className="w-4 h-4 text-green-500" />;
+        return <CheckCircle2 className="w-4 h-4 text-success" />;
       }
-      return <AlertCircle className="w-4 h-4 text-red-500" />;
+      return <AlertCircle className="w-4 h-4 text-destructive" />;
     };
     return (
       <div className={cn('relative', className)}>
         <div className="flex items-center justify-between mb-2">
           <label className="block text-sm font-medium text-foreground/80">
             文章别名 (Slug)
-            <span className="text-red-400 ml-1">*</span>
+            <span className="text-destructive ml-1">*</span>
           </label>
           <div className="flex items-center gap-2">
             <button
@@ -175,7 +175,7 @@ const SlugInput = React.forwardRef<HTMLInputElement, SlugInputProps>(
               className={cn(
                 'flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-md transition-colors',
                 isLocked
-                  ? 'bg-amber-500/10 text-amber-500'
+                  ? 'bg-warning/10 text-warning'
                   : 'bg-tech-cyan/10 text-tech-cyan hover:bg-tech-cyan/20'
               )}
               title={isLocked ? '点击解锁自动生成' : '点击锁定，禁止自动生成'}
@@ -198,8 +198,8 @@ const SlugInput = React.forwardRef<HTMLInputElement, SlugInputProps>(
           className={cn(
             'relative flex items-center rounded-xl border transition-colors duration-200',
             'bg-background/50 backdrop-blur-sm',
-            validationResult?.valid && 'border-green-500/50 focus-within:border-green-500',
-            validationResult && !validationResult.valid && 'border-red-500/50 focus-within:border-red-500',
+            validationResult?.valid && 'border-success/50 focus-within:border-success',
+            validationResult && !validationResult.valid && 'border-destructive/50 focus-within:border-destructive',
             !validationResult && 'border-border/50 focus-within:border-tech-cyan/50',
             disabled && 'opacity-60 pointer-events-none'
           )}
@@ -266,7 +266,7 @@ const SlugInput = React.forwardRef<HTMLInputElement, SlugInputProps>(
                     animate={{ scale: 1 }}
                     exit={{ scale: 0 }}
                   >
-                    <Check className="w-4 h-4 text-green-500" />
+                    <Check className="w-4 h-4 text-success" />
                   </motion.div>
                 ) : (
                   <motion.div
@@ -290,7 +290,7 @@ const SlugInput = React.forwardRef<HTMLInputElement, SlugInputProps>(
               exit={{ opacity: 0, y: -5, height: 0 }}
               className="mt-2"
             >
-              <p className="text-xs text-red-400 flex items-center gap-1.5">
+              <p className="text-xs text-destructive flex items-center gap-1.5">
                 <AlertCircle className="w-3 h-3 flex-shrink-0" />
                 {validationResult.message}
               </p>
@@ -301,7 +301,7 @@ const SlugInput = React.forwardRef<HTMLInputElement, SlugInputProps>(
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="mt-2 text-xs text-green-500 flex items-center gap-1.5"
+            className="mt-2 text-xs text-success flex items-center gap-1.5"
           >
             <CheckCircle2 className="w-3 h-3" />
             别名格式正确

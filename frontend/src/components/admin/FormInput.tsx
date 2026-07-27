@@ -93,23 +93,24 @@ const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
 
     const currentSize = sizeClasses[size];
 
+    /* 只消费语义 token：primary / destructive / success 本身随主题切换，无需 dark: 分支 */
     const variantClasses = {
       default: {
-        container: 'bg-white/50 dark:bg-slate-800/40',
-        border: 'border-slate-200/50 dark:border-slate-700/50',
-        focusBorder: 'focus:border-tech-cyan/50 dark:focus:border-tech-cyan/30',
-        focusRing: 'focus:ring-2 focus:ring-tech-cyan/20 dark:focus:ring-tech-cyan/10',
+        container: 'bg-glass/60',
+        border: 'border-glass-border',
+        focusBorder: 'focus:border-primary/50',
+        focusRing: 'focus:ring-2 focus:ring-ring/40',
       },
       filled: {
-        container: 'bg-slate-100/50 dark:bg-slate-700/30',
+        container: 'bg-secondary/50',
         border: 'border-transparent',
-        focusBorder: 'focus:border-tech-cyan/50 dark:focus:border-tech-cyan/30',
-        focusRing: 'focus:ring-2 focus:ring-tech-cyan/20 dark:focus:ring-tech-cyan/10',
+        focusBorder: 'focus:border-primary/50',
+        focusRing: 'focus:ring-2 focus:ring-ring/40',
       },
       outlined: {
         container: 'bg-transparent',
-        border: 'border-2 border-slate-200/50 dark:border-slate-700/50',
-        focusBorder: 'focus:border-tech-cyan dark:focus:border-tech-cyan/80',
+        border: 'border-2 border-glass-border',
+        focusBorder: 'focus:border-primary',
         focusRing: 'focus:ring-0',
       },
     };
@@ -118,16 +119,16 @@ const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
 
     const stateClasses = {
       error: {
-        border: 'border-red-500/50 dark:border-red-400/50',
-        focusBorder: 'focus:border-red-500 dark:focus:border-red-400',
-        focusRing: 'focus:ring-red-500/20 dark:focus:ring-red-400/20',
-        iconColor: 'text-red-500',
+        border: 'border-destructive/50',
+        focusBorder: 'focus:border-destructive',
+        focusRing: 'focus:ring-destructive/20',
+        iconColor: 'text-destructive',
       },
       success: {
-        border: 'border-green-500/50 dark:border-green-400/50',
-        focusBorder: 'focus:border-green-500 dark:focus:border-green-400',
-        focusRing: 'focus:ring-green-500/20 dark:focus:ring-green-400/20',
-        iconColor: 'text-green-500',
+        border: 'border-success/50',
+        focusBorder: 'focus:border-success',
+        focusRing: 'focus:ring-success/20',
+        iconColor: 'text-success',
       },
     };
 
@@ -142,8 +143,8 @@ const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
           <motion.label
             className={cn(
               'block font-medium text-foreground mb-2',
-              error && 'text-red-600 dark:text-red-400',
-              success && 'text-green-600 dark:text-green-400',
+              error && 'text-destructive',
+              success && 'text-success',
               currentSize.label
             )}
             initial={{ opacity: 0, y: -10 }}
@@ -161,12 +162,12 @@ const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
             currentVariant.border,
             currentVariant.focusBorder,
             currentVariant.focusRing,
-            isFocused && 'shadow-lg shadow-tech-cyan/10 dark:shadow-tech-cyan/5',
+            isFocused && 'shadow-tech-cyan',
             currentState?.border,
             currentState?.focusBorder,
             currentState?.focusRing,
-            error && 'shadow-lg shadow-red-500/10',
-            success && 'shadow-lg shadow-green-500/10',
+            error && 'shadow-lg shadow-destructive/10',
+            success && 'shadow-lg shadow-success/10',
             loading && 'opacity-60 pointer-events-none'
           )}
           initial={{ opacity: 0, y: 10, scale: 1 }}
@@ -177,7 +178,7 @@ const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
             <motion.div
               className={cn(
                 'absolute left-3 top-1/2 -translate-y-1/2',
-                isFocused ? 'text-tech-cyan' : 'text-foreground/50',
+                isFocused ? 'text-primary' : 'text-foreground/50',
                 currentSize.icon
               )}
               initial={{ opacity: 0, scale: 0.8 }}
@@ -217,7 +218,7 @@ const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
                 animate={{ rotate: 360 }}
                 transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
               >
-                <div className="w-full h-full border-2 border-tech-cyan/30 border-t-tech-cyan rounded-full" />
+                <div className="w-full h-full border-2 border-primary/30 border-t-primary rounded-full" />
               </motion.div>
             )}
 
@@ -257,7 +258,7 @@ const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
                 onClick={onRightIconClick}
                 className={cn(
                   currentSize.icon,
-                  isFocused ? 'text-tech-cyan' : 'text-foreground/50',
+                  isFocused ? 'text-primary' : 'text-foreground/50',
                   'transition-colors'
                 )}
                 whileHover={{ scale: 1.1 }}
@@ -303,8 +304,8 @@ const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
           <motion.div
             className={cn(
               'mt-1.5 text-xs flex items-center gap-1',
-              error && 'text-red-600 dark:text-red-400',
-              success && 'text-green-600 dark:text-green-400'
+              error && 'text-destructive',
+              success && 'text-success'
             )}
             initial={{ opacity: 0, y: -5 }}
             animate={{ opacity: 1, y: 0 }}

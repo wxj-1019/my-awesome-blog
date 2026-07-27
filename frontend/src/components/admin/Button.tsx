@@ -22,60 +22,65 @@ const sizeConfig: Record<ButtonSize, { padding: string; text: string; icon: stri
   lg: { padding: 'px-6 py-3', text: 'text-lg', icon: 'w-6 h-6' },
 };
 
+/**
+ * 变体样式：只消费语义 token。
+ * primary 统一走 bg-primary（规范 §7.3：禁止再写 bg-tech-cyan 按钮）；
+ * danger 走 destructive；中性态走 secondary / foreground，
+ * 这些 token 本身随主题切换，故不再写 dark: 分支。
+ */
 const variantStyles: Record<ButtonVariant, { base: string; hover: string; active: string; disabled: string }> = {
   primary: {
     base: cn(
-      'bg-gradient-to-r from-tech-cyan to-tech-sky',
-      'text-white dark:text-gray-100',
-      'shadow-lg shadow-tech-cyan/20',
-      'hover:shadow-xl hover:shadow-tech-cyan/30',
+      'bg-primary',
+      'text-primary-foreground',
+      'shadow-tech-cyan',
       'border border-transparent'
     ),
-    hover: 'hover:from-tech-cyan/90 hover:to-tech-sky/90',
-    active: 'active:from-tech-cyan/80 active:to-tech-sky/80 active:scale-[0.98]',
-    disabled: 'disabled:from-tech-cyan/50 disabled:to-tech-sky/50 disabled:cursor-not-allowed',
+    hover: 'hover:bg-primary/90',
+    active: 'active:bg-primary/80 active:scale-[0.98]',
+    disabled: 'disabled:bg-primary/50 disabled:cursor-not-allowed',
   },
   secondary: {
     base: cn(
-      'bg-slate-100 dark:bg-slate-700/80',
-      'text-slate-900 dark:text-slate-100',
-      'border border-slate-200 dark:border-slate-600',
-      'shadow-md shadow-slate-200/20 dark:shadow-black/20'
+      'bg-secondary',
+      'text-secondary-foreground',
+      'border border-border',
+      'shadow-[var(--glass-shadow)]'
     ),
-    hover: 'hover:bg-slate-200 dark:hover:bg-slate-600',
-    active: 'active:bg-slate-300 dark:active:bg-slate-500 active:scale-[0.98]',
-    disabled: 'disabled:bg-slate-50 dark:disabled:bg-slate-800 disabled:cursor-not-allowed',
+    hover: 'hover:bg-secondary/80',
+    active: 'active:bg-secondary/70 active:scale-[0.98]',
+    disabled: 'disabled:bg-secondary/40 disabled:cursor-not-allowed',
   },
   outline: {
     base: cn(
       'bg-transparent',
-      'border-2 border-slate-300 dark:border-slate-600',
-      'text-slate-700 dark:text-slate-300'
+      'border-2 border-border',
+      'text-foreground'
     ),
-    hover: 'hover:border-tech-cyan hover:text-tech-cyan hover:bg-tech-cyan/5',
-    active: 'active:border-tech-cyan active:text-tech-cyan active:bg-tech-cyan/10 active:scale-[0.98]',
-    disabled: 'disabled:border-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed',
+    hover: 'hover:border-primary hover:text-primary hover:bg-primary/5',
+    active: 'active:border-primary active:text-primary active:bg-primary/10 active:scale-[0.98]',
+    disabled: 'disabled:border-border/50 disabled:text-muted-foreground disabled:cursor-not-allowed',
   },
   ghost: {
     base: cn(
       'bg-transparent',
-      'text-slate-700 dark:text-slate-300',
+      'text-muted-foreground',
       'border border-transparent'
     ),
-    hover: 'hover:bg-slate-100 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-slate-100',
-    active: 'active:bg-slate-200 dark:active:bg-slate-600 active:scale-[0.98]',
-    disabled: 'disabled:text-slate-400 disabled:cursor-not-allowed',
+    hover: 'hover:bg-foreground/5 hover:text-foreground',
+    active: 'active:bg-foreground/10 active:scale-[0.98]',
+    disabled: 'disabled:text-muted-foreground/50 disabled:cursor-not-allowed',
   },
   danger: {
     base: cn(
-      'bg-gradient-to-r from-red-500 to-red-600',
-      'text-white',
-      'shadow-lg shadow-red-500/20',
+      'bg-destructive',
+      'text-destructive-foreground',
+      'shadow-lg shadow-destructive/20',
       'border border-transparent'
     ),
-    hover: 'hover:from-red-600 hover:to-red-700 hover:shadow-xl hover:shadow-red-500/30',
-    active: 'active:from-red-700 active:to-red-800 active:scale-[0.98]',
-    disabled: 'disabled:from-red-300 disabled:to-red-400 disabled:cursor-not-allowed',
+    hover: 'hover:bg-destructive/90 hover:shadow-xl hover:shadow-destructive/30',
+    active: 'active:bg-destructive/80 active:scale-[0.98]',
+    disabled: 'disabled:bg-destructive/40 disabled:cursor-not-allowed',
   },
 };
 
@@ -161,7 +166,7 @@ export const ButtonGroup = ({ children, className }: { children: React.ReactNode
           return (
             <div className={cn(
               'first:rounded-l-xl last:rounded-r-xl',
-              'border border-slate-200 dark:border-slate-700',
+              'border border-border',
               'hover:z-10 focus:z-20'
             )}>
               {React.cloneElement(child as React.ReactElement<ButtonProps>, {

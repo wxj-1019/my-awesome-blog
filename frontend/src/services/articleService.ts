@@ -5,16 +5,29 @@ import type { Article, Category, Tag, RelatedArticle } from '@/types';
 /** 后端列表接口单次最大条数（与 API le=100 对齐） */
 export const ARTICLES_PAGE_SIZE = 100;
 
-// 获取文章列表
-export const getArticles = async (filters?: {
+/** 后端 offset/limit 列表接口的统一分页信封（对应 backend/app/schemas/pagination.py） */
+export interface Page<T> {
+  items: T[];
+  /** 符合过滤条件的总条数，非当前页条数 */
+  total: number;
+  skip: number;
+  limit: number;
+}
+
+/**
+ * 获取文章列表（带总数）。
+ *
+ * 后端 GET /articles/ 已改为返回分页信封；需要 total 时用本函数，
+ * 只关心数据数组时用 getArticles()。
+ */
+export const getArticlesPage = async (filters?: {
   category?: string;
   tag?: string;
   search?: string;
   limit?: number;
-  /** 跳过条数，对应后端 skip */
   offset?: number;
   skip?: number;
-}): Promise<Article[]> => {
+}): Promise<Page<Article>> => {
   const params = new URLSearchParams();
   if (filters?.category) {params.append('category_id', filters.category);}
   if (filters?.tag) {params.append('tag_id', filters.tag);}
@@ -31,6 +44,16 @@ export const getArticles = async (filters?: {
   const endpoint = queryString ? `/articles/?${queryString}` : '/articles/';
 
   return apiRequest(endpoint);
+};
+
+/**
+ * 获取文章列表（只要数组）。
+ *
+ * 保留此签名以免波及大量只关心数据的调用点；内部走 getArticlesPage 后取 items。
+ */
+export const getArticles = async (filters?: Parameters<typeof getArticlesPage>[0]): Promise<Article[]> => {
+  const page = await getArticlesPage(filters);
+  return page.items;
 };
 
 /**

@@ -135,7 +135,12 @@ def test_read_articles_search_and_limit_validation(client, test_session):
         params={"search": "Unique List Search"},
     )
     assert response.status_code == status.HTTP_200_OK
-    assert [article["id"] for article in response.json()] == [str(matching.id)]
+    # GET /articles/ 返回分页信封 {items, total, skip, limit}
+    page = response.json()
+    assert [article["id"] for article in page["items"]] == [str(matching.id)]
+    # total 必须是符合过滤条件的总数，而不是当前页条数
+    assert page["total"] == 1
+    assert page["skip"] == 0
 
     response = client.get("/api/v1/articles/", params={"limit": 101})
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
@@ -559,3 +564,56 @@ def test_search_articles_exact_phrase(client, test_session):
             found = True
             break
     # Note: Full-text search behavior depends on implementation, so we're just checking the endpoint works
+
+def test_list_articles_pagination_envelope(client, test_session):
+    """
+    分页信封回归测试。
+
+    原故障：接口直接返回数组，调用方只能用「当前页长度」当 total，
+    于是总页数恒为 1、翻页失效。本用例锁定 total 是**总条数**且跨页恒定。
+    """
+    from app.models.article import Article
+    from app.models.user import User
+    import uuid
+
+    user = User(
+        username="pageuser",
+        email="pageuser@example.com",
+        hashed_password="x",
+        tenant_id=uuid.uuid4(),
+    )
+    test_session.add(user)
+    test_session.commit()
+
+    for i in range(7):
+        test_session.add(
+            Article(
+                title=f"Paged Article {i}",
+                slug=f"paged-article-{i}",
+                content="c",
+                excerpt="e",
+                is_published=True,
+                author_id=user.id,
+            )
+        )
+    test_session.commit()
+
+    first = client.get("/api/v1/articles/", params={"skip": 0, "limit": 3}).json()
+    assert len(first["items"]) == 3
+    assert first["total"] >= 7
+    assert first["skip"] == 0 and first["limit"] == 3
+
+    second = client.get("/api/v1/articles/", params={"skip": 3, "limit": 3}).json()
+    assert len(second["items"]) == 3
+    # total 跨页恒定，不随当前页条数变化
+    assert second["total"] == first["total"]
+
+    # 末页条数可少于 limit，但 total 不变
+    last = client.get("/api/v1/articles/", params={"skip": 6, "limit": 3}).json()
+    assert last["total"] == first["total"]
+    assert len(last["items"]) <= 3
+
+    # 页间无重叠
+    ids_first = {a["id"] for a in first["items"]}
+    ids_second = {a["id"] for a in second["items"]}
+    assert ids_first.isdisjoint(ids_second)

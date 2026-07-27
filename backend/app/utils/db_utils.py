@@ -1,7 +1,7 @@
 """数据库查询优化工具"""
 
 from sqlalchemy.orm import Session, joinedload, selectinload
-from sqlalchemy import and_, or_, func
+from sqlalchemy import and_, or_, func, distinct
 from typing import List, Optional, Type, Any
 from app.models.article import Article
 from app.models.user import User
@@ -157,44 +157,42 @@ def get_user_article_stats_batch(db: Session, user_ids: List[str]):
     return stats_dict
 
 
-def get_articles_by_multiple_filters(
-    db: Session, 
+def _apply_article_filters(
+    query,
     author_ids: Optional[List[str]] = None,
-    category_ids: Optional[List[str]] = None, 
+    category_ids: Optional[List[str]] = None,
     tag_ids: Optional[List[str]] = None,
     search: Optional[str] = None,
     published_only: bool = True,
-    limit: int = 100,
-    offset: int = 0
 ):
     """
-    使用多个过滤条件高效查询文章
+    把过滤条件套用到已有的文章查询上。
+
+    抽出来给「取列表」与「取总数」共用，避免两处过滤逻辑漂移
+    —— 一旦漂移，total 与实际返回的数据就对不上，翻页会出现空页。
     """
-    query = optimize_article_query(db)
-    
-    # 应用过滤条件
     conditions = []
-    
+
     if published_only:
         conditions.append(Article.is_published == True)
-    
+
     if author_ids:
         from uuid import UUID
         author_uuids = [UUID(id) for id in author_ids]
         conditions.append(Article.author_id.in_(author_uuids))
-    
+
     if category_ids:
         from app.models.article_category import ArticleCategory
         from uuid import UUID
         category_uuids = [UUID(id) for id in category_ids]
         query = query.join(ArticleCategory).filter(ArticleCategory.category_id.in_(category_uuids))
-    
+
     if tag_ids:
         from app.models.article_tag import ArticleTag
         from uuid import UUID
         tag_uuids = [UUID(id) for id in tag_ids]
         query = query.join(ArticleTag).filter(ArticleTag.tag_id.in_(tag_uuids))
-    
+
     if search:
         search_pattern = f"%{search.strip()}%"
         conditions.append(
@@ -207,11 +205,62 @@ def get_articles_by_multiple_filters(
 
     if conditions:
         query = query.filter(and_(*conditions))
-    
+
+    return query
+
+
+def get_articles_by_multiple_filters(
+    db: Session,
+    author_ids: Optional[List[str]] = None,
+    category_ids: Optional[List[str]] = None,
+    tag_ids: Optional[List[str]] = None,
+    search: Optional[str] = None,
+    published_only: bool = True,
+    limit: int = 100,
+    offset: int = 0
+):
+    """
+    使用多个过滤条件高效查询文章
+    """
+    query = _apply_article_filters(
+        optimize_article_query(db),
+        author_ids=author_ids,
+        category_ids=category_ids,
+        tag_ids=tag_ids,
+        search=search,
+        published_only=published_only,
+    )
+
     # 应用排序和分页
     query = query.order_by(Article.created_at.desc()).offset(offset).limit(limit)
-    
+
     return query.all()
+
+
+def count_articles_by_multiple_filters(
+    db: Session,
+    author_ids: Optional[List[str]] = None,
+    category_ids: Optional[List[str]] = None,
+    tag_ids: Optional[List[str]] = None,
+    search: Optional[str] = None,
+    published_only: bool = True,
+) -> int:
+    """
+    统计符合同一组过滤条件的文章总数（供分页信封的 total 使用）。
+
+    两点注意：
+    1. 计数查询不套 joinedload —— 预加载对 COUNT 无意义，只会拖慢。
+    2. 按分类/标签过滤会 join 关联表造成行重复，故用 COUNT(DISTINCT article.id)。
+    """
+    query = _apply_article_filters(
+        db.query(func.count(distinct(Article.id))),
+        author_ids=author_ids,
+        category_ids=category_ids,
+        tag_ids=tag_ids,
+        search=search,
+        published_only=published_only,
+    )
+    return query.scalar() or 0
 
 
 def get_efficient_user_list(db: Session, include_article_counts: bool = False):

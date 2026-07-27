@@ -48,9 +48,9 @@ interface PortfolioItem {
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: typeof CheckCircle }> = {
-  completed: { label: '已完成', color: 'bg-green-500/20 text-green-400 border-green-500/30', icon: CheckCircle },
-  in_progress: { label: '进行中', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30', icon: Clock },
-  planned: { label: '计划中', color: 'bg-gray-500/20 text-gray-400 dark:text-gray-500 dark:text-gray-400 border-gray-500/30', icon: Sparkles },
+  completed: { label: '已完成', color: 'bg-success/20 text-success border-success/30', icon: CheckCircle },
+  in_progress: { label: '进行中', color: 'bg-info/20 text-info border-info/30', icon: Clock },
+  planned: { label: '计划中', color: 'bg-muted-foreground/20 text-muted-foreground border-muted-foreground/30', icon: Sparkles },
 }
 
 export default function PortfoliosPage() {
@@ -361,7 +361,7 @@ export default function PortfoliosPage() {
                           />
                           {portfolio.is_featured && (
                             <div className="absolute top-2 right-2">
-                              <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
+                              <Star className="w-5 h-5 text-warning fill-yellow-400" />
                             </div>
                           )}
                         </div>
@@ -370,7 +370,7 @@ export default function PortfoliosPage() {
                           <Briefcase className="w-12 h-12 text-tech-cyan/50" />
                           {portfolio.is_featured && (
                             <div className="absolute top-2 right-2">
-                              <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
+                              <Star className="w-5 h-5 text-warning fill-yellow-400" />
                             </div>
                           )}
                         </div>
@@ -442,8 +442,8 @@ export default function PortfoliosPage() {
                             className={cn(
                               "flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors",
                               portfolio.is_featured 
-                                ? "text-yellow-400 bg-yellow-400/10" 
-                                : "text-foreground/50 hover:text-yellow-400 hover:bg-yellow-400/10"
+                                ? "text-warning bg-warning/10" 
+                                : "text-foreground/50 hover:text-warning hover:bg-warning/10"
                             )}
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
@@ -464,7 +464,7 @@ export default function PortfoliosPage() {
                             </motion.button>
                             <motion.button
                               onClick={() => setDeleteDialog({ open: true, portfolio })}
-                              className="p-2 text-foreground/50 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                              className="p-2 text-foreground/50 hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
                               whileHover={{ scale: 1.1 }}
                               whileTap={{ scale: 0.95 }}
                               title="删除"
@@ -560,7 +560,7 @@ export default function PortfoliosPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-foreground/70 mb-2">
-                        作品标题 <span className="text-red-400">*</span>
+                        作品标题 <span className="text-destructive">*</span>
                       </label>
                       <FormInput
                         type="text"

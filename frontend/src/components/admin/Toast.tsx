@@ -17,27 +17,27 @@ export interface ToastProps {
 const toastVariants = {
   success: {
     icon: CheckCircle,
-    bgColor: 'bg-green-50 dark:bg-green-900/20',
-    iconColor: 'text-green-600 dark:text-green-400',
-    borderColor: 'border-green-200 dark:border-green-800',
+    bgColor: 'bg-success dark:bg-success/20',
+    iconColor: 'text-success dark:text-success',
+    borderColor: 'border-success dark:border-success',
   },
   error: {
     icon: XCircle,
-    bgColor: 'bg-red-50 dark:bg-red-900/20',
-    iconColor: 'text-red-600 dark:text-red-400',
-    borderColor: 'border-red-200 dark:border-red-800',
+    bgColor: 'bg-destructive dark:bg-destructive/20',
+    iconColor: 'text-destructive dark:text-destructive',
+    borderColor: 'border-destructive dark:border-destructive',
   },
   warning: {
     icon: AlertCircle,
-    bgColor: 'bg-yellow-50 dark:bg-yellow-900/20',
-    iconColor: 'text-yellow-600 dark:text-yellow-400',
-    borderColor: 'border-yellow-200 dark:border-yellow-800',
+    bgColor: 'bg-warning dark:bg-warning/20',
+    iconColor: 'text-warning dark:text-warning',
+    borderColor: 'border-warning dark:border-warning',
   },
   info: {
     icon: Info,
-    bgColor: 'bg-blue-50 dark:bg-blue-900/20',
-    iconColor: 'text-blue-600 dark:text-blue-400',
-    borderColor: 'border-blue-200 dark:border-blue-800',
+    bgColor: 'bg-cat-1 dark:bg-cat-1/20',
+    iconColor: 'text-cat-1 dark:text-cat-1',
+    borderColor: 'border-cat-1 dark:border-cat-1',
   },
 };
 

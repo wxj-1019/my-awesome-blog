@@ -29,8 +29,8 @@ export default function QuickActions() {
     >
       <GlassCardAdmin className="p-6">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2.5 rounded-xl bg-gradient-to-br from-purple-500/30 to-pink-500/30">
-            <BarChart2 className="w-5 h-5 text-purple-500" />
+          <div className="p-2.5 rounded-xl bg-gradient-to-br from-tech-purple/30 to-tech-pink/30">
+            <BarChart2 className="w-5 h-5 text-cat-2" />
           </div>
           <div>
             <h2 className="text-lg font-semibold text-foreground">快速操作</h2>

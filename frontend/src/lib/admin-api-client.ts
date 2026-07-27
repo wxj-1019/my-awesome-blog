@@ -132,6 +132,7 @@ export const adminApi = {
   hardDeleteMessage: (id: string) => AdminApiClient.delete(`/messages/${id}/hard`),
   
   articles: {
+    /** 返回分页信封 { items, total, skip, limit }；total 为符合条件的总条数 */
     list: (params?: { skip?: number; limit?: number; published_only?: boolean }) => {
       const searchParams = new URLSearchParams();
       if (params?.skip) {searchParams.set('skip', params.skip.toString());}

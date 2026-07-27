@@ -198,7 +198,7 @@ export default function FriendLinksPage() {
                 <p className="text-foreground/60 mt-0.5 flex items-center gap-2">
                   管理友情链接
                   <motion.span 
-                    className="px-2.5 py-0.5 text-xs font-medium bg-green-500/20 text-green-400 border border-green-500/30 rounded-full"
+                    className="px-2.5 py-0.5 text-xs font-medium bg-success/20 text-success border border-success/30 rounded-full"
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ type: "spring", duration: 0.5 }}
@@ -206,7 +206,7 @@ export default function FriendLinksPage() {
                     {activeCount} 个活跃
                   </motion.span>
                   <motion.span 
-                    className="px-2.5 py-0.5 text-xs font-medium bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-full"
+                    className="px-2.5 py-0.5 text-xs font-medium bg-cat-1/20 text-cat-1 border border-cat-1/30 rounded-full"
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ type: "spring", duration: 0.5, delay: 0.1 }}
@@ -313,7 +313,7 @@ export default function FriendLinksPage() {
                     </div>
 
                     <motion.div
-                      className="w-12 h-12 rounded-xl bg-gradient-to-br from-tech-cyan to-tech-sky flex items-center justify-center text-white dark:text-gray-100 font-medium flex-shrink-0 overflow-hidden shadow-lg shadow-tech-cyan/30"
+                      className="w-12 h-12 rounded-xl bg-gradient-to-br from-tech-cyan to-tech-sky flex items-center justify-center text-foreground font-medium flex-shrink-0 overflow-hidden shadow-lg shadow-tech-cyan/30"
                       whileHover={{ scale: 1.1, rotate: 5 }}
                       transition={{ duration: 0.2 }}
                     >
@@ -334,8 +334,8 @@ export default function FriendLinksPage() {
                           className={cn(
                             "px-2.5 py-0.5 text-xs font-medium rounded-full border",
                             link.is_active 
-                              ? "bg-green-500/20 text-green-400 border-green-500/30" 
-                              : "bg-gray-500/20 text-gray-400 dark:text-gray-500 dark:text-gray-400 border-gray-500/30"
+                              ? "bg-success/20 text-success border-success/30" 
+                              : "bg-muted-foreground/20 text-muted-foreground border-muted-foreground/30"
                           )}
                           whileHover={{ scale: 1.05 }}
                         >
@@ -366,8 +366,8 @@ export default function FriendLinksPage() {
                         className={cn(
                           "p-2 rounded-lg transition-colors",
                           link.is_active 
-                            ? "text-green-400 hover:bg-green-500/20" 
-                            : "text-foreground/40 hover:text-green-400 hover:bg-green-500/20"
+                            ? "text-success hover:bg-success/20" 
+                            : "text-foreground/40 hover:text-success hover:bg-success/20"
                         )}
                         title={link.is_active ? '隐藏' : '显示'}
                         whileHover={{ scale: 1.1 }}
@@ -386,7 +386,7 @@ export default function FriendLinksPage() {
                       </motion.button>
                       <motion.button
                         onClick={() => setDeleteDialog({ open: true, link })}
-                        className="p-2 text-foreground/40 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                        className="p-2 text-foreground/40 hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
                         title="删除"
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.95 }}

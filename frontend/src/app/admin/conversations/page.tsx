@@ -50,11 +50,10 @@ export default function ConversationsPage() {
       setLoading(true)
       const params: Record<string, string> = {}
       if (statusFilter) {params.status = statusFilter}
+      /* 后端返回分页信封 {items, total, skip, limit}；
+         validateArrayData 已能识别 items 键，无需再手工解包 */
       const data = await adminApi.conversations.list(params)
-      const rawItems = data && typeof data === 'object' && !Array.isArray(data) && 'items' in data
-        ? (data as { items: unknown }).items
-        : data
-      setConversations(validateArrayData<Conversation>(rawItems))
+      setConversations(validateArrayData<Conversation>(data))
     } catch (err) {
       console.error('Failed to fetch conversations:', err)
       error('加载对话列表失败')
@@ -125,10 +124,10 @@ export default function ConversationsPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-green-500/20 text-green-400'
-      case 'archived': return 'bg-gray-500/20 text-gray-400'
-      case 'deleted': return 'bg-red-500/20 text-red-400'
-      default: return 'bg-blue-500/20 text-blue-400'
+      case 'active': return 'bg-success/20 text-success'
+      case 'archived': return 'bg-muted-foreground/20 text-muted-foreground'
+      case 'deleted': return 'bg-destructive/20 text-destructive'
+      default: return 'bg-cat-1/20 text-cat-1'
     }
   }
 
@@ -214,9 +213,9 @@ export default function ConversationsPage() {
             <div className="space-y-3">
               <AnimatePresence>
                 {filteredConversations.map((conversation, index) => (
-                  <motion.div
+                  <GlassCardAdmin variant="selectable" entrance={false}
                     key={conversation.id}
-                    className="group relative overflow-hidden rounded-xl border-2 border-glass-border/30 hover:border-tech-cyan/50 p-4 bg-glass/10 hover:bg-glass/20 backdrop-blur-lg transition-colors duration-300 cursor-pointer"
+                    className={'group rounded-xl p-4'}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
@@ -271,7 +270,7 @@ export default function ConversationsPage() {
                             e.stopPropagation()
                             setDeleteDialog({ open: true, conversation })
                           }}
-                          className="p-2 text-foreground/40 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                          className="p-2 text-foreground/40 hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.95 }}
                         >
@@ -279,7 +278,7 @@ export default function ConversationsPage() {
                         </motion.button>
                       </motion.div>
                     </div>
-                  </motion.div>
+                  </GlassCardAdmin>
                 ))}
               </AnimatePresence>
             </div>
@@ -308,7 +307,7 @@ export default function ConversationsPage() {
                   <p className="text-sm text-foreground/50">{selectedConversation.model} · {selectedConversation.message_count || 0} 条消息</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button onClick={handleDeleteMessages} variant="ghost" className="text-red-400 hover:bg-red-500/10">
+                  <Button onClick={handleDeleteMessages} variant="ghost" className="text-destructive hover:bg-destructive/10">
                     <Trash2 className="w-4 h-4 mr-2" />
                     清空消息
                   </Button>
@@ -345,12 +344,12 @@ export default function ConversationsPage() {
                           ? "bg-tech-cyan/20 text-foreground rounded-br-md" 
                           : msg.role === 'assistant'
                             ? "bg-glass/30 text-foreground rounded-bl-md"
-                            : "bg-yellow-500/20 text-foreground/80 text-sm"
+                            : "bg-warning/20 text-foreground/80 text-sm"
                       )}>
                         <div className="flex items-center gap-2 mb-1">
                           <span className={cn(
                             "text-xs font-medium",
-                            msg.role === 'user' ? "text-tech-cyan" : msg.role === 'assistant' ? "text-foreground/60" : "text-yellow-400"
+                            msg.role === 'user' ? "text-tech-cyan" : msg.role === 'assistant' ? "text-foreground/60" : "text-warning"
                           )}>
                             {msg.role === 'user' ? '用户' : msg.role === 'assistant' ? 'AI' : '系统'}
                           </span>

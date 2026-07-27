@@ -17,7 +17,8 @@ import EmptyState from '@/components/ui/EmptyState';
 
 export interface Column<T> {
   key: string;
-  title: string;
+  /** 表头内容。放宽为 ReactNode，以便调用点在表头放全选复选框等控件 */
+  title: React.ReactNode;
   width?: string | number;
   sortable?: boolean;
   filterable?: boolean;
@@ -53,6 +54,30 @@ export interface DataTableProps<T> {
   rowClassName?: string;
   animationDelay?: number;
   className?: string;
+  /**
+   * 是否渲染内置工具栏（搜索框 + 筛选面板）。默认 true。
+   * 页面已自带搜索时传 false，避免出现两个搜索框、或内置搜索
+   * （仅按列 key 匹配）覆盖面小于页面自身的搜索逻辑。
+   */
+  toolbar?: boolean;
+  /**
+   * 服务端模式。传入后：
+   *  - 跳过内部的搜索/筛选/排序/切片，`data` 原样渲染（视为「当前页」）
+   *  - 总页数由 `total` / `pageSize` 计算，翻页交给 `onPageChange`
+   *  - 内置搜索框改为受控，输入经防抖后回调 `onSearchChange`
+   * 不传则维持原有的纯客户端行为。
+   */
+  serverSide?: {
+    /** 服务端返回的总条数 */
+    total: number;
+    /** 当前页码，1 起 */
+    page: number;
+    onPageChange: (page: number) => void;
+    /** 不传则内置搜索框不渲染（配合 toolbar={false} 用页面自身的搜索） */
+    onSearchChange?: (query: string) => void;
+    /** 搜索防抖毫秒数，默认 300 */
+    searchDebounceMs?: number;
+  };
 }
 
 function DataTable<T>({
@@ -69,17 +94,46 @@ function DataTable<T>({
   rowClassName,
   animationDelay: _animationDelay = 0,
   className,
+  toolbar = true,
+  serverSide,
 }: DataTableProps<T>) {
+  const isServer = !!serverSide;
   const [sortConfig, setSortConfig] = React.useState<SortConfig | null>(null);
   const [filters, setFilters] = React.useState<FilterConfig[]>([]);
   const [searchQuery, setSearchQuery] = React.useState('');
-  const [currentPage, setCurrentPage] = React.useState(1);
+  const [internalPage, setInternalPage] = React.useState(1);
   const [selectedRows, setSelectedRows] = React.useState<Set<string | number>>(new Set());
   const [showFilters, setShowFilters] = React.useState(false);
 
+  /* 服务端模式下页码由外部持有，内部 state 只作客户端模式的回退 */
+  const currentPage = isServer ? serverSide.page : internalPage;
+  const setCurrentPage = React.useCallback(
+    (updater: number | ((prev: number) => number)) => {
+      if (isServer) {
+        const next = typeof updater === 'function' ? updater(serverSide.page) : updater;
+        serverSide.onPageChange(next);
+      } else {
+        setInternalPage(updater);
+      }
+    },
+    [isServer, serverSide]
+  );
+
   const filterInputRefs = React.useRef<{ [key: string]: HTMLInputElement | HTMLSelectElement | null }>({});
 
+  /* 服务端模式：搜索词防抖后上抛，由调用方重新取数 */
+  const onSearchChange = serverSide?.onSearchChange;
+  const searchDebounceMs = serverSide?.searchDebounceMs ?? 300;
+  React.useEffect(() => {
+    if (!isServer || !onSearchChange) {return;}
+    const timer = setTimeout(() => onSearchChange(searchQuery), searchDebounceMs);
+    return () => clearTimeout(timer);
+  }, [isServer, onSearchChange, searchQuery, searchDebounceMs]);
+
   const sortedAndFilteredData = React.useMemo(() => {
+    /* 服务端模式：data 即当前页，内部不再过滤/排序 */
+    if (isServer) {return data;}
+
     let result = [...data];
 
     if (searchQuery) {
@@ -131,16 +185,25 @@ function DataTable<T>({
     }
 
     return result;
-  }, [data, searchQuery, filters, sortConfig, columns]);
+  }, [isServer, data, searchQuery, filters, sortConfig, columns]);
 
   const paginatedData = React.useMemo(() => {
-    if (!pagination) {return sortedAndFilteredData;}
-    
+    /* 服务端模式：data 已经是切好的当前页，再切一次会丢行 */
+    if (isServer || !pagination) {return sortedAndFilteredData;}
+
     const startIndex = (currentPage - 1) * pageSize;
     return sortedAndFilteredData.slice(startIndex, startIndex + pageSize);
-  }, [sortedAndFilteredData, currentPage, pageSize, pagination]);
+  }, [isServer, sortedAndFilteredData, currentPage, pageSize, pagination]);
 
-  const totalPages = Math.ceil(sortedAndFilteredData.length / pageSize);
+  /* 总条数：服务端模式取服务端返回的 total，否则取过滤后的长度 */
+  const totalCount = isServer ? serverSide.total : sortedAndFilteredData.length;
+  const totalPages = Math.ceil(totalCount / pageSize);
+
+  /* 服务端模式下内部排序/筛选对整体数据集无效，故不渲染其交互入口，避免误导 */
+  const sortEnabled = !isServer;
+  const filterEnabled = !isServer && columns.some((col) => col.filterable);
+  /* 服务端模式必须显式提供 onSearchChange，搜索框才有意义 */
+  const searchEnabled = !isServer || !!onSearchChange;
 
   const handleSort = (columnKey: string) => {
     const column = columns.find((col) => col.key === columnKey);
@@ -219,9 +282,9 @@ function DataTable<T>({
       return <ChevronsUpDown className="w-4 h-4 text-foreground/40" />;
     }
     return sortConfig.direction === 'asc' ? (
-      <ChevronUp className="w-4 h-4 text-tech-cyan" />
+      <ChevronUp className="w-4 h-4 text-primary" />
     ) : (
-      <ChevronDown className="w-4 h-4 text-tech-cyan" />
+      <ChevronDown className="w-4 h-4 text-primary" />
     );
   };
 
@@ -233,7 +296,7 @@ function DataTable<T>({
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3 }}
       >
-        <div className="w-12 h-12 border-4 border-tech-cyan/30 border-t-tech-cyan rounded-full animate-spin" />
+        <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
       </motion.div>
     );
   }
@@ -251,7 +314,9 @@ function DataTable<T>({
 
   return (
     <div className={cn('space-y-4', className)}>
+      {toolbar && (searchEnabled || filterEnabled) && (
       <div className="flex items-center gap-3">
+        {searchEnabled && (
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground/40" />
           <input
@@ -259,7 +324,7 @@ function DataTable<T>({
             value={searchQuery}
             onChange={handleSearch}
             placeholder="搜索..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200/50 dark:border-slate-700/50 bg-white/50 dark:bg-slate-800/40 backdrop-blur-xl focus:outline-none focus:ring-2 focus:ring-tech-cyan/20 focus:border-tech-cyan/50 transition-colors duration-200"
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-glass-border bg-glass/60 text-foreground placeholder:text-muted-foreground/70 backdrop-blur-xl focus:outline-none focus:ring-2 focus:ring-ring/40 focus:border-primary/50 transition-colors duration-200"
           />
           {searchQuery && (
             <button
@@ -271,6 +336,8 @@ function DataTable<T>({
             </button>
           )}
         </div>
+        )}
+        {filterEnabled && (
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
@@ -278,23 +345,25 @@ function DataTable<T>({
           className={cn(
             'px-4 py-2.5 rounded-xl font-medium transition-colors duration-200 flex items-center gap-2',
             showFilters
-              ? 'bg-tech-cyan text-white'
-              : 'bg-white/50 dark:bg-slate-800/40 border border-slate-200/50 dark:border-slate-700/50 text-foreground hover:bg-slate-100 dark:hover:bg-slate-700/40'
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-glass/60 border border-glass-border text-foreground hover:bg-foreground/5'
           )}
         >
           <Filter className="w-4 h-4" />
           筛选
         </motion.button>
+        )}
       </div>
+      )}
 
       <AnimatePresence>
-        {showFilters && (
+        {toolbar && filterEnabled && showFilters && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.2 }}
-            className="p-4 rounded-xl bg-white/50 dark:bg-slate-800/40 backdrop-blur-xl border border-slate-200/50 dark:border-slate-700/50"
+            className="p-4 rounded-xl bg-glass/60 backdrop-blur-xl border border-glass-border"
           >
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {columns.filter(col => col.filterable).map((col) => {
@@ -307,7 +376,7 @@ function DataTable<T>({
                     <div className="flex gap-2">
                       <select
                         ref={(el) => { filterInputRefs.current[col.key] = el; }}
-                        className="flex-shrink-0 px-2 py-1.5 text-sm rounded-lg border border-slate-200/50 dark:border-slate-700/50 bg-white/50 dark:bg-slate-800/40 focus:outline-none focus:ring-2 focus:ring-tech-cyan/20"
+                        className="flex-shrink-0 px-2 py-1.5 text-sm rounded-lg border border-glass-border bg-glass/60 text-foreground focus:outline-none focus:ring-2 focus:ring-ring/40"
                         defaultValue="contains"
                       >
                         <option value="contains">包含</option>
@@ -323,7 +392,7 @@ function DataTable<T>({
                           handleFilter(col.key, selectEl?.value || 'contains', e.target.value);
                         }}
                         placeholder={`筛选 ${col.title}`}
-                        className="flex-1 px-3 py-1.5 text-sm rounded-lg border border-slate-200/50 dark:border-slate-700/50 bg-white/50 dark:bg-slate-800/40 focus:outline-none focus:ring-2 focus:ring-tech-cyan/20"
+                        className="flex-1 px-3 py-1.5 text-sm rounded-lg border border-glass-border bg-glass/60 text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-ring/40"
                       />
                     </div>
                   </div>
@@ -334,9 +403,9 @@ function DataTable<T>({
         )}
       </AnimatePresence>
 
-      <div className="overflow-x-auto rounded-xl border border-slate-200/50 dark:border-slate-700/50 bg-white/50 dark:bg-slate-800/40 backdrop-blur-xl">
+      <div className="overflow-x-auto rounded-xl border border-glass-border bg-glass/60 backdrop-blur-xl">
         <table className="w-full">
-          <thead className="bg-slate-50/50 dark:bg-slate-900/30">
+          <thead className="bg-foreground/[0.03]">
             <tr>
               {selectable && (
                 <th className="px-4 py-3 text-left">
@@ -346,7 +415,7 @@ function DataTable<T>({
                       selectedRows.has(row[keyField as keyof T] as string | number)
                     )}
                     onChange={(e) => handleSelectAll(e.target.checked)}
-                    className="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-tech-cyan focus:ring-tech-cyan focus:ring-offset-0"
+                    className="w-4 h-4 rounded border-border text-primary focus:ring-ring focus:ring-offset-0"
                   />
                 </th>
               )}
@@ -356,20 +425,20 @@ function DataTable<T>({
                   style={{ width: col.width }}
                   className={cn(
                     'px-4 py-3 text-left text-xs font-semibold text-foreground/70 uppercase tracking-wider transition-colors',
-                    col.sortable && 'cursor-pointer hover:text-tech-cyan hover:bg-tech-cyan/5',
+                    sortEnabled && col.sortable && 'cursor-pointer hover:text-primary hover:bg-primary/5',
                     col.cellClassName
                   )}
-                  onClick={() => col.sortable && handleSort(col.key)}
+                  onClick={() => sortEnabled && col.sortable && handleSort(col.key)}
                 >
                   <div className="flex items-center gap-2">
                     {col.title}
-                    {col.sortable && <SortIcon columnKey={col.key} />}
+                    {sortEnabled && col.sortable && <SortIcon columnKey={col.key} />}
                   </div>
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-200/50 dark:divide-slate-700/50">
+          <tbody className="divide-y divide-border">
             <AnimatePresence mode="popLayout">
               {paginatedData.map((row, index) => {
                 const keyValue = row[keyField as keyof T] as string | number;
@@ -384,8 +453,8 @@ function DataTable<T>({
                     transition={{ delay: index * 0.03, duration: 0.2 }}
                     className={cn(
                       'group transition-colors duration-200',
-                      onRowClick && 'cursor-pointer hover:bg-tech-cyan/5',
-                      isSelected && 'bg-tech-cyan/10',
+                      onRowClick && 'cursor-pointer hover:bg-primary/5',
+                      isSelected && 'bg-primary/10',
                       rowClassName
                     )}
                     onClick={() => onRowClick?.(row, index)}
@@ -396,7 +465,7 @@ function DataTable<T>({
                           type="checkbox"
                           checked={isSelected}
                           onChange={(e) => handleRowSelect(row, e.target.checked)}
-                          className="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-tech-cyan focus:ring-tech-cyan focus:ring-offset-0"
+                          className="w-4 h-4 rounded border-border text-primary focus:ring-ring focus:ring-offset-0"
                         />
                       </td>
                     )}
@@ -422,7 +491,7 @@ function DataTable<T>({
       {pagination && totalPages > 1 && (
         <div className="flex items-center justify-between gap-4">
           <div className="text-sm text-foreground/60">
-            显示 {((currentPage - 1) * pageSize) + 1} 到 {Math.min(currentPage * pageSize, sortedAndFilteredData.length)} 条，共 {sortedAndFilteredData.length} 条
+            显示 {((currentPage - 1) * pageSize) + 1} 到 {Math.min(currentPage * pageSize, totalCount)} 条，共 {totalCount} 条
           </div>
           
           <div className="flex items-center gap-2">
@@ -431,7 +500,7 @@ function DataTable<T>({
               whileTap={{ scale: 0.98 }}
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="px-3 py-2 rounded-lg border border-slate-200/50 dark:border-slate-700/50 bg-white/50 dark:bg-slate-800/40 hover:bg-slate-100 dark:hover:bg-slate-700/40 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-3 py-2 rounded-lg border border-glass-border bg-glass/60 text-foreground hover:bg-foreground/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               aria-label="上一页"
             >
               <ChevronLeft className="w-4 h-4" aria-hidden="true" />
@@ -461,8 +530,8 @@ function DataTable<T>({
                     className={cn(
                       'w-10 h-10 rounded-lg font-medium transition-colors duration-200',
                       isCurrentPage
-                        ? 'bg-tech-cyan text-white'
-                        : 'border border-slate-200/50 dark:border-slate-700/50 bg-white/50 dark:bg-slate-800/40 hover:bg-slate-100 dark:hover:bg-slate-700/40'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'border border-glass-border bg-glass/60 text-foreground hover:bg-foreground/5'
                     )}
                   >
                     {pageNum}
@@ -476,7 +545,7 @@ function DataTable<T>({
               whileTap={{ scale: 0.98 }}
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
-              className="px-3 py-2 rounded-lg border border-slate-200/50 dark:border-slate-700/50 bg-white/50 dark:bg-slate-800/40 hover:bg-slate-100 dark:hover:bg-slate-700/40 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-3 py-2 rounded-lg border border-glass-border bg-glass/60 text-foreground hover:bg-foreground/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               aria-label="下一页"
             >
               <ChevronRight className="w-4 h-4" aria-hidden="true" />
