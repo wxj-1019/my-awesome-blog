@@ -12,6 +12,7 @@ import hashlib
 import json
 import uuid
 from datetime import datetime, timezone
+from typing import AsyncIterator
 
 from sqlalchemy.orm import Session
 
@@ -54,6 +55,20 @@ OUTLINE_PROMPT = """根据已确认需求生成一份中文博客 Markdown 大�
 OUTLINE_ADJUST_PROMPT = """根据反馈修改 Markdown 大纲，只输出完整新大纲。
 需求：{requirements}
 当前大纲：{outline}
+反馈：{message}
+"""
+
+
+DRAFT_PROMPT = """根据已确认需求和大纲撰写完整中文博客 Markdown 初稿。
+直接输出正文，以 # 标题开头；包含具体例子，避免空话；不要输出解释或 Markdown 围栏。
+需求：{requirements}
+大纲：{outline}
+"""
+
+DRAFT_ADJUST_PROMPT = """根据用户反馈修改完整初稿，只输出修改后的完整 Markdown。
+需求：{requirements}
+大纲：{outline}
+当前初稿：{draft}
 反馈：{message}
 """
 
@@ -211,3 +226,104 @@ class WritingSessionService:
             raise ValueError("大纲为空")
         self.append_message(session, "assistant", outline)
         return self.store_outline(db, session, outline)
+
+    # ── 初稿生成、调整与确认 ───────────────────────────────────────
+    async def generate_draft_stream(
+        self, db: Session, session: WritingSession, provider_name=None
+    ) -> AsyncIterator[str]:
+        """确认大纲后流式生成初稿。
+
+        流程：begin_drafting（drafting）→ 流式吐正文 → 仅在流完整结束时
+        store_draft（draft_review）。流式过程中异常不会推进阶段，保证
+        「初稿未完成就不进 draft_review」的不变量（参见 interrupted_draft 测试）。
+
+        约定：阶段校验必须在 endpoint 构造 StreamingResponse 之前完成，
+        此方法第一行即抛 ConflictException（由全局处理器映射为 409）。
+        """
+        if session.stage != "outline_review":
+            raise ConflictException(
+                message=f"当前阶段'{session.stage}'不允许生成初稿，仅 outline_review 阶段可用"
+            )
+        if not session.outline.strip():
+            raise ValueError("大纲为空，无法生成初稿")
+
+        # 先转入 drafting（与 streaming 解耦：即使流中断，draft 也保持空）
+        self.begin_drafting(db, session)
+
+        provider = self.agent.get_provider(provider_name)
+        prompt = DRAFT_PROMPT.format(
+            requirements=json.dumps(session.requirements_summary, ensure_ascii=False),
+            outline=session.outline,
+        )
+
+        chunks: list[str] = []
+        completed = False
+        try:
+            async for content in self.agent.stream_content(provider, prompt, temperature=0.7):
+                chunks.append(content)
+                yield self.event({"content": content})
+            completed = True
+        except Exception as exc:
+            # 流式失败：阶段留在 drafting，draft 为空，前端按 error 事件提示重试
+            yield self.error_event(f"初稿生成失败：{exc}")
+            yield "data: [DONE]\n\n"
+            return
+
+        if completed and chunks:
+            full_draft = "".join(chunks).strip()
+            if full_draft:
+                self.store_draft(db, session, full_draft)
+        yield "data: [DONE]\n\n"
+
+    async def adjust_draft_stream(
+        self, db: Session, session: WritingSession, message: str, provider_name=None
+    ) -> AsyncIterator[str]:
+        """根据反馈流式重写初稿（仅 draft_review 阶段可用）。
+
+        与 generate_draft_stream 不同：此时已经在 draft_review，无需再走
+        drafting 中转态；流式完成后直接覆盖 session.draft 并留在 draft_review，
+        让用户继续调整或确认。
+        """
+        if session.stage != "draft_review":
+            raise ConflictException(
+                message=f"当前阶段'{session.stage}'不允许调整初稿，仅 draft_review 阶段可用"
+            )
+        if not session.draft.strip():
+            raise ValueError("初稿为空，无法调整")
+
+        self.append_message(session, "user", message)
+        provider = self.agent.get_provider(provider_name)
+        prompt = DRAFT_ADJUST_PROMPT.format(
+            requirements=json.dumps(session.requirements_summary, ensure_ascii=False),
+            outline=session.outline,
+            draft=session.draft,
+            message=message,
+        )
+
+        chunks: list[str] = []
+        completed = False
+        try:
+            async for content in self.agent.stream_content(provider, prompt, temperature=0.6):
+                chunks.append(content)
+                yield self.event({"content": content})
+            completed = True
+        except Exception as exc:
+            yield self.error_event(f"初稿调整失败：{exc}")
+            yield "data: [DONE]\n\n"
+            return
+
+        if completed and chunks:
+            full_draft = "".join(chunks).strip()
+            if full_draft:
+                session.draft = full_draft
+                save_writing_session(db, session)
+                self.append_message(session, "assistant", full_draft)
+        yield "data: [DONE]\n\n"
+
+    def confirm_draft_payload(self, db: Session, session: WritingSession) -> WritingSession:
+        """确认初稿，转入 editing 阶段，返回更新后的会话（含 stage=editing 与 draft 正文）。
+
+        直接返回 WritingSession 模型：其 schema（WritingSessionRead）已含 stage 与 draft
+        字段，前端可同时拿到阶段和初稿正文，无需额外的嵌套响应结构。
+        """
+        return self.confirm_draft(db, session)

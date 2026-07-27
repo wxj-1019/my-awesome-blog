@@ -133,6 +133,32 @@ class AgentService:
         async for event in self._stream_final(provider, prompt, model, temperature, max_tokens):
             yield event
 
+    async def stream_content(
+        self,
+        provider: LLMProvider,
+        prompt: str,
+        model: Optional[str] = None,
+        temperature: float = 0.7,
+        max_tokens: Optional[int] = None,
+    ) -> AsyncIterator[str]:
+        """流式生成，yield 原始内容字符串（非 SSE 格式）。
+
+        与 stream_text 的区别：stream_text 直接吐已格式化的 SSE 事件字符串，
+        适合 endpoint 透传；本方法只 yield 增量正文，供需要自行累积/拼装 SSE
+        的服务使用（如 WritingSessionService 在流式生成初稿时既要落库又要透传）。
+        provider 自身的异常会向上抛出，由调用方决定如何发错误事件。
+        """
+        request = ChatCompletionRequest(
+            messages=[ChatMessage(role="user", content=prompt)],
+            model=model,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            stream=True,
+        )
+        async for chunk in provider.stream_chat(request):
+            if chunk.content:
+                yield chunk.content
+
     async def chat(self, db: Session, request: AgentChatRequest) -> AgentChatResponse:
         """工具循环对话：模型可自主调用站内工具后作答。"""
         provider = self._get_provider_or_raise(request.provider)

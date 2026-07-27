@@ -135,3 +135,69 @@ async def adjust_outline(
     if not session:
         raise NotFoundException(resource="WritingSession", identifier=str(session_id))
     return await writing_session_service.adjust_outline(db, session, payload.message)
+
+
+@router.post("/{session_id}/confirm-outline")
+async def confirm_outline(
+    session_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    """确认大纲，流式生成初稿（SSE）。
+
+    阶段校验在构造 StreamingResponse 之前同步完成：非法阶段抛
+    ConflictException（→ 409），而非开始流式后才发错误事件。
+    事件序列：content（初稿增量）→ [DONE]；流式过程异常时发 error 事件
+    且阶段停留在 drafting，draft 为空。
+    """
+    session = get_writing_session_for_user(db, session_id, current_user.id)
+    if not session:
+        raise NotFoundException(resource="WritingSession", identifier=str(session_id))
+    if session.stage != "outline_review":
+        raise ConflictException(
+            message=f"当前阶段'{session.stage}'不允许确认大纲，仅 outline_review 阶段可用"
+        )
+    return StreamingResponse(
+        writing_session_service.generate_draft_stream(db, session),
+        media_type="text/event-stream",
+        headers=SSE_HEADERS,
+    )
+
+
+@router.post("/{session_id}/draft/adjust")
+async def adjust_draft(
+    session_id: UUID,
+    payload: WritingMessageRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    """流式调整初稿（仅在 draft_review 阶段，SSE）。"""
+    session = get_writing_session_for_user(db, session_id, current_user.id)
+    if not session:
+        raise NotFoundException(resource="WritingSession", identifier=str(session_id))
+    if session.stage != "draft_review":
+        raise ConflictException(
+            message=f"当前阶段'{session.stage}'不允许调整初稿，仅 draft_review 阶段可用"
+        )
+    return StreamingResponse(
+        writing_session_service.adjust_draft_stream(db, session, payload.message),
+        media_type="text/event-stream",
+        headers=SSE_HEADERS,
+    )
+
+
+@router.post("/{session_id}/confirm-draft", response_model=WritingSessionRead)
+async def confirm_draft(
+    session_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    """确认初稿，进入编辑器阶段（editing）。
+
+    返回 WritingSessionRead：stage=editing 且 draft 已填充，
+    前端可直接把 draft 灌入编辑器。
+    """
+    session = get_writing_session_for_user(db, session_id, current_user.id)
+    if not session:
+        raise NotFoundException(resource="WritingSession", identifier=str(session_id))
+    return writing_session_service.confirm_draft_payload(db, session)

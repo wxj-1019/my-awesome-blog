@@ -305,3 +305,92 @@ def test_message_stream_wrong_stage_returns_409(client, monkeypatch):
         json={"message": "测试"},
     )
     assert response.status_code == 409
+
+
+def test_confirm_outline_streams_draft_and_advances_stage(client, monkeypatch):
+    from app.services import agent_service as agent_service_module
+    from app.tests.test_agent_loop import FakeProvider, _text_resp
+
+    # generate_outline needs one response, confirm-outline streams the draft
+    provider = FakeProvider([
+        _text_resp("# 大纲\n1. 开头\n2. 正文"),  # generate_outline
+    ])
+    # For streaming, FakeProvider.stream_chat needs to be patched to yield chunks
+    async def fake_stream(request):
+        from app.llm.base import ChatStreamChunk
+        yield ChatStreamChunk(content="# 初稿标题\n")
+        yield ChatStreamChunk(content="正文内容")
+    provider.stream_chat = fake_stream
+    monkeypatch.setattr(agent_service_module, "get_llm_provider", lambda name=None: provider)
+
+    session_id = client.post("/api/v1/agent/writing-sessions/", json={}).json()["id"]
+    # First generate outline to reach outline_review
+    client.post(f"/api/v1/agent/writing-sessions/{session_id}/generate-outline")
+    # Then confirm outline → streams draft
+    response = client.post(f"/api/v1/agent/writing-sessions/{session_id}/confirm-outline")
+    assert response.status_code == 200
+    assert "# 初稿标题" in response.text
+
+    restored = client.get(f"/api/v1/agent/writing-sessions/{session_id}").json()
+    assert restored["stage"] == "draft_review"
+    assert "# 初稿标题" in restored["draft"]
+
+
+def test_confirm_draft_advances_to_editing(client, monkeypatch):
+    from app.services import agent_service as agent_service_module
+    from app.tests.test_agent_loop import FakeProvider, _text_resp
+
+    provider = FakeProvider([_text_resp("# 大纲\n1. 内容")])
+    async def fake_stream(request):
+        from app.llm.base import ChatStreamChunk
+        yield ChatStreamChunk(content="# 初稿\n正文")
+    provider.stream_chat = fake_stream
+    monkeypatch.setattr(agent_service_module, "get_llm_provider", lambda name=None: provider)
+
+    session_id = client.post("/api/v1/agent/writing-sessions/", json={}).json()["id"]
+    client.post(f"/api/v1/agent/writing-sessions/{session_id}/generate-outline")
+    client.post(f"/api/v1/agent/writing-sessions/{session_id}/confirm-outline")
+
+    response = client.post(f"/api/v1/agent/writing-sessions/{session_id}/confirm-draft")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["stage"] == "editing"
+    assert "# 初稿" in data["draft"]
+
+
+def test_interrupted_draft_does_not_advance_stage(test_session, monkeypatch):
+    """流式生成初稿时 provider 异常，阶段不应推进到 draft_review"""
+    from app.crud.writing_session import create_writing_session
+    from app.models.user import User
+    from app.services import agent_service as agent_service_module
+    from app.services.writing_session_service import WritingSessionService
+    from app.tests.test_agent_loop import FakeProvider, _text_resp
+
+    user = User(username="writer7", email="writer7@example.com", hashed_password="x", tenant_id=uuid.uuid4())
+    test_session.add(user)
+    test_session.flush()
+    session = create_writing_session(test_session, user_id=user.id)
+    service = WritingSessionService()
+
+    # Advance to outline_review
+    service.store_outline(test_session, session, "# 大纲\n1. 内容")
+
+    # Provider whose stream_chat raises after first chunk
+    provider = FakeProvider([])
+    async def failing_stream(request):
+        from app.llm.base import ChatStreamChunk
+        yield ChatStreamChunk(content="# 不完整的")
+        raise RuntimeError("模拟网络中断")
+    provider.stream_chat = failing_stream
+    monkeypatch.setattr(agent_service_module, "get_llm_provider", lambda name=None: provider)
+
+    # Consume the generator
+    import asyncio
+    async def consume():
+        async for chunk in service.generate_draft_stream(test_session, session):
+            pass  # drain all events including error event
+    asyncio.run(consume())
+
+    # Verify stage did NOT advance
+    assert session.stage == "drafting"
+    assert session.draft == ""
