@@ -18,6 +18,8 @@ from sqlalchemy.orm import Session
 from app.crud.writing_session import save_writing_session
 from app.exceptions import ConflictException
 from app.models.writing_session import WritingSession
+from app.services.agent_service import AgentService
+from app.utils.json_utils import extract_first_json_object
 
 
 # 每个动作允许的前置 stage 集合：只有处于其中之一才能执行该动作。
@@ -30,7 +32,36 @@ TRANSITIONS = {
 }
 
 
+CLARIFICATION_PROMPT = """你是中文博客写作教练。根据已确认需求和最近对话，每次只问一个最关键的澄清问题。
+必须逐步确认：目标读者、文章目标、语气风格、篇幅/深度、必须包含的内容。
+只输出 JSON：
+{{"reply":"下一句回复或问题","requirements":{{"audience":"","goal":"","tone":"","length":"","must_include":""}},"ready_for_outline":false}}
+当五项已足够明确时，reply 总结需求，ready_for_outline=true。不要生成大纲或正文。
+
+上下文：
+{context}
+用户消息：{message}
+"""
+
+
+OUTLINE_PROMPT = """根据已确认需求生成一份中文博客 Markdown 大纲。
+只输出大纲，不要正文和解释。大纲必须包含建议标题、目标读者、核心结论、H2/H3 结构和每节一句写作目的。
+需求：{requirements}
+最近对话：{messages}
+"""
+
+
+OUTLINE_ADJUST_PROMPT = """根据反馈修改 Markdown 大纲，只输出完整新大纲。
+需求：{requirements}
+当前大纲：{outline}
+反馈：{message}
+"""
+
+
 class WritingSessionService:
+    def __init__(self):
+        self.agent = AgentService()
+
     @staticmethod
     def _require_stage(session: WritingSession, action: str) -> None:
         if session.stage not in TRANSITIONS[action]:
@@ -100,3 +131,83 @@ class WritingSessionService:
     def content_hash(content: str) -> str:
         """计算内容指纹（SHA-256），用于去重与变更检测。"""
         return hashlib.sha256(content.encode("utf-8")).hexdigest()
+
+    # ── SSE 辅助 ───────────────────────────────────────────────────
+    # 格式与 AgentService.event / error_event 对齐：
+    #   {"content": "..."} / {"error": true, "message": "..."}，
+    # 前端按 data.error === true 判断错误。
+    @staticmethod
+    def event(payload: dict) -> str:
+        """格式化 SSE data 事件（ensure_ascii=False 让中文原样流过）。"""
+        return f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"
+
+    @staticmethod
+    def error_event(message: str) -> str:
+        """SSE 错误事件。"""
+        return f"data: {json.dumps({'error': True, 'message': message}, ensure_ascii=False)}\n\n"
+
+    # ── 澄清需求与大纲生成 ─────────────────────────────────────────
+    async def clarification_reply(
+        self, db: Session, session: WritingSession, message: str, provider_name=None
+    ) -> tuple[str, bool]:
+        """单轮澄清：把用户消息交给 LLM，返回 (回复, 是否已可生成大纲)。
+
+        约定：reply 必须非空，否则抛 ValueError（由端点捕获转 400/SSE 错误事件）。
+        每轮追加 user + assistant 两条消息，并更新 requirements_summary。
+        """
+        if session.stage != "clarifying":
+            raise ConflictException(message=f"当前阶段'{session.stage}'不允许发送澄清消息")
+        self.append_message(session, "user", message)
+        provider = self.agent.get_provider(provider_name)
+        prompt = CLARIFICATION_PROMPT.format(
+            context=json.dumps(self.context_messages(session), ensure_ascii=False),
+            message=message,
+        )
+        raw = await self.agent.ask_text(provider, prompt, temperature=0.3)
+        data = json.loads(extract_first_json_object(raw))
+        reply = str(data["reply"]).strip()
+        if not reply:
+            raise ValueError("澄清回复为空")
+        session.requirements_summary = {
+            k: str(v).strip() for k, v in data.get("requirements", {}).items() if str(v).strip()
+        }
+        self.append_message(session, "assistant", reply)
+        save_writing_session(db, session)
+        return reply, bool(data.get("ready_for_outline"))
+
+    async def generate_outline(
+        self, db: Session, session: WritingSession, provider_name=None
+    ) -> WritingSession:
+        """首次生成大纲（仅允许 clarifying 阶段），写入并推进到 outline_review。"""
+        if session.stage != "clarifying":
+            raise ConflictException(message=f"当前阶段'{session.stage}'不允许生成大纲")
+        provider = self.agent.get_provider(provider_name)
+        prompt = OUTLINE_PROMPT.format(
+            requirements=json.dumps(session.requirements_summary, ensure_ascii=False),
+            messages=json.dumps(self.context_messages(session), ensure_ascii=False),
+        )
+        outline = await self.agent.ask_text(provider, prompt, temperature=0.4)
+        outline = outline.strip()
+        if not outline:
+            raise ValueError("大纲为空")
+        return self.store_outline(db, session, outline)
+
+    async def adjust_outline(
+        self, db: Session, session: WritingSession, message: str, provider_name=None
+    ) -> WritingSession:
+        """根据反馈修改大纲（仅允许 outline_review 阶段），覆盖并留在 outline_review。"""
+        if session.stage != "outline_review":
+            raise ConflictException(message=f"当前阶段'{session.stage}'不允许调整大纲")
+        self.append_message(session, "user", message)
+        provider = self.agent.get_provider(provider_name)
+        prompt = OUTLINE_ADJUST_PROMPT.format(
+            requirements=json.dumps(session.requirements_summary, ensure_ascii=False),
+            outline=session.outline,
+            message=message,
+        )
+        outline = await self.agent.ask_text(provider, prompt, temperature=0.4)
+        outline = outline.strip()
+        if not outline:
+            raise ValueError("大纲为空")
+        self.append_message(session, "assistant", outline)
+        return self.store_outline(db, session, outline)

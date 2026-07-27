@@ -225,3 +225,83 @@ def test_session_cannot_be_read_by_another_user(client, test_session):
             app.dependency_overrides[get_current_active_user] = original_override
         else:
             app.dependency_overrides.pop(get_current_active_user, None)
+
+
+def test_clarification_message_persists_user_and_assistant_messages(client, monkeypatch):
+    from app.services import writing_session_service as module
+    from app.tests.test_agent_loop import FakeProvider, _text_resp
+
+    provider = FakeProvider([_text_resp('{"reply":"目标读者是谁？","requirements":{},"ready_for_outline":false}')])
+    # The service uses agent_service.get_provider() which calls get_llm_provider internally.
+    # Monkeypatch at the agent_service_module level like existing tests.
+    from app.services import agent_service as agent_service_module
+    monkeypatch.setattr(agent_service_module, "get_llm_provider", lambda name=None: provider)
+
+    session_id = client.post("/api/v1/agent/writing-sessions/", json={}).json()["id"]
+    response = client.post(
+        f"/api/v1/agent/writing-sessions/{session_id}/message/stream",
+        json={"message": "我想写 AI 辅助博客"},
+    )
+    assert response.status_code == 200
+    assert "目标读者是谁" in response.text
+
+    restored = client.get(f"/api/v1/agent/writing-sessions/{session_id}").json()
+    assert [m["role"] for m in restored["messages"][-2:]] == ["user", "assistant"]
+
+
+def test_generate_outline_advances_to_outline_review(client, monkeypatch):
+    from app.services import agent_service as agent_service_module
+    from app.tests.test_agent_loop import FakeProvider, _text_resp
+
+    provider = FakeProvider([_text_resp("# 大纲\n1. 开头\n2. 正文\n3. 结尾")])
+    monkeypatch.setattr(agent_service_module, "get_llm_provider", lambda name=None: provider)
+
+    session_id = client.post("/api/v1/agent/writing-sessions/", json={}).json()["id"]
+    response = client.post(f"/api/v1/agent/writing-sessions/{session_id}/generate-outline")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["stage"] == "outline_review"
+    assert "# 大纲" in data["outline"]
+
+
+def test_adjust_outline_stays_in_outline_review(client, monkeypatch):
+    from app.services import agent_service as agent_service_module
+    from app.tests.test_agent_loop import FakeProvider, _text_resp
+
+    provider = FakeProvider([
+        _text_resp("# 第一版大纲\n1. 开头"),  # generate_outline
+        _text_resp("# 调整后大纲\n1. 新开头\n2. 新结尾"),  # adjust_outline
+    ])
+    monkeypatch.setattr(agent_service_module, "get_llm_provider", lambda name=None: provider)
+
+    session_id = client.post("/api/v1/agent/writing-sessions/", json={}).json()["id"]
+    # First generate
+    client.post(f"/api/v1/agent/writing-sessions/{session_id}/generate-outline")
+    # Then adjust
+    response = client.post(
+        f"/api/v1/agent/writing-sessions/{session_id}/outline/adjust",
+        json={"message": "加一个结尾部分"},
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["stage"] == "outline_review"
+    assert "新结尾" in data["outline"]
+
+
+def test_message_stream_wrong_stage_returns_409(client, monkeypatch):
+    """非 clarifying 阶段发消息应返回 409，不是静默 200"""
+    from app.services import agent_service as agent_service_module
+    from app.tests.test_agent_loop import FakeProvider, _text_resp
+
+    provider = FakeProvider([_text_resp("# 大纲\n1. 内容")])
+    monkeypatch.setattr(agent_service_module, "get_llm_provider", lambda name=None: provider)
+
+    session_id = client.post("/api/v1/agent/writing-sessions/", json={}).json()["id"]
+    # Advance to outline_review
+    client.post(f"/api/v1/agent/writing-sessions/{session_id}/generate-outline")
+    # Now message/stream should 409 (wrong stage)
+    response = client.post(
+        f"/api/v1/agent/writing-sessions/{session_id}/message/stream",
+        json={"message": "测试"},
+    )
+    assert response.status_code == 409
