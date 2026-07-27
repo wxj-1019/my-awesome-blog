@@ -1,6 +1,74 @@
 import { getAuthHeaders } from '@/lib/auth-utils';
 import { API_BASE_URL } from '@/lib/api-client';
 
+/** Agent SSE 流的载荷（generate-stream / revise-stream 共用） */
+interface AgentStreamHandlers {
+  onTool?: (info: { tool?: string; arguments?: unknown }) => void;
+  onChunk?: (delta: string) => void;
+  onComplete?: (full: string) => void;
+  onError?: (message: string) => void;
+}
+
+/**
+ * 消费 /agent/generate-stream、/agent/revise-stream 的 SSE 响应。
+ *
+ * 事件形态：
+ *   data: {"content": "..."}    正文增量
+ *   data: {"tool": "search_articles", "arguments": {...}}  工具调用（仅生成）
+ *   data: {"error": "..."}      错误
+ *   data: [DONE]                结束
+ *
+ * 复用 llmService.chatStream 的 getReader + TextDecoder + 行缓冲模式。
+ */
+async function consumeAgentSse(
+  response: Response,
+  handlers: AgentStreamHandlers
+): Promise<void> {
+  const reader = response.body?.getReader();
+  if (!reader) {
+    throw new Error('响应流不可读');
+  }
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let full = '';
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) {
+      handlers.onComplete?.(full);
+      break;
+    }
+    buffer += decoder.decode(value, { stream: true });
+    // SSE 事件以空行分隔；按 \n 切，最后一段留作缓冲
+    const lines = buffer.split('\n');
+    buffer = lines.pop() || '';
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) {continue;}
+      const data = line.slice(6).trim();
+      if (data === '[DONE]') {
+        handlers.onComplete?.(full);
+        return;
+      }
+      try {
+        const payload = JSON.parse(data) as Record<string, unknown>;
+        if (typeof payload.content === 'string' && payload.content) {
+          full += payload.content;
+          handlers.onChunk?.(payload.content);
+        } else if (payload.tool !== undefined) {
+          handlers.onTool?.({
+            tool: typeof payload.tool === 'string' ? payload.tool : undefined,
+            arguments: payload.arguments,
+          });
+        } else if (typeof payload.error === 'string') {
+          handlers.onError?.(payload.error);
+          return;
+        }
+      } catch {
+        // 单行解析失败不中断整条流
+      }
+    }
+  }
+}
+
 interface ApiError {
   message: string;
   status: number;
@@ -436,5 +504,93 @@ export const adminApi = {
       AdminApiClient.post('/memories/search', { query, ...params }),
     getStats: () => AdminApiClient.get('/memories/stats/summary'),
     cleanup: () => AdminApiClient.post('/memories/cleanup', {}),
+  },
+
+  // ── AI 导向写作（生成 / 改稿 / 元信息）──────────────────────────
+  // generate-stream / revise-stream 走 SSE 流式；meta 走普通 POST。
+  // SSE 消费复用 llmService.chatStream 的 getReader + TextDecoder 模式。
+  agent: {
+    /**
+     * 按主题流式生成文章。
+     * @returns 一个 cancel 函数，调用即中止本次流（组件卸载/用户取消时用）
+     */
+    generateStream(
+      body: { topic: string; requirements?: string; context_mode?: 'auto' | 'none' },
+      handlers: {
+        onTool?: (info: { tool?: string; arguments?: unknown }) => void;
+        onChunk?: (delta: string) => void;
+        onComplete?: (full: string) => void;
+        onError?: (message: string) => void;
+      }
+    ): () => void {
+      const controller = new AbortController();
+      const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+      // 不 await：流式调用方需要立即拿到 cancel 句柄
+      void (async () => {
+        try {
+          const resp = await fetch(`${API_BASE_URL}/agent/generate-stream`, {
+            method: 'POST',
+            signal: controller.signal,
+            headers: {
+              'Content-Type': 'application/json',
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            body: JSON.stringify(body),
+          });
+          if (!resp.ok) {
+            const txt = await resp.text().catch(() => '');
+            throw new Error(`HTTP ${resp.status}${txt ? `: ${txt}` : ''}`);
+          }
+          await consumeAgentSse(resp, handlers);
+        } catch (err) {
+          if ((err as Error).name === 'AbortError') {return;}
+          handlers.onError?.(err instanceof Error ? err.message : String(err));
+        }
+      })();
+      return () => controller.abort();
+    },
+
+    /**
+     * 流式改稿：当前正文 + 自然语言指令 → 流式输出改后正文。
+     * @returns cancel 函数
+     */
+    reviseStream(
+      body: { content: string; instruction: string },
+      handlers: {
+        onChunk?: (delta: string) => void;
+        onComplete?: (full: string) => void;
+        onError?: (message: string) => void;
+      }
+    ): () => void {
+      const controller = new AbortController();
+      const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+      void (async () => {
+        try {
+          const resp = await fetch(`${API_BASE_URL}/agent/revise-stream`, {
+            method: 'POST',
+            signal: controller.signal,
+            headers: {
+              'Content-Type': 'application/json',
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            body: JSON.stringify(body),
+          });
+          if (!resp.ok) {
+            const txt = await resp.text().catch(() => '');
+            throw new Error(`HTTP ${resp.status}${txt ? `: ${txt}` : ''}`);
+          }
+          await consumeAgentSse(resp, handlers);
+        } catch (err) {
+          if ((err as Error).name === 'AbortError') {return;}
+          handlers.onError?.(err instanceof Error ? err.message : String(err));
+        }
+      })();
+      return () => controller.abort();
+    },
+
+    /** 根据正文反推标题 / slug / 摘要（非流式） */
+    generateMeta(content: string): Promise<{ title: string; slug: string; excerpt: string }> {
+      return AdminApiClient.post('/agent/meta', { content });
+    },
   },
 };

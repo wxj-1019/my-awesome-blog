@@ -40,6 +40,7 @@ import Button from '@/components/admin/Button';
 import FormInput from '@/components/admin/FormInput';
 import { useToast, ToastContainer } from '@/components/admin/Toast';
 import GlassCardAdmin from '@/components/ui/GlassCardAdmin';
+import AIWritingPanel from '@/components/admin/AIWritingPanel';
 interface Category {
   id: string;
   name: string;
@@ -222,6 +223,80 @@ export default function NewArticlePage() {
     setFormData(prev => ({ ...prev, excerpt }));
     info('已自动生成摘要');
   };
+
+  // ── AI 写作能力 ────────────────────────────────────────────────
+  const [isAiBusy, setIsAiBusy] = useState(false);
+
+  /** AIWritingPanel 产出应用到编辑器 */
+  const handleAiApply = useCallback((text: string, mode: 'replace' | 'append') => {
+    setFormData(prev => ({
+      ...prev,
+      content: mode === 'replace' ? text : `${prev.content}\n\n${text}`.replace(/^\s+/, '')
+    }));
+    setTouchedFields(prev => new Set(prev).add('content'));
+  }, []);
+
+  /** AI 润色：对编辑器全文做风格优化，流式替换 */
+  const aiPolishRef = useRef<(() => void) | null>(null);
+  const [polishing, setPolishing] = useState(false);
+  const handleAiPolish = useCallback(() => {
+    if (!formData.content.trim() || polishing) {return;}
+    setPolishing(true);
+    setIsAiBusy(true);
+    let accumulated = '';
+    const original = formData.content;
+    // 先清空，让用户看到流式重写过程
+    setFormData(prev => ({ ...prev, content: '' }));
+    aiPolishRef.current = adminApi.agent.reviseStream(
+      { content: original, instruction: '对全文进行润色：优化措辞、修正语病、提升可读性，保持原意和结构不变' },
+      {
+        onChunk: delta => {
+          accumulated += delta;
+          setFormData(prev => ({ ...prev, content: accumulated }));
+        },
+        onComplete: full => {
+          setPolishing(false);
+          setIsAiBusy(false);
+          aiPolishRef.current = null;
+          if (full.trim()) {success('AI 润色完成');}
+        },
+        onError: msg => {
+          // 失败时恢复原文
+          setFormData(prev => ({ ...prev, content: original }));
+          setPolishing(false);
+          setIsAiBusy(false);
+          aiPolishRef.current = null;
+          error(`润色失败：${msg}`);
+        },
+      }
+    );
+  }, [formData.content, polishing, success, error]);
+
+  /** AI 生成标题 / slug / 摘要 */
+  const [generatingMeta, setGeneratingMeta] = useState(false);
+  const handleAiMeta = useCallback(async () => {
+    if (!formData.content.trim() || generatingMeta) {return;}
+    setGeneratingMeta(true);
+    setIsAiBusy(true);
+    try {
+      const meta = await adminApi.agent.generateMeta(formData.content);
+      setFormData(prev => ({
+        ...prev,
+        title: meta.title || prev.title,
+        slug: meta.slug || prev.slug,
+        excerpt: meta.excerpt || prev.excerpt,
+      }));
+      success('已生成标题、别名和摘要');
+    } catch (err) {
+      error(err instanceof Error ? err.message : '生成元信息失败');
+    } finally {
+      setGeneratingMeta(false);
+      setIsAiBusy(false);
+    }
+  }, [formData.content, generatingMeta, success, error]);
+
+  // 卸载时中止进行中的润色流
+  useEffect(() => () => aiPolishRef.current?.(), []);
   const insertMarkdown = (text: string) => {
     const textarea = contentTextareaRef.current;
     if (!textarea) {return;}
@@ -402,6 +477,11 @@ export default function NewArticlePage() {
           </AnimatePresence>
         </div>
       </motion.div>
+      {/* AI 写作面板：默认展开，输入主题生成初稿或对话改稿 */}
+      <AIWritingPanel
+        currentContent={formData.content}
+        onApply={handleAiApply}
+      />
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
         <div className="xl:col-span-3 space-y-6">
           <GlassCardAdmin className="p-6">
@@ -520,8 +600,31 @@ export default function NewArticlePage() {
                     </div>
                   </div>
                   
-                  <div className="mb-2">
+                  <div className="mb-2 flex items-center justify-between gap-2 flex-wrap">
                     <MarkdownToolbar onInsert={insertMarkdown} />
+                    {/* AI 工具组：润色全文 / 生成标题摘要 */}
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={handleAiPolish}
+                        disabled={!formData.content.trim() || isAiBusy}
+                        title="对全文进行 AI 润色（流式替换）"
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs bg-primary/10 text-primary hover:bg-primary/20 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                      >
+                        {polishing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Wand2 className="w-3 h-3" />}
+                        {polishing ? '润色中' : 'AI 润色'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleAiMeta}
+                        disabled={!formData.content.trim() || isAiBusy}
+                        title="根据正文生成标题、别名和摘要"
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs bg-cat-2/10 text-cat-2 hover:bg-cat-2/20 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                      >
+                        {generatingMeta ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                        {generatingMeta ? '生成中' : '生成标题摘要'}
+                      </button>
+                    </div>
                   </div>
                   
                   <div className="relative">
