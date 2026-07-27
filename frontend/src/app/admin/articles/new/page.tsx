@@ -40,9 +40,10 @@ import Button from '@/components/admin/Button';
 import FormInput from '@/components/admin/FormInput';
 import { useToast, ToastContainer } from '@/components/admin/Toast';
 import GlassCardAdmin from '@/components/ui/GlassCardAdmin';
-import AIWritingPanel from '@/components/admin/AIWritingPanel';
-import AIAssistSidebar from '@/components/admin/AIAssistSidebar';
+import WritingSessionShell from '@/components/admin/writing/WritingSessionShell';
+import ArticleAIAssist from '@/components/admin/writing/ArticleAIAssist';
 import CoverPicker from '@/components/admin/CoverPicker';
+import type { WritingSession, WritingRevision } from '@/types/writing-session';
 interface Category {
   id: string;
   name: string;
@@ -105,6 +106,8 @@ export default function NewArticlePage() {
   const [showTagDropdown, setShowTagDropdown] = useState(false);
   const [touchedFields, setTouchedFields] = useState<Set<string>>(new Set());
   const [phase, setPhase] = useState<'chat' | 'editing'>('chat');
+  const [writingSession, setWritingSession] = useState<WritingSession | null>(null);
+  const [editorSelection, setEditorSelection] = useState({ text: '', start: 0, end: 0 });
   const [formData, setFormData] = useState({
     title: '',
     slug: '',
@@ -151,9 +154,13 @@ export default function NewArticlePage() {
       setIsLoading(false);
     }
   }, [error]);
+  // Phase 1（AI 对话）不需要分类/标签；进入 Phase 2（编辑器）时才加载。
+  // 初次进入页面时把 isLoading 关掉，让 Phase 1 直接渲染（Shell 自己管加载态）。
   useEffect(() => {
-    loadCategoriesAndTags();
-  }, [loadCategoriesAndTags]);
+    if (phase === 'chat' && isLoading) {
+      setIsLoading(false);
+    }
+  }, [phase, isLoading]);
   useEffect(() => {
     if (!isLoading && formData.content) {
       setHasUnsavedChanges(true);
@@ -198,6 +205,14 @@ export default function NewArticlePage() {
       content
     }));
   };
+  const handleContentSelect = (e: React.SyntheticEvent<HTMLTextAreaElement>) => {
+    const t = e.currentTarget;
+    setEditorSelection({
+      text: t.value.slice(t.selectionStart, t.selectionEnd),
+      start: t.selectionStart,
+      end: t.selectionEnd,
+    });
+  };
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setTouchedFields(prev => new Set(prev).add(name));
@@ -227,17 +242,19 @@ export default function NewArticlePage() {
     info('已自动生成摘要');
   };
 
+  // ── Phase 1 → Phase 2：初稿确认回调 ────────────────────────────
+  const handleDraftConfirmed = useCallback((draft: string, session: WritingSession) => {
+    setWritingSession(session);
+    setFormData(prev => ({ ...prev, content: draft }));
+    setTouchedFields(prev => new Set(prev).add('content'));
+    setPhase('editing');
+    info('初稿已确认，开始编辑吧');
+    // 进入 Phase 2 才加载分类/标签（Phase 1 不需要）
+    loadCategoriesAndTags();
+  }, [info, loadCategoriesAndTags]);
+
   // ── AI 写作能力 ────────────────────────────────────────────────
   const [isAiBusy, setIsAiBusy] = useState(false);
-
-  /** AIWritingPanel 产出应用到编辑器 */
-  const handleAiApply = useCallback((text: string, mode: 'replace' | 'append') => {
-    setFormData(prev => ({
-      ...prev,
-      content: mode === 'replace' ? text : `${prev.content}\n\n${text}`.replace(/^\s+/, '')
-    }));
-    setTouchedFields(prev => new Set(prev).add('content'));
-  }, []);
 
   /** AI 润色：对编辑器全文做风格优化，流式替换 */
   const aiPolishRef = useRef<(() => void) | null>(null);
@@ -336,7 +353,17 @@ export default function NewArticlePage() {
         category_id: formData.category_id || undefined,
         tags: formData.tags.length > 0 ? formData.tags : undefined
       };
-      await adminApi.articles.create(submitData);
+      const result = await adminApi.articles.create(submitData) as { id: string };
+      // 把写作会话关联到刚落库的文章（仅首次保存且尚未关联时）
+      if (writingSession && !writingSession.article_id) {
+        try {
+          const linked = await adminApi.writingSessions.linkArticle(writingSession.id, result.id);
+          setWritingSession(linked);
+        } catch (linkErr) {
+          // 关联失败不阻塞保存流程，仅记录日志
+          console.error('Failed to link writing session to article:', linkErr);
+        }
+      }
       setLastSaved(new Date());
       setHasUnsavedChanges(false);
       success('草稿已保存');
@@ -345,7 +372,7 @@ export default function NewArticlePage() {
       const errorMessage = err instanceof Error ? err.message : '保存草稿失败';
       error(errorMessage);
     }
-  }, [formData, success, error]);
+  }, [formData, writingSession, success, error]);
   const handlePublish = useCallback(async () => {
     if (!formData.title.trim()) {
       error('请输入文章标题');
@@ -372,7 +399,23 @@ export default function NewArticlePage() {
         category_id: formData.category_id || undefined,
         tags: formData.tags.length > 0 ? formData.tags : undefined
       };
-      await adminApi.articles.create(submitData);
+      const result = await adminApi.articles.create(submitData) as { id: string };
+      // 发布成功：关联会话并标记完成（非阻塞）
+      if (writingSession) {
+        if (!writingSession.article_id) {
+          try {
+            const linked = await adminApi.writingSessions.linkArticle(writingSession.id, result.id);
+            setWritingSession(linked);
+          } catch (linkErr) {
+            console.error('Failed to link writing session to article:', linkErr);
+          }
+        }
+        try {
+          await adminApi.writingSessions.complete(writingSession.id);
+        } catch (completeErr) {
+          console.error('Failed to complete writing session:', completeErr);
+        }
+      }
       success('文章发布成功');
       setHasUnsavedChanges(false);
       router.push('/admin/articles');
@@ -383,7 +426,7 @@ export default function NewArticlePage() {
     } finally {
       setIsSubmitting(false);
     }
-  }, [formData, success, error, router]);
+  }, [formData, writingSession, success, error, router]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -412,7 +455,7 @@ export default function NewArticlePage() {
       </div>
     );
   };
-  if (isLoading) {
+  if (phase === 'editing' && isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <motion.div
@@ -485,27 +528,11 @@ export default function NewArticlePage() {
       {/* Phase 1：纯 AI 对话；Phase 2：完整编辑器 */}
       {phase === 'chat' ? (
         <div className="max-w-3xl mx-auto">
-          <AIWritingPanel
-            currentContent=""
-            onApply={handleAiApply}
-            fullScreen
-            onConfirmDraft={(draft) => {
-              setFormData(prev => ({ ...prev, content: draft }));
-              setTouchedFields(prev => new Set(prev).add('content'));
-              setPhase('editing');
-              success('初稿已确认，开始编辑吧');
-            }}
-          />
+          <WritingSessionShell onDraftConfirmed={handleDraftConfirmed} />
         </div>
       ) : (
         <>
-          {/* Phase 2：可折叠 AI 面板（顶部）+ 编辑器 + 右侧栏 */}
-          <AIWritingPanel
-            currentContent={formData.content}
-            onApply={handleAiApply}
-            busy={isAiBusy}
-            defaultCollapsed
-          />
+          {/* Phase 2：完整编辑器（顶部 AI 面板已移除，AI 协助改到右侧栏 ArticleAIAssist）*/}
           <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
         <div className="xl:col-span-3 space-y-6">
           <GlassCardAdmin className="p-6">
@@ -657,6 +684,7 @@ export default function NewArticlePage() {
                       name="content"
                       value={formData.content}
                       onChange={handleContentChange}
+                      onSelect={handleContentSelect}
                       disabled={polishing}
                       placeholder="使用 Markdown 格式编写文章内容...
 支持的格式：
@@ -854,16 +882,29 @@ export default function NewArticlePage() {
               </div>
             </div>
           </GlassCardAdmin>
-          {/* AI 协助面板：选中文字修改 + 全文对话（仅 Phase 2 显示） */}
-          <AIAssistSidebar
-            content={formData.content}
-            contentRef={contentTextareaRef}
-            onReplaceContent={fullContent => {
-              setFormData(prev => ({ ...prev, content: fullContent }));
-              setTouchedFields(prev => new Set(prev).add('content'));
-            }}
-            busy={isAiBusy}
-          />
+          {/* AI 协助面板：选段修改 + 全文建议（仅 Phase 2 且有写作会话时显示） */}
+          {writingSession && (
+            <ArticleAIAssist
+              sessionId={writingSession.id}
+              content={formData.content}
+              selection={editorSelection}
+              session={writingSession}
+              onSessionChange={setWritingSession}
+              onApplyRevision={(revision: WritingRevision) => {
+                if (revision.source === 'selection') {
+                  setFormData(prev => ({
+                    ...prev,
+                    content:
+                      prev.content.slice(0, revision.selection_start) +
+                      revision.replacement_text +
+                      prev.content.slice(revision.selection_end),
+                  }));
+                  setTouchedFields(prev => new Set(prev).add('content'));
+                }
+              }}
+              busy={isAiBusy}
+            />
+          )}
           <GlassCardAdmin className="p-5">
             <div className="flex items-center gap-2 mb-4">
               <div className="p-1.5 rounded-lg bg-cat-1/10">
