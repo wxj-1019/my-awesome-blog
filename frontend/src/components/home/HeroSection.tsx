@@ -29,10 +29,14 @@ export default function HeroSection() {
   }, []);
   // 暗色=月夜云海（青绿满月原野）；亮色=奇幻鹿境（紫穹暖环日）。须 H.264
   // 全站 AmbientBackground 色板按这两支视频实帧采样，保持同一故事线
-  const backgroundVideo =
-    resolvedTheme === 'dark'
-      ? '/video/moonlit-clouds-field-HD-live.mp4'
-      : '/video/fantasy-landscape-deer-HD-live.mp4';
+  const isDark = resolvedTheme === 'dark';
+  const backgroundVideo = isDark
+    ? '/video/moonlit-clouds-field-HD-live.mp4'
+    : '/video/fantasy-landscape-deer-HD-live.mp4';
+  // poster 图由 ffmpeg 提取首帧（176KB/228KB），比视频小 ~40 倍，首屏立即可见
+  const posterImage = isDark
+    ? '/video/moonlit-poster.jpg'
+    : '/video/fantasy-poster.jpg';
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [videoError, setVideoError] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
@@ -133,30 +137,12 @@ export default function HeroSection() {
         }}
         aria-hidden="true"
       >
-        {/* 视频骨架屏 - 加载状态 */}
+        {/* 视频骨架屏：poster 图负责首屏立即可见，不再需要 shimmer */}
         {shouldLoadVideo && !videoLoaded && !videoError && (
-          <motion.div
-            className="absolute inset-0 bg-gradient-to-br from-slate-200 via-slate-300 to-slate-200 dark:from-slate-800 dark:via-slate-700 dark:to-slate-800"
-            initial={{ opacity: 1 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            {/* 骨架 shimmer：reduced-motion 时静态 */}
-            {!reducedMotion && (
-              <div className="absolute inset-0 overflow-hidden">
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent dark:via-white/10"
-                  initial={{ x: '-100%' }}
-                  animate={{ x: '100%' }}
-                  transition={{
-                    duration: 2.5,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                  }}
-                />
-              </div>
-            )}
-          </motion.div>
+          <div
+            className="absolute inset-0 bg-slate-300 dark:bg-slate-700"
+            aria-hidden="true"
+          />
         )}
 
         {shouldLoadVideo && !videoError && (
@@ -166,9 +152,9 @@ export default function HeroSection() {
             loop
             muted
             playsInline
-            // auto：尽快拉到可播；配合 faststart + H.264 首屏可见
             preload="auto"
-            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${videoLoaded ? 'opacity-100' : 'opacity-0'}`}
+            poster={posterImage}
+            className="absolute inset-0 w-full h-full object-cover"
             src={backgroundVideo}
             onLoadedData={handleVideoReady}
             onLoadedMetadata={handleVideoReady}
@@ -196,7 +182,7 @@ export default function HeroSection() {
           className={`absolute inset-0 w-full h-full transition-opacity duration-700 ${videoLoaded ? 'opacity-0' : 'opacity-100'}`}
           style={{
             backgroundImage:
-              resolvedTheme === 'dark'
+              isDark
                 ? 'linear-gradient(180deg, #0c1a1c 0%, #1a3034 40%, #2a4e4f 70%, #162d2b 100%)'
                 : 'linear-gradient(180deg, #4a2870 0%, #4b2fa4 45%, #3a2480 100%)',
           }}
@@ -208,7 +194,7 @@ export default function HeroSection() {
           className="absolute inset-0 pointer-events-none"
           style={{
             background:
-              resolvedTheme === 'dark'
+              isDark
                 ? 'linear-gradient(to bottom, rgba(8,24,26,0.35) 0%, rgba(8,24,26,0.08) 40%, rgba(8,24,26,0.4) 100%)'
                 : 'linear-gradient(to bottom, rgba(40,10,90,0.35) 0%, rgba(40,10,90,0.1) 42%, rgba(34,0,88,0.42) 100%)',
           }}
@@ -242,7 +228,7 @@ export default function HeroSection() {
             <div
               className={cn(
                 'pointer-events-none absolute inset-0 -z-10 rounded-[2rem] blur-2xl',
-                resolvedTheme === 'dark'
+                isDark
                   ? 'bg-[radial-gradient(ellipse_at_center,rgba(15,23,42,0.6)_0%,rgba(15,23,42,0.15)_55%,transparent_75%)]'
                   : 'bg-[radial-gradient(ellipse_at_center,rgba(15,23,42,0.5)_0%,rgba(15,23,42,0.15)_55%,transparent_75%)]'
               )}
@@ -252,7 +238,7 @@ export default function HeroSection() {
             <p
               className={cn(
                 'mb-3 text-[10px] sm:text-xs font-medium tracking-[0.4em]',
-                resolvedTheme === 'dark'
+                isDark
                   ? 'text-teal-100/80'
                   : 'text-white/85 drop-shadow-sm'
               )}
@@ -265,7 +251,7 @@ export default function HeroSection() {
               className={cn(
                 'font-display text-3xl sm:text-4xl md:text-5xl',
                 'font-semibold tracking-wide leading-snug',
-                resolvedTheme === 'dark'
+                isDark
                   ? 'text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.5),0_0_28px_rgba(94,234,212,0.3),0_0_48px_rgba(56,189,248,0.14)]'
                   : 'text-white [text-shadow:0_2px_10px_rgba(15,23,42,0.55),0_0_24px_rgba(255,255,255,0.28)]'
               )}
@@ -280,7 +266,7 @@ export default function HeroSection() {
                 cursorCharacter="|"
                 cursorClassName={cn(
                   'ml-1.5 align-baseline text-[0.9em] font-light',
-                  resolvedTheme === 'dark'
+                  isDark
                     ? 'text-teal-200/95 drop-shadow-[0_0_10px_rgba(94,234,212,0.85)]'
                     : 'text-amber-50/95 drop-shadow-[0_0_8px_rgba(255,255,255,0.7)]'
                 )}
