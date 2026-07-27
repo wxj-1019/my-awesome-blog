@@ -112,6 +112,26 @@ class AgentService:
             raise ValueError(f"LLM provider「{provider_name or '默认'}」不可用，请检查 API key 配置")
         return provider
 
+    # ── 对外公开的薄封装 ───────────────────────────────────────────
+    # 让 WritingSessionService 及后续任务可以直接复用底层能力，
+    # 不必跨服务边界调用下划线私有方法。
+    def get_provider(self, provider_name: Optional[str] = None) -> LLMProvider:
+        return self._get_provider_or_raise(provider_name)
+
+    async def ask_text(self, provider: LLMProvider, prompt: str, temperature: float = 0.7) -> str:
+        return await self._ask(provider, prompt, temperature)
+
+    async def stream_text(
+        self,
+        provider,
+        prompt,
+        model=None,
+        temperature=0.7,
+        max_tokens=None,
+    ) -> AsyncIterator[str]:
+        async for event in self._stream_final(provider, prompt, model, temperature, max_tokens):
+            yield event
+
     async def chat(self, db: Session, request: AgentChatRequest) -> AgentChatResponse:
         """工具循环对话：模型可自主调用站内工具后作答。"""
         provider = self._get_provider_or_raise(request.provider)
