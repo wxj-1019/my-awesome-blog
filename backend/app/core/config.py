@@ -124,6 +124,10 @@ class Settings(BaseSettings):
     LANGCHAIN_API_KEY: str = Field(default="", description="LangSmith API密钥（用于追踪和调试）")
     LANGCHAIN_PROJECT: str = Field(default="my-awesome-blog", description="LangSmith项目名称")
 
+    # Unsplash 图库（封面配图自动搜索；申请免费 access key：https://unsplash.com/oauth/applications）
+    UNSPLASH_ACCESS_KEY: str = Field(default="", description="Unsplash API access key（留空则封面搜索不可用）")
+    UNSPLASH_PER_PAGE: int = Field(default=6, ge=1, le=12, description="每次封面搜索返回的候选图数量")
+
     # Prompt Management
     PROMPT_DEFAULT_VERSION: str = Field(default="v1", description="默认提示词版本")
     PROMPT_MAX_VERSIONS: int = Field(default=10, description="每个提示词最多保留的版本数")

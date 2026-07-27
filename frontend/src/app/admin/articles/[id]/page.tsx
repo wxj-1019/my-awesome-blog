@@ -41,6 +41,7 @@ import FormInput from '@/components/admin/FormInput';
 import { useToast, ToastContainer } from '@/components/admin/Toast';
 import GlassCardAdmin from '@/components/ui/GlassCardAdmin';
 import AIWritingPanel from '@/components/admin/AIWritingPanel';
+import CoverPicker from '@/components/admin/CoverPicker';
 interface Category {
   id: string;
   name: string;
@@ -774,6 +775,15 @@ export default function EditArticlePage() {
                     className="flex-1 px-4 py-3 rounded-xl bg-background/50 border border-border/50 text-foreground placeholder:text-foreground/30 focus:outline-none focus:ring-2 focus:ring-tech-cyan/20 focus:border-tech-cyan/50 transition-colors"
                   />
                 </div>
+                {/* AI 自动找封面：读正文生成搜索词 → Unsplash 候选 → 点选填入 */}
+                <CoverPicker
+                  content={formData.content}
+                  onPick={url => {
+                    setFormData(prev => ({ ...prev, cover_image: url }));
+                    setHasUnsavedChanges(true);
+                  }}
+                  busy={isAiBusy}
+                />
                 {formData.cover_image && (
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}

@@ -15,6 +15,8 @@ from app.models.user import User
 from app.schemas.agent import (
     AgentChatRequest,
     AgentChatResponse,
+    AgentCoverRequest,
+    AgentCoverResponse,
     AgentGenerateRequest,
     AgentMetaRequest,
     AgentMetaResponse,
@@ -125,5 +127,20 @@ async def agent_meta(
     app_logger.info(f"Agent meta by user={current_user.username}")
     try:
         return await agent_service.generate_meta(meta_request)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.post("/cover", response_model=AgentCoverResponse)
+@llm_chat_rate_limit
+async def agent_cover(
+    request: Request,
+    cover_request: AgentCoverRequest,
+    current_user: User = Depends(get_current_active_user),
+):
+    """封面配图搜索：AI 生成英文搜索词 → 代理调 Unsplash → 返回候选图。"""
+    app_logger.info(f"Agent cover by user={current_user.username} query={cover_request.query!r}")
+    try:
+        return await agent_service.suggest_cover(cover_request)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

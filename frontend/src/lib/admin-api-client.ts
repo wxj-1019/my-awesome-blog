@@ -605,5 +605,26 @@ export const adminApi = {
     generateMeta(content: string): Promise<{ title: string; slug: string; excerpt: string }> {
       return AdminApiClient.post('/agent/meta', { content });
     },
+
+    /**
+     * 封面配图搜索：AI 生成英文搜索词（query 为空时）→ 后端代理调 Unsplash → 返回候选图。
+     * @param content 文章正文
+     * @param query   手动指定搜索词；留空则由 AI 从正文生成
+     */
+    suggestCover(
+      content: string,
+      query?: string
+    ): Promise<{
+      query: string;
+      images: Array<{
+        url: string;
+        thumb_url: string;
+        alt: string;
+        author_name: string;
+        author_url: string;
+      }>;
+    }> {
+      return AdminApiClient.post('/agent/cover', { content, query });
+    },
   },
 };

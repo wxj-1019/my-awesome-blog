@@ -88,3 +88,32 @@ class AgentMetaResponse(BaseModel):
     title: str
     slug: str
     excerpt: str
+
+
+# ── 封面配图自动搜索 ────────────────────────────────────────────────
+# 流程：AI 从文章正文提取英文搜索词 → 后端代理调 Unsplash → 返回候选图供前端点选。
+# 后端代理的原因：避免在浏览器暴露 Unsplash access key，并可统一加缓存/限流。
+
+
+class AgentCoverRequest(BaseModel):
+    """封面配图搜索请求"""
+    content: str = Field(..., min_length=1, max_length=20000, description="文章正文，AI 据此提取搜索词")
+    # 用户手动指定搜索词时跳过 AI 生词（省钱、可控）
+    query: Optional[str] = Field(None, max_length=100, description="手动指定搜索词，留空则由 AI 生成")
+    provider: Optional[str] = None
+    model: Optional[str] = None
+
+
+class CoverImage(BaseModel):
+    """一张候选封面图（字段取自 Unsplash search 响应）"""
+    url: str = Field(..., description="封面用图（urls.regular，1080px，写入 cover_image）")
+    thumb_url: str = Field(..., description="候选网格缩略图（urls.thumb，200px）")
+    alt: str = Field("", description="图片描述（alt_description）")
+    author_name: str = Field("", description="摄影师署名（user.name）")
+    author_url: str = Field("", description="摄影师 Unsplash 主页（user.links.html）")
+
+
+class AgentCoverResponse(BaseModel):
+    """封面候选响应"""
+    query: str = Field(..., description="实际使用的搜索词（可能是 AI 生成的）")
+    images: List[CoverImage] = Field(default_factory=list, description="候选图列表")

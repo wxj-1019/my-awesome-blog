@@ -17,6 +17,8 @@ from app.utils.logger import app_logger
 from app.schemas.agent import (
     AgentChatRequest,
     AgentChatResponse,
+    AgentCoverRequest,
+    AgentCoverResponse,
     AgentGenerateRequest,
     AgentMetaRequest,
     AgentMetaResponse,
@@ -24,6 +26,7 @@ from app.schemas.agent import (
     AgentPolishResponse,
     AgentReviseRequest,
     AgentToolCallInfo,
+    CoverImage,
 )
 
 AGENT_SYSTEM_PROMPT = """你是这个个人博客站点的「写作助手」，帮助博主选题、查站内旧文、列大纲、改写与润色。
@@ -84,6 +87,17 @@ META_PROMPT = """根据下面的文章正文，生成适合博客的标题、URL
 - title：15-40 字，有吸引力，不含书名号/引号。
 - slug：英文小写短横线分隔，仅 a-z0-9-，由 title 含义翻译而来，不超过 60 字符。
 - excerpt：80-150 字中文摘要，概括核心观点，不含换行。
+
+【正文】
+{content}"""
+
+
+COVER_QUERY_PROMPT = """根据下面的文章正文，提取 1-3 个**英文**关键词，用于在 Unsplash 图库搜索配图。
+
+要求：
+1. 关键词要能搜出与文章主题相关的、视觉表现力强的图片（偏具象名词，如 docker、coding、mountain）。
+2. 只输出关键词，用单个空格分隔，**不要**输出任何解释、标点或句子。
+3. 抽象主题（如「架构」「哲学」）退化为可拍照的具体物（如 building、books）。
 
 【正文】
 {content}"""
@@ -326,6 +340,66 @@ class AgentService:
                 if depth == 0 and start != -1:
                     return raw[start:i + 1]
         raise ValueError("未找到平衡的 JSON 对象")
+
+    # ── 封面配图搜索 ───────────────────────────────────────────────
+    async def suggest_cover(self, request: AgentCoverRequest) -> AgentCoverResponse:
+        """AI 生成搜索词（若未手填）→ 代理调 Unsplash → 返回候选图。
+
+        错误自处理：未配置 key 或 Unsplash 不可达均抛 ValueError，由端点转 400。
+        """
+        from app.core.config import settings
+        import httpx
+
+        key = settings.UNSPLASH_ACCESS_KEY.strip()
+        if not key:
+            raise ValueError("未配置 UNSPLASH_ACCESS_KEY，封面搜索不可用")
+
+        # 1. 确定搜索词：用户手填优先，否则让 AI 从正文提取
+        query = (request.query or "").strip()
+        if not query:
+            provider = self._get_provider_or_raise(request.provider)
+            raw_query = await self._ask(
+                provider,
+                COVER_QUERY_PROMPT.format(content=request.content),
+                temperature=0.3,
+            )
+            # 取首行、去标点、压成单空格分隔；模型偶尔会带句号或换行
+            query = " ".join(raw_query.strip().splitlines())[:100].strip()
+            # 兜底：AI 吐空时用一个通用词，避免 Unsplash 报错
+            if not query:
+                query = "technology"
+
+        # 2. 调 Unsplash search
+        per_page = settings.UNSPLASH_PER_PAGE
+        try:
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                resp = await client.get(
+                    "https://api.unsplash.com/search/photos",
+                    params={"query": query, "per_page": per_page, "orientation": "landscape"},
+                    headers={"Authorization": f"Client-ID {key}"},
+                )
+        except httpx.HTTPError as e:
+            app_logger.warning(f"Unsplash 请求失败：{e}")
+            raise ValueError(f"无法访问 Unsplash 图库：{e}") from e
+
+        if resp.status_code != 200:
+            # 常见：401 key 失效、403 超额、429 限流
+            app_logger.warning(f"Unsplash 返回 {resp.status_code}: {resp.text[:200]}")
+            raise ValueError(f"Unsplash 搜索失败（HTTP {resp.status_code}）")
+
+        results = resp.json().get("results", [])
+        images = [
+            CoverImage(
+                url=item.get("urls", {}).get("regular", ""),
+                thumb_url=item.get("urls", {}).get("thumb", ""),
+                alt=item.get("alt_description") or "",
+                author_name=item.get("user", {}).get("name", ""),
+                author_url=item.get("user", {}).get("links", {}).get("html", ""),
+            )
+            for item in results
+            if item.get("urls", {}).get("regular")  # 过滤缺 url 的脏数据
+        ]
+        return AgentCoverResponse(query=query, images=images)
 
 
 agent_service = AgentService()

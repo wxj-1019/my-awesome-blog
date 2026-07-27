@@ -208,3 +208,118 @@ def test_agent_meta_provider_unavailable_400(client, monkeypatch):
     monkeypatch.setattr(agent_service_module, "get_llm_provider", lambda name=None: None)
     resp = client.post("/api/v1/agent/meta", json={"content": "正文"})
     assert resp.status_code == 400
+
+
+# ── 封面配图搜索端点测试 ───────────────────────────────────────────
+
+
+def test_agent_cover_unconfigured_key_400(client, monkeypatch):
+    """未配置 UNSPLASH_ACCESS_KEY：返回 400"""
+    # settings 是单例，monkeypatch 其属性
+    from app.core.config import settings
+    monkeypatch.setattr(settings, "UNSPLASH_ACCESS_KEY", "")
+    resp = client.post("/api/v1/agent/cover", json={"content": "# 文章\n正文"})
+    assert resp.status_code == 400
+    assert "UNSPLASH_ACCESS_KEY" in resp.json()["error"]["message"]
+
+
+def _fake_unsplash_response():
+    """构造一个最小合法的 Unsplash search 响应"""
+    return {
+        "results": [
+            {
+                "urls": {"regular": "https://img.example.com/r1.jpg", "thumb": "https://img.example.com/t1.jpg"},
+                "alt_description": "a laptop on desk",
+                "user": {"name": "Alice", "links": {"html": "https://unsplash.com/@alice"}},
+            },
+            {
+                "urls": {"regular": "https://img.example.com/r2.jpg", "thumb": "https://img.example.com/t2.jpg"},
+                "alt_description": None,
+                "user": {"name": "Bob", "links": {"html": "https://unsplash.com/@bob"}},
+            },
+        ]
+    }
+
+
+def test_agent_cover_manual_query(client, monkeypatch):
+    """手动指定 query：跳过 AI 生词，直接调 Unsplash（mock httpx）"""
+    from app.core.config import settings
+    monkeypatch.setattr(settings, "UNSPLASH_ACCESS_KEY", "test-key")
+
+    class FakeResp:
+        status_code = 200
+        text = '{"results":[]}'
+        def json(self):
+            return _fake_unsplash_response()
+
+    class FakeClient:
+        def __init__(self, *a, **kw): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *a): return False
+        async def get(self, url, params=None, headers=None):
+            assert "query" in params and params["query"] == "docker"
+            return FakeResp()
+
+    import httpx
+    monkeypatch.setattr(httpx, "AsyncClient", FakeClient)
+
+    resp = client.post("/api/v1/agent/cover", json={"content": "正文", "query": "docker"})
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["query"] == "docker"
+    assert len(data["images"]) == 2
+    assert data["images"][0]["url"] == "https://img.example.com/r1.jpg"
+    assert data["images"][0]["author_name"] == "Alice"
+    # alt 缺失时兜底为空字符串
+    assert data["images"][1]["alt"] == ""
+
+
+def test_agent_cover_ai_generated_query(client, monkeypatch):
+    """未手填 query：AI 生词后再搜 Unsplash"""
+    from app.core.config import settings
+    monkeypatch.setattr(settings, "UNSPLASH_ACCESS_KEY", "test-key")
+
+    provider = FakeProvider([_text_resp("docker coding")])
+    monkeypatch.setattr(agent_service_module, "get_llm_provider", lambda name=None: provider)
+
+    captured = {}
+    class FakeResp:
+        status_code = 200
+        text = '{"results":[]}'
+        def json(self): return {"results": []}
+    class FakeClient:
+        def __init__(self, *a, **kw): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *a): return False
+        async def get(self, url, params=None, headers=None):
+            captured["query"] = params["query"]
+            return FakeResp()
+    import httpx
+    monkeypatch.setattr(httpx, "AsyncClient", FakeClient)
+
+    resp = client.post("/api/v1/agent/cover", json={"content": "# Docker 入门\n正文"})
+    assert resp.status_code == 200
+    # AI 生成的搜索词传给了 Unsplash
+    assert captured["query"] == "docker coding"
+    assert resp.json()["query"] == "docker coding"
+
+
+def test_agent_cover_unsplash_http_error_400(client, monkeypatch):
+    """Unsplash 返回非 200：转 400"""
+    from app.core.config import settings
+    monkeypatch.setattr(settings, "UNSPLASH_ACCESS_KEY", "test-key")
+
+    class FakeResp:
+        status_code = 401
+        text = "unauthorized"
+    class FakeClient:
+        def __init__(self, *a, **kw): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *a): return False
+        async def get(self, *a, **kw): return FakeResp()
+    import httpx
+    monkeypatch.setattr(httpx, "AsyncClient", FakeClient)
+
+    resp = client.post("/api/v1/agent/cover", json={"content": "正文", "query": "x"})
+    assert resp.status_code == 400
+    assert "401" in resp.json()["error"]["message"]
