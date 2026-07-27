@@ -17,7 +17,7 @@ from typing import AsyncIterator
 from sqlalchemy.orm import Session
 
 from app.crud.writing_session import save_writing_session
-from app.exceptions import ConflictException
+from app.exceptions import ConflictException, NotFoundException
 from app.models.writing_session import WritingSession
 from app.services.agent_service import AgentService
 from app.utils.json_utils import extract_first_json_object
@@ -70,6 +70,31 @@ DRAFT_ADJUST_PROMPT = """根据用户反馈修改完整初稿，只输出修改�
 大纲：{outline}
 当前初稿：{draft}
 反馈：{message}
+"""
+
+
+# ── Phase 2：全文分析 + 非破坏性修订 ───────────────────────────────
+# analyze 走非流式 chat 返回 JSON；selection/suggestion revision 走流式
+# stream_chat，仅生成预览文本落库为 revisions 记录，不修改 draft/Article。
+
+ANALYZE_PROMPT = """分析下面的中文博客，给出 3-5 条高价值修改建议。
+只输出 JSON：{{"suggestions":[{{"type":"structure|argument|readability|seo|accuracy","title":"","reason":"","scope":""}}]}}
+每条建议必须可执行且指明影响范围。
+正文：{content}
+"""
+
+SELECTION_REVISION_PROMPT = """只改写指定段落。直接输出替换文本，不要标题、解释或 Markdown 围栏。
+全文上下文：{context}
+原段落：{selected_text}
+修改要求：{instruction}
+"""
+
+SUGGESTION_REVISION_PROMPT = """根据以下建议修改文章，只输出需要替换的段落文本，不要解释。
+建议类型：{suggestion_type}
+建议标题：{suggestion_title}
+建议原因：{suggestion_reason}
+影响范围：{suggestion_scope}
+正文：{content}
 """
 
 
@@ -327,3 +352,234 @@ class WritingSessionService:
         字段，前端可同时拿到阶段和初稿正文，无需额外的嵌套响应结构。
         """
         return self.confirm_draft(db, session)
+
+    # ── Phase 2：全文分析与非破坏性修订 ────────────────────────────
+    # 设计要点：
+    #   - analyze：非流式，写入 session.suggestions（每条带 id + status=pending）。
+    #   - revise_selection_stream / revise_suggestion_stream：流式生成预览文本，
+    #     仅在流完整结束时追加一条 revisions 记录（status=previewed），不触碰 draft
+    #     或 Article。前端拿到 revision_id 后，再通过 apply-revision 真正落地，
+    #     或通过 discard-revision 放弃。
+    #   - apply_revision：hash 校验通过则标记 applied，并联动更新关联 suggestion。
+    #     hash 不匹配（用户在编辑器里改过正文）抛 ConflictException（409）。
+    #   - discard_revision：仅改状态为 discarded。
+
+    async def analyze_content(
+        self,
+        db: Session,
+        session: WritingSession,
+        content: str,
+        content_hash: str,
+        provider_name=None,
+    ) -> WritingSession:
+        """分析全文，返回结构化建议并存入 session.suggestions。
+
+        约定：仅在 editing 阶段可用；模型输出经 extract_first_json_object 容错解析。
+        每条建议自动补 id 与 status=pending，覆盖历史 suggestions。
+        """
+        if session.stage != "editing":
+            raise ConflictException(message=f"当前阶段'{session.stage}'不允许分析全文")
+        provider = self.agent.get_provider(provider_name)
+        prompt = ANALYZE_PROMPT.format(content=content)
+        raw = await self.agent.ask_text(provider, prompt, temperature=0.3)
+        data = json.loads(extract_first_json_object(raw))
+        suggestions = []
+        for s in data.get("suggestions", []):
+            suggestions.append({
+                "id": str(uuid.uuid4()),
+                "type": s.get("type", "readability"),
+                "title": s.get("title", ""),
+                "reason": s.get("reason", ""),
+                "scope": s.get("scope", ""),
+                "status": "pending",
+            })
+        session.suggestions = suggestions
+        return save_writing_session(db, session)
+
+    async def revise_selection_stream(
+        self,
+        db: Session,
+        session: WritingSession,
+        request_data,
+        provider_name=None,
+    ) -> AsyncIterator[str]:
+        """流式生成选中段落的修改预览，不修改 draft 或 Article。
+
+        约定：仅在 editing 阶段可用（阶段校验已在 endpoint 构造 StreamingResponse
+        之前完成，此处冗余校验防止服务层被直接误用）；流完整结束时落库一条
+        revisions 记录（status=previewed），并发 meta.revision_id 事件。
+        """
+        if session.stage != "editing":
+            raise ConflictException(message=f"当前阶段'{session.stage}'不允许修改选段")
+
+        provider = self.agent.get_provider(provider_name)
+        prompt = SELECTION_REVISION_PROMPT.format(
+            # 截断上下文，避免单次请求 token 过大
+            context=request_data.content[:2000],
+            selected_text=request_data.selected_text,
+            instruction=request_data.instruction,
+        )
+
+        chunks: list[str] = []
+        completed = False
+        revision_id = str(uuid.uuid4())
+        try:
+            async for content in self.agent.stream_content(provider, prompt, temperature=0.5):
+                chunks.append(content)
+                yield self.event({"content": content})
+            completed = True
+        except Exception as exc:
+            yield self.error_event(f"选段修改失败：{exc}")
+            yield "data: [DONE]\n\n"
+            return
+
+        if completed and chunks:
+            replacement = "".join(chunks).strip()
+            revisions = list(session.revisions or [])
+            revisions.append({
+                "id": revision_id,
+                "source": "selection",
+                "suggestion_id": None,
+                "content_hash": request_data.content_hash,
+                "selection_start": request_data.selection_start,
+                "selection_end": request_data.selection_end,
+                "original_text": request_data.selected_text,
+                "replacement_text": replacement,
+                "status": "previewed",
+            })
+            session.revisions = revisions
+            save_writing_session(db, session)
+            yield self.event({"meta": {"revision_id": revision_id}})
+        yield "data: [DONE]\n\n"
+
+    async def revise_suggestion_stream(
+        self,
+        db: Session,
+        session: WritingSession,
+        suggestion_id: str,
+        content: str,
+        content_hash: str,
+        provider_name=None,
+    ) -> AsyncIterator[str]:
+        """根据建议生成修改预览（流式），不修改 draft 或 Article。
+
+        约定：建议必须存在（否则 NotFoundException，应在 StreamingResponse 之前抛出）；
+        流完整结束时落库一条 revisions 记录（source=suggestion、关联 suggestion_id），
+        并把对应 suggestion 标记为 previewed。
+        """
+        if session.stage != "editing":
+            raise ConflictException(message=f"当前阶段'{session.stage}'不允许修改")
+
+        suggestion = None
+        for s in (session.suggestions or []):
+            if s["id"] == suggestion_id:
+                suggestion = s
+                break
+        if not suggestion:
+            raise NotFoundException(resource="WritingSuggestion", identifier=suggestion_id)
+
+        provider = self.agent.get_provider(provider_name)
+        prompt = SUGGESTION_REVISION_PROMPT.format(
+            suggestion_type=suggestion.get("type", "readability"),
+            suggestion_title=suggestion.get("title", ""),
+            suggestion_reason=suggestion.get("reason", ""),
+            suggestion_scope=suggestion.get("scope", ""),
+            content=content[:3000],
+        )
+
+        chunks: list[str] = []
+        completed = False
+        revision_id = str(uuid.uuid4())
+        try:
+            async for piece in self.agent.stream_content(provider, prompt, temperature=0.5):
+                chunks.append(piece)
+                yield self.event({"content": piece})
+            completed = True
+        except Exception as exc:
+            yield self.error_event(f"建议修改失败：{exc}")
+            yield "data: [DONE]\n\n"
+            return
+
+        if completed and chunks:
+            replacement = "".join(chunks).strip()
+            revisions = list(session.revisions or [])
+            revisions.append({
+                "id": revision_id,
+                "source": "suggestion",
+                "suggestion_id": suggestion_id,
+                "content_hash": content_hash,
+                "selection_start": 0,
+                "selection_end": 0,
+                "original_text": "",
+                "replacement_text": replacement,
+                "status": "previewed",
+            })
+            session.revisions = revisions
+            # 把对应建议标为 previewed（已生成预览，等待 apply/discard）。
+            # 重建列表以触发 JSON 列变更（见 apply_revision 注释）。
+            session.suggestions = [
+                {**s, "status": "previewed"} if s["id"] == suggestion_id else dict(s)
+                for s in (session.suggestions or [])
+            ]
+            save_writing_session(db, session)
+            yield self.event({"meta": {"revision_id": revision_id}})
+        yield "data: [DONE]\n\n"
+
+    def apply_revision(
+        self,
+        db: Session,
+        session: WritingSession,
+        revision_id: str,
+        content_hash: str,
+    ) -> WritingSession:
+        """标记修订为已应用；content_hash 不匹配则拒绝。
+
+        hash 不匹配意味着用户在编辑器里改过正文，旧的修订定位已失效，
+        强制重新选择段落。
+
+        实现细节：revisions 是 JSON 列里的异构 dict 列表。SQLAlchemy 的 JSON
+        列默认不做「字典内部就地修改」的可变性追踪，因此这里必须重建整份
+        列表（用全新 dict 拷贝）再整体赋值给 session.revisions，才能保证
+        UPDATE 真正下发；同理联动更新 suggestions 时也重建列表。
+        """
+        old_revisions = list(session.revisions or [])
+        target = next((r for r in old_revisions if r["id"] == revision_id), None)
+        if not target:
+            raise NotFoundException(resource="WritingRevision", identifier=revision_id)
+        if target.get("content_hash") != content_hash:
+            raise ConflictException(message="正文已变化，无法应用此修改。请重新选择段落。")
+
+        suggestion_id = target.get("suggestion_id")
+        new_revisions = [
+            {**r, "status": "applied"} if r["id"] == revision_id else dict(r)
+            for r in old_revisions
+        ]
+        session.revisions = new_revisions
+
+        # 联动把关联建议标为 applied（同样重建列表以触发 JSON 列变更）
+        if suggestion_id:
+            session.suggestions = [
+                {**s, "status": "applied"} if s.get("id") == suggestion_id else dict(s)
+                for s in (session.suggestions or [])
+            ]
+        return save_writing_session(db, session)
+
+    def discard_revision(
+        self,
+        db: Session,
+        session: WritingSession,
+        revision_id: str,
+    ) -> WritingSession:
+        """放弃修订（仅改状态为 discarded，保留记录便于审计）。
+
+        同 apply_revision：重建整份 revisions 列表（全新 dict 拷贝）触发 JSON 列变更。
+        """
+        old_revisions = list(session.revisions or [])
+        target = next((r for r in old_revisions if r["id"] == revision_id), None)
+        if not target:
+            raise NotFoundException(resource="WritingRevision", identifier=revision_id)
+        session.revisions = [
+            {**r, "status": "discarded"} if r["id"] == revision_id else dict(r)
+            for r in old_revisions
+        ]
+        return save_writing_session(db, session)

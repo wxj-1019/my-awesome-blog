@@ -394,3 +394,351 @@ def test_interrupted_draft_does_not_advance_stage(test_session, monkeypatch):
     # Verify stage did NOT advance
     assert session.stage == "drafting"
     assert session.draft == ""
+
+
+# ── Phase 2: 全文分析 + 非破坏性修订预览 ───────────────────────────
+# 复用 test_agent_loop 的 FakeProvider 脚本化 provider。
+
+import json
+
+from app.services import agent_service as agent_service_module
+
+
+def _advance_to_editing(client, session_id, monkeypatch, draft="# 初稿\n正文"):
+    """把会话从 clarifying 推进到 editing：生成大纲 → 确认大纲（流式生成初稿）→ 确认初稿。
+
+    返回最后一次使用的 provider，便于后续测试再 monkeypatch。
+    """
+    from app.tests.test_agent_loop import FakeProvider, _text_resp
+
+    provider = FakeProvider([_text_resp("# 大纲\n1. 内容")])
+
+    async def fake_stream(request):
+        from app.llm.base import ChatStreamChunk
+        yield ChatStreamChunk(content=draft)
+
+    provider.stream_chat = fake_stream
+    monkeypatch.setattr(agent_service_module, "get_llm_provider", lambda name=None: provider)
+
+    client.post(f"/api/v1/agent/writing-sessions/{session_id}/generate-outline")
+    client.post(f"/api/v1/agent/writing-sessions/{session_id}/confirm-outline")
+    client.post(f"/api/v1/agent/writing-sessions/{session_id}/confirm-draft")
+    return provider
+
+
+def test_analyze_returns_structured_suggestions(client, monkeypatch):
+    from app.tests.test_agent_loop import FakeProvider, _text_resp
+
+    session_id = client.post("/api/v1/agent/writing-sessions/", json={}).json()["id"]
+    _advance_to_editing(client, session_id, monkeypatch)
+
+    # analyze 走非流式 chat，需要返回 JSON
+    suggestions_json = json.dumps({
+        "suggestions": [{
+            "type": "structure",
+            "title": "补充开场问题",
+            "reason": "当前开头缺少读者场景",
+            "scope": "第一段",
+        }]
+    }, ensure_ascii=False)
+    provider = FakeProvider([_text_resp(suggestions_json)])
+    monkeypatch.setattr(agent_service_module, "get_llm_provider", lambda name=None: provider)
+
+    content = "# 标题\n正文"
+    response = client.post(
+        f"/api/v1/agent/writing-sessions/{session_id}/analyze",
+        json={"content": content, "content_hash": "a" * 64},
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data["suggestions"]) >= 1
+    s = data["suggestions"][0]
+    assert s["status"] == "pending"
+    assert s["id"]  # 自动生成的 id
+    assert s["type"] == "structure"
+    assert s["title"] == "补充开场问题"
+
+
+def test_analyze_wrong_stage_returns_409(client, monkeypatch):
+    """非 editing 阶段调用 analyze 应 409（在 StreamingResponse 之前校验，但 analyze 非流式）"""
+    session_id = client.post("/api/v1/agent/writing-sessions/", json={}).json()["id"]
+    # 仍处于 clarifying
+    response = client.post(
+        f"/api/v1/agent/writing-sessions/{session_id}/analyze",
+        json={"content": "x", "content_hash": "a" * 64},
+    )
+    assert response.status_code == 409
+
+
+def test_selection_revision_is_preview_only(client, monkeypatch):
+    from app.tests.test_agent_loop import FakeProvider
+
+    session_id = client.post("/api/v1/agent/writing-sessions/", json={}).json()["id"]
+    _advance_to_editing(client, session_id, monkeypatch, draft="# 初稿\n正文")
+
+    # 选段修改走流式 stream_chat
+    provider_revise = FakeProvider([])
+
+    async def stream_revision(request):
+        from app.llm.base import ChatStreamChunk
+        yield ChatStreamChunk(content="修改后的段落")
+
+    provider_revise.stream_chat = stream_revision
+    monkeypatch.setattr(agent_service_module, "get_llm_provider", lambda name=None: provider_revise)
+
+    content = "第一段。第二段。"
+    response = client.post(
+        f"/api/v1/agent/writing-sessions/{session_id}/revise-selection/stream",
+        json={
+            "content": content,
+            "selected_text": "第二段。",
+            "selection_start": 4,
+            "selection_end": 8,
+            "instruction": "更具体",
+            "content_hash": "b" * 64,
+        },
+    )
+    assert response.status_code == 200
+    assert "修改后的段落" in response.text
+
+    restored = client.get(f"/api/v1/agent/writing-sessions/{session_id}").json()
+    # draft 不应被修改（预览模式，非破坏性）
+    assert restored["draft"] == "# 初稿\n正文"
+    # 应生成一条 previewed 状态的修订记录
+    assert len(restored["revisions"]) == 1
+    rev = restored["revisions"][0]
+    assert rev["source"] == "selection"
+    assert rev["status"] == "previewed"
+    assert rev["replacement_text"] == "修改后的段落"
+    assert rev["original_text"] == "第二段。"
+    assert rev["content_hash"] == "b" * 64
+    assert rev["id"]  # revision_id 已发到 meta
+    # SSE 末尾应包含 revision_id 的 meta 事件
+    assert rev["id"] in response.text
+
+
+def test_selection_revision_wrong_stage_returns_409(client, monkeypatch):
+    """非 editing 阶段调用 revise-selection 应在 StreamingResponse 之前 409"""
+    session_id = client.post("/api/v1/agent/writing-sessions/", json={}).json()["id"]
+    # 仍处于 clarifying
+    response = client.post(
+        f"/api/v1/agent/writing-sessions/{session_id}/revise-selection/stream",
+        json={
+            "content": "第一段。第二段。",
+            "selected_text": "第二段。",
+            "selection_start": 4,
+            "selection_end": 8,
+            "instruction": "更具体",
+            "content_hash": "b" * 64,
+        },
+    )
+    assert response.status_code == 409
+
+
+def test_apply_revision_with_matching_hash(client, monkeypatch):
+    """应用修订成功后状态变为 applied，相关建议同步标记"""
+    from app.tests.test_agent_loop import FakeProvider, _text_resp
+
+    session_id = client.post("/api/v1/agent/writing-sessions/", json={}).json()["id"]
+    _advance_to_editing(client, session_id, monkeypatch)
+
+    # 先 analyze 出一条建议
+    suggestions_json = json.dumps({
+        "suggestions": [{
+            "type": "readability",
+            "title": "缩短开头",
+            "reason": "开头过长",
+            "scope": "第一段",
+        }]
+    }, ensure_ascii=False)
+    provider = FakeProvider([_text_resp(suggestions_json)])
+    monkeypatch.setattr(agent_service_module, "get_llm_provider", lambda name=None: provider)
+    client.post(
+        f"/api/v1/agent/writing-sessions/{session_id}/analyze",
+        json={"content": "# 标题\n正文", "content_hash": "c" * 64},
+    )
+    restored = client.get(f"/api/v1/agent/writing-sessions/{session_id}").json()
+    suggestion_id = restored["suggestions"][0]["id"]
+
+    # 用建议触发一条修订预览
+    provider_revise = FakeProvider([])
+    suggestion_content_hash = "d" * 64
+
+    async def stream_revision(request):
+        from app.llm.base import ChatStreamChunk
+        yield ChatStreamChunk(content="更短的开头")
+
+    provider_revise.stream_chat = stream_revision
+    monkeypatch.setattr(agent_service_module, "get_llm_provider", lambda name=None: provider_revise)
+    client.post(
+        f"/api/v1/agent/writing-sessions/{session_id}/revise-suggestion/stream",
+        json={
+            "suggestion_id": suggestion_id,
+            "content": "# 标题\n正文",
+            "content_hash": suggestion_content_hash,
+        },
+    )
+
+    restored = client.get(f"/api/v1/agent/writing-sessions/{session_id}").json()
+    revision_id = restored["revisions"][0]["id"]
+
+    # 用匹配的 hash 应用修订
+    response = client.post(
+        f"/api/v1/agent/writing-sessions/{session_id}/apply-revision",
+        json={"revision_id": revision_id, "content_hash": suggestion_content_hash},
+    )
+    assert response.status_code == 200
+    applied = response.json()
+    assert applied["revisions"][0]["status"] == "applied"
+    # 关联建议也应标记为 applied
+    assert applied["suggestions"][0]["status"] == "applied"
+
+
+def test_apply_revision_with_mismatched_hash_returns_409(client, monkeypatch):
+    """修订存在但正文已变化（hash 不匹配）应返回 409"""
+    from app.tests.test_agent_loop import FakeProvider
+
+    session_id = client.post("/api/v1/agent/writing-sessions/", json={}).json()["id"]
+    _advance_to_editing(client, session_id, monkeypatch)
+
+    # 先生成一条 selection 修订（hash = b*64）
+    provider_revise = FakeProvider([])
+
+    async def stream_revision(request):
+        from app.llm.base import ChatStreamChunk
+        yield ChatStreamChunk(content="新段落")
+
+    provider_revise.stream_chat = stream_revision
+    monkeypatch.setattr(agent_service_module, "get_llm_provider", lambda name=None: provider_revise)
+    client.post(
+        f"/api/v1/agent/writing-sessions/{session_id}/revise-selection/stream",
+        json={
+            "content": "第一段。第二段。",
+            "selected_text": "第二段。",
+            "selection_start": 4,
+            "selection_end": 8,
+            "instruction": "更具体",
+            "content_hash": "b" * 64,
+        },
+    )
+    restored = client.get(f"/api/v1/agent/writing-sessions/{session_id}").json()
+    revision_id = restored["revisions"][0]["id"]
+
+    # 用错误的 hash 应用 → 409
+    response = client.post(
+        f"/api/v1/agent/writing-sessions/{session_id}/apply-revision",
+        json={"revision_id": revision_id, "content_hash": "wrong" + "x" * 59},
+    )
+    assert response.status_code == 409
+
+
+def test_apply_nonexistent_revision_returns_404(client, monkeypatch):
+    """修订不存在应返回 404（先于 hash 校验）"""
+    session_id = client.post("/api/v1/agent/writing-sessions/", json={}).json()["id"]
+    _advance_to_editing(client, session_id, monkeypatch)
+
+    response = client.post(
+        f"/api/v1/agent/writing-sessions/{session_id}/apply-revision",
+        json={"revision_id": "fake-id", "content_hash": "x" * 64},
+    )
+    assert response.status_code == 404
+
+
+def test_discard_revision_marks_status(client, monkeypatch):
+    """放弃修订应把状态标为 discarded"""
+    from app.tests.test_agent_loop import FakeProvider
+
+    session_id = client.post("/api/v1/agent/writing-sessions/", json={}).json()["id"]
+    _advance_to_editing(client, session_id, monkeypatch)
+
+    provider_revise = FakeProvider([])
+
+    async def stream_revision(request):
+        from app.llm.base import ChatStreamChunk
+        yield ChatStreamChunk(content="新段落")
+
+    provider_revise.stream_chat = stream_revision
+    monkeypatch.setattr(agent_service_module, "get_llm_provider", lambda name=None: provider_revise)
+    client.post(
+        f"/api/v1/agent/writing-sessions/{session_id}/revise-selection/stream",
+        json={
+            "content": "第一段。",
+            "selected_text": "第一段。",
+            "selection_start": 0,
+            "selection_end": 3,
+            "instruction": "改写",
+            "content_hash": "b" * 64,
+        },
+    )
+    restored = client.get(f"/api/v1/agent/writing-sessions/{session_id}").json()
+    revision_id = restored["revisions"][0]["id"]
+
+    response = client.post(
+        f"/api/v1/agent/writing-sessions/{session_id}/discard-revision",
+        json={"revision_id": revision_id},
+    )
+    assert response.status_code == 200
+    assert response.json()["revisions"][0]["status"] == "discarded"
+
+
+def test_revise_suggestion_unknown_suggestion_returns_404(client, monkeypatch):
+    """对不存在的建议生成修订应在 StreamingResponse 之前 404"""
+    session_id = client.post("/api/v1/agent/writing-sessions/", json={}).json()["id"]
+    _advance_to_editing(client, session_id, monkeypatch)
+
+    response = client.post(
+        f"/api/v1/agent/writing-sessions/{session_id}/revise-suggestion/stream",
+        json={
+            "suggestion_id": "nope",
+            "content": "# 标题\n正文",
+            "content_hash": "a" * 64,
+        },
+    )
+    assert response.status_code == 404
+
+
+def test_complete_session_advances_stage(client, monkeypatch):
+    """complete 端点把 stage/status 都置为 completed"""
+    session_id = client.post("/api/v1/agent/writing-sessions/", json={}).json()["id"]
+    _advance_to_editing(client, session_id, monkeypatch)
+
+    response = client.post(f"/api/v1/agent/writing-sessions/{session_id}/complete")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["stage"] == "completed"
+    assert data["status"] == "completed"
+
+
+def test_link_article_binds_article_id(client, monkeypatch, test_session):
+    """link-article 端点验证文章存在并写入 article_id"""
+    from app.models.article import Article
+    from app.models.user import User
+
+    # 取测试用户（与 override_auth 一致）
+    user = test_session.query(User).filter_by(username="testadmin").first()
+    article = Article(title="t", slug=f"slug-{uuid.uuid4()}", content="c", author_id=user.id)
+    test_session.add(article)
+    test_session.commit()
+    test_session.refresh(article)
+
+    session_id = client.post("/api/v1/agent/writing-sessions/", json={}).json()["id"]
+    _advance_to_editing(client, session_id, monkeypatch)
+
+    response = client.post(
+        f"/api/v1/agent/writing-sessions/{session_id}/link-article",
+        json={"article_id": str(article.id)},
+    )
+    assert response.status_code == 200
+    assert response.json()["article_id"] == str(article.id)
+
+
+def test_link_article_unknown_returns_404(client, monkeypatch):
+    session_id = client.post("/api/v1/agent/writing-sessions/", json={}).json()["id"]
+    _advance_to_editing(client, session_id, monkeypatch)
+
+    response = client.post(
+        f"/api/v1/agent/writing-sessions/{session_id}/link-article",
+        json={"article_id": str(uuid.uuid4())},
+    )
+    assert response.status_code == 404
+

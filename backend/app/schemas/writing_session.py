@@ -87,5 +87,9 @@ class WritingRevisionApplyRequest(BaseModel):
     content_hash: str = Field(..., min_length=16, max_length=128)
 
 
+class WritingRevisionDiscardRequest(BaseModel):
+    revision_id: str
+
+
 class WritingArticleLinkRequest(BaseModel):
     article_id: UUID

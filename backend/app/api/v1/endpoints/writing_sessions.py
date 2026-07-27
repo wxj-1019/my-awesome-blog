@@ -6,18 +6,26 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_active_user
+from app.crud.article import get_article
 from app.crud.writing_session import (
     abandon_writing_session,
     create_writing_session,
     get_active_writing_session,
     get_writing_session_for_user,
+    save_writing_session,
 )
 from app.exceptions import ConflictException, NotFoundException
 from app.models.user import User
 from app.schemas.writing_session import (
+    WritingAnalyzeRequest,
+    WritingArticleLinkRequest,
     WritingMessageRequest,
+    WritingRevisionApplyRequest,
+    WritingRevisionDiscardRequest,
+    WritingSelectionRevisionRequest,
     WritingSessionCreate,
     WritingSessionRead,
+    WritingSuggestionRevisionRequest,
 )
 from app.services.writing_session_service import WritingSessionService
 
@@ -201,3 +209,159 @@ async def confirm_draft(
     if not session:
         raise NotFoundException(resource="WritingSession", identifier=str(session_id))
     return writing_session_service.confirm_draft_payload(db, session)
+
+
+# ── Phase 2：全文分析、修订预览、应用/放弃 ──────────────────────────
+
+@router.post("/{session_id}/analyze", response_model=WritingSessionRead)
+async def analyze(
+    session_id: UUID,
+    payload: WritingAnalyzeRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    """分析全文，生成结构化修改建议（仅在 editing 阶段）。
+
+    非流式：调用 LLM 返回 JSON 建议列表，覆盖写入 session.suggestions。
+    """
+    session = get_writing_session_for_user(db, session_id, current_user.id)
+    if not session:
+        raise NotFoundException(resource="WritingSession", identifier=str(session_id))
+    return await writing_session_service.analyze_content(
+        db, session, payload.content, payload.content_hash
+    )
+
+
+@router.post("/{session_id}/revise-selection/stream")
+async def revise_selection(
+    session_id: UUID,
+    payload: WritingSelectionRevisionRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    """流式生成选段修改预览（仅在 editing 阶段，SSE）。
+
+    非破坏性：只生成替换文本并落库一条 previewed 修订，不修改 draft/Article。
+    阶段校验在构造 StreamingResponse 之前完成，非法阶段直接 409。
+    事件序列：content（替换文本增量）→ meta.revision_id → [DONE]。
+    """
+    session = get_writing_session_for_user(db, session_id, current_user.id)
+    if not session:
+        raise NotFoundException(resource="WritingSession", identifier=str(session_id))
+    if session.stage != "editing":
+        raise ConflictException(
+            message=f"当前阶段'{session.stage}'不允许修改选段，仅 editing 阶段可用"
+        )
+    return StreamingResponse(
+        writing_session_service.revise_selection_stream(db, session, payload),
+        media_type="text/event-stream",
+        headers=SSE_HEADERS,
+    )
+
+
+@router.post("/{session_id}/revise-suggestion/stream")
+async def revise_suggestion(
+    session_id: UUID,
+    payload: WritingSuggestionRevisionRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    """根据建议流式生成修改预览（仅在 editing 阶段，SSE）。
+
+    阶段校验在构造 StreamingResponse 之前完成；建议不存在时 NotFoundException（404）
+    也在此处抛出，避免响应已开始流式后再报错。事件序列同 revise-selection。
+    """
+    session = get_writing_session_for_user(db, session_id, current_user.id)
+    if not session:
+        raise NotFoundException(resource="WritingSession", identifier=str(session_id))
+    if session.stage != "editing":
+        raise ConflictException(
+            message=f"当前阶段'{session.stage}'不允许修改，仅 editing 阶段可用"
+        )
+    # 建议存在性预检：在 StreamingResponse 之前抛 404
+    if not any(s.get("id") == payload.suggestion_id for s in (session.suggestions or [])):
+        raise NotFoundException(resource="WritingSuggestion", identifier=payload.suggestion_id)
+    return StreamingResponse(
+        writing_session_service.revise_suggestion_stream(
+            db, session, payload.suggestion_id, payload.content, payload.content_hash
+        ),
+        media_type="text/event-stream",
+        headers=SSE_HEADERS,
+    )
+
+
+@router.post("/{session_id}/apply-revision", response_model=WritingSessionRead)
+def apply_revision(
+    session_id: UUID,
+    payload: WritingRevisionApplyRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    """应用修订（content_hash 必须匹配，否则 409）。
+
+    标记修订为 applied，并联动把关联建议标为 applied。
+    """
+    session = get_writing_session_for_user(db, session_id, current_user.id)
+    if not session:
+        raise NotFoundException(resource="WritingSession", identifier=str(session_id))
+    return writing_session_service.apply_revision(
+        db, session, payload.revision_id, payload.content_hash
+    )
+
+
+@router.post("/{session_id}/discard-revision", response_model=WritingSessionRead)
+def discard_revision(
+    session_id: UUID,
+    payload: WritingRevisionDiscardRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    """放弃修订（仅改状态为 discarded）。"""
+    session = get_writing_session_for_user(db, session_id, current_user.id)
+    if not session:
+        raise NotFoundException(resource="WritingSession", identifier=str(session_id))
+    return writing_session_service.discard_revision(db, session, payload.revision_id)
+
+
+@router.post("/{session_id}/link-article", response_model=WritingSessionRead)
+def link_article(
+    session_id: UUID,
+    payload: WritingArticleLinkRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    """把会话关联到一篇文章（供 Task 11 在文章落库完成后回写）。
+
+    仅校验文章存在；不限定阶段，因为可能在 editing 之前就预关联，
+    或在 complete 之后回填。article_id 缺省 SET NULL，无孤儿引用风险。
+    """
+    session = get_writing_session_for_user(db, session_id, current_user.id)
+    if not session:
+        raise NotFoundException(resource="WritingSession", identifier=str(session_id))
+    if not get_article(db, payload.article_id):
+        raise NotFoundException(resource="Article", identifier=str(payload.article_id))
+    session.article_id = payload.article_id
+    return save_writing_session(db, session)
+
+
+@router.post("/{session_id}/complete", response_model=WritingSessionRead)
+def complete_session(
+    session_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    """结束会话：stage/status 都置为 completed（仅在 editing 阶段）。
+
+    这是写作流程的终态：一旦完成，会话不再出现在 active 列表中，
+    前端转去文章编辑页/发布页。draft 与 revisions 保留供审计。
+    """
+    session = get_writing_session_for_user(db, session_id, current_user.id)
+    if not session:
+        raise NotFoundException(resource="WritingSession", identifier=str(session_id))
+    if session.stage != "editing":
+        raise ConflictException(
+            message=f"当前阶段'{session.stage}'不允许完成会话，仅 editing 阶段可用"
+        )
+    session.stage = "completed"
+    session.status = "completed"
+    return save_writing_session(db, session)
