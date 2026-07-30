@@ -168,7 +168,26 @@ export const ToastContainer = ({
   );
 };
 
-export const useToast = () => {
+interface ToastContextValue {
+  toasts: ToastProps[];
+  addToast: (toast: Omit<ToastProps, 'id'>) => string;
+  removeToast: (id: string) => void;
+  success: (message: string, options?: Partial<ToastProps>) => string;
+  error: (message: string, options?: Partial<ToastProps>) => string;
+  warning: (message: string, options?: Partial<ToastProps>) => string;
+  info: (message: string, options?: Partial<ToastProps>) => string;
+}
+
+const ToastContext = React.createContext<ToastContextValue | null>(null);
+
+/**
+ * Toast 状态管理（原 useToast 的内部实现）。
+ *
+ * 历史问题：useToast 每次调用都创建独立的局部状态，子组件里弹的 toast
+ * 只在它自己的（未渲染的）状态里，永远不会显示。改为 Context 共享后，
+ * 任意层级组件弹出的 toast 都由 ToastProvider 统一渲染。
+ */
+const useToastState = (): ToastContextValue => {
   const [toasts, setToasts] = React.useState<ToastProps[]>([]);
 
   const addToast = React.useCallback(
@@ -221,4 +240,35 @@ export const useToast = () => {
     warning,
     info,
   };
+};
+
+interface ToastProviderProps {
+  children: React.ReactNode;
+  position?: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left';
+}
+
+/** 在 admin 布局根部挂载一次，子树内所有 useToast 共享同一组 toast。 */
+export const ToastProvider = ({
+  children,
+  position = 'top-right',
+}: ToastProviderProps) => {
+  const value = useToastState();
+  return (
+    <ToastContext.Provider value={value}>
+      {children}
+      <ToastContainer
+        toasts={value.toasts}
+        onClose={value.removeToast}
+        position={position}
+      />
+    </ToastContext.Provider>
+  );
+};
+
+export const useToast = (): ToastContextValue => {
+  const ctx = React.useContext(ToastContext);
+  if (!ctx) {
+    throw new Error('useToast 必须在 <ToastProvider> 内使用（见 admin/layout.tsx）');
+  }
+  return ctx;
 };

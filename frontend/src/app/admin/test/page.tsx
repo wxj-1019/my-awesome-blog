@@ -5,7 +5,7 @@ import StatCard from '@/components/ui/StatCard';
 import LoadingState from '@/components/ui/LoadingState';
 import EmptyState from '@/components/ui/EmptyState';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
-import { ToastContainer, useToast } from '@/components/admin/Toast';
+import { useToast } from '@/components/admin/Toast';
 import FormInput from '@/components/admin/FormInput';
 import Button from '@/components/admin/Button';
 import DataTable, { Column } from '@/components/ui/DataTable';
@@ -32,7 +32,7 @@ interface TestArticle {
   createdAt: string;
 }
 export default function AdminTestPage() {
-  const { success, error, warning, info, toasts, removeToast } = useToast();
+  const { success, error, warning, info } = useToast();
   const [confirmOpen, setConfirmOpen] = React.useState(false);
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
@@ -297,7 +297,6 @@ export default function AdminTestPage() {
           </GlassCardAdmin>
         </section>
       </div>
-      <ToastContainer toasts={toasts} onClose={removeToast} position="top-right" />
     </div>
   );
 }

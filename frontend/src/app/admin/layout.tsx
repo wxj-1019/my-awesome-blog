@@ -30,7 +30,7 @@ import {
 } from 'lucide-react'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import AdminSidebar from '@/components/ui/AdminSidebar'
-import { ToastContainer, useToast } from '@/components/admin/Toast'
+import { ToastProvider } from '@/components/admin/Toast'
 import { cn } from '@/lib/utils'
 
 interface MenuGroup {
@@ -119,10 +119,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const [notificationOpen, setNotificationOpen] = useState(false)
-  const { toasts, removeToast } = useToast()
 
   return (
     <ProtectedRoute>
+      <ToastProvider position="top-right">
       <div className="min-h-screen bg-background relative overflow-hidden">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <motion.div 
@@ -277,9 +277,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             </motion.div>
           </main>
         </div>
-        
-        <ToastContainer toasts={toasts} onClose={removeToast} position="top-right" />
       </div>
+      </ToastProvider>
     </ProtectedRoute>
   )
 }
