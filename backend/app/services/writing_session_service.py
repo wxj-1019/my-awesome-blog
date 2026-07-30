@@ -205,7 +205,9 @@ class WritingSessionService:
         )
         raw = await self.agent.ask_text(provider, prompt, temperature=0.3)
         data = json.loads(extract_first_json_object(raw))
-        reply = str(data["reply"]).strip()
+        # 用 get 而不是 []：LLM 返回缺 reply 键时 KeyError 不会被端点的
+        # except ValueError 捕获，会导致 SSE 流中断/500
+        reply = str(data.get("reply", "")).strip()
         if not reply:
             raise ValueError("澄清回复为空")
         session.requirements_summary = {
@@ -341,8 +343,9 @@ class WritingSessionService:
             full_draft = "".join(chunks).strip()
             if full_draft:
                 session.draft = full_draft
-                save_writing_session(db, session)
+                # 先追加消息再保存：原顺序会把 assistant 消息落在 commit 之后丢失
                 self.append_message(session, "assistant", full_draft)
+                save_writing_session(db, session)
         yield "data: [DONE]\n\n"
 
     def confirm_draft_payload(self, db: Session, session: WritingSession) -> WritingSession:

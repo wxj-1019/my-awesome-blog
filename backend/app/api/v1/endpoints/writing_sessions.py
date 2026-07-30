@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
@@ -43,7 +43,26 @@ def create_session(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ):
-    return create_writing_session(db, current_user.id, payload.article_id)
+    article = None
+    if payload.article_id:
+        # 校验文章存在且归属当前用户（此前任意 article_id 都能关联：
+        # 不存在 → FK 500，他人文章 → 跨用户污染会话）
+        article = get_article(db, payload.article_id)
+        if not article:
+            raise NotFoundException(resource="Article", identifier=str(payload.article_id))
+        if article.author_id != current_user.id and not current_user.is_superuser:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="没有权限关联该文章",
+            )
+    session = create_writing_session(db, current_user.id, payload.article_id)
+    if article is not None:
+        # 基于已有文章继续写作（编辑页场景）：直接进入 editing 阶段，
+        # 正文作为 draft，Phase 2（选段修改/全文建议）立即可用
+        session.stage = "editing"
+        session.draft = article.content or ""
+        session = save_writing_session(db, session)
+    return session
 
 
 @router.get("/active", response_model=WritingSessionRead)
@@ -338,8 +357,15 @@ def link_article(
     session = get_writing_session_for_user(db, session_id, current_user.id)
     if not session:
         raise NotFoundException(resource="WritingSession", identifier=str(session_id))
-    if not get_article(db, payload.article_id):
+    article = get_article(db, payload.article_id)
+    if not article:
         raise NotFoundException(resource="Article", identifier=str(payload.article_id))
+    # 只允许关联本人文章（超级管理员除外），避免跨用户污染会话
+    if article.author_id != current_user.id and not current_user.is_superuser:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="没有权限关联该文章",
+        )
     session.article_id = payload.article_id
     return save_writing_session(db, session)
 
