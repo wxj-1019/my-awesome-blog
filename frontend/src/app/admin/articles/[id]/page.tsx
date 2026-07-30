@@ -21,28 +21,26 @@ import {
   X,
   Search,
   Wand2,
-  Bold,
-  Italic,
-  List,
-  ListOrdered,
-  Quote,
-  Code,
-  Link2,
-  Heading1,
-  Heading2,
-  Heading3,
-  Minus,
   Info
 } from 'lucide-react';
 import Link from 'next/link';
 import { adminApi } from '@/lib/admin-api-client';
+import { generateSlug } from '@/lib/slug';
 import Button from '@/components/admin/Button';
 import FormInput from '@/components/admin/FormInput';
-import { useToast, ToastContainer } from '@/components/admin/Toast';
+import { useToast } from '@/components/admin/Toast';
 import GlassCardAdmin from '@/components/ui/GlassCardAdmin';
-import AIWritingPanel from '@/components/admin/AIWritingPanel';
-import AIAssistSidebar from '@/components/admin/AIAssistSidebar';
+import ArticleAIAssist from '@/components/admin/writing/ArticleAIAssist';
 import CoverPicker from '@/components/admin/CoverPicker';
+import type { WritingSession, WritingRevision } from '@/types/writing-session';
+import {
+  MarkdownToolbar,
+  ArticlePreview,
+  generateExcerpt,
+  MIN_TITLE_LENGTH,
+  MIN_CONTENT_LENGTH,
+  type EditorMode,
+} from '@/components/admin/article-editor/shared';
 interface Category {
   id: string;
   name: string;
@@ -65,44 +63,11 @@ interface ArticleResponse {
   category_id?: string;
   tags?: { id: string }[];
 }
-type EditorMode = 'edit' | 'preview' | 'split';
-const MIN_TITLE_LENGTH = 5;
-const MIN_CONTENT_LENGTH = 100;
-const MarkdownToolbar = ({ onInsert }: { onInsert: (text: string) => void }) => {
-  const tools = [
-    { icon: Heading1, title: '标题 1', insert: '# ' },
-    { icon: Heading2, title: '标题 2', insert: '## ' },
-    { icon: Heading3, title: '标题 3', insert: '### ' },
-    { icon: Bold, title: '粗体', insert: '****', cursorOffset: 2 },
-    { icon: Italic, title: '斜体', insert: '**', cursorOffset: 1 },
-    { icon: Quote, title: '引用', insert: '> ' },
-    { icon: Code, title: '代码', insert: '``', cursorOffset: 1 },
-    { icon: Link2, title: '链接', insert: '[](url)', cursorOffset: 1 },
-    { icon: List, title: '无序列表', insert: '- ' },
-    { icon: ListOrdered, title: '有序列表', insert: '1. ' },
-    { icon: Minus, title: '分割线', insert: '\n---\n' },
-  ];
-  return (
-    <div className="flex items-center gap-0.5 p-1 bg-background/30 rounded-lg border border-border/30">
-      {tools.map((tool) => (
-        <button
-          key={tool.title}
-          type="button"
-          title={tool.title}
-          onClick={() => onInsert(tool.insert)}
-          className="p-2 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-colors"
-        >
-          <tool.icon className="w-4 h-4" />
-        </button>
-      ))}
-    </div>
-  );
-};
 export default function EditArticlePage() {
   const router = useRouter();
   const params = useParams();
   const articleId = params.id as string;
-  const { success, error, info, toasts, removeToast } = useToast();
+  const { success, error, info } = useToast();
   const titleInputRef = useRef<HTMLInputElement>(null);
   const contentTextareaRef = useRef<HTMLTextAreaElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -128,6 +93,10 @@ export default function EditArticlePage() {
     tags: [] as string[]
   });
   const [originalData, setOriginalData] = useState(formData);
+  // WritingSession 体系的 AI 协助（选段修改 + 全文建议），替代旧的
+  // AIWritingPanel/AIAssistSidebar；会话在文章加载后按需创建（见下方 effect）
+  const [writingSession, setWritingSession] = useState<WritingSession | null>(null);
+  const [editorSelection, setEditorSelection] = useState({ text: '', start: 0, end: 0 });
   const stats = {
     charCount: formData.content.length,
     wordCount: formData.content.trim() ? formData.content.trim().split(/\s+/).length : 0,
@@ -194,6 +163,27 @@ export default function EditArticlePage() {
     loadArticle();
     loadCategoriesAndTags();
   }, [loadArticle, loadCategoriesAndTags]);
+  // 为当前文章准备 WritingSession（Phase 2 AI 协助依赖会话）：
+  // 优先复用本文章的活动中会话，否则基于文章创建（后端直接置于 editing 阶段）。
+  // 失败时静默降级——AI 协助面板不显示，不影响编辑器主流程。
+  useEffect(() => {
+    let cancelled = false;
+    const ensureSession = async () => {
+      try {
+        const active = await adminApi.writingSessions.active().catch(() => null);
+        if (!cancelled && active && active.article_id === articleId && active.stage === 'editing') {
+          setWritingSession(active);
+          return;
+        }
+        const created = await adminApi.writingSessions.create(articleId);
+        if (!cancelled) {setWritingSession(created);}
+      } catch (err) {
+        console.error('Failed to init writing session for article:', err);
+      }
+    };
+    ensureSession();
+    return () => { cancelled = true; };
+  }, [articleId]);
   useEffect(() => {
     if (!isLoading && !isFetchingArticle && formData !== originalData) {
       setHasUnsavedChanges(true);
@@ -209,18 +199,6 @@ export default function EditArticlePage() {
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [hasUnsavedChanges]);
-  const generateSlug = (title: string) => {
-    return title
-      .toLowerCase()
-      .replace(/[^\w\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      .trim();
-  };
-  const generateExcerpt = (content: string) => {
-    const plainText = content.replace(/[#*`_\[\]]/g, '').trim();
-    return plainText.length > 150 ? plainText.substring(0, 150) + '...' : plainText;
-  };
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const title = e.target.value;
     setTouchedFields(prev => new Set(prev).add('title'));
@@ -237,6 +215,14 @@ export default function EditArticlePage() {
       ...prev,
       content
     }));
+  };
+  const handleContentSelect = (e: React.SyntheticEvent<HTMLTextAreaElement>) => {
+    const t = e.currentTarget;
+    setEditorSelection({
+      text: t.value.slice(t.selectionStart, t.selectionEnd),
+      start: t.selectionStart,
+      end: t.selectionEnd,
+    });
   };
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -269,16 +255,6 @@ export default function EditArticlePage() {
 
   // ── AI 写作能力 ────────────────────────────────────────────────
   const [isAiBusy, setIsAiBusy] = useState(false);
-
-  /** AIWritingPanel 产出应用到编辑器 */
-  const handleAiApply = useCallback((text: string, mode: 'replace' | 'append') => {
-    setFormData(prev => ({
-      ...prev,
-      content: mode === 'replace' ? text : `${prev.content}\n\n${text}`.replace(/^\s+/, '')
-    }));
-    setTouchedFields(prev => new Set(prev).add('content'));
-    setHasUnsavedChanges(true);
-  }, []);
 
   /** AI 润色：对编辑器全文做风格优化，流式替换 */
   const aiPolishRef = useRef<(() => void) | null>(null);
@@ -355,6 +331,7 @@ export default function EditArticlePage() {
     }, 0);
   };
   const handleSaveDraft = useCallback(async () => {
+    if (isSubmitting) {return;}
     if (!formData.title.trim()) {
       error('请输入文章标题');
       return;
@@ -364,6 +341,7 @@ export default function EditArticlePage() {
       return;
     }
     try {
+      setIsSubmitting(true);
       const submitData = {
         title: formData.title,
         slug: formData.slug,
@@ -383,11 +361,19 @@ export default function EditArticlePage() {
       console.error('Failed to save article:', err);
       const errorMessage = err instanceof Error ? err.message : '保存文章失败';
       error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
     }
-  }, [formData, articleId, success, error]);
+  }, [formData, articleId, isSubmitting, success, error]);
   const handlePublish = useCallback(async () => {
+    if (isSubmitting) {return;}
     if (!formData.title.trim()) {
       error('请输入文章标题');
+      titleInputRef.current?.focus();
+      return;
+    }
+    if (formData.title.trim().length < MIN_TITLE_LENGTH) {
+      error(`标题至少需要 ${MIN_TITLE_LENGTH} 个字符`);
       titleInputRef.current?.focus();
       return;
     }
@@ -397,6 +383,10 @@ export default function EditArticlePage() {
     }
     if (!formData.content.trim()) {
       error('请输入文章内容');
+      return;
+    }
+    if (formData.content.trim().length < MIN_CONTENT_LENGTH) {
+      error(`内容至少需要 ${MIN_CONTENT_LENGTH} 个字符`);
       return;
     }
     try {
@@ -422,7 +412,7 @@ export default function EditArticlePage() {
     } finally {
       setIsSubmitting(false);
     }
-  }, [formData, articleId, success, error, router]);
+  }, [formData, articleId, isSubmitting, success, error, router]);
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 's') {
@@ -440,15 +430,13 @@ export default function EditArticlePage() {
   const filteredTags = tags.filter(tag =>
     tag.name.toLowerCase().includes(tagSearchQuery.toLowerCase())
   );
-  const renderPreview = () => {
-    return (
-      <div className="prose prose-slate dark:prose-invert max-w-none prose-headings:text-foreground prose-p:text-foreground/80">
-        <h1>{formData.title || '未命名文章'}</h1>
-        {formData.excerpt && <p className="text-lg text-foreground/60 border-l-4 border-tech-cyan pl-4 italic">{formData.excerpt}</p>}
-        <div className="whitespace-pre-wrap">{formData.content || '暂无内容...'}</div>
-      </div>
-    );
-  };
+  const renderPreview = () => (
+    <ArticlePreview
+      title={formData.title}
+      excerpt={formData.excerpt}
+      content={formData.content}
+    />
+  );
   if (isLoading || isFetchingArticle) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -517,13 +505,7 @@ export default function EditArticlePage() {
           </AnimatePresence>
         </div>
       </motion.div>
-      {/* AI 写作面板：编辑现有文章时默认折叠，点开即可对话改稿 / 润色 */}
-      <AIWritingPanel
-        currentContent={formData.content}
-        onApply={handleAiApply}
-        busy={isAiBusy}
-        defaultCollapsed
-      />
+      {/* AI 协助已迁移到右侧栏 ArticleAIAssist（WritingSession 体系，与新建页一致） */}
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
         <div className="xl:col-span-3 space-y-6">
           <GlassCardAdmin className="p-6">
@@ -675,6 +657,7 @@ export default function EditArticlePage() {
                       name="content"
                       value={formData.content}
                       onChange={handleContentChange}
+                      onSelect={handleContentSelect}
                       disabled={polishing}
                       placeholder="使用 Markdown 格式编写文章内容...
 支持的格式：
@@ -875,17 +858,30 @@ export default function EditArticlePage() {
               </div>
             </div>
           </GlassCardAdmin>
-          {/* AI 协助面板：选中文字修改 + 全文对话 */}
-          <AIAssistSidebar
-            content={formData.content}
-            contentRef={contentTextareaRef}
-            onReplaceContent={fullContent => {
-              setFormData(prev => ({ ...prev, content: fullContent }));
-              setTouchedFields(prev => new Set(prev).add('content'));
-              setHasUnsavedChanges(true);
-            }}
-            busy={isAiBusy}
-          />
+          {/* AI 协助面板：选段修改 + 全文建议（WritingSession 体系，会话就绪后显示） */}
+          {writingSession && (
+            <ArticleAIAssist
+              sessionId={writingSession.id}
+              content={formData.content}
+              selection={editorSelection}
+              session={writingSession}
+              onSessionChange={setWritingSession}
+              onApplyRevision={(revision: WritingRevision) => {
+                if (revision.source === 'selection') {
+                  setFormData(prev => ({
+                    ...prev,
+                    content:
+                      prev.content.slice(0, revision.selection_start) +
+                      revision.replacement_text +
+                      prev.content.slice(revision.selection_end),
+                  }));
+                  setTouchedFields(prev => new Set(prev).add('content'));
+                  setHasUnsavedChanges(true);
+                }
+              }}
+              busy={isAiBusy}
+            />
+          )}
           <GlassCardAdmin className="p-5">
             <div className="flex items-center gap-2 mb-4">
               <div className="p-1.5 rounded-lg bg-cat-1/10">
@@ -1071,7 +1067,6 @@ export default function EditArticlePage() {
           onClick={() => setShowTagDropdown(false)}
         />
       )}
-      <ToastContainer toasts={toasts} onClose={removeToast} />
     </div>
   );
 }

@@ -21,28 +21,26 @@ import {
   X,
   Search,
   Wand2,
-  Bold,
-  Italic,
-  List,
-  ListOrdered,
-  Quote,
-  Code,
-  Link2,
-  Heading1,
-  Heading2,
-  Heading3,
-  Minus,
   Info
 } from 'lucide-react';
 import Link from 'next/link';
 import { adminApi } from '@/lib/admin-api-client';
+import { generateSlug } from '@/lib/slug';
 import Button from '@/components/admin/Button';
 import FormInput from '@/components/admin/FormInput';
-import { useToast, ToastContainer } from '@/components/admin/Toast';
+import { useToast } from '@/components/admin/Toast';
 import GlassCardAdmin from '@/components/ui/GlassCardAdmin';
 import WritingSessionShell from '@/components/admin/writing/WritingSessionShell';
 import ArticleAIAssist from '@/components/admin/writing/ArticleAIAssist';
 import CoverPicker from '@/components/admin/CoverPicker';
+import {
+  MarkdownToolbar,
+  ArticlePreview,
+  generateExcerpt,
+  MIN_TITLE_LENGTH,
+  MIN_CONTENT_LENGTH,
+  type EditorMode,
+} from '@/components/admin/article-editor/shared';
 import type { WritingSession, WritingRevision } from '@/types/writing-session';
 interface Category {
   id: string;
@@ -56,42 +54,9 @@ interface Tag {
   slug: string;
   color?: string;
 }
-type EditorMode = 'edit' | 'preview' | 'split';
-const MIN_TITLE_LENGTH = 5;
-const MIN_CONTENT_LENGTH = 100;
-const MarkdownToolbar = ({ onInsert }: { onInsert: (text: string) => void }) => {
-  const tools = [
-    { icon: Heading1, title: '标题 1', insert: '# ' },
-    { icon: Heading2, title: '标题 2', insert: '## ' },
-    { icon: Heading3, title: '标题 3', insert: '### ' },
-    { icon: Bold, title: '粗体', insert: '****', cursorOffset: 2 },
-    { icon: Italic, title: '斜体', insert: '**', cursorOffset: 1 },
-    { icon: Quote, title: '引用', insert: '> ' },
-    { icon: Code, title: '代码', insert: '``', cursorOffset: 1 },
-    { icon: Link2, title: '链接', insert: '[](url)', cursorOffset: 1 },
-    { icon: List, title: '无序列表', insert: '- ' },
-    { icon: ListOrdered, title: '有序列表', insert: '1. ' },
-    { icon: Minus, title: '分割线', insert: '\n---\n' },
-  ];
-  return (
-    <div className="flex items-center gap-0.5 p-1 bg-background/30 rounded-lg border border-border/30">
-      {tools.map((tool) => (
-        <button
-          key={tool.title}
-          type="button"
-          title={tool.title}
-          onClick={() => onInsert(tool.insert)}
-          className="p-2 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-colors"
-        >
-          <tool.icon className="w-4 h-4" />
-        </button>
-      ))}
-    </div>
-  );
-};
 export default function NewArticlePage() {
   const router = useRouter();
-  const { success, error, info, toasts, removeToast } = useToast();
+  const { success, error, info } = useToast();
   const titleInputRef = useRef<HTMLInputElement>(null);
   const contentTextareaRef = useRef<HTMLTextAreaElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -161,11 +126,8 @@ export default function NewArticlePage() {
       setIsLoading(false);
     }
   }, [phase, isLoading]);
-  useEffect(() => {
-    if (!isLoading && formData.content) {
-      setHasUnsavedChanges(true);
-    }
-  }, [formData, isLoading]);
+  // 注意：脏标记（hasUnsavedChanges）只在用户实际编辑时设置（见各 onChange 处理），
+  // 不能在 effect 里根据 content 非空推断——否则 AI 确认初稿后还没动手就提示“未保存”。
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (hasUnsavedChanges) {
@@ -176,30 +138,22 @@ export default function NewArticlePage() {
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [hasUnsavedChanges]);
-  const generateSlug = (title: string) => {
-    return title
-      .toLowerCase()
-      .replace(/[^\w\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      .trim();
-  };
-  const generateExcerpt = (content: string) => {
-    const plainText = content.replace(/[#*`_\[\]]/g, '').trim();
-    return plainText.length > 150 ? plainText.substring(0, 150) + '...' : plainText;
-  };
+  // 用户手动改过 slug 后，标题输入不再覆盖 slug
+  const slugTouchedRef = useRef(false);
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const title = e.target.value;
     setTouchedFields(prev => new Set(prev).add('title'));
+    setHasUnsavedChanges(true);
     setFormData(prev => ({
       ...prev,
       title,
-      slug: generateSlug(title)
+      slug: slugTouchedRef.current ? prev.slug : generateSlug(title)
     }));
   };
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const content = e.target.value;
     setTouchedFields(prev => new Set(prev).add('content'));
+    setHasUnsavedChanges(true);
     setFormData(prev => ({
       ...prev,
       content
@@ -215,7 +169,9 @@ export default function NewArticlePage() {
   };
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+    if (name === 'slug') {slugTouchedRef.current = true;}
     setTouchedFields(prev => new Set(prev).add(name));
+    setHasUnsavedChanges(true);
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -223,12 +179,14 @@ export default function NewArticlePage() {
   };
   const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const { name, value } = e.target;
+    setHasUnsavedChanges(true);
     setFormData(prev => ({
       ...prev,
       [name]: value
     }));
   };
   const handleTagToggle = (tagId: string) => {
+    setHasUnsavedChanges(true);
     setFormData(prev => {
       const newTags = prev.tags.includes(tagId)
         ? prev.tags.filter(id => id !== tagId)
@@ -238,6 +196,7 @@ export default function NewArticlePage() {
   };
   const handleAutoExcerpt = () => {
     const excerpt = generateExcerpt(formData.content);
+    setHasUnsavedChanges(true);
     setFormData(prev => ({ ...prev, excerpt }));
     info('已自动生成摘要');
   };
@@ -272,6 +231,7 @@ export default function NewArticlePage() {
       {
         onChunk: delta => {
           accumulated += delta;
+          setHasUnsavedChanges(true);
           setFormData(prev => ({ ...prev, content: accumulated }));
         },
         onComplete: full => {
@@ -300,6 +260,7 @@ export default function NewArticlePage() {
     setIsAiBusy(true);
     try {
       const meta = await adminApi.agent.generateMeta(formData.content);
+      setHasUnsavedChanges(true);
       setFormData(prev => ({
         ...prev,
         title: meta.title || prev.title,
@@ -324,7 +285,8 @@ export default function NewArticlePage() {
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const newContent = formData.content.substring(0, start) + text + formData.content.substring(end);
-    
+
+    setHasUnsavedChanges(true);
     setFormData(prev => ({ ...prev, content: newContent }));
     
     setTimeout(() => {
@@ -334,6 +296,7 @@ export default function NewArticlePage() {
     }, 0);
   };
   const handleSaveDraft = useCallback(async () => {
+    if (isSubmitting) {return;}
     if (!formData.title.trim()) {
       error('请输入文章标题');
       return;
@@ -343,6 +306,7 @@ export default function NewArticlePage() {
       return;
     }
     try {
+      setIsSubmitting(true);
       const submitData = {
         title: formData.title,
         slug: formData.slug,
@@ -371,11 +335,20 @@ export default function NewArticlePage() {
       console.error('Failed to save draft:', err);
       const errorMessage = err instanceof Error ? err.message : '保存草稿失败';
       error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
     }
-  }, [formData, writingSession, success, error]);
+  }, [formData, writingSession, isSubmitting, success, error]);
   const handlePublish = useCallback(async () => {
+    if (isSubmitting) {return;}
     if (!formData.title.trim()) {
       error('请输入文章标题');
+      titleInputRef.current?.focus();
+      return;
+    }
+    // 与内联校验规则保持一致：此前只查非空，会绕过长度要求直接发布
+    if (formData.title.trim().length < MIN_TITLE_LENGTH) {
+      error(`标题至少需要 ${MIN_TITLE_LENGTH} 个字符`);
       titleInputRef.current?.focus();
       return;
     }
@@ -385,6 +358,10 @@ export default function NewArticlePage() {
     }
     if (!formData.content.trim()) {
       error('请输入文章内容');
+      return;
+    }
+    if (formData.content.trim().length < MIN_CONTENT_LENGTH) {
+      error(`内容至少需要 ${MIN_CONTENT_LENGTH} 个字符`);
       return;
     }
     try {
@@ -426,9 +403,12 @@ export default function NewArticlePage() {
     } finally {
       setIsSubmitting(false);
     }
-  }, [formData, writingSession, success, error, router]);
+  }, [formData, writingSession, isSubmitting, success, error, router]);
 
   useEffect(() => {
+    // 仅在编辑器阶段响应快捷键：Phase 1（AI 对话）时按 Ctrl+S
+    // 不应触发保存草稿（此时表单为空，只会弹错误提示）
+    if (phase !== 'editing') {return;}
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault();
@@ -441,20 +421,18 @@ export default function NewArticlePage() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handlePublish, handleSaveDraft]);
+  }, [phase, handlePublish, handleSaveDraft]);
 
   const filteredTags = tags.filter(tag =>
     tag.name.toLowerCase().includes(tagSearchQuery.toLowerCase())
   );
-  const renderPreview = () => {
-    return (
-      <div className="prose prose-slate dark:prose-invert max-w-none prose-headings:text-foreground prose-p:text-foreground/80">
-        <h1>{formData.title || '未命名文章'}</h1>
-        {formData.excerpt && <p className="text-lg text-foreground/60 border-l-4 border-tech-cyan pl-4 italic">{formData.excerpt}</p>}
-        <div className="whitespace-pre-wrap">{formData.content || '暂无内容...'}</div>
-      </div>
-    );
-  };
+  const renderPreview = () => (
+    <ArticlePreview
+      title={formData.title}
+      excerpt={formData.excerpt}
+      content={formData.content}
+    />
+  );
   if (phase === 'editing' && isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -1061,6 +1039,7 @@ export default function NewArticlePage() {
                   variant="ghost"
                   className="w-full justify-center"
                   disabled={isSubmitting}
+                  onClick={() => setEditorMode('preview')}
                 >
                   <Eye className="w-4 h-4 mr-2" />
                   预览文章
@@ -1090,7 +1069,6 @@ export default function NewArticlePage() {
           onClick={() => setShowTagDropdown(false)}
         />
       )}
-      <ToastContainer toasts={toasts} onClose={removeToast} />
     </div>
   );
 }

@@ -14,7 +14,6 @@ import { motion, AnimatePresence } from '@/lib/framer-motion';
 import { ImagePlus, Search, Loader2, X, ExternalLink, RefreshCw } from 'lucide-react';
 import { adminApi } from '@/lib/admin-api-client';
 import { useToast } from '@/components/admin/Toast';
-import { cn } from '@/lib/utils';
 
 interface CoverImage {
   url: string;
@@ -38,8 +37,6 @@ export default function CoverPicker({ content, onPick, busy = false }: CoverPick
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [query, setQuery] = useState('');
-  /** 当前搜索词展示（AI 生成后回填到输入框，可编辑后重搜） */
-  const [activeQuery, setActiveQuery] = useState('');
   const [images, setImages] = useState<CoverImage[]>([]);
 
   const doSearch = useCallback(async (q?: string) => {
@@ -50,7 +47,7 @@ export default function CoverPicker({ content, onPick, busy = false }: CoverPick
     setLoading(true);
     try {
       const res = await adminApi.agent.suggestCover(content, q);
-      setActiveQuery(res.query);
+      // AI 生成的搜索词回填到输入框，可编辑后重搜
       setQuery(res.query);
       setImages(res.images);
       if (res.images.length === 0) {

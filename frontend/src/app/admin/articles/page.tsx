@@ -44,8 +44,12 @@ interface Article {
 export default function ArticlesPage() {
   const { success, error } = useToast();
   const [articles, setArticles] = useState<Article[]>([])
+  // 当前页未过滤的原始数据，用于筛选按钮计数（否则计数基于已过滤列表，恒为错误值）
+  const [pageItems, setPageItems] = useState<Article[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
+  // 防抖后的搜索词：fetchArticles 依赖它而不是 searchQuery，避免每次击键都发请求
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [filter, setFilter] = useState<'all' | 'published' | 'draft'>('all')
   const [currentPage, setCurrentPage] = useState(1)
   const [total, setTotal] = useState(0)
@@ -56,6 +60,12 @@ export default function ArticlesPage() {
   })
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const pageSize = 10
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery.trim())
+    }, 400)
+    return () => clearTimeout(timer)
+  }, [searchQuery])
   const fetchArticles = useCallback(async () => {
     try {
       setLoading(true)
@@ -79,29 +89,33 @@ export default function ArticlesPage() {
         visible = visible.filter((a: Article) => !a.is_published)
       }
 
-      if (searchQuery) {
+      if (debouncedSearch) {
         visible = visible.filter((a: Article) =>
-          a.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          a.excerpt?.toLowerCase().includes(searchQuery.toLowerCase())
+          a.title.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+          a.excerpt?.toLowerCase().includes(debouncedSearch.toLowerCase())
         )
       }
 
+      setPageItems(items)
       setArticles(visible)
       setTotal(typeof page?.total === 'number' ? page.total : items.length)
+      // 翻页/筛选/搜索后清空选择，避免跨页残留不可见的选中项
+      setSelectedArticles(new Set())
     } catch (err) {
       console.error('Failed to fetch articles:', err)
       error('加载文章列表失败')
     } finally {
       setLoading(false)
     }
-  }, [currentPage, filter, searchQuery, error])
+  }, [currentPage, filter, debouncedSearch, error])
   useEffect(() => {
     fetchArticles()
   }, [fetchArticles])
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
+    // 立即应用搜索词（跳过防抖）；列表由 fetchArticles 的副作用触发，无需重复调用
     setCurrentPage(1)
-    fetchArticles()
+    setDebouncedSearch(searchQuery.trim())
   }
   const deleteArticle = async () => {
     if (!deleteDialog.article) {return}
@@ -335,15 +349,17 @@ export default function ArticlesPage() {
             </motion.button>
           ))}
 
-          <motion.a
-            href={`/admin/articles/${article.id}`}
-            className="p-2 text-foreground/40 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors duration-200"
-            title="编辑"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-          >
-            <Edit className="w-4 h-4" />
-          </motion.a>
+          {/* 用 next/link 保持 SPA 内导航，避免 <a> 触发整页刷新 */}
+          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+            <Link
+              href={`/admin/articles/${article.id}`}
+              className="p-2 text-foreground/40 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors duration-200 inline-block"
+              title="编辑"
+              aria-label={`编辑 ${article.title}`}
+            >
+              <Edit className="w-4 h-4" />
+            </Link>
+          </motion.div>
 
           <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
             <Link
@@ -372,10 +388,10 @@ export default function ArticlesPage() {
   ]
 
   const filterButtons: { key: 'all' | 'published' | 'draft'; label: string; count: number }[] = useMemo(() => [
-    { key: 'all', label: '全部', count: articles.length },
-    { key: 'published', label: '已发布', count: articles.filter(a => a.is_published).length },
-    { key: 'draft', label: '草稿', count: articles.filter(a => !a.is_published).length },
-  ], [articles])
+    { key: 'all', label: '全部', count: pageItems.length },
+    { key: 'published', label: '已发布', count: pageItems.filter(a => a.is_published).length },
+    { key: 'draft', label: '草稿', count: pageItems.filter(a => !a.is_published).length },
+  ], [pageItems])
   return (
     <div className="space-y-6">
       <motion.div
