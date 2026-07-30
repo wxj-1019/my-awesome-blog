@@ -9,7 +9,11 @@ from app.exceptions import (
 )
 from sqlalchemy.orm import Session
 from app.core.database import get_db
-from app.core.dependencies import get_current_active_user, get_current_superuser
+from app.core.dependencies import (
+    get_current_active_user,
+    get_current_superuser,
+    get_current_user_optional,
+)
 from app import crud
 from app.schemas.article import Article, ArticleCreate, ArticleUpdate, ArticleWithAuthor
 from app.schemas.pagination import Page
@@ -152,8 +156,12 @@ async def read_recommended_articles(
     """Get recommended articles (published, by view count)."""
 
     def _recommended() -> list:
+        from sqlalchemy.orm import joinedload
         return (
             db.query(ArticleModel)
+            .options(joinedload(ArticleModel.author))
+            .options(joinedload(ArticleModel.categories))
+            .options(joinedload(ArticleModel.tags))
             .filter(ArticleModel.is_published == True)  # noqa: E712
             .order_by(ArticleModel.view_count.desc())
             .limit(limit)
@@ -214,16 +222,29 @@ async def search_articles(
     return await asyncio.to_thread(_search)
 
 
+def _can_view_article(article: Any, current_user: Optional[User]) -> bool:
+    """已发布文章所有人可见；草稿仅作者本人或超级管理员可见。"""
+    if article.is_published:
+        return True
+    if current_user is None:
+        return False
+    return bool(
+        current_user.is_superuser or article.author_id == current_user.id
+    )
+
+
 @router.get("/slug/{slug}", response_model=ArticleWithAuthor)
 async def read_article_by_slug(
     slug: str,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(get_current_user_optional),
 ) -> Any:
     """
     Get a specific article by slug
     """
     article = await crud.get_article_by_slug_with_relationships_async(db, slug=slug)
-    if not article:
+    # 草稿对匿名/非作者返回 404，避免泄露草稿存在性
+    if not article or not _can_view_article(article, current_user):
         raise NotFoundException(
             resource="Article",
             identifier=slug
@@ -315,7 +336,8 @@ async def search_articles_fulltext(
 @router.get("/{article_id}", response_model=ArticleWithAuthor)
 async def read_article_by_id(
     article_id: str,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(get_current_user_optional),
 ) -> Any:
     """
     Get a specific article by id
@@ -324,7 +346,8 @@ async def read_article_by_id(
 
     # Increment view count and get updated article with relationships
     article = await crud.increment_view_count(db, article_id=article_uuid)
-    if not article:
+    # 草稿对匿名/非作者返回 404，避免泄露草稿存在性
+    if not article or not _can_view_article(article, current_user):
         raise NotFoundException(
             resource="Article",
             identifier=article_id
@@ -341,21 +364,50 @@ async def update_article(
     current_user: User = Depends(get_current_active_user)
 ) -> Any:
     """
-    Update an article
+    Update an article（仅作者本人或超级管理员可修改）
     """
     article_uuid = UUID(article_id)
+
+    # 先查出原文章做归属校验与 slug 冲突检查
+    existing = await asyncio.to_thread(crud.get_article, db, article_uuid)
+    if not existing:
+        raise NotFoundException(
+            resource="Article",
+            identifier=article_id
+        )
+    if existing.author_id != current_user.id and not current_user.is_superuser:  # type: ignore
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="没有权限修改该文章",
+        )
+    old_slug = existing.slug
+
+    # slug 变更时检查唯一性，避免触发数据库唯一约束 500
+    if article_update.slug and article_update.slug != old_slug:
+        slug_taken = await asyncio.to_thread(
+            crud.get_article_by_slug, db, slug=article_update.slug
+        )
+        if slug_taken:
+            raise ConflictException(
+                resource="Article",
+                field="slug",
+                value=article_update.slug,
+            )
+
     article = await crud.update_article(db, article_id=article_uuid, article_update=article_update)
     if not article:
         raise NotFoundException(
             resource="Article",
             identifier=article_id
         )
-    
-    # Clear related caches
+
+    # Clear related caches（含旧 slug，避免旧链接继续命中过期缓存）
     await cache_service.delete(f"article:{article_id}")
+    if old_slug:
+        await cache_service.delete(f"article:slug:{old_slug}")
     if hasattr(article_update, 'slug') and article_update.slug:
         await cache_service.delete(f"article:slug:{article_update.slug}")
-    
+
     return article
 
 
@@ -467,12 +519,13 @@ async def batch_publish_articles(
     app_logger.info(f"批量{'发布' if publish else '取消发布'}文章: {len(article_uuids)} 篇, 操作者: {current_user.username}")
 
     def _publish_articles_sync():
+        # 注意：必须使用 ORM 模型 ArticleModel，顶部的 Article 是 Pydantic schema
         if current_user.is_superuser:
-            query = db.query(Article).filter(Article.id.in_(article_uuids))
+            query = db.query(ArticleModel).filter(ArticleModel.id.in_(article_uuids))
         else:
-            query = db.query(Article).filter(
-                Article.id.in_(article_uuids),
-                Article.author_id == current_user.id  # type: ignore
+            query = db.query(ArticleModel).filter(
+                ArticleModel.id.in_(article_uuids),
+                ArticleModel.author_id == current_user.id  # type: ignore
             )
 
         articles = query.all()
@@ -552,8 +605,9 @@ async def batch_set_featured_articles(
     app_logger.info(f"批量{'设置精选' if featured else '取消精选'}文章: {len(article_uuids)} 篇, 操作者: {current_user.username}")
 
     def _feature_articles_sync():
-        articles = db.query(Article).filter(
-            Article.id.in_(article_uuids)
+        # 注意：必须使用 ORM 模型 ArticleModel，顶部的 Article 是 Pydantic schema
+        articles = db.query(ArticleModel).filter(
+            ArticleModel.id.in_(article_uuids)
         ).all()
 
         if not articles:
@@ -562,8 +616,8 @@ async def batch_set_featured_articles(
         updated_ids = [str(article.id) for article in articles]
         slugs = [article.slug for article in articles if article.slug]
 
-        db.query(Article).filter(
-            Article.id.in_(article_uuids)
+        db.query(ArticleModel).filter(
+            ArticleModel.id.in_(article_uuids)
         ).update(
             {"is_featured": featured},
             synchronize_session=False

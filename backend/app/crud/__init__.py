@@ -6,7 +6,7 @@ from app.crud.user import (
 )
 
 from app.crud.article import (
-    get_article_async, get_article_by_slug, get_articles,
+    get_article, get_article_async, get_article_by_slug, get_articles,
     create_article, update_article, delete_article,
     increment_view_count, get_featured_articles, get_related_articles,
     get_articles_with_categories_and_tags, get_popular_articles,
