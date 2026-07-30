@@ -444,8 +444,8 @@ function stageLabel(stage: WritingStage): string {
 }
 
 /**
- * 统一错误信息提取。AdminApiClient 抛出的是「裸 ApiError 对象」（非 Error 实例），
- * 所以 `instanceof Error` 会漏掉真实 message。这里对任意形状都优先取 .message。
+ * 统一错误信息提取。ApiError 已是 Error 子类（见 admin-api-client.ts），
+ * 但 SSE / 第三方错误形状不一，这里仍对任意形状优先取 .message，兜底更稳。
  */
 function getErrorMessage(err: unknown, fallback: string): string {
   if (err && typeof err === 'object' && 'message' in err) {

@@ -147,10 +147,22 @@ function postSse(endpoint: string, body: unknown, handlers: SseHandlers): () => 
   return () => controller.abort();
 }
 
-interface ApiError {
-  message: string;
+/**
+ * API 错误：必须是真正的 Error 子类。
+ * 历史问题：此前 throw 的是普通对象，调用处的 `err instanceof Error`
+ * 判断全部为 false，服务端真实错误信息（如 slug 冲突 409）被吞成
+ * “保存失败”之类的兜底文案。
+ */
+export class ApiError extends Error {
   status: number;
   details?: unknown;
+
+  constructor(message: string, status: number, details?: unknown) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.details = details;
+  }
 }
 
 export class AdminApiClient {
@@ -184,12 +196,7 @@ export class AdminApiClient {
           (errorData && typeof errorData === 'object' && 'message' in errorData && String(errorData.message)) ||
           `请求失败: ${response.status}`;
 
-        const error: ApiError = {
-          message,
-          status: response.status,
-          details: errorData,
-        };
-        throw error;
+        throw new ApiError(message, response.status, errorData);
       }
 
       const responseText = await response.text();
@@ -200,12 +207,7 @@ export class AdminApiClient {
       }
     } catch (error: unknown) {
       if (error instanceof TypeError) {
-        const apiError: ApiError = {
-          message: '无法连接到服务器，请检查网络连接或后端服务',
-          status: 0,
-          details: error,
-        };
-        throw apiError;
+        throw new ApiError('无法连接到服务器，请检查网络连接或后端服务', 0, error);
       }
       throw error;
     }
