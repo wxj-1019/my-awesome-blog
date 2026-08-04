@@ -37,7 +37,7 @@ export interface SseHandlers {
  *   data: {"error": true, "message": "..."}  错误（格式对齐 llm_service）
  *   data: [DONE]                结束
  *
- * 复用 llmService.chatStream 的 getReader + TextDecoder + 行缓冲模式。
+ * 复用 streamChatRaw 的 getReader + TextDecoder + 行缓冲模式。
  */
 async function consumeAgentSse(
   response: Response,
@@ -665,7 +665,7 @@ export const adminApi = {
 
   // ── AI 导向写作（生成 / 改稿 / 元信息）──────────────────────────
   // generate-stream / revise-stream 走 SSE 流式；meta 走普通 POST。
-  // SSE 消费复用 llmService.chatStream 的 getReader + TextDecoder 模式。
+  // SSE 消费复用 streamChatRaw 的 getReader + TextDecoder 模式。
   agent: {
     /**
      * 按主题流式生成文章。

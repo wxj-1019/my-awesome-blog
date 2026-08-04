@@ -9,7 +9,7 @@ import ChatInput from '@/components/ai/chat/ChatInput';
 import MessageBubble from '@/components/ai/chat/MessageBubble';
 import type { Conversation, ConversationMessage, LLMStreamChunk } from '@/types';
 import { conversationService } from '@/services/conversationService';
-import { llmService } from '@/services/llmService';
+import { streamChatRaw } from '@/lib/api/llm';
 
 export default function ChatPageContent() {
   const pathname = usePathname();
@@ -132,7 +132,7 @@ export default function ChatPageContent() {
 
     try {
       let fullContent = '';
-      await llmService.chatStream(
+      await streamChatRaw(
         {
           message: content,
           conversation_id: currentConversation.id,
