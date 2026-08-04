@@ -15,10 +15,9 @@ import { getCommentTree, createComment } from '@/services/commentService';
 import logger from '@/utils/logger';
 import type { RelatedArticle, Article } from '@/types';
 import { useLoading } from '@/context/loading-context';
-import { useTheme } from '@/context/theme-context';
-import MediaPlayer from '@/components/ui/MediaPlayer';
 import ReadingProgressBar from '@/components/articles/ReadingProgressBar';
 import ArticleHeroStage from '@/components/articles/ArticleHeroStage';
+import ArticleHeroCover from '@/components/articles/ArticleHeroCover';
 import ArticleTocRail from '@/components/articles/ArticleTocRail';
 import ArticleBodyReveal from '@/components/articles/ArticleBodyReveal';
 import CommentTree from '@/components/articles/CommentTree';
@@ -76,13 +75,6 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
   const contentRef = useRef<HTMLDivElement>(null);
   const { themedClasses } = useThemedClasses();
   const { showLoading, hideLoading } = useLoading();
-  const { resolvedTheme } = useTheme();
-  // 与全站氛围背景/HeroSection 同源：暗色=月夜云海，亮色=奇幻鹿境
-  // SSR 未 mounted 时 resolvedTheme 确定性默认 dark，与 HeroSection 处理一致
-  const heroMedia =
-    resolvedTheme === 'dark'
-      ? { src: '/video/moonlit-clouds-field-HD-live.mp4', caption: '月夜云海' }
-      : { src: '/video/fantasy-landscape-deer-HD-live.mp4', caption: '奇幻鹿境' };
   useCodeBlockEnhancement(contentRef);
   const readingProgress = useReadingProgress(contentRef);
   const activeHeading = useActiveHeading(toc);
@@ -266,17 +258,10 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
               formatDate={formatDate}
               textClass={textClass}
               mediaSlot={
-                <MediaPlayer
-                  mediaItems={[
-                    {
-                      type: 'video',
-                      src: heroMedia.src,
-                      alt: heroMedia.caption,
-                      caption: heroMedia.caption,
-                    },
-                  ]}
-                  autoPlay={true}
-                  aspectRatio="aspect-[4/1]"
+                /* 封面图 + Ken Burns 缓推，替代原视频（视频比例与容器冲突占不满） */
+                <ArticleHeroCover
+                  src={article.cover_image || '/covers/default-cover.svg'}
+                  alt={article.title}
                 />
               }
             />

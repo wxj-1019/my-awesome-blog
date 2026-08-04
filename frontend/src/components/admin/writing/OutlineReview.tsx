@@ -1,0 +1,179 @@
+'use client';
+
+/**
+ * 大纲审阅组件：上半部分把大纲渲染为 Markdown 文档（非聊天气泡），
+ * 下半部分是「调整对话」+ 输入；最底部是「确认大纲并生成初稿」主按钮。
+ *
+ * 调整对话与 ClarificationChat 共用气泡样式（用户右 primary，助手左背景）。
+ * 流式进行中（AI 在调整大纲）时，累加正文实时显示在文档区作为 live preview。
+ */
+import { useEffect, useRef, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { Send, Loader2, FileText } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import type { WritingMessage } from '@/types/writing-session';
+
+export interface OutlineReviewProps {
+  /** 大纲正文（Markdown）。 */
+  outline: string;
+  /** 调整对话消息。 */
+  messages: WritingMessage[];
+  /** 是否正在流式（调整大纲中）。 */
+  streaming: boolean;
+  /** 流式期间累加的助手回复正文（live preview，显示在对话区）。 */
+  streamContent?: string;
+  /** 发送调整指令。 */
+  onAdjust: (message: string) => void;
+  /** 确认大纲，进入初稿生成。 */
+  onConfirm: () => void;
+}
+
+export default function OutlineReview({
+  outline,
+  messages,
+  streaming,
+  streamContent = '',
+  onAdjust,
+  onConfirm,
+}: OutlineReviewProps) {
+  const [input, setInput] = useState('');
+  const convRef = useRef<HTMLDivElement>(null);
+
+  // 调整对话区跟随到底
+  useEffect(() => {
+    const el = convRef.current;
+    if (!el) {return;}
+    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+    if (atBottom) {
+      el.scrollTop = el.scrollHeight;
+    }
+  }, [messages.length, streamContent, streaming]);
+
+  const handleAdjust = () => {
+    const trimmed = input.trim();
+    if (!trimmed || streaming) {return;}
+    onAdjust(trimmed);
+    setInput('');
+  };
+
+  const renderMessages: WritingMessage[] = streaming && streamContent
+    ? [...messages, {
+        id: '__streaming__',
+        role: 'assistant' as const,
+        content: streamContent,
+        created_at: new Date().toISOString(),
+      }]
+    : messages;
+
+  return (
+    <div className="flex flex-col flex-1 min-h-0 gap-4">
+      {/* 大纲文档区 */}
+      <div className="flex-1 min-h-0 overflow-y-auto rounded-2xl border border-border/50 bg-background/40 p-5">
+        <div className="flex items-center gap-2 mb-3 text-xs text-foreground/50">
+          <FileText className="w-3.5 h-3.5" />
+          文章大纲
+        </div>
+        {outline.trim() ? (
+          <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap break-words">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {outline}
+            </ReactMarkdown>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5 text-foreground/40 text-sm">
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            正在生成大纲…
+          </div>
+        )}
+      </div>
+
+      {/* 调整对话区（紧凑） */}
+      <div className="flex flex-col max-h-[240px] min-h-0 rounded-xl border border-border/40 bg-background/30">
+        <div
+          ref={convRef}
+          aria-live="polite"
+          aria-busy={streaming}
+          className="flex-1 min-h-0 overflow-y-auto p-3 space-y-2"
+        >
+          {messages.length === 0 && !streaming && (
+            <p className="text-xs text-foreground/40 text-center py-2">
+              想调整大纲？输入指令，如「加一段关于性能优化的章节」「把第 3 节拆成两节」…
+            </p>
+          )}
+          {renderMessages.map(msg => (
+            <div
+              key={msg.id}
+              className={cn('flex', msg.role === 'user' ? 'justify-end' : 'justify-start')}
+            >
+              <div
+                className={cn(
+                  'max-w-[85%] rounded-lg px-3 py-1.5 text-xs',
+                  msg.role === 'user'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-background/60 border border-border/40 text-foreground'
+                )}
+              >
+                {msg.role === 'assistant' && !msg.content && streaming && (
+                  <span className="flex items-center gap-1.5 text-foreground/50">
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                    调整中…
+                  </span>
+                )}
+                {msg.content && (
+                  <div className="whitespace-pre-wrap break-words leading-relaxed">
+                    {msg.content}
+                    {msg.id === '__streaming__' && (
+                      <span className="inline-block w-1.5 h-3.5 ml-0.5 bg-primary/70 animate-pulse align-middle" />
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* 调整输入 */}
+        <div className={cn('flex items-end gap-2 p-2 border-t border-border/30', streaming && 'opacity-60')}>
+          <textarea
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleAdjust();
+              }
+            }}
+            placeholder="输入调整意见…"
+            rows={1}
+            aria-label="大纲调整指令输入"
+            className="flex-1 px-3 py-2 rounded-lg bg-background/60 border border-border/40 text-foreground text-xs placeholder:text-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none disabled:cursor-not-allowed"
+            disabled={streaming}
+          />
+          <button
+            type="button"
+            onClick={handleAdjust}
+            disabled={!input.trim() || streaming}
+            aria-label="继续调整大纲"
+            className="shrink-0 inline-flex items-center justify-center gap-1.5 px-3 h-[36px] rounded-lg bg-foreground/10 text-foreground hover:bg-foreground/15 disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-xs font-medium"
+          >
+            <Send className="w-3.5 h-3.5" />
+            继续调整
+          </button>
+        </div>
+      </div>
+
+      {/* 确认大纲主按钮 */}
+      <button
+        type="button"
+        onClick={onConfirm}
+        disabled={streaming || !outline.trim()}
+        aria-label="确认大纲并生成初稿"
+        className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 disabled:bg-primary/40 disabled:cursor-not-allowed transition-colors text-sm font-semibold"
+      >
+        <Send className="w-4 h-4" />
+        确认大纲并生成初稿
+      </button>
+    </div>
+  );
+}

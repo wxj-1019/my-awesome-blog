@@ -8,8 +8,7 @@ from fastapi import APIRouter, Depends, status, Query, Request
 from fastapi.responses import StreamingResponse
 from app.exceptions import (
     NotFoundException,
-    ValidationException,
-    ResourceNotFoundException,
+    ForbiddenException,
 )
 from sqlalchemy.orm import Session
 from app.core.database import get_db
@@ -18,16 +17,15 @@ from app.schemas.conversation import (
     ConversationCreate,
     ConversationUpdate,
     Conversation,
-    ConversationListResponse,
+    ConversationSummary,
     ChatRequest,
     ChatResponse,
-    ChatStreamChunk,
 )
+from app.schemas.pagination import Page
 from app.models.user import User
 from app.services.conversation_service import conversation_service
 from app.utils.logger import app_logger
 from app.utils.rate_limit import conversation_create_rate_limit, llm_chat_rate_limit
-import json
 
 
 router = APIRouter()
@@ -89,7 +87,7 @@ async def get_conversation(
     return conversation
 
 
-@router.get("/", response_model=ConversationListResponse, status_code=status.HTTP_200_OK)
+@router.get("/", response_model=Page[ConversationSummary], status_code=status.HTTP_200_OK)
 async def list_conversations(
     *,
     db: Session = Depends(get_db),
@@ -97,10 +95,13 @@ async def list_conversations(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=100),
     status: Optional[str] = Query(None),
-) -> ConversationListResponse:
+) -> Page[ConversationSummary]:
     """
     获取对话列表
-    
+
+    返回分页信封 {items, total, skip, limit}；items 为**不含 messages** 的摘要，
+    消息请走 GET /conversations/{id}/messages。
+
     - **skip**: 跳过数量（分页）
     - **limit**: 限制数量（分页）
     - **status**: 状态筛选（可选）
@@ -192,7 +193,7 @@ async def chat(
     
     - **conversation_id**: 对话 ID（不指定则创建新对话）
     - **message**: 用户消息
-    - **model**: 使用的模型（默认为 deepseek-chat）
+    - **model**: 使用的模型（默认为 deepseek-v4-flash）
     - **temperature**: 温度参数（0.0-2.0）
     - **max_tokens**: 最大 Token 数（可选）
     - **stream**: 是否流式响应（此处固定为 False）
@@ -220,7 +221,7 @@ async def chat_stream(
     
     - **conversation_id**: 对话 ID（不指定则创建新对话）
     - **message**: 用户消息
-    - **model**: 使用的模型（默认为 deepseek-chat）
+    - **model**: 使用的模型（默认为 deepseek-v4-flash）
     - **temperature**: 温度参数（0.0-2.0）
     - **max_tokens**: 最大 Token 数（可选）
     - **stream**: 是否流式响应（此处固定为 True）
@@ -289,16 +290,10 @@ async def delete_conversation_messages(
     
     conversation = get_conversation(db, conversation_id)
     if not conversation:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Conversation not found",
-        )
+        raise NotFoundException(resource="Conversation", identifier=conversation_id)
     
     if str(conversation.user_id) != str(current_user.id) and not current_user.is_superuser:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to delete messages from this conversation",
-        )
+        raise ForbiddenException(message="Not authorized to delete messages from this conversation")
     
     delete_conversation_messages(db, conversation_id)
     

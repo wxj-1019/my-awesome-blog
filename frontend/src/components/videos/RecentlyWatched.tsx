@@ -72,7 +72,7 @@ const RecentlyWatched: React.FC<RecentlyWatchedProps> = ({ videos, onContinueWat
             variant="ghost"
             size="icon"
             className={cn(
-              "w-8 h-8 rounded-full bg-glass border border-glass-border hover:bg-tech-cyan/20 hover:border-tech-cyan/50 transition-all",
+              "w-8 h-8 rounded-full bg-glass border border-glass-border hover:bg-tech-cyan/20 hover:border-tech-cyan/50 transition-colors",
               !canScrollLeft && "opacity-30 cursor-not-allowed"
             )}
             aria-label="上一页"
@@ -85,7 +85,7 @@ const RecentlyWatched: React.FC<RecentlyWatchedProps> = ({ videos, onContinueWat
             variant="ghost"
             size="icon"
             className={cn(
-              "w-8 h-8 rounded-full bg-glass border border-glass-border hover:bg-tech-cyan/20 hover:border-tech-cyan/50 transition-all",
+              "w-8 h-8 rounded-full bg-glass border border-glass-border hover:bg-tech-cyan/20 hover:border-tech-cyan/50 transition-colors",
               !canScrollRight && "opacity-30 cursor-not-allowed"
             )}
             aria-label="下一页"

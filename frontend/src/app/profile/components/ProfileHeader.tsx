@@ -27,7 +27,7 @@ export default function ProfileHeader({
   return (
     <GlassCard 
       padding="none" 
-      className="overflow-hidden border-tech-cyan/20 hover:shadow-[0_0_40px_var(--shadow-tech-cyan)] transition-all duration-500"
+      className="overflow-hidden border-tech-cyan/20 hover:shadow-[0_0_40px_var(--shadow-tech-cyan)] transition-colors duration-500"
     >
       {/* 渐变背景头部 */}
       <div className="relative h-32 bg-gradient-to-r from-tech-cyan/20 via-tech-sky/20 to-tech-cyan/20 overflow-hidden">
@@ -40,7 +40,7 @@ export default function ProfileHeader({
           {!isEditing ? (
             <Button
               onClick={onEditToggle}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center gap-2"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-[colors,transform] duration-300 hover:scale-105 flex items-center gap-2"
             >
               <Edit3 className="w-4 h-4" />
               <span className="hidden sm:inline">编辑资料</span>
@@ -50,12 +50,12 @@ export default function ProfileHeader({
               <Button
                 variant="outline"
                 onClick={onEditToggle}
-                className="border-tech-cyan/50 hover:bg-tech-cyan/10 text-foreground hover:text-tech-cyan transition-all duration-300 hover:scale-105"
+                className="border-tech-cyan/50 hover:bg-tech-cyan/10 text-foreground hover:text-tech-cyan transition-[colors,transform] duration-300 hover:scale-105"
               >
                 <X className="w-4 h-4" />
               </Button>
               <Button
-                className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center gap-2"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-[colors,transform] duration-300 hover:scale-105 flex items-center gap-2"
               >
                 <Save className="w-4 h-4" />
                 <span className="hidden sm:inline">保存</span>

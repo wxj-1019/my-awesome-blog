@@ -10,6 +10,7 @@ from app.core.database import get_db
 from app.core.dependencies import get_current_active_user, get_current_superuser, get_current_user_optional
 from app import crud
 from app.schemas.comment import Comment, CommentCreate, CommentUpdate, CommentWithAuthor
+from app.models.comment import Comment as CommentModel
 from app.models.user import User
 from app.utils.permission_helpers import check_edit_permission, check_comment_delete_permission
 from app.utils.rate_limit import comment_rate_limit
@@ -122,6 +123,8 @@ def create_comment(
     from app.crud.article import get_article
     article = get_article(db, UUID(comment_in.article_id))
     if not article:
+        # 原先用了未导入的 HTTPException，命中时抛 NameError → 500；
+        # 按规范 §5.1 统一用自定义异常
         raise NotFoundException(
             resource="Article",
             identifier=comment_in.article_id,
@@ -173,7 +176,7 @@ def delete_comment(
     comment_uuid = UUID(comment_id)
 
     # Load comment with its article relationship to avoid N+1 queries
-    comment = db.query(Comment).options(joinedload(Comment.article)).filter(Comment.id == comment_uuid).first()
+    comment = db.query(CommentModel).options(joinedload(CommentModel.article)).filter(CommentModel.id == comment_uuid).first()
     if not comment:
         raise NotFoundException(
             resource="Comment",
@@ -210,7 +213,7 @@ def approve_comment(
     comment_uuid = UUID(comment_id)
 
     # First get the comment with its article relationship to avoid N+1 queries
-    comment = db.query(Comment).options(joinedload(Comment.article)).filter(Comment.id == comment_uuid).first()
+    comment = db.query(CommentModel).options(joinedload(CommentModel.article)).filter(CommentModel.id == comment_uuid).first()
     if not comment:
         raise NotFoundException(
             resource="Comment",
@@ -255,7 +258,7 @@ def reject_comment(
 
     comment_uuid = UUID(comment_id)
 
-    comment = db.query(Comment).options(joinedload(Comment.article)).filter(Comment.id == comment_uuid).first()
+    comment = db.query(CommentModel).options(joinedload(CommentModel.article)).filter(CommentModel.id == comment_uuid).first()
     if not comment:
         raise NotFoundException(
             resource="Comment",

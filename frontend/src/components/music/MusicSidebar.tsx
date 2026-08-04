@@ -23,8 +23,8 @@ export default function MusicSidebar({ activeSection, onSectionChange, playlists
   ];
   return (
     <aside className={cn(
-      'hidden md:flex flex-col h-full flex-shrink-0 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]',
-      'bg-card/95 backdrop-blur-2xl',
+      'hidden md:flex flex-col h-full flex-shrink-0 transition-[width] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]',
+      'bg-card/95 backdrop-blur-md',
       'border-r border-glass-border',
       'shadow-lg shadow-black/20 z-20',
       isCollapsed ? 'w-20' : 'w-64'
@@ -54,7 +54,7 @@ export default function MusicSidebar({ activeSection, onSectionChange, playlists
                     key={item.id}
                     onClick={() => onSectionChange(item.id)}
                     className={cn(
-                      'group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300',
+                      'group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors duration-300',
                       'w-full text-left',
                       activeSection === item.id
                         ? 'bg-gradient-to-r from-tech-cyan to-tech-sky text-primary-foreground shadow-lg shadow-tech-cyan'
@@ -62,7 +62,7 @@ export default function MusicSidebar({ activeSection, onSectionChange, playlists
                     )}
                   >
                     <item.icon className={cn(
-                      "w-5 h-5 transition-all duration-300 group-active:scale-95",
+                      "w-5 h-5 transition-[colors,transform] duration-300 group-active:scale-95",
                       activeSection === item.id ? "text-white" : "text-muted-foreground group-hover:text-foreground"
                     )} />
                     <span className="text-sm font-medium">{item.label}</span>
@@ -78,7 +78,7 @@ export default function MusicSidebar({ activeSection, onSectionChange, playlists
                     key={item.id}
                     onClick={() => onSectionChange(item.id)}
                     className={cn(
-                      'group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300',
+                      'group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors duration-300',
                       'w-full text-left',
                       activeSection === item.id
                         ? 'bg-gradient-to-r from-tech-cyan to-tech-sky text-primary-foreground shadow-lg shadow-tech-cyan'
@@ -86,7 +86,7 @@ export default function MusicSidebar({ activeSection, onSectionChange, playlists
                     )}
                   >
                     <item.icon className={cn(
-                      "w-5 h-5 transition-all duration-300 group-active:scale-95",
+                      "w-5 h-5 transition-[colors,transform] duration-300 group-active:scale-95",
                       activeSection === item.id ? "text-white" : "text-muted-foreground group-hover:text-foreground"
                     )} />
                     <span className="text-sm font-medium">{item.label}</span>
@@ -102,7 +102,7 @@ export default function MusicSidebar({ activeSection, onSectionChange, playlists
                     key={playlist.id}
                     onClick={() => onSectionChange(playlist.id)}
                     className={cn(
-                      'group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300',
+                      'group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors duration-300',
                       'w-full text-left',
                       activeSection === playlist.id
                         ? 'bg-gradient-to-r from-tech-cyan to-tech-sky text-primary-foreground shadow-lg shadow-tech-cyan'
@@ -110,7 +110,7 @@ export default function MusicSidebar({ activeSection, onSectionChange, playlists
                     )}
                   >
                     <ListMusic className={cn(
-                      "w-5 h-5 transition-all duration-300 group-active:scale-95",
+                      "w-5 h-5 transition-[colors,transform] duration-300 group-active:scale-95",
                       activeSection === playlist.id ? "text-white" : "text-muted-foreground group-hover:text-foreground"
                     )} />
                     <span className="text-sm font-medium truncate">{playlist.name}</span>
@@ -127,7 +127,7 @@ export default function MusicSidebar({ activeSection, onSectionChange, playlists
                 key={item.id}
                 onClick={() => onSectionChange(item.id)}
                 className={cn(
-                  'w-10 h-10 flex items-center justify-center rounded-xl transition-all duration-300',
+                  'w-10 h-10 flex items-center justify-center rounded-xl transition-colors duration-300',
                   activeSection === item.id
                     ? 'bg-gradient-to-r from-tech-cyan to-tech-sky text-primary-foreground shadow-lg shadow-tech-cyan'
                     : 'hover:bg-foreground/5 text-muted-foreground'
@@ -144,7 +144,7 @@ export default function MusicSidebar({ activeSection, onSectionChange, playlists
                 key={item.id}
                 onClick={() => onSectionChange(item.id)}
                 className={cn(
-                  'w-10 h-10 flex items-center justify-center rounded-lg transition-all duration-200',
+                  'w-10 h-10 flex items-center justify-center rounded-lg transition-colors duration-200',
                   activeSection === item.id 
                     ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20' 
                     : 'hover:bg-foreground/5 text-muted-foreground'
@@ -158,7 +158,7 @@ export default function MusicSidebar({ activeSection, onSectionChange, playlists
             <div className="w-8 h-[1px] bg-border my-2" />
             <button
                onClick={() => {}}
-               className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-foreground/5 text-muted-foreground transition-all duration-200"
+               className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-foreground/5 text-muted-foreground transition-colors duration-200"
                title="歌单"
                aria-label="歌单"
             >

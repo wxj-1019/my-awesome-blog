@@ -160,7 +160,7 @@ export default function VideosPageContent() {
             description="记录您的电影、剧集和动漫之旅"
           />
 
-          <div className="relative overflow-hidden rounded-2xl bg-glass border border-glass-border shadow-2xl">
+          <div className="relative overflow-hidden rounded-2xl bg-glass border border-glass-border shadow-[var(--glass-shadow)]">
             <div className="absolute top-0 right-0 w-1/2 h-full opacity-30 pointer-events-none">
               {/* 远程 embed 地址常返回 HTML，失败时静默回退，避免破坏布局 */}
               <LottieAnimation
@@ -211,7 +211,7 @@ export default function VideosPageContent() {
               <div className="hidden md:block">
                 <Button
                   onClick={() => setIsAddModalOpen(true)}
-                  className="bg-tech-cyan hover:bg-tech-lightcyan text-primary-foreground font-bold px-8 py-6 text-lg rounded-xl shadow-tech-cyan hover:shadow-[0_0_30px_var(--shadow-tech-cyan)] transition-all duration-300 transform hover:scale-105"
+                  className="bg-tech-cyan hover:bg-tech-lightcyan text-primary-foreground font-bold px-8 py-6 text-lg rounded-xl shadow-[var(--glass-shadow)] transition-[colors,transform,box-shadow] duration-300 transform hover:scale-[1.01]"
                 >
                   <Plus className="w-6 h-6 mr-2" />
                   添加新收藏
@@ -232,7 +232,7 @@ export default function VideosPageContent() {
                   key={t}
                   onClick={() => setFilterType(t)}
                   className={cn(
-                    "px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap",
+                    "px-4 py-2 rounded-lg text-sm font-medium transition-[colors,transform] whitespace-nowrap",
                     filterType === t
                       ? "bg-primary text-primary-foreground shadow-lg scale-105"
                       : "bg-glass text-muted-foreground hover:text-foreground"

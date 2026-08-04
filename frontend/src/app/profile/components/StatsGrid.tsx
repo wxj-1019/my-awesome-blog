@@ -74,7 +74,7 @@ export default function StatsGrid({ stats, loading }: StatsGridProps) {
   return (
     <GlassCard
       padding="lg"
-      className="border-tech-cyan/20 hover:shadow-[0_0_30px_var(--shadow-tech-cyan)] transition-all duration-300"
+      className="border-tech-cyan/20 hover:shadow-[var(--glass-shadow)] transition-[colors,box-shadow] duration-300"
     >
       <div className="flex items-center gap-2 mb-6">
         <TrendingUp className="w-5 h-5 text-tech-cyan" />
@@ -85,10 +85,10 @@ export default function StatsGrid({ stats, loading }: StatsGridProps) {
         {statsData.map((stat) => (
           <div
             key={stat.label}
-            className="group relative p-4 rounded-xl bg-[var(--card)]/40 hover:bg-tech-cyan/10 transition-all duration-300 hover:scale-105 cursor-pointer"
+            className="group relative p-4 rounded-xl bg-[var(--card)]/40 hover:bg-tech-cyan/10 transition-[colors,transform] duration-300 hover:scale-[1.01] cursor-pointer"
           >
             {/* 渐变边框效果 */}
-            <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-tech-cyan/0 via-tech-cyan/0 to-tech-cyan/0 group-hover:via-tech-cyan/10 transition-all duration-500 pointer-events-none" />
+            <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-tech-cyan/0 via-tech-cyan/0 to-tech-cyan/0 group-hover:via-tech-cyan/10 transition-[colors,transform] duration-500 pointer-events-none" />
 
             {/* 图标 */}
             <div className={`w-10 h-10 rounded-lg ${stat.bgColor} flex items-center justify-center mb-3 mx-auto group-hover:scale-110 transition-transform`}>

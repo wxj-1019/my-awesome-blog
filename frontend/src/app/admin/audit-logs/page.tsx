@@ -45,17 +45,25 @@ interface AuditLog {
   user: AuditLogUser | null
 }
 
+/**
+ * 动作类型标签。
+ *
+ * 用分类色板 cat-1..10 而非语义状态色：这里的诉求是十种动作**彼此可区分**，
+ * 不是表达成功/失败。若塞进 success/warning/destructive，多个动作会撞色。
+ * 色板已按色相绕行排序，相邻项对比明显；深浅主题各有一套值，见 variables.css。
+ * logout 保持中性灰（muted-foreground），因为它是「无事发生」而非一个类目。
+ */
 const ACTION_LABELS: Record<string, { label: string; color: string }> = {
-  create: { label: '创建', color: 'bg-green-500/20 text-green-400 border-green-500/30' },
-  update: { label: '更新', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
-  delete: { label: '删除', color: 'bg-red-500/20 text-red-400 border-red-500/30' },
-  login: { label: '登录', color: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30' },
-  logout: { label: '登出', color: 'bg-gray-500/20 text-gray-400 dark:text-gray-500 dark:text-gray-400 border-gray-500/30' },
-  register: { label: '注册', color: 'bg-purple-500/20 text-purple-400 border-purple-500/30' },
-  approve: { label: '批准', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
-  reject: { label: '拒绝', color: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
-  publish: { label: '发布', color: 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30' },
-  unpublish: { label: '取消发布', color: 'bg-amber-500/20 text-amber-400 border-amber-500/30' },
+  create: { label: '创建', color: 'bg-cat-10/20 text-cat-10 border-cat-10/30' },
+  update: { label: '更新', color: 'bg-cat-1/20 text-cat-1 border-cat-1/30' },
+  delete: { label: '删除', color: 'bg-cat-6/20 text-cat-6 border-cat-6/30' },
+  login: { label: '登录', color: 'bg-cat-3/20 text-cat-3 border-cat-3/30' },
+  logout: { label: '登出', color: 'bg-muted-foreground/20 text-muted-foreground border-muted-foreground/30' },
+  register: { label: '注册', color: 'bg-cat-2/20 text-cat-2 border-cat-2/30' },
+  approve: { label: '批准', color: 'bg-cat-7/20 text-cat-7 border-cat-7/30' },
+  reject: { label: '拒绝', color: 'bg-cat-4/20 text-cat-4 border-cat-4/30' },
+  publish: { label: '发布', color: 'bg-cat-5/20 text-cat-5 border-cat-5/30' },
+  unpublish: { label: '取消发布', color: 'bg-cat-8/20 text-cat-8 border-cat-8/30' },
 }
 
 const RESOURCE_TYPE_LABELS: Record<string, string> = {
@@ -167,7 +175,7 @@ export default function AuditLogsPage() {
   }
 
   const getActionInfo = (action: string) => {
-    return ACTION_LABELS[action] || { label: action, color: 'bg-gray-500/20 text-gray-400 dark:text-gray-500 dark:text-gray-400 border-gray-500/30' }
+    return ACTION_LABELS[action] || { label: action, color: 'bg-muted-foreground/20 text-muted-foreground border-muted-foreground/30' }
   }
 
   const getResourceTypeLabel = (type: string) => {
@@ -324,15 +332,15 @@ export default function AuditLogsPage() {
                         <motion.div
                           className={cn(
                             "w-10 h-10 rounded-full flex items-center justify-center shadow-lg flex-shrink-0",
-                            log.user ? "bg-gradient-to-br from-tech-cyan/50 to-tech-sky/50" : "bg-gradient-to-br from-gray-500/50 to-gray-600/50"
+                            log.user ? "bg-gradient-to-br from-tech-cyan/50 to-tech-sky/50" : "bg-gradient-to-br from-muted-foreground/50 to-muted-foreground/50"
                           )}
                           whileHover={{ scale: 1.1, rotate: 5 }}
                           transition={{ duration: 0.2 }}
                         >
                           {log.user ? (
-                            <User className="w-5 h-5 text-white dark:text-gray-100" />
+                            <User className="w-5 h-5 text-foreground" />
                           ) : (
-                            <Activity className="w-5 h-5 text-white dark:text-gray-100" />
+                            <Activity className="w-5 h-5 text-foreground" />
                           )}
                         </motion.div>
                         
@@ -390,7 +398,7 @@ export default function AuditLogsPage() {
                               {log.old_values && (
                                 <div>
                                   <p className="text-xs text-foreground/50 mb-1">旧值</p>
-                                  <pre className="text-xs text-red-400 bg-red-500/10 p-2 rounded overflow-x-auto">
+                                  <pre className="text-xs text-destructive bg-destructive/10 p-2 rounded overflow-x-auto">
                                     {JSON.stringify(parseJsonValues(log.old_values), null, 2)}
                                   </pre>
                                 </div>
@@ -399,7 +407,7 @@ export default function AuditLogsPage() {
                               {log.new_values && (
                                 <div>
                                   <p className="text-xs text-foreground/50 mb-1">新值</p>
-                                  <pre className="text-xs text-green-400 bg-green-500/10 p-2 rounded overflow-x-auto">
+                                  <pre className="text-xs text-success bg-success/10 p-2 rounded overflow-x-auto">
                                     {JSON.stringify(parseJsonValues(log.new_values), null, 2)}
                                   </pre>
                                 </div>
@@ -424,7 +432,7 @@ export default function AuditLogsPage() {
                 <motion.button
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-glass-border/30 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-glass/10 transition-all"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-glass-border/30 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-glass/10 transition-colors"
                   whileHover={{ scale: currentPage === 1 ? 1 : 1.05 }}
                   whileTap={{ scale: currentPage === 1 ? 1 : 0.95 }}
                 >
@@ -434,7 +442,7 @@ export default function AuditLogsPage() {
                 <motion.button
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-glass-border/30 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-glass/10 transition-all"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-glass-border/30 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-glass/10 transition-colors"
                   whileHover={{ scale: currentPage === totalPages ? 1 : 1.05 }}
                   whileTap={{ scale: currentPage === totalPages ? 1 : 0.95 }}
                 >

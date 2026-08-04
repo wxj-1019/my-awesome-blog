@@ -10,7 +10,7 @@ export type { EmptyStateProps } from '../ui/EmptyState';
 export { default as ConfirmDialog } from '../ui/ConfirmDialog';
 export type { ConfirmDialogProps } from '../ui/ConfirmDialog';
 
-export { default as Toast, ToastContainer, useToast } from './Toast';
+export { default as Toast, ToastContainer, ToastProvider, useToast } from './Toast';
 export type { ToastProps } from './Toast';
 
 export { default as FormInput } from './FormInput';

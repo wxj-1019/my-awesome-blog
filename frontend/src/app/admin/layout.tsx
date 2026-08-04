@@ -30,7 +30,7 @@ import {
 } from 'lucide-react'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import AdminSidebar from '@/components/ui/AdminSidebar'
-import { ToastContainer, useToast } from '@/components/admin/Toast'
+import { ToastProvider } from '@/components/admin/Toast'
 import { cn } from '@/lib/utils'
 
 interface MenuGroup {
@@ -119,14 +119,14 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const [notificationOpen, setNotificationOpen] = useState(false)
-  const { toasts, removeToast } = useToast()
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/20 to-indigo-50/10 dark:from-slate-900 dark:via-slate-800/30 dark:to-slate-900/20 relative overflow-hidden">
+      <ToastProvider position="top-right">
+      <div className="min-h-screen bg-background relative overflow-hidden">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <motion.div 
-            className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/10 to-cyan-400/8 rounded-full blur-3xl"
+            className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-primary/10 to-tech-sky/10 rounded-full blur-3xl"
             animate={{ 
               scale: [1, 1.1, 1],
               opacity: [0.5, 0.7, 0.5]
@@ -134,7 +134,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
           />
           <motion.div 
-            className="absolute -bottom-40 -left-40 w-96 h-96 bg-gradient-to-tr from-indigo-300/10 to-purple-300/8 rounded-full blur-3xl"
+            className="absolute -bottom-40 -left-40 w-96 h-96 bg-gradient-to-tr from-tech-purple/10 to-primary/10 rounded-full blur-3xl"
             animate={{ 
               scale: [1, 1.15, 1],
               opacity: [0.5, 0.6, 0.5]
@@ -142,7 +142,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
           />
           <motion.div 
-            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-sky-300/10 to-blue-300/8 rounded-full blur-2xl"
+            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-tech-sky/10 to-primary/10 rounded-full blur-2xl"
             animate={{ 
               scale: [1, 1.2, 1],
               rotate: [0, 180, 360]
@@ -162,7 +162,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         <AnimatePresence>
           {mobileOpen && (
             <motion.div 
-              className="fixed inset-0 bg-slate-900/20 dark:bg-slate-950/30 backdrop-blur-md z-40 lg:hidden"
+              className="fixed inset-0 bg-foreground/20 backdrop-blur-md z-40 lg:hidden"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -180,11 +180,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         />
 
         <div className={cn(
-          "transition-all duration-500 ease-out relative z-10",
+          "transition-[margin] duration-500 ease-out relative z-10",
           sidebarOpen ? "lg:ml-64" : "lg:ml-20"
         )}>
           <motion.header 
-            className="h-16 bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl border-b border-slate-200/50 dark:border-slate-700/50 flex items-center justify-between px-4 lg:px-8 sticky top-0 z-30"
+            className="h-16 bg-glass backdrop-blur-xl border-b border-glass-border flex items-center justify-between px-4 lg:px-8 sticky top-0 z-30"
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.5 }}
@@ -192,7 +192,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             <div className="flex items-center gap-4">
               <motion.button 
                 onClick={() => setMobileOpen(true)}
-                className="p-2.5 rounded-xl hover:bg-slate-100/50 dark:hover:bg-slate-700/50 transition-all duration-200 lg:hidden group"
+                className="p-2.5 rounded-xl hover:bg-foreground/5 transition-colors duration-200 lg:hidden group"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -213,11 +213,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     >
                       <Sparkles className="w-4 h-4 text-tech-cyan" />
                     </motion.div>
-                    <h1 className="text-lg font-semibold bg-gradient-to-r from-slate-800 to-slate-600 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent">
+                    <h1 className="text-lg font-semibold text-foreground">
                       {getCurrentPageTitle(pathname, menuGroups)}
                     </h1>
                   </div>
-                  <p className="text-sm text-slate-600 dark:text-slate-400 ml-8">
+                  <p className="text-sm text-muted-foreground ml-8">
                     {getCurrentPageDescription(pathname)}
                   </p>
                 </motion.div>
@@ -225,49 +225,49 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             </div>
 
             <div className="flex items-center gap-2">
-              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-emerald-500/10 to-green-500/10 backdrop-blur-lg border border-emerald-500/20">
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-success/10 to-success/5 backdrop-blur-lg border border-success/20">
                 <motion.div 
-                  className="w-2 h-2 rounded-full bg-emerald-500"
+                  className="w-2 h-2 rounded-full bg-success"
                   animate={{ scale: [1, 1.2, 1] }}
                   transition={{ duration: 2, repeat: Infinity }}
                 />
-                <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">在线</span>
+                <span className="text-xs font-medium text-success">在线</span>
               </div>
               
               <div className="hidden md:flex items-center gap-1">
                 <motion.button 
-                  className="p-2.5 rounded-xl hover:bg-slate-100/50 dark:hover:bg-slate-700/50 transition-all duration-200 group relative"
+                  className="p-2.5 rounded-xl hover:bg-foreground/5 transition-colors duration-200 group relative"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setSearchOpen(!searchOpen)}
                 >
-                  <Search className="w-5 h-5 text-slate-500 dark:text-slate-400 group-hover:text-tech-cyan transition-colors" />
+                  <Search className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
                 </motion.button>
                 
                 <motion.button 
-                  className="p-2.5 rounded-xl hover:bg-slate-100/50 dark:hover:bg-slate-700/50 transition-all duration-200 group relative"
+                  className="p-2.5 rounded-xl hover:bg-foreground/5 transition-colors duration-200 group relative"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setNotificationOpen(!notificationOpen)}
                 >
-                  <Bell className="w-5 h-5 text-slate-500 dark:text-slate-400 group-hover:text-tech-cyan transition-colors" />
-                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
+                  <Bell className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-destructive rounded-full" />
                 </motion.button>
               </div>
               
               <motion.button 
-                className="p-2.5 rounded-xl hover:bg-slate-100/50 dark:hover:bg-slate-700/50 transition-all duration-200 group"
+                className="p-2.5 rounded-xl hover:bg-foreground/5 transition-colors duration-200 group"
                 whileHover={{ scale: 1.05, rotate: 180 }}
                 whileTap={{ scale: 0.95 }}
                 transition={{ rotate: { duration: 0.5 } }}
               >
-                <Settings className="w-5 h-5 text-slate-500 dark:text-slate-400 group-hover:text-tech-cyan transition-colors" />
+                <Settings className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
               </motion.button>
             </div>
           </motion.header>
 
-          <main className="p-4 lg:p-8 pb-20">
-            <motion.div 
+          <main className="p-4 lg:p-8 pb-20 scroll-pt-24">
+            <motion.div
               className="max-w-7xl mx-auto"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -277,9 +277,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             </motion.div>
           </main>
         </div>
-        
-        <ToastContainer toasts={toasts} onClose={removeToast} position="top-right" />
       </div>
+      </ToastProvider>
     </ProtectedRoute>
   )
 }

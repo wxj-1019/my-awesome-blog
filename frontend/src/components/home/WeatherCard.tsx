@@ -72,7 +72,7 @@ export default function WeatherCard() {
   useEffect(() => () => clearTimers(), [clearTimers]);
 
   const toggleExpanded = () => {
-    if (refreshing) return;
+    if (refreshing) {return;}
     clearTimers();
 
     if (!isExpanded) {
@@ -86,7 +86,7 @@ export default function WeatherCard() {
   };
 
   const getWeatherIcon = (size: 'sm' | 'md' = 'sm') => {
-    if (!weather) return null;
+    if (!weather) {return null;}
     const cls = size === 'md' ? 'w-6 h-6' : 'w-5 h-5';
     const weatherText = weather.weather.toLowerCase();
 
@@ -113,18 +113,18 @@ export default function WeatherCard() {
   };
 
   const getAQILevel = () => {
-    if (!weather?.airQuality) return { level: '未知', color: 'text-gray-400' };
+    if (!weather?.airQuality) {return { level: '未知', color: 'text-gray-400' };}
     const aqi = parseInt(weather.airQuality.replace(/\D/g, ''), 10);
 
-    if (aqi <= 50) return { level: '优', color: 'text-green-400' };
-    if (aqi <= 100) return { level: '良', color: 'text-yellow-400' };
-    if (aqi <= 150) return { level: '轻度', color: 'text-orange-400' };
-    if (aqi <= 200) return { level: '中度', color: 'text-red-400' };
+    if (aqi <= 50) {return { level: '优', color: 'text-green-400' };}
+    if (aqi <= 100) {return { level: '良', color: 'text-yellow-400' };}
+    if (aqi <= 150) {return { level: '轻度', color: 'text-orange-400' };}
+    if (aqi <= 200) {return { level: '中度', color: 'text-red-400' };}
     return { level: '重度', color: 'text-red-600' };
   };
 
   const formatUpdateTime = () => {
-    if (!weather?.updateTime) return '--:--';
+    if (!weather?.updateTime) {return '--:--';}
     try {
       const timeStr = weather.updateTime.split(' ')[1] || weather.updateTime;
       const [h, m] = timeStr.split(':');
@@ -268,7 +268,7 @@ export default function WeatherCard() {
                         fetchWeather();
                       }}
                       className={cn(
-                        'w-5 h-5 text-muted-foreground transition-all',
+                        'w-5 h-5 text-muted-foreground transition-[colors,transform]',
                         'hover:text-tech-cyan hover:rotate-180'
                       )}
                     />

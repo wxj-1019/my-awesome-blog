@@ -99,7 +99,7 @@ const AlbumFilter: React.FC<AlbumFilterProps> = ({
               value={searchTerm}
               onChange={handleSearchChange}
               className={cn(
-                'w-full pl-10 pr-4 py-2 bg-muted/20 rounded-lg border border-glass-border focus:outline-none focus:ring-2 focus:ring-tech-cyan focus:border-transparent transition-all',
+                'w-full pl-10 pr-4 py-2 bg-muted/20 rounded-lg border border-glass-border focus:outline-none focus:ring-2 focus:ring-tech-cyan focus:border-transparent transition-colors',
                 themedClasses.textClass
               )}
             />
@@ -109,7 +109,7 @@ const AlbumFilter: React.FC<AlbumFilterProps> = ({
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="px-4 py-2 bg-tech-cyan/20 hover:bg-tech-cyan/30 rounded-lg border border-glass-border transition-all duration-300 flex items-center gap-2"
+              className="px-4 py-2 bg-tech-cyan/20 hover:bg-tech-cyan/30 rounded-lg border border-glass-border transition-colors duration-300 flex items-center gap-2"
               onClick={() => setShowSortDropdown(!showSortDropdown)}
             >
               <Filter className="h-4 w-4" />
@@ -153,7 +153,7 @@ const AlbumFilter: React.FC<AlbumFilterProps> = ({
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className={cn(
-                  'px-4 py-2 rounded-lg border transition-all duration-300 flex items-center gap-2 text-sm font-medium',
+                  'px-4 py-2 rounded-lg border transition-colors duration-300 flex items-center gap-2 text-sm font-medium',
                   filter === option.value
                     ? 'bg-tech-cyan text-primary-foreground border-tech-cyan shadow-md'
                     : 'bg-tech-cyan/10 hover:bg-tech-cyan/20 border-glass-border text-foreground/80 hover:text-foreground'
@@ -176,7 +176,7 @@ const AlbumFilter: React.FC<AlbumFilterProps> = ({
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   className={cn(
-                    'p-2 rounded-md transition-all duration-300',
+                    'p-2 rounded-md transition-colors duration-300',
                     viewMode === mode
                       ? 'bg-tech-cyan text-primary-foreground'
                       : 'text-muted-foreground hover:text-foreground hover:bg-foreground/10'

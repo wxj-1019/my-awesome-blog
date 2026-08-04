@@ -103,7 +103,7 @@ export default function AboutPageContent() {
                 return (
                   <StaggerItem
                     key={feature.title}
-                    className="flex gap-4 p-4 rounded-lg bg-muted/40 border border-border/60 hover:bg-muted/60 hover:border-primary/30 transition-all duration-200 group"
+                    className="flex gap-4 p-4 rounded-lg bg-muted/40 border border-border/60 hover:bg-muted/60 hover:border-primary/30 transition-[colors,transform] duration-200 group"
                   >
                     <IconComponent className="w-6 h-6 text-primary flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform duration-200" />
                     <div>
@@ -157,7 +157,7 @@ export default function AboutPageContent() {
                         href={link.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-3 p-4 rounded-lg bg-muted/40 border border-border/60 hover:bg-muted/60 hover:border-primary/30 hover:scale-[1.01] transition-all duration-200 group"
+                        className="flex items-center gap-3 p-4 rounded-lg bg-muted/40 border border-border/60 hover:bg-muted/60 hover:border-primary/30 hover:scale-[1.01] transition-[colors,transform] duration-200 group"
                       >
                         {link.favicon ? (
                           <>

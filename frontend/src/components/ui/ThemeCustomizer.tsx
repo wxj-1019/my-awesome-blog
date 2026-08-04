@@ -13,7 +13,7 @@ export default function ThemeCustomizer() {
   const [activeTab, setActiveTab] = useState('appearance');
 
   return (
-    <GlassCard className="w-full max-w-xs p-0 overflow-hidden border-border shadow-lg transition-all duration-300 hover:shadow-xl">
+    <GlassCard className="w-full max-w-xs p-0 overflow-hidden border-border shadow-lg transition-colors duration-300 hover:shadow-xl">
       {/* 顶部标签导航 */}
       <div className="flex border-b border-glass-border bg-glass/50 backdrop-blur-xl p-1">
         {['appearance', 'typography', 'colors'].map((tab) => (

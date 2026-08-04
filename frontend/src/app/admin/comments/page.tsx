@@ -170,7 +170,7 @@ export default function CommentsPage() {
                   管理文章评论
                   {pendingCount > 0 && (
                     <motion.span 
-                      className="px-2.5 py-0.5 text-xs font-medium bg-red-500/20 text-red-400 border border-red-500/30 rounded-full"
+                      className="px-2.5 py-0.5 text-xs font-medium bg-destructive/20 text-destructive border border-destructive/30 rounded-full"
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
                       transition={{ type: "spring", duration: 0.5 }}
@@ -225,7 +225,7 @@ export default function CommentsPage() {
                   onClick={() => { setFilter('approved'); setCurrentPage(1); }}
                   variant={filter === 'approved' ? 'primary' : 'ghost'}
                   className={cn(
-                    filter === 'approved' && "bg-green-500"
+                    filter === 'approved' && "bg-success"
                   )}
                 >
                   已通过 {comments.filter(c => c.is_approved).length > 0 && `(${comments.filter(c => c.is_approved).length})`}
@@ -239,7 +239,7 @@ export default function CommentsPage() {
                   onClick={() => { setFilter('pending'); setCurrentPage(1); }}
                   variant={filter === 'pending' ? 'primary' : 'ghost'}
                   className={cn(
-                    filter === 'pending' && "bg-orange-500"
+                    filter === 'pending' && "bg-warning"
                   )}
                 >
                   待审核 {pendingCount > 0 && `(${pendingCount})`}
@@ -283,7 +283,7 @@ export default function CommentsPage() {
                   >
                     <div className="flex items-start gap-4">
                       <motion.div
-                        className="w-10 h-10 rounded-full bg-gradient-to-br from-tech-cyan to-tech-sky flex items-center justify-center text-white dark:text-gray-100 font-medium flex-shrink-0 shadow-lg shadow-tech-cyan/30"
+                        className="w-10 h-10 rounded-full bg-gradient-to-br from-tech-cyan to-tech-sky flex items-center justify-center text-foreground font-medium flex-shrink-0 shadow-lg shadow-tech-cyan/30"
                         whileHover={{ scale: 1.1, rotate: 5 }}
                         transition={{ duration: 0.2 }}
                       >
@@ -308,8 +308,8 @@ export default function CommentsPage() {
                             className={cn(
                               "px-2.5 py-0.5 text-xs font-medium rounded-full border",
                               comment.is_approved 
-                                ? "bg-green-500/20 text-green-400 border-green-500/30" 
-                                : "bg-orange-500/20 text-orange-400 border-orange-500/30"
+                                ? "bg-success/20 text-success border-success/30" 
+                                : "bg-warning/20 text-warning border-warning/30"
                             )}
                             whileHover={{ scale: 1.05 }}
                           >
@@ -336,7 +336,7 @@ export default function CommentsPage() {
                           {!comment.is_approved && (
                             <motion.button
                               onClick={() => approveComment(comment.id)}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-green-500/20 text-green-400 border border-green-500/30 rounded-lg hover:bg-green-500/30 transition-all"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-success/20 text-success border border-success/30 rounded-lg hover:bg-success/30 transition-colors"
                               whileHover={{ scale: 1.05 }}
                               whileTap={{ scale: 0.95 }}
                             >
@@ -347,7 +347,7 @@ export default function CommentsPage() {
                           {comment.is_approved && (
                             <motion.button
                               onClick={() => rejectComment(comment.id)}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-orange-500/20 text-orange-400 border border-orange-500/30 rounded-lg hover:bg-orange-500/30 transition-all"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-warning/20 text-warning border border-warning/30 rounded-lg hover:bg-warning/30 transition-colors"
                               whileHover={{ scale: 1.05 }}
                               whileTap={{ scale: 0.95 }}
                             >
@@ -357,7 +357,7 @@ export default function CommentsPage() {
                           )}
                           <motion.button
                             onClick={() => setSelectedComment(comment)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-glass/20 text-foreground/70 border border-glass-border/30 rounded-lg hover:bg-glass/30 transition-all"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-glass/20 text-foreground/70 border border-glass-border/30 rounded-lg hover:bg-glass/30 transition-colors"
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                           >
@@ -366,7 +366,7 @@ export default function CommentsPage() {
                           </motion.button>
                           <motion.button
                             onClick={() => setDeleteDialog({ open: true, comment })}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg hover:bg-red-500/30 transition-all"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-destructive/20 text-destructive border border-destructive/30 rounded-lg hover:bg-destructive/30 transition-colors"
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                           >
@@ -391,7 +391,7 @@ export default function CommentsPage() {
                 <motion.button
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-glass-border/30 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-glass/10 transition-all"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-glass-border/30 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-glass/10 transition-colors"
                   whileHover={{ scale: currentPage === 1 ? 1 : 1.05 }}
                   whileTap={{ scale: currentPage === 1 ? 1 : 0.95 }}
                 >
@@ -401,7 +401,7 @@ export default function CommentsPage() {
                 <motion.button
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-glass-border/30 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-glass/10 transition-all"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-glass-border/30 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-glass/10 transition-colors"
                   whileHover={{ scale: currentPage === totalPages ? 1 : 1.05 }}
                   whileTap={{ scale: currentPage === totalPages ? 1 : 0.95 }}
                 >
@@ -453,7 +453,7 @@ export default function CommentsPage() {
                 </div>
                 <motion.button
                   onClick={() => setSelectedComment(null)}
-                  className="p-2 text-foreground/40 hover:text-foreground hover:bg-glass/20 rounded-lg transition-all duration-200"
+                  className="p-2 text-foreground/40 hover:text-foreground hover:bg-glass/20 rounded-lg transition-colors duration-200"
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
                 >
@@ -471,7 +471,7 @@ export default function CommentsPage() {
                 onChange={(e) => setReplyContent(e.target.value)}
                 placeholder="输入回复内容..."
                 rows={4}
-                className="w-full px-4 py-3 bg-glass/20 border border-glass-border/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-tech-cyan/50 focus:border-transparent transition-all duration-200 text-foreground placeholder:text-foreground/30 resize-none"
+                className="w-full px-4 py-3 bg-glass/20 border border-glass-border/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-tech-cyan/50 focus:border-transparent transition-colors duration-200 text-foreground placeholder:text-foreground/30 resize-none"
               />
               
               <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-glass-border/30">

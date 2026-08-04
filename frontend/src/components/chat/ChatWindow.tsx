@@ -3,21 +3,21 @@
 import { useRef, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from '@/lib/framer-motion';
 import {
-  Menu,
   Send,
   User,
   Bot,
   Sparkles,
   Loader2,
   AlertCircle,
-  Plus,
   FileText,
-  Check,
   RefreshCw,
+  Plus,
+  X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { API_BASE_URL } from '@/lib/api-client';
-import type { SelectedPromptInfo } from './ChatSidebar';
+import { API_BASE_URL, TOKEN_KEY, USER_KEY } from '@/lib/api-client';
+import MarkdownRenderer from '@/components/ui/MarkdownRenderer';
+import type { ShowcaseSkill } from '@/types/skill';
 
 export interface ChatMessage {
   id: string;
@@ -26,20 +26,41 @@ export interface ChatMessage {
   timestamp: number;
 }
 
+/** 默认系统提示：写作助手定位（站内文章撰写、润色、校对） */
+const WRITING_ASSISTANT_PROMPT =
+  '你是这个个人博客的写作助手，主要帮助用户撰写、润色、校对中文文章与站内各类内容。' +
+  '输出使用适合直接发布的 Markdown 格式，语言自然流畅，避免模板化表达。';
+
 interface ChatWindowProps {
-  onToggleSidebar: () => void;
   sessionMessages: ChatMessage[];
   onMessagesChange: (messages: ChatMessage[]) => void;
   onNewSession: () => void;
-  selectedPrompt?: SelectedPromptInfo | null;
+  /** 当前选中的 skill（为 null 表示用默认写作助手提示） */
+  selectedSkill: ShowcaseSkill | null;
+  /** 打开页内 Skill 选用弹窗 */
+  onOpenSkillPicker: () => void;
+  /** 清除当前选中的 skill */
+  onClearSkill: () => void;
+}
+
+/**
+ * 为无 SKILL.md 全文的 skill（如 mcp 类）拼接轻量系统提示。
+ * 用 description + highlights 组织，让模型了解该工具的定位与能力。
+ */
+function buildFallbackPrompt(skill: ShowcaseSkill): string {
+  const highlights = skill.highlights?.length
+    ? `\n\n核心能力：\n${skill.highlights.map((h) => `- ${h}`).join('\n')}`
+    : '';
+  return `你正在使用「${skill.name}」工具（${skill.kind.toUpperCase()} 类型，${skill.domain}领域）。\n${skill.description}${highlights}\n\n请在该工具的能力范围内回应用户。`;
 }
 
 export function ChatWindow({
-  onToggleSidebar,
   sessionMessages,
   onMessagesChange,
   onNewSession,
-  selectedPrompt,
+  selectedSkill,
+  onOpenSkillPicker,
+  onClearSkill,
 }: ChatWindowProps) {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -47,6 +68,8 @@ export function ChatWindow({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [streamingContent, setStreamingContent] = useState('');
+  /** skill 正文缓存：slug → 系统提示文本 */
+  const skillPromptCache = useRef<Map<string, string>>(new Map());
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -72,23 +95,63 @@ export function ChatWindow({
     const newMessages = [...sessionMessages, userMessage];
     onMessagesChange(newMessages);
     setInput('');
+    // 清空后把输入框高度复位，避免下次输入沿用上次撑开的高度
+    if (inputRef.current) {
+      inputRef.current.style.height = 'auto';
+    }
     setError(null);
     setIsLoading(true);
     setStreamingContent('');
 
     try {
-      const systemPrompt = selectedPrompt?.id
-        ? `Using prompt "${selectedPrompt.name}": ${selectedPrompt.description || ''}`
-        : '';
+      // 构建系统提示：选了 skill 用 skill 内容，否则用默认写作助手提示
+      let systemPrompt: string;
+      if (selectedSkill) {
+        // 先查缓存
+        const cached = skillPromptCache.current.get(selectedSkill.slug);
+        if (cached) {
+          systemPrompt = cached;
+        } else if (selectedSkill.contentPath) {
+          // 有 SKILL.md 全文：拉取静态文件，前缀一句角色说明
+          try {
+            const res = await fetch(selectedSkill.contentPath);
+            const md = res.ok ? await res.text() : '';
+            systemPrompt =
+              `你正在使用「${selectedSkill.name}」Skill。遵循以下指南回应用户：\n\n${md}`;
+          } catch {
+            // 拉取失败则降级用描述
+            systemPrompt = buildFallbackPrompt(selectedSkill);
+          }
+          skillPromptCache.current.set(selectedSkill.slug, systemPrompt);
+        } else {
+          // 无 SKILL.md（mcp 类）：用描述 + 亮点拼接
+          systemPrompt = buildFallbackPrompt(selectedSkill);
+          skillPromptCache.current.set(selectedSkill.slug, systemPrompt);
+        }
+      } else {
+        systemPrompt = WRITING_ASSISTANT_PROMPT;
+      }
+
+      // 流式请求需裸 fetch，手动带 JWT（与 apiRequest 的认证逻辑一致）
+      const token =
+        typeof window !== 'undefined' ? localStorage.getItem(TOKEN_KEY) : null;
+
+      // 系统提示作为 messages 首位的 system 消息注入（后端原样透传，
+      // 注意：单独的 system_prompt 字段后端 schema 不接收，必须走 messages）
+      const payloadMessages = [
+        { role: 'system' as const, content: systemPrompt },
+        ...newMessages.map((m) => ({ role: m.role, content: m.content })),
+      ];
 
       const response = await fetch(`${API_BASE_URL}/llm/chat/stream`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
         body: JSON.stringify({
-          messages: [...newMessages.map((m) => ({ role: m.role, content: m.content }))],
+          messages: payloadMessages,
           stream: true,
-          system_prompt: systemPrompt,
-          prompt_id: selectedPrompt?.id,
         }),
         cache: 'no-store',
       });
@@ -147,7 +210,15 @@ export function ChatWindow({
       setStreamingContent('');
     } catch (err) {
       console.error('Chat error:', err);
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      const msg = err instanceof Error ? err.message : 'An error occurred';
+      // 401：token 失效，清凭据并跳登录（与 apiRequest 的处理一致）
+      if (msg.includes('401') && typeof window !== 'undefined') {
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(USER_KEY);
+        window.location.href = '/login';
+        return;
+      }
+      setError(msg);
     } finally {
       setIsLoading(false);
     }
@@ -172,9 +243,50 @@ export function ChatWindow({
   };
 
   return (
-    <div className="relative h-full">
-      {/* Messages Area - Full height, content scrolls under header and input */}
-      <div className="absolute inset-0 overflow-y-auto px-4 pt-20 pb-32 scrollbar-thin scrollbar-thumb-white/10">
+    <div className="flex h-full flex-col">
+      {/* Header - 顶部固定栏（token 化 + 降 blur） */}
+      <div className="flex h-16 shrink-0 items-center justify-between border-b border-glass-border bg-glass/40 px-4 backdrop-blur-md">
+        {/* 当前工具状态：选了 skill 显示 chip（可点开弹窗 / 可清除），否则显示选择按钮 */}
+        {selectedSkill ? (
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={onOpenSkillPicker}
+              className="flex items-center gap-1.5 rounded-lg border border-primary/40 bg-primary/10 px-2.5 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-primary/60"
+            >
+              <Sparkles size={13} className="text-primary" aria-hidden />
+              <span className="max-w-[8rem] truncate">{selectedSkill.name}</span>
+            </button>
+            <button
+              onClick={onClearSkill}
+              className="rounded-lg p-1 text-muted-foreground transition-colors hover:bg-glass hover:text-foreground"
+              aria-label="清除选中的工具，恢复写作助手"
+            >
+              <X size={14} aria-hidden />
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={onOpenSkillPicker}
+            className="flex items-center gap-1.5 rounded-lg border border-glass-border bg-glass px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+          >
+            <FileText size={13} aria-hidden />
+            <span>写作助手</span>
+            <Plus size={12} aria-hidden />
+          </button>
+        )}
+
+        {/* 「新对话」入口移除：侧边栏已有，避免重复 */}
+        <button
+          onClick={onNewSession}
+          className="rounded-lg p-2 text-muted-foreground hover:bg-glass hover:text-foreground md:hidden"
+          aria-label="新对话"
+        >
+          <Sparkles size={18} aria-hidden />
+        </button>
+      </div>
+
+      {/* Messages Area - flex-1 占满中间 */}
+      <div className="flex-1 overflow-y-auto px-4 py-6">
         {sessionMessages.length === 0 && !streamingContent ? (
           <div className="flex h-full flex-col items-center justify-center text-center">
             <motion.div
@@ -183,47 +295,24 @@ export function ChatWindow({
               className="max-w-md space-y-6"
             >
               <div className="flex justify-center">
-                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 shadow-lg shadow-cyan-500/30">
-                  <Bot size={32} className="text-white" />
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/15 text-primary">
+                  <Bot size={32} aria-hidden />
                 </div>
               </div>
 
               <div>
-                <h2 className="text-2xl font-bold text-white">开始对话</h2>
-                <p className="mt-2 text-zinc-400">
-                  {selectedPrompt
-                    ? `当前使用「${selectedPrompt.name}」提示词`
-                    : '选择一个提示词开始智能对话'}
+                <h2 className="text-2xl font-bold text-foreground">写作助手</h2>
+                <p className="mt-2 text-muted-foreground">
+                  辅助你撰写站内文章、润色草稿、打磨各类内容
                 </p>
               </div>
 
-              {selectedPrompt?.description && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.2 }}
-                  className="p-4 rounded-xl bg-white/5 border border-white/10 text-left"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-500/20 shrink-0">
-                      <Sparkles size={16} className="text-cyan-400" />
-                    </div>
-                    <div>
-                      <div className="text-sm font-medium text-white">{selectedPrompt.name}</div>
-                      <p className="mt-1 text-xs text-zinc-400 line-clamp-2">
-                        {selectedPrompt.description}
-                      </p>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-
               <div className="flex flex-wrap justify-center gap-2">
-                {['写一首诗', '解释概念', '翻译文本', '编写代码'].map((example) => (
+                {['润色这段文字', '为草稿拟 5 个标题', '把大纲扩写成初稿', '检查语病与错别字'].map((example) => (
                   <button
                     key={example}
                     onClick={() => setInput(example)}
-                    className="px-3 py-1.5 text-sm text-zinc-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-colors"
+                    className="rounded-full bg-glass px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
                   >
                     {example}
                   </button>
@@ -246,25 +335,31 @@ export function ChatWindow({
                   )}
                 >
                   {message.role === 'assistant' && (
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600">
-                      <Bot size={16} className="text-white" />
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
+                      <Bot size={16} aria-hidden />
                     </div>
                   )}
                   <div
                     className={cn(
                       'max-w-[80%] rounded-2xl px-4 py-3',
                       message.role === 'user'
-                        ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white'
-                        : 'bg-white/5 text-zinc-200 border border-white/10'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'border border-glass-border bg-glass text-foreground'
                     )}
                   >
-                    <div className="whitespace-pre-wrap break-words text-sm leading-relaxed">
-                      {message.content}
-                    </div>
+                    {message.role === 'assistant' ? (
+                      <div className="text-sm leading-relaxed [&_p]:mb-2 [&_p:last-child]:mb-0 [&_pre]:my-2 [&_pre]:overflow-x-auto [&_code]:rounded [&_code]:bg-muted/40 [&_code]:px-1 [&_code]:py-0.5 [&_a]:text-primary [&_a]:underline">
+                        <MarkdownRenderer content={message.content} />
+                      </div>
+                    ) : (
+                      <div className="whitespace-pre-wrap break-words text-sm leading-relaxed">
+                        {message.content}
+                      </div>
+                    )}
                   </div>
                   {message.role === 'user' && (
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-zinc-700">
-                      <User size={16} className="text-zinc-300" />
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-glass text-muted-foreground">
+                      <User size={16} aria-hidden />
                     </div>
                   )}
                 </motion.div>
@@ -277,13 +372,13 @@ export function ChatWindow({
                 animate={{ opacity: 1 }}
                 className="flex gap-4"
               >
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600">
-                  <Bot size={16} className="text-white" />
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
+                  <Bot size={16} aria-hidden />
                 </div>
-                <div className="max-w-[80%] rounded-2xl px-4 py-3 bg-white/5 text-zinc-200 border border-white/10">
-                  <div className="whitespace-pre-wrap break-words text-sm leading-relaxed">
-                    {streamingContent}
-                    <span className="inline-block w-2 h-4 ml-1 bg-cyan-400 animate-pulse" />
+                <div className="max-w-[80%] rounded-2xl border border-glass-border bg-glass px-4 py-3 text-foreground">
+                  <div className="text-sm leading-relaxed [&_p]:mb-2 [&_p:last-child]:mb-0 [&_pre]:my-2 [&_pre]:overflow-x-auto [&_code]:rounded [&_code]:bg-muted/40 [&_code]:px-1 [&_code]:py-0.5 [&_a]:text-primary [&_a]:underline">
+                    <MarkdownRenderer content={streamingContent} />
+                    <span className="ml-1 inline-block h-4 w-2 animate-pulse bg-primary align-middle" aria-hidden />
                   </div>
                 </div>
               </motion.div>
@@ -295,12 +390,12 @@ export function ChatWindow({
                 animate={{ opacity: 1 }}
                 className="flex gap-4"
               >
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600">
-                  <Bot size={16} className="text-white" />
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
+                  <Bot size={16} aria-hidden />
                 </div>
-                <div className="flex items-center gap-2 px-4 py-3 rounded-2xl bg-white/5 border border-white/10">
-                  <Loader2 className="animate-spin text-cyan-400" size={16} />
-                  <span className="text-sm text-zinc-400">正在思考...</span>
+                <div className="flex items-center gap-2 rounded-2xl border border-glass-border bg-glass px-4 py-3">
+                  <Loader2 className="animate-spin text-primary" size={16} aria-hidden />
+                  <span className="text-sm text-muted-foreground">正在思考...</span>
                 </div>
               </motion.div>
             )}
@@ -309,17 +404,17 @@ export function ChatWindow({
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="flex items-center gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/20"
+                className="flex items-center gap-3 rounded-xl border border-red-500/20 bg-red-500/10 p-4"
               >
-                <AlertCircle className="text-red-400 shrink-0" size={20} />
+                <AlertCircle className="shrink-0 text-red-400" size={20} aria-hidden />
                 <div className="flex-1">
                   <p className="text-sm text-red-400">{error}</p>
                 </div>
                 <button
                   onClick={handleRetry}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
+                  className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm text-red-400 transition-colors hover:bg-red-500/20"
                 >
-                  <RefreshCw size={14} />
+                  <RefreshCw size={14} aria-hidden />
                   重试
                 </button>
               </motion.div>
@@ -330,87 +425,32 @@ export function ChatWindow({
         )}
       </div>
 
-      {/* Header - Fixed overlay with blur */}
-      <div className="absolute top-0 left-0 right-0 z-20 flex h-16 items-center justify-between border-b border-white/10 px-4 bg-black/20 backdrop-blur-xl">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={onToggleSidebar}
-            className="rounded-lg p-2 text-zinc-400 hover:bg-white/10 hover:text-white transition-colors"
-            aria-label="打开侧边栏"
-          >
-            <Menu size={20} aria-hidden="true" />
-          </button>
-
-          {selectedPrompt ? (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-cyan-500/20 to-blue-600/20 border border-cyan-500/30"
-            >
-              <motion.div
-                animate={{ rotate: [0, 360] }}
-                transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
-              >
-                <Sparkles size={14} className="text-cyan-400" />
-              </motion.div>
-              <span className="text-sm font-medium text-cyan-300">{selectedPrompt.name}</span>
-              <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-            </motion.div>
-          ) : (
-            <div className="flex items-center gap-2 text-zinc-500 text-sm">
-              <FileText size={14} />
-              <span>未选择提示词</span>
-            </div>
-          )}
-        </div>
-
-        <button
-          onClick={onNewSession}
-          className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 hover:bg-white/10 hover:text-white transition-colors"
-        >
-          <Plus size={16} />
-          <span className="hidden sm:inline">新对话</span>
-        </button>
-      </div>
-
-      {/* Input Area - Fixed overlay with blur */}
-      <div className="absolute bottom-0 left-0 right-0 z-20 border-t border-white/10 p-4 bg-black/20 backdrop-blur-xl">
+      {/* Input Area - 底部固定（token 化 + 降 blur） */}
+      <div className="shrink-0 border-t border-glass-border bg-glass/40 p-4 backdrop-blur-md">
         <div className="mx-auto max-w-3xl">
-          {selectedPrompt && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-3 flex items-center justify-center"
-            >
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-cyan-500/10 to-blue-600/10 border border-cyan-500/20 text-xs text-cyan-400">
-                <Sparkles size={12} />
-                <span>使用提示词: {selectedPrompt.name}</span>
-                <div className="flex items-center justify-center w-4 h-4 rounded-full bg-cyan-500/20">
-                  <Check size={10} className="text-cyan-400" />
-                </div>
-              </div>
-            </motion.div>
-          )}
-
           <form onSubmit={handleSubmit} className="relative">
             <textarea
               ref={inputRef}
               value={input}
-              onChange={(e) => setInput(e.target.value)}
+              onChange={(e) => {
+                setInput(e.target.value);
+                // 自适应增高：随内容撑高，封顶 200px，超出后内部滚动
+                const el = e.target;
+                el.style.height = 'auto';
+                el.style.height = `${Math.min(el.scrollHeight, 200)}px`;
+              }}
               onKeyDown={handleKeyDown}
-              placeholder={selectedPrompt ? `使用「${selectedPrompt.name}」进行对话...` : '输入消息...'}
+              placeholder="输入想写或想润色的内容..."
               rows={1}
               disabled={isLoading}
               className={cn(
-                'w-full resize-none rounded-2xl px-4 py-3 pr-12 text-white placeholder-zinc-500',
-                'bg-white/5 border border-white/10 focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20',
-                'transition-all disabled:opacity-50 disabled:cursor-not-allowed',
+                'w-full resize-none overflow-y-auto rounded-2xl px-4 py-3 pr-12',
+                'placeholder:text-muted-foreground/70',
+                'border border-glass-border bg-glass text-foreground',
+                'focus:border-primary/50 focus:ring-1 focus:ring-primary/20',
+                'transition-[border-color,box-shadow] disabled:cursor-not-allowed disabled:opacity-50',
                 'min-h-[48px] max-h-[200px]'
               )}
-              style={{
-                height: 'auto',
-                overflow: input.split('\n').length > 3 || input.length > 200 ? 'auto' : 'hidden',
-              }}
             />
             <button
               type="submit"
@@ -418,17 +458,21 @@ export function ChatWindow({
               className={cn(
                 'absolute right-2 top-1/2 -translate-y-1/2',
                 'flex h-9 w-9 items-center justify-center rounded-xl',
-                'transition-all duration-200',
+                'transition-[colors,transform] duration-200',
                 input.trim() && !isLoading
-                  ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/30 hover:shadow-cyan-500/50'
-                  : 'bg-white/10 text-zinc-500 cursor-not-allowed'
+                  ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-primary/50'
+                  : 'cursor-not-allowed bg-muted text-muted-foreground'
               )}
               aria-label="发送"
             >
-              {isLoading ? <Loader2 className="animate-spin" size={18} aria-hidden="true" /> : <Send size={18} aria-hidden="true" />}
+              {isLoading ? (
+                <Loader2 className="animate-spin" size={18} aria-hidden />
+              ) : (
+                <Send size={18} aria-hidden />
+              )}
             </button>
           </form>
-          <p className="mt-2 text-center text-xs text-zinc-600">
+          <p className="mt-2 text-center text-xs text-muted-foreground">
             按 Enter 发送 · Shift + Enter 换行
           </p>
         </div>

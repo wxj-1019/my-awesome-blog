@@ -76,7 +76,7 @@ export default function StickySidebar({
     <div
       ref={sidebarRef}
       className={cn(
-        'relative z-40 transition-all duration-300',
+        'relative z-40 transition-[width,max-width] duration-300',
         isLeft ? 'border-r' : 'border-l',
         'border-glass-border',
         isSticky && 'sticky top-0',
@@ -93,7 +93,7 @@ export default function StickySidebar({
         ref={contentRef}
         className={cn(
           'h-full overflow-y-auto overflow-x-hidden',
-          'transition-all duration-300',
+          'transition-colors duration-300',
           'scrollbar-thin scrollbar-thumb-glass-border scrollbar-track-transparent'
         )}
       >
@@ -120,7 +120,7 @@ export default function StickySidebar({
           className={cn(
             'absolute top-1/2 -translate-y-1/2 z-50 p-2 rounded-full',
             'bg-tech-cyan hover:bg-tech-lightcyan',
-            'text-white shadow-lg transition-all duration-200',
+            'text-white shadow-lg transition-[colors,transform] duration-200',
             isLeft ? '-right-3' : '-left-3'
           )}
           whileHover={{ scale: 1.1 }}

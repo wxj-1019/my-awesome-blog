@@ -114,7 +114,7 @@ function ReportDialog({
                       key={reason.id}
                       onClick={() => setSelectedReason(reason.id)}
                       className={cn(
-                        'flex items-center gap-2 px-4 py-3 rounded-lg border transition-all text-left',
+                        'flex items-center gap-2 px-4 py-3 rounded-lg border transition-colors text-left',
                         selectedReason === reason.id
                           ? 'bg-tech-pink/20 border-tech-pink text-tech-pink'
                           : 'bg-muted/40 border-border text-muted-foreground hover:border-primary/50'

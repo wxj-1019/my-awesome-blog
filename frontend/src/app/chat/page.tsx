@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import ChatPageContent from './chat-content';
 
 export const metadata: Metadata = {
-  title: 'AI 聊天 - My Awesome Blog',
-  description: '与 AI 助手进行多会话聊天，保存对话历史并快速选用提示词。',
+  title: '写作助手 - My Awesome Blog',
+  description: '用 AI 辅助撰写、润色与管理站内文章内容，保存对话历史并快速选用提示词。',
 };
 
 export default function ChatPage() {

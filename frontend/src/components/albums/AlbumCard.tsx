@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { motion, useMotionValue, useTransform } from '@/lib/framer-motion';
 import { Camera, Image as ImageIcon, Calendar, Star, Heart, Share2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { EASE } from '@/lib/animation-utils';
 import GlassCard from '@/components/ui/GlassCard';
 import { useThemedClasses } from '@/hooks/useThemedClasses';
 
@@ -77,8 +78,8 @@ const AlbumCard: React.FC<AlbumCardProps> = ({
       <GlassCard
         className={cn(
           'h-full overflow-hidden cursor-pointer group',
-          enableHoverEffect && 'transition-all duration-300',
-          isHovered && 'shadow-2xl shadow-tech-cyan/20'
+          // 只过渡阴影，hover 用玻璃柔和影替代重阴影
+          enableHoverEffect && 'transition-shadow duration-300 hover:shadow-[var(--glass-shadow)]'
         )}
       >
         <div className="relative aspect-video overflow-hidden">
@@ -87,8 +88,8 @@ const AlbumCard: React.FC<AlbumCardProps> = ({
             alt={album.title}
             className="w-full h-full object-cover"
             initial={{ scale: 1 }}
-            animate={{ scale: isHovered ? 1.1 : 1 }}
-            transition={{ duration: 0.5 }}
+            animate={{ scale: isHovered ? 1.05 : 1 }}
+            transition={{ duration: 0.6, ease: EASE.SMOOTH }}
           />
 
           {album.featured && (
@@ -169,22 +170,13 @@ const AlbumCard: React.FC<AlbumCardProps> = ({
         </div>
 
         <div className="p-4">
-          <motion.h3
-            className={cn('font-bold text-lg mb-2 line-clamp-1', themedClasses.textClass)}
-            initial={{ x: -20 }}
-            animate={{ x: isHovered ? 10 : 0 }}
-            transition={{ duration: 0.3 }}
-          >
+          {/* 标题/描述保持静止，不做 hover 平移错位反馈 */}
+          <h3 className={cn('font-bold text-lg mb-2 line-clamp-1', themedClasses.textClass)}>
             {album.title}
-          </motion.h3>
-          <motion.p
-            className={cn('text-sm mb-3 line-clamp-2', themedClasses.mutedTextClass)}
-            initial={{ x: -20 }}
-            animate={{ x: isHovered ? 10 : 0 }}
-            transition={{ duration: 0.3, delay: 0.05 }}
-          >
+          </h3>
+          <p className={cn('text-sm mb-3 line-clamp-2', themedClasses.mutedTextClass)}>
             {album.description}
-          </motion.p>
+          </p>
           <motion.div
             className={cn('flex items-center justify-between text-sm', themedClasses.mutedTextClass)}
             initial={{ opacity: 0 }}

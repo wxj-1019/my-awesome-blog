@@ -10,7 +10,8 @@
   border-radius: inherit;
   z-index: -1;
   background-size: 400% 400%;
-  animation: gradient-move 3s ease infinite;
+  /* 柔和化：发光边框流转放缓一倍，退去霓虹感 */
+  animation: gradient-move 6s var(--ease-breathe) infinite;
 }
 
 .dark .glow-border::before {

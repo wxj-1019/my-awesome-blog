@@ -17,132 +17,51 @@ FastAPI backend for the My Awesome Blog application.
 
 ```
 backend/
-├── alembic/                    # 数据库迁移文件
-│   ├── env.py
-│   ├── script.py.mako
-│   └── versions/
-│       ├── 001_add_new_tables.py
-│       ├── 002_add_typewriter_contents_table.py
-│       └── 003_migrate_to_uuid.py
+├── alembic/                    # 数据库迁移
+│   ├── env.py · script.py.mako
+│   └── versions/               # 000~014，含全文检索/审计日志/LLM/天气/软删除/pgvector
 ├── app/                        # 主应用代码
-│   ├── __init__.py
-│   ├── main.py                # FastAPI应用入口
-│   ├── api/                   # API路由
-│   │   ├── __init__.py
-│   │   └── v1/
-│   │       ├── __init__.py
-│   │       ├── router.py
-│   │       └── endpoints/     # API端点
-│   │           ├── __init__.py
-│   │           ├── auth.py
-│   │           ├── users.py
-│   │           ├── articles.py
-│   │           ├── comments.py
-│   │           ├── categories.py
-│   │           ├── tags.py
-│   │           ├── friend_links.py
-│   │           ├── portfolio.py
-│   │           ├── timeline_events.py
-│   │           ├── statistics.py
-│   │           ├── subscriptions.py
-│   │           ├── images.py
-│   │           └── typewriter_contents.py
-│   ├── core/                  # 核心配置和工具
-│   │   ├── __init__.py
-│   │   ├── config.py          # 应用配置
-│   │   ├── database.py        # 数据库配置
-│   │   ├── security.py        # 安全相关
-│   │   └── dependencies.py    # 依赖注入
-│   ├── models/                # SQLAlchemy模型
-│   │   ├── __init__.py
-│   │   ├── user.py
-│   │   ├── article.py
-│   │   ├── comment.py
-│   │   ├── category.py
-│   │   ├── tag.py
-│   │   ├── friend_link.py
-│   │   ├── portfolio.py
-│   │   ├── timeline_event.py
-│   │   ├── subscription.py
-│   │   ├── image.py
-│   │   ├── typewriter_content.py
-│   │   ├── article_category.py
-│   │   └── article_tag.py
-│   ├── schemas/               # Pydantic模型（数据验证）
-│   │   ├── __init__.py
-│   │   ├── user.py
-│   │   ├── article.py
-│   │   ├── comment.py
-│   │   ├── category.py
-│   │   ├── tag.py
-│   │   ├── friend_link.py
-│   │   ├── portfolio.py
-│   │   ├── timeline_event.py
-│   │   ├── subscription.py
-│   │   ├── image.py
-│   │   ├── typewriter_content.py
-│   │   ├── token.py
-│   │   └── statistics.py
-│   ├── crud/                  # 数据库CRUD操作
-│   │   ├── __init__.py
-│   │   ├── user.py
-│   │   ├── article.py
-│   │   ├── comment.py
-│   │   ├── category.py
-│   │   ├── tag.py
-│   │   ├── friend_link.py
-│   │   ├── portfolio.py
-│   │   ├── timeline_event.py
-│   │   ├── subscription.py
-│   │   ├── image.py
-│   │   └── typewriter_content.py
-│   ├── services/              # 业务逻辑服务
-│   │   ├── __init__.py
-│   │   ├── cache_service.py
-│   │   ├── email_service.py
-│   │   ├── image_service.py
-│   │   └── statistics_service.py
-│   ├── utils/                 # 工具函数
-│   │   ├── __init__.py
-│   │   ├── logger.py
-│   │   └── middleware.py
-│   ├── logs/                  # 日志文件
-│   └── tests/                 # 测试文件
-│       └── [测试文件]
-├── scripts/                   # 脚本文件
-│   ├── __init__.py
-│   ├── create_admin_user.py
-│   ├── run_server.py
-│   ├── simple_server.py
-│   ├── run_migration.py
-│   ├── db_setup.py
-│   ├── diagnose_db.py
-│   ├── fix_db_connection.py
-│   ├── run_migrations.py
-│   └── update_db_config.py
-├── docs/                      # 文档
-│   ├── API_DOCUMENTATION.md
-│   └── PROJECT_STRUCTURE.md
-├── migration_scripts/         # 临时迁移脚本
-│   ├── migrate_to_uuid.py
-│   ├── migrate_to_uuid_complete.py
-│   ├── migrate_to_uuid_final.py
-│   ├── migrate_to_uuid_precise.py
-│   ├── migrate_to_uuid_safe_method.py
-│   └── migrate_to_uuid_safe.py
-├── logs/                      # 日志输出目录
-├── .env.example              # 环境变量示例
-├── .gitignore
-├── alembic.ini               # Alembic配置
-├── requirements.txt          # 生产依赖
-├── requirements-test.txt     # 测试依赖
-├── Dockerfile
-├── docker-compose.yml        # 如果存在
-├── pytest.ini                # Pytest配置
-├── PROJECT_STRUCTURE.md      # 项目结构文档
-├── README.md
-└── init_db.bat              # 初始化数据库脚本（Windows）
+│   ├── main.py                 # FastAPI 入口（lifespan / 中间件 / 路由注册）
+│   ├── api/v1/
+│   │   ├── router.py           # 路由注册权威清单
+│   │   └── endpoints/          # 26 个端点：articles/comments/auth/users/categories/tags
+│   │                           #   + friend_links/portfolio/timeline_events/subscriptions
+│   │                           #   + messages/albums/typewriter_contents/images/oss_upload
+│   │                           #   + statistics/analytics/monitoring/audit_logs/weather
+│   │                           #   + AI 域：llm/agent/conversations/memories/prompts
+│   │                           #   + 租户：tenants
+│   ├── agent/                  # AI Agent 循环 + 工具注册（tools/builtin.py）
+│   ├── llm/                    # 多 LLM 提供商（deepseek/glm/qwen + provider_factory）
+│   ├── conversation/ · memory/ · context/ · prompts/   # AI 记忆/对话/上下文/提示词
+│   ├── core/                   # config · database(_async) · security · dependencies
+│   │                           #   + soft_delete · types · vector_db · exception_handlers
+│   ├── models/                 # SQLAlchemy 模型（含 models/logs/ 审计与请求日志）
+│   ├── schemas/                # Pydantic v2 入参/出参
+│   ├── crud/                   # 数据库 CRUD 操作（按域拆分）
+│   ├── services/               # 业务逻辑：cache/email/image/oss/statistics/tenant
+│   │                           #   + AI：agent/llm/conversation/memory/prompt/context
+│   │                           #   + weather(_update)
+│   ├── utils/                  # logger/middleware/rate_limit/perf_monitor/pagination
+│   │                           #   + cache/oss/file_validation/security/permission 等
+│   ├── exceptions/             # 自定义异常
+│   ├── middleware/             # 中间件（请求大小限制等）
+│   ├── tests/                  # pytest 用例（conftest + 21 个测试模块）
+│   └── logs/                   # 运行日志
+├── scripts/                    # 运维/数据脚本
+│   ├── init_db.py · init_pgvector.py · seed_ai_articles.py
+│   ├── make_superuser.py · reset_admin_password.py · verify_images.py
+│   ├── check_*.py · migration_*.py · run_migration(.bat/.ps1)   # 迁移与检查工具
+│   ├── init/ · seed/           # 初始化与种子数据子目录
+│   └── （历史 test_*.py / migrate_*.py 归档于此）
+├── alembic.ini                 # Alembic 配置
+├── pyproject.toml · pytest.ini # 工程与测试配置
+├── requirements.txt · requirements-test.txt
+├── Dockerfile · .dockerignore
+├── .env.example                # 环境变量模板（真实 .env 不入库）
+└── README.md                   # 本文件
 ```
+
+> 路由前缀均为 `/api/v1/*`，完整清单见 `app/api/v1/router.py`，运行时见 `/docs`。
 
 ## Quick Start
 
@@ -190,32 +109,19 @@ SECRET_KEY=your-super-secret-key-change-this-in-production
 
 **Option A: Automatic Setup (Recommended)**
 
-Use the provided database initialization script:
+Use the provided database initialization script (creates tables + seed data):
 
 ```bash
-# Windows
-python scripts/init_db_simple.py
-
-# Or use the batch script
-init_db.bat
+python scripts/init_db.py
 ```
 
-**Option B: Using Diagnostic Tools (Windows-specific)**
-
-Use the provided diagnostic and repair tools:
+To create or promote an admin user afterward:
 
 ```bash
-# Step 1: Diagnose database connection
-python scripts/diagnose_db.py
-
-# Step 2: Fix any issues found (creates database if missing)
-python scripts/fix_db_connection.py
-
-# Step 3: Update database configuration if needed
-python scripts/update_db_config.py
+python scripts/make_superuser.py
 ```
 
-**Option C: Manual Setup**
+**Option B: Manual Setup**
 
 ```bash
 # Run migrations
@@ -339,73 +245,48 @@ pip install pre-commit
 pre-commit install
 ```
 
-## Database Setup Tools (Windows-Specific)
-
-We provide automated tools to help set up and troubleshoot your PostgreSQL database on Windows.
+## Database Setup Tools
 
 ### Available Scripts
 
-#### 1. Database Diagnostic Tool (`scripts/diagnose_db.py`)
+#### 1. Database Initialization (`scripts/init_db.py`)
 
-Diagnoses PostgreSQL connection issues:
-
-```bash
-python scripts/diagnose_db.py
-```
-
-Checks:
-- PostgreSQL service status
-- Port availability (5432)
-- Server connectivity
-- Database existence
-- User credentials
-
-#### 2. Database Repair Tool (`scripts/fix_db_connection.py`)
-
-Automatically creates missing databases and initializes table structure:
+Creates all tables and seed data:
 
 ```bash
-python scripts/fix_db_connection.py
+python scripts/init_db.py
 ```
 
-This script will:
-- Create the database if it doesn't exist
-- Create all required tables
-- Create the default admin user (username: `admin`, password: `admin123`)
+#### 2. pgvector Extension (`scripts/init_pgvector.py`)
 
-#### 3. Configuration Update Tool (`scripts/update_db_config.py`)
-
-Update database connection parameters interactively:
+Enables the PostgreSQL vector extension (required by AI memory / semantic search):
 
 ```bash
-python scripts/update_db_config.py
+python scripts/init_pgvector.py
 ```
 
-Allows you to update:
-- Host address
-- Port number
-- Database name
-- Username
-- Password
+#### 3. Admin User Management
+
+```bash
+python scripts/make_superuser.py        # 提升已有用户为超级管理员
+python scripts/reset_admin_password.py  # 重置管理员密码
+```
+
+#### 4. Migration Helpers
+
+```bash
+# 一键检查连接 + 迁移 + 验证（Windows）
+scripts\run_migration.bat
+# 或 PowerShell
+scripts\run_migration.ps1
+
+# 仅查看迁移状态
+python scripts/migration_status.py
+```
 
 ### Troubleshooting Common Issues
 
-#### Database Doesn't Exist
-```bash
-# Run diagnostics first
-python scripts/diagnose_db.py
-
-# Then run the fix script
-python scripts/fix_db_connection.py
-```
-
-#### Authentication Errors
-```bash
-# Update your credentials
-python scripts/update_db_config.py
-```
-
-#### Service Not Running
+#### Service Not Running (Windows)
 ```cmd
 # Check service status
 sc query postgresql-x64-17
@@ -421,11 +302,6 @@ Alternatively, use Docker Compose for easy PostgreSQL setup:
 ```bash
 docker-compose up -d postgres
 ```
-
-This will:
-- Start PostgreSQL container on port 5432
-- Create database `my_awesome_blog`
-- Set user `postgres` with password `123456`
 
 ## License
 

@@ -151,7 +151,7 @@ export default function Portfolio() {
               key={cat.id}
               onClick={() => setSelectedCategory(cat.id)}
               className={cn(
-                'px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200',
+                'px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200',
                 'flex items-center gap-2',
                 selectedCategory === cat.id
                   ? 'bg-gradient-to-r text-white shadow-lg shadow-tech-cyan/30'
@@ -181,7 +181,7 @@ export default function Portfolio() {
             >
               <div
                 className={cn(
-                  'relative w-full h-full transition-all duration-700 ease-in-out',
+                  'relative w-full h-full transition-transform duration-700 ease-in-out',
                   'transform-gpu',
                   flippedCards.has(project.id) ? 'rotate-y-180' : ''
                 )}
@@ -192,7 +192,7 @@ export default function Portfolio() {
                 <div
                 className={cn(
                   'absolute inset-0 w-full h-full',
-                  'transition-all duration-700 ease-in-out',
+                  'transition-colors duration-700 ease-in-out',
                   'hover:shadow-[0_0_40px_var(--shadow-tech-cyan),0_8px_32px_rgba(0,0,0,0.12)]'
                 )}
                 style={{ backfaceVisibility: 'hidden' }}
@@ -278,7 +278,7 @@ export default function Portfolio() {
                 <div
                   className={cn(
                     'absolute inset-0 w-full h-full',
-                    'transition-all duration-700 ease-in-out'
+                    'transition-colors duration-700 ease-in-out'
                   )}
                   style={{
                     backfaceVisibility: 'hidden',

@@ -39,21 +39,21 @@ export default function PromptCard({ prompt, onEdit, onDelete, onDuplicate }: Pr
         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <button
             onClick={() => onDuplicate(prompt)}
-            className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition-all"
+            className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition-colors"
             title="复制"
           >
             <Copy className="w-4 h-4" />
           </button>
           <button
             onClick={() => onEdit(prompt.id)}
-            className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition-all"
+            className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition-colors"
             title="编辑"
           >
             <Edit className="w-4 h-4" />
           </button>
           <button
             onClick={() => onDelete(prompt.id)}
-            className="p-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/40 text-red-400 hover:text-red-300 transition-all"
+            className="p-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/40 text-red-400 hover:text-red-300 transition-colors"
             title="删除"
           >
             <Trash2 className="w-4 h-4" />

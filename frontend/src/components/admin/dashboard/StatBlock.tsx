@@ -37,7 +37,7 @@ export default function StatBlock({ blocks }: StatBlockProps) {
           {blocks.map((block) => (
             <div
               key={block.label}
-              className="text-center p-4 rounded-xl bg-glass/20 border border-glass-border/20 hover:bg-glass/30 transition-all duration-300"
+              className="text-center p-4 rounded-xl bg-glass/20 border border-glass-border/20 hover:bg-glass/30 transition-colors duration-300"
             >
               <p className="text-sm text-foreground/70 mb-1">{block.label}</p>
               <p className={`text-2xl font-bold mb-1 ${block.color}`}>{block.value}</p>

@@ -157,7 +157,7 @@ function MessageInput({
             "bg-background/50 border border-input",
             "focus:outline-none focus:ring-2 focus:ring-tech-cyan/50 focus:border-tech-cyan",
             "placeholder:text-muted-foreground",
-            "transition-all duration-200",
+            "transition-colors duration-200",
             themedClasses.textClass
           )}
         />
@@ -248,7 +248,7 @@ function MessageInput({
                 onClick={() => setSelectedColor(color.value)}
                 title={color.name}
                 className={cn(
-                  "w-6 h-6 rounded-full transition-all duration-200",
+                  "w-6 h-6 rounded-full transition-transform duration-200",
                   "focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-tech-cyan",
                   selectedColor === color.value && "ring-2 ring-offset-1 ring-tech-cyan scale-110"
                 )}
@@ -263,7 +263,7 @@ function MessageInput({
           type="button"
           onClick={() => setIsDanmaku(!isDanmaku)}
           className={cn(
-            "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-all duration-200",
+            "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-colors duration-200",
             isDanmaku
               ? "bg-tech-cyan/20 text-tech-cyan border border-tech-cyan/30"
               : "bg-muted text-muted-foreground border border-transparent hover:bg-muted/80"

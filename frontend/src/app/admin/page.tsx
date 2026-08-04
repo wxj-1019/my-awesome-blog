@@ -170,25 +170,25 @@ export default function AdminDashboard() {
       label: '内容发布率',
       value: stats.articlesCount > 0 ? '100%' : '0%',
       description: '活跃度',
-      color: 'text-green-500'
+      color: 'text-success'
     },
     {
       label: '平均浏览量',
       value: stats.articlesCount > 0 ? Math.round(stats.viewsCount / stats.articlesCount).toLocaleString() : '0',
       description: '次/篇文章',
-      color: 'text-blue-500'
+      color: 'text-cat-1'
     },
     {
       label: '用户活跃度',
       value: stats.usersCount > 0 ? '78%' : '0%',
       description: '回头率',
-      color: 'text-purple-500'
+      color: 'text-cat-2'
     },
     {
       label: '增长趋势',
       value: '+23%',
       description: '较上月',
-      color: 'text-orange-500'
+      color: 'text-warning'
     },
   ]
 

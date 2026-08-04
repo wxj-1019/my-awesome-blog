@@ -313,7 +313,7 @@ export default function FeaturedReel({ items, className }: FeaturedReelProps) {
               type="button"
               onClick={() => scrollToIndex(i)}
               className={cn(
-                'h-1.5 rounded-full transition-all',
+                'h-1.5 rounded-full transition-colors',
                 i === activeIndex
                   ? 'w-6 bg-primary'
                   : 'w-1.5 bg-muted-foreground/40 hover:bg-muted-foreground/70'

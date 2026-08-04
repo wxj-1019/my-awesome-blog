@@ -83,7 +83,7 @@ export default function BreadcrumbDropdown({
                         }
                       }}
                       className={cn(
-                        'w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-all',
+                        'w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-colors',
                         'text-left text-sm',
                         'hover:bg-muted/40 text-foreground'
                       )}
@@ -138,7 +138,7 @@ export default function BreadcrumbDropdown({
             <motion.button
               onClick={() => setShowDropdown(!showDropdown)}
               className={cn(
-                'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all',
+                'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors',
                 'bg-muted/40 text-foreground hover:bg-muted'
               )}
               whileHover={{ scale: 1.02 }}

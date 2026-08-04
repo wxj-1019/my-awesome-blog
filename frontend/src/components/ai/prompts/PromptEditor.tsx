@@ -54,7 +54,7 @@ export default function PromptEditor({ prompt, onSave, onCancel }: PromptEditorP
         </h2>
         <button
           onClick={onCancel}
-          className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition-all"
+          className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition-colors"
           aria-label="关闭"
         >
           <X className="w-5 h-5" aria-hidden="true" />
@@ -68,7 +68,7 @@ export default function PromptEditor({ prompt, onSave, onCancel }: PromptEditorP
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="输入 Prompt 名称"
-            className="w-full bg-white/5 text-white placeholder:text-white/50 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-tech-cyan/50 transition-all"
+            className="w-full bg-white/5 text-white placeholder:text-white/50 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-tech-cyan/50 transition-colors"
           />
         </div>
         <div>
@@ -78,7 +78,7 @@ export default function PromptEditor({ prompt, onSave, onCancel }: PromptEditorP
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             placeholder="输入分类（可选）"
-            className="w-full bg-white/5 text-white placeholder:text-white/50 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-tech-cyan/50 transition-all"
+            className="w-full bg-white/5 text-white placeholder:text-white/50 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-tech-cyan/50 transition-colors"
           />
         </div>
       </div>
@@ -89,7 +89,7 @@ export default function PromptEditor({ prompt, onSave, onCancel }: PromptEditorP
           onChange={(e) => setDescription(e.target.value)}
           placeholder="输入描述（可选）"
           rows={2}
-          className="w-full bg-white/5 text-white placeholder:text-white/50 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-tech-cyan/50 transition-all resize-none"
+          className="w-full bg-white/5 text-white placeholder:text-white/50 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-tech-cyan/50 transition-colors resize-none"
         />
       </div>
       <div>
@@ -97,7 +97,7 @@ export default function PromptEditor({ prompt, onSave, onCancel }: PromptEditorP
           <label className="text-xs text-white/70 block">Prompt 内容</label>
           <button
             onClick={() => setVariables({ ...variables, [`var_${Object.keys(variables).length + 1}`]: '' })}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-tech-cyan hover:bg-tech-lightcyan text-white text-xs transition-all"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-tech-cyan hover:bg-tech-lightcyan text-white text-xs transition-colors"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>添加变量</span>
@@ -108,7 +108,7 @@ export default function PromptEditor({ prompt, onSave, onCancel }: PromptEditorP
           onChange={(e) => setContent(e.target.value)}
           placeholder="输入 Prompt 内容，使用 {{variable_name}} 表示变量"
           rows={8}
-          className="w-full bg-black/30 text-white placeholder:text-white/50 rounded-lg px-3 py-3 text-sm font-mono outline-none focus:ring-2 focus:ring-tech-cyan/50 transition-all resize-none"
+          className="w-full bg-black/30 text-white placeholder:text-white/50 rounded-lg px-3 py-3 text-sm font-mono outline-none focus:ring-2 focus:ring-tech-cyan/50 transition-colors resize-none"
         />
       </div>
       {Object.keys(variables).length > 0 && (
@@ -139,7 +139,7 @@ export default function PromptEditor({ prompt, onSave, onCancel }: PromptEditorP
                 />
                 <button
                   onClick={() => handleRemoveVariable(key)}
-                  className="p-1 rounded hover:bg-red-500/20 text-white/70 hover:text-red-400 transition-all"
+                  className="p-1 rounded hover:bg-red-500/20 text-white/70 hover:text-red-400 transition-colors"
                   aria-label="删除变量"
                 >
                   <Trash2 className="w-4 h-4" aria-hidden="true" />
@@ -153,7 +153,7 @@ export default function PromptEditor({ prompt, onSave, onCancel }: PromptEditorP
         <div className="flex items-center justify-between mb-2">
           <label className="text-xs text-white/70 block">预览</label>
           <button
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white/70 hover:text-white text-xs transition-all"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white/70 hover:text-white text-xs transition-colors"
           >
             <Play className="w-3.5 h-3.5" />
             <span>测试变量</span>
@@ -166,14 +166,14 @@ export default function PromptEditor({ prompt, onSave, onCancel }: PromptEditorP
       <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/10">
         <button
           onClick={onCancel}
-          className="px-6 py-2.5 rounded-lg bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition-all"
+          className="px-6 py-2.5 rounded-lg bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition-colors"
         >
           取消
         </button>
         <button
           onClick={handleSave}
           disabled={!name.trim() || !content.trim()}
-          className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-tech-cyan hover:bg-tech-lightcyan text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-tech-cyan hover:bg-tech-lightcyan text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Save className="w-4 h-4" />
           <span>保存</span>

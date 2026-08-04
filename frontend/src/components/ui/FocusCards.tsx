@@ -29,7 +29,7 @@ export function FocusCards({ cards, className }: FocusCardsProps) {
             <Link href={`/articles/${card.slug || card.id}`}>
               <div
                 className={cn(
-                  'relative rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl',
+                  'relative rounded-2xl overflow-hidden cursor-pointer transition-[colors,transform] duration-300 hover:scale-[1.02] hover:shadow-2xl',
                   'bg-card/90 backdrop-blur-xl border border-border'
                 )}
               >
@@ -96,7 +96,7 @@ export function FocusCards({ cards, className }: FocusCardsProps) {
                       </div>
                     )}
 
-                    <button className="p-2 rounded-full bg-tech-cyan/20 hover:bg-tech-cyan hover:scale-110 active:scale-95 backdrop-blur-sm transition-all duration-200">
+                    <button className="p-2 rounded-full bg-tech-cyan/20 hover:bg-tech-cyan hover:scale-110 active:scale-95 backdrop-blur-sm transition-[colors,transform] duration-200">
                       <ArrowRight className="w-5 h-5 text-tech-cyan group-hover:text-white transition-colors" />
                     </button>
                   </div>

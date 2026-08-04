@@ -21,25 +21,27 @@ import {
   X,
   Search,
   Wand2,
-  Bold,
-  Italic,
-  List,
-  ListOrdered,
-  Quote,
-  Code,
-  Link2,
-  Heading1,
-  Heading2,
-  Heading3,
-  Minus,
   Info
 } from 'lucide-react';
 import Link from 'next/link';
 import { adminApi } from '@/lib/admin-api-client';
+import { generateSlug } from '@/lib/slug';
 import Button from '@/components/admin/Button';
 import FormInput from '@/components/admin/FormInput';
-import { useToast, ToastContainer } from '@/components/admin/Toast';
+import { useToast } from '@/components/admin/Toast';
 import GlassCardAdmin from '@/components/ui/GlassCardAdmin';
+import WritingSessionShell from '@/components/admin/writing/WritingSessionShell';
+import ArticleAIAssist from '@/components/admin/writing/ArticleAIAssist';
+import CoverPicker from '@/components/admin/CoverPicker';
+import {
+  MarkdownToolbar,
+  ArticlePreview,
+  generateExcerpt,
+  MIN_TITLE_LENGTH,
+  MIN_CONTENT_LENGTH,
+  type EditorMode,
+} from '@/components/admin/article-editor/shared';
+import type { WritingSession, WritingRevision } from '@/types/writing-session';
 interface Category {
   id: string;
   name: string;
@@ -52,42 +54,9 @@ interface Tag {
   slug: string;
   color?: string;
 }
-type EditorMode = 'edit' | 'preview' | 'split';
-const MIN_TITLE_LENGTH = 5;
-const MIN_CONTENT_LENGTH = 100;
-const MarkdownToolbar = ({ onInsert }: { onInsert: (text: string) => void }) => {
-  const tools = [
-    { icon: Heading1, title: '标题 1', insert: '# ' },
-    { icon: Heading2, title: '标题 2', insert: '## ' },
-    { icon: Heading3, title: '标题 3', insert: '### ' },
-    { icon: Bold, title: '粗体', insert: '****', cursorOffset: 2 },
-    { icon: Italic, title: '斜体', insert: '**', cursorOffset: 1 },
-    { icon: Quote, title: '引用', insert: '> ' },
-    { icon: Code, title: '代码', insert: '``', cursorOffset: 1 },
-    { icon: Link2, title: '链接', insert: '[](url)', cursorOffset: 1 },
-    { icon: List, title: '无序列表', insert: '- ' },
-    { icon: ListOrdered, title: '有序列表', insert: '1. ' },
-    { icon: Minus, title: '分割线', insert: '\n---\n' },
-  ];
-  return (
-    <div className="flex items-center gap-0.5 p-1 bg-background/30 rounded-lg border border-border/30">
-      {tools.map((tool) => (
-        <button
-          key={tool.title}
-          type="button"
-          title={tool.title}
-          onClick={() => onInsert(tool.insert)}
-          className="p-2 rounded-md text-foreground/60 hover:text-foreground hover:bg-background/50 transition-all"
-        >
-          <tool.icon className="w-4 h-4" />
-        </button>
-      ))}
-    </div>
-  );
-};
 export default function NewArticlePage() {
   const router = useRouter();
-  const { success, error, info, toasts, removeToast } = useToast();
+  const { success, error, info } = useToast();
   const titleInputRef = useRef<HTMLInputElement>(null);
   const contentTextareaRef = useRef<HTMLTextAreaElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -101,6 +70,9 @@ export default function NewArticlePage() {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showTagDropdown, setShowTagDropdown] = useState(false);
   const [touchedFields, setTouchedFields] = useState<Set<string>>(new Set());
+  const [phase, setPhase] = useState<'chat' | 'editing'>('chat');
+  const [writingSession, setWritingSession] = useState<WritingSession | null>(null);
+  const [editorSelection, setEditorSelection] = useState({ text: '', start: 0, end: 0 });
   const [formData, setFormData] = useState({
     title: '',
     slug: '',
@@ -147,14 +119,15 @@ export default function NewArticlePage() {
       setIsLoading(false);
     }
   }, [error]);
+  // Phase 1（AI 对话）不需要分类/标签；进入 Phase 2（编辑器）时才加载。
+  // 初次进入页面时把 isLoading 关掉，让 Phase 1 直接渲染（Shell 自己管加载态）。
   useEffect(() => {
-    loadCategoriesAndTags();
-  }, [loadCategoriesAndTags]);
-  useEffect(() => {
-    if (!isLoading && formData.content) {
-      setHasUnsavedChanges(true);
+    if (phase === 'chat' && isLoading) {
+      setIsLoading(false);
     }
-  }, [formData, isLoading]);
+  }, [phase, isLoading]);
+  // 注意：脏标记（hasUnsavedChanges）只在用户实际编辑时设置（见各 onChange 处理），
+  // 不能在 effect 里根据 content 非空推断——否则 AI 确认初稿后还没动手就提示“未保存”。
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (hasUnsavedChanges) {
@@ -165,38 +138,40 @@ export default function NewArticlePage() {
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [hasUnsavedChanges]);
-  const generateSlug = (title: string) => {
-    return title
-      .toLowerCase()
-      .replace(/[^\w\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      .trim();
-  };
-  const generateExcerpt = (content: string) => {
-    const plainText = content.replace(/[#*`_\[\]]/g, '').trim();
-    return plainText.length > 150 ? plainText.substring(0, 150) + '...' : plainText;
-  };
+  // 用户手动改过 slug 后，标题输入不再覆盖 slug
+  const slugTouchedRef = useRef(false);
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const title = e.target.value;
     setTouchedFields(prev => new Set(prev).add('title'));
+    setHasUnsavedChanges(true);
     setFormData(prev => ({
       ...prev,
       title,
-      slug: generateSlug(title)
+      slug: slugTouchedRef.current ? prev.slug : generateSlug(title)
     }));
   };
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const content = e.target.value;
     setTouchedFields(prev => new Set(prev).add('content'));
+    setHasUnsavedChanges(true);
     setFormData(prev => ({
       ...prev,
       content
     }));
   };
+  const handleContentSelect = (e: React.SyntheticEvent<HTMLTextAreaElement>) => {
+    const t = e.currentTarget;
+    setEditorSelection({
+      text: t.value.slice(t.selectionStart, t.selectionEnd),
+      start: t.selectionStart,
+      end: t.selectionEnd,
+    });
+  };
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+    if (name === 'slug') {slugTouchedRef.current = true;}
     setTouchedFields(prev => new Set(prev).add(name));
+    setHasUnsavedChanges(true);
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -204,12 +179,14 @@ export default function NewArticlePage() {
   };
   const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const { name, value } = e.target;
+    setHasUnsavedChanges(true);
     setFormData(prev => ({
       ...prev,
       [name]: value
     }));
   };
   const handleTagToggle = (tagId: string) => {
+    setHasUnsavedChanges(true);
     setFormData(prev => {
       const newTags = prev.tags.includes(tagId)
         ? prev.tags.filter(id => id !== tagId)
@@ -219,9 +196,88 @@ export default function NewArticlePage() {
   };
   const handleAutoExcerpt = () => {
     const excerpt = generateExcerpt(formData.content);
+    setHasUnsavedChanges(true);
     setFormData(prev => ({ ...prev, excerpt }));
     info('已自动生成摘要');
   };
+
+  // ── Phase 1 → Phase 2：初稿确认回调 ────────────────────────────
+  const handleDraftConfirmed = useCallback((draft: string, session: WritingSession) => {
+    setWritingSession(session);
+    setFormData(prev => ({ ...prev, content: draft }));
+    setTouchedFields(prev => new Set(prev).add('content'));
+    setPhase('editing');
+    info('初稿已确认，开始编辑吧');
+    // 进入 Phase 2 才加载分类/标签（Phase 1 不需要）
+    loadCategoriesAndTags();
+  }, [info, loadCategoriesAndTags]);
+
+  // ── AI 写作能力 ────────────────────────────────────────────────
+  const [isAiBusy, setIsAiBusy] = useState(false);
+
+  /** AI 润色：对编辑器全文做风格优化，流式替换 */
+  const aiPolishRef = useRef<(() => void) | null>(null);
+  const [polishing, setPolishing] = useState(false);
+  const handleAiPolish = useCallback(() => {
+    if (!formData.content.trim() || polishing) {return;}
+    setPolishing(true);
+    setIsAiBusy(true);
+    let accumulated = '';
+    const original = formData.content;
+    // 先清空，让用户看到流式重写过程
+    setFormData(prev => ({ ...prev, content: '' }));
+    aiPolishRef.current = adminApi.agent.reviseStream(
+      { content: original, instruction: '对全文进行润色：优化措辞、修正语病、提升可读性，保持原意和结构不变' },
+      {
+        onChunk: delta => {
+          accumulated += delta;
+          setHasUnsavedChanges(true);
+          setFormData(prev => ({ ...prev, content: accumulated }));
+        },
+        onComplete: full => {
+          setPolishing(false);
+          setIsAiBusy(false);
+          aiPolishRef.current = null;
+          if (full.trim()) {success('AI 润色完成');}
+        },
+        onError: msg => {
+          // 失败时恢复原文
+          setFormData(prev => ({ ...prev, content: original }));
+          setPolishing(false);
+          setIsAiBusy(false);
+          aiPolishRef.current = null;
+          error(`润色失败：${msg}`);
+        },
+      }
+    );
+  }, [formData.content, polishing, success, error]);
+
+  /** AI 生成标题 / slug / 摘要 */
+  const [generatingMeta, setGeneratingMeta] = useState(false);
+  const handleAiMeta = useCallback(async () => {
+    if (!formData.content.trim() || generatingMeta) {return;}
+    setGeneratingMeta(true);
+    setIsAiBusy(true);
+    try {
+      const meta = await adminApi.agent.generateMeta(formData.content);
+      setHasUnsavedChanges(true);
+      setFormData(prev => ({
+        ...prev,
+        title: meta.title || prev.title,
+        slug: meta.slug || prev.slug,
+        excerpt: meta.excerpt || prev.excerpt,
+      }));
+      success('已生成标题、别名和摘要');
+    } catch (err) {
+      error(err instanceof Error ? err.message : '生成元信息失败');
+    } finally {
+      setGeneratingMeta(false);
+      setIsAiBusy(false);
+    }
+  }, [formData.content, generatingMeta, success, error]);
+
+  // 卸载时中止进行中的润色流
+  useEffect(() => () => aiPolishRef.current?.(), []);
   const insertMarkdown = (text: string) => {
     const textarea = contentTextareaRef.current;
     if (!textarea) {return;}
@@ -229,7 +285,8 @@ export default function NewArticlePage() {
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const newContent = formData.content.substring(0, start) + text + formData.content.substring(end);
-    
+
+    setHasUnsavedChanges(true);
     setFormData(prev => ({ ...prev, content: newContent }));
     
     setTimeout(() => {
@@ -239,43 +296,9 @@ export default function NewArticlePage() {
     }, 0);
   };
   const handleSaveDraft = useCallback(async () => {
+    if (isSubmitting) {return;}
     if (!formData.title.trim()) {
       error('请输入文章标题');
-      return;
-    }
-    if (!formData.content.trim()) {
-      error('请输入文章内容');
-      return;
-    }
-    try {
-      const submitData = {
-        title: formData.title,
-        slug: formData.slug,
-        content: formData.content,
-        excerpt: formData.excerpt || undefined,
-        cover_image: formData.cover_image || undefined,
-        is_published: false,
-        category_id: formData.category_id || undefined,
-        tags: formData.tags.length > 0 ? formData.tags : undefined
-      };
-      await adminApi.articles.create(submitData);
-      setLastSaved(new Date());
-      setHasUnsavedChanges(false);
-      success('草稿已保存');
-    } catch (err: unknown) {
-      console.error('Failed to save draft:', err);
-      const errorMessage = err instanceof Error ? err.message : '保存草稿失败';
-      error(errorMessage);
-    }
-  }, [formData, success, error]);
-  const handlePublish = useCallback(async () => {
-    if (!formData.title.trim()) {
-      error('请输入文章标题');
-      titleInputRef.current?.focus();
-      return;
-    }
-    if (!formData.slug.trim()) {
-      error('请输入文章别名');
       return;
     }
     if (!formData.content.trim()) {
@@ -290,11 +313,86 @@ export default function NewArticlePage() {
         content: formData.content,
         excerpt: formData.excerpt || undefined,
         cover_image: formData.cover_image || undefined,
+        is_published: false,
+        category_id: formData.category_id || undefined,
+        tags: formData.tags.length > 0 ? formData.tags : undefined
+      };
+      const result = await adminApi.articles.create(submitData) as { id: string };
+      // 把写作会话关联到刚落库的文章（仅首次保存且尚未关联时）
+      if (writingSession && !writingSession.article_id) {
+        try {
+          const linked = await adminApi.writingSessions.linkArticle(writingSession.id, result.id);
+          setWritingSession(linked);
+        } catch (linkErr) {
+          // 关联失败不阻塞保存流程，仅记录日志
+          console.error('Failed to link writing session to article:', linkErr);
+        }
+      }
+      setLastSaved(new Date());
+      setHasUnsavedChanges(false);
+      success('草稿已保存');
+    } catch (err: unknown) {
+      console.error('Failed to save draft:', err);
+      const errorMessage = err instanceof Error ? err.message : '保存草稿失败';
+      error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [formData, writingSession, isSubmitting, success, error]);
+  const handlePublish = useCallback(async () => {
+    if (isSubmitting) {return;}
+    if (!formData.title.trim()) {
+      error('请输入文章标题');
+      titleInputRef.current?.focus();
+      return;
+    }
+    // 与内联校验规则保持一致：此前只查非空，会绕过长度要求直接发布
+    if (formData.title.trim().length < MIN_TITLE_LENGTH) {
+      error(`标题至少需要 ${MIN_TITLE_LENGTH} 个字符`);
+      titleInputRef.current?.focus();
+      return;
+    }
+    if (!formData.slug.trim()) {
+      error('请输入文章别名');
+      return;
+    }
+    if (!formData.content.trim()) {
+      error('请输入文章内容');
+      return;
+    }
+    if (formData.content.trim().length < MIN_CONTENT_LENGTH) {
+      error(`内容至少需要 ${MIN_CONTENT_LENGTH} 个字符`);
+      return;
+    }
+    try {
+      setIsSubmitting(true);
+      const submitData = {
+        title: formData.title,
+        slug: formData.slug,
+        content: formData.content,
+        excerpt: formData.excerpt || undefined,
+        cover_image: formData.cover_image || undefined,
         is_published: true,
         category_id: formData.category_id || undefined,
         tags: formData.tags.length > 0 ? formData.tags : undefined
       };
-      await adminApi.articles.create(submitData);
+      const result = await adminApi.articles.create(submitData) as { id: string };
+      // 发布成功：关联会话并标记完成（非阻塞）
+      if (writingSession) {
+        if (!writingSession.article_id) {
+          try {
+            const linked = await adminApi.writingSessions.linkArticle(writingSession.id, result.id);
+            setWritingSession(linked);
+          } catch (linkErr) {
+            console.error('Failed to link writing session to article:', linkErr);
+          }
+        }
+        try {
+          await adminApi.writingSessions.complete(writingSession.id);
+        } catch (completeErr) {
+          console.error('Failed to complete writing session:', completeErr);
+        }
+      }
       success('文章发布成功');
       setHasUnsavedChanges(false);
       router.push('/admin/articles');
@@ -305,9 +403,12 @@ export default function NewArticlePage() {
     } finally {
       setIsSubmitting(false);
     }
-  }, [formData, success, error, router]);
+  }, [formData, writingSession, isSubmitting, success, error, router]);
 
   useEffect(() => {
+    // 仅在编辑器阶段响应快捷键：Phase 1（AI 对话）时按 Ctrl+S
+    // 不应触发保存草稿（此时表单为空，只会弹错误提示）
+    if (phase !== 'editing') {return;}
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault();
@@ -320,21 +421,19 @@ export default function NewArticlePage() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handlePublish, handleSaveDraft]);
+  }, [phase, handlePublish, handleSaveDraft]);
 
   const filteredTags = tags.filter(tag =>
     tag.name.toLowerCase().includes(tagSearchQuery.toLowerCase())
   );
-  const renderPreview = () => {
-    return (
-      <div className="prose prose-slate dark:prose-invert max-w-none prose-headings:text-foreground prose-p:text-foreground/80">
-        <h1>{formData.title || '未命名文章'}</h1>
-        {formData.excerpt && <p className="text-lg text-foreground/60 border-l-4 border-tech-cyan pl-4 italic">{formData.excerpt}</p>}
-        <div className="whitespace-pre-wrap">{formData.content || '暂无内容...'}</div>
-      </div>
-    );
-  };
-  if (isLoading) {
+  const renderPreview = () => (
+    <ArticlePreview
+      title={formData.title}
+      excerpt={formData.excerpt}
+      content={formData.content}
+    />
+  );
+  if (phase === 'editing' && isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <motion.div
@@ -373,7 +472,9 @@ export default function NewArticlePage() {
               </div>
               新建文章
             </h1>
-            <p className="text-sm text-foreground/50 mt-1 ml-11">创建一篇新的博客文章</p>
+            <p className="text-sm text-foreground/50 mt-1 ml-11">
+              {phase === 'chat' ? '先和 AI 聊聊选题，确认初稿后进入编辑' : '创建一篇新的博客文章'}
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-4">
@@ -393,16 +494,24 @@ export default function NewArticlePage() {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
-                className="flex items-center gap-1.5 text-xs text-amber-500 bg-amber-500/10 px-2.5 py-1 rounded-full"
+                className="flex items-center gap-1.5 text-xs text-warning bg-warning/10 px-2.5 py-1 rounded-full"
               >
-                <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                <div className="w-1.5 h-1.5 rounded-full bg-warning animate-pulse" />
                 未保存更改
               </motion.div>
             )}
           </AnimatePresence>
         </div>
       </motion.div>
-      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+      {/* Phase 1：纯 AI 对话；Phase 2：完整编辑器 */}
+      {phase === 'chat' ? (
+        <div className="max-w-3xl mx-auto">
+          <WritingSessionShell onDraftConfirmed={handleDraftConfirmed} />
+        </div>
+      ) : (
+        <>
+          {/* Phase 2：完整编辑器（顶部 AI 面板已移除，AI 协助改到右侧栏 ArticleAIAssist）*/}
+          <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
         <div className="xl:col-span-3 space-y-6">
           <GlassCardAdmin className="p-6">
             <div className="flex items-center justify-between mb-6">
@@ -421,9 +530,9 @@ export default function NewArticlePage() {
                     <button
                       key={mode}
                       onClick={() => setEditorMode(mode)}
-                      className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                      className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                         editorMode === mode
-                          ? 'bg-tech-cyan text-white dark:text-gray-100 shadow-sm shadow-tech-cyan/20'
+                          ? 'bg-tech-cyan text-foreground shadow-sm shadow-tech-cyan/20'
                           : 'text-foreground/60 hover:text-foreground hover:bg-background/50'
                       }`}
                     >
@@ -433,7 +542,7 @@ export default function NewArticlePage() {
                 </div>
                 <button
                   onClick={() => setIsFullscreen(!isFullscreen)}
-                  className="p-2 rounded-lg bg-background/30 hover:bg-background/50 text-foreground/60 hover:text-foreground transition-all border border-transparent hover:border-border/30"
+                  className="p-2 rounded-lg bg-background/30 hover:bg-background/50 text-foreground/60 hover:text-foreground transition-colors border border-transparent hover:border-border/30"
                   title={isFullscreen ? '退出全屏' : '全屏编辑'}
                 >
                   {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
@@ -444,13 +553,13 @@ export default function NewArticlePage() {
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label className="block text-sm font-medium text-foreground/80">
-                    文章标题 <span className="text-red-400">*</span>
+                    文章标题 <span className="text-destructive">*</span>
                   </label>
                   <div className="flex items-center gap-2">
                     <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
                       stats.titleLength < MIN_TITLE_LENGTH 
-                        ? 'text-amber-500 bg-amber-500/10' 
-                        : 'text-green-500 bg-green-500/10'
+                        ? 'text-warning bg-warning/10' 
+                        : 'text-success bg-success/10'
                     }`}>
                       {stats.titleLength} 字符
                     </span>
@@ -464,9 +573,9 @@ export default function NewArticlePage() {
                     value={formData.title}
                     onChange={handleTitleChange}
                     placeholder="输入一个吸引人的标题..."
-                    className={`w-full px-4 py-3.5 rounded-xl bg-background/50 border text-foreground text-lg font-medium placeholder:text-foreground/30 focus:outline-none focus:ring-2 transition-all ${
+                    className={`w-full px-4 py-3.5 rounded-xl bg-background/50 border text-foreground text-lg font-medium placeholder:text-foreground/30 focus:outline-none focus:ring-2 transition-colors ${
                       validationErrors.title
-                        ? 'border-red-500/50 focus:ring-red-500/20'
+                        ? 'border-destructive/50 focus:ring-destructive/20'
                         : 'border-border/50 focus:ring-tech-cyan/20 focus:border-tech-cyan/50'
                     }`}
                     required
@@ -474,9 +583,9 @@ export default function NewArticlePage() {
                   {formData.title && (
                     <div className="absolute right-3 top-1/2 -translate-y-1/2">
                       {formProgress.title ? (
-                        <CheckCircle2 className="w-5 h-5 text-green-500" />
+                        <CheckCircle2 className="w-5 h-5 text-success" />
                       ) : (
-                        <AlertCircle className="w-5 h-5 text-amber-500" />
+                        <AlertCircle className="w-5 h-5 text-warning" />
                       )}
                     </div>
                   )}
@@ -485,7 +594,7 @@ export default function NewArticlePage() {
                   <motion.p
                     initial={{ opacity: 0, y: -5 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="text-xs text-red-400 mt-2 flex items-center gap-1.5"
+                    className="text-xs text-destructive mt-2 flex items-center gap-1.5"
                   >
                     <AlertCircle className="w-3 h-3" />
                     标题至少需要 {MIN_TITLE_LENGTH} 个字符
@@ -505,7 +614,7 @@ export default function NewArticlePage() {
                 <div className={editorMode === 'preview' ? 'hidden' : ''}>
                   <div className="flex items-center justify-between mb-3">
                     <label className="block text-sm font-medium text-foreground/80">
-                      文章内容 <span className="text-red-400">*</span>
+                      文章内容 <span className="text-destructive">*</span>
                     </label>
                     <div className="flex items-center gap-3 text-xs text-foreground/40">
                       <span className="flex items-center gap-1">
@@ -520,8 +629,31 @@ export default function NewArticlePage() {
                     </div>
                   </div>
                   
-                  <div className="mb-2">
+                  <div className="mb-2 flex items-center justify-between gap-2 flex-wrap">
                     <MarkdownToolbar onInsert={insertMarkdown} />
+                    {/* AI 工具组：润色全文 / 生成标题摘要 */}
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={handleAiPolish}
+                        disabled={!formData.content.trim() || isAiBusy}
+                        title="对全文进行 AI 润色（流式替换）"
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs bg-primary/10 text-primary hover:bg-primary/20 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                      >
+                        {polishing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Wand2 className="w-3 h-3" />}
+                        {polishing ? '润色中' : 'AI 润色'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleAiMeta}
+                        disabled={!formData.content.trim() || isAiBusy}
+                        title="根据正文生成标题、别名和摘要"
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs bg-cat-2/10 text-cat-2 hover:bg-cat-2/20 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                      >
+                        {generatingMeta ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                        {generatingMeta ? '生成中' : '生成标题摘要'}
+                      </button>
+                    </div>
                   </div>
                   
                   <div className="relative">
@@ -530,6 +662,8 @@ export default function NewArticlePage() {
                       name="content"
                       value={formData.content}
                       onChange={handleContentChange}
+                      onSelect={handleContentSelect}
+                      disabled={polishing}
                       placeholder="使用 Markdown 格式编写文章内容...
 支持的格式：
 # 标题
@@ -539,9 +673,9 @@ export default function NewArticlePage() {
 > 引用
 `代码`"
                       rows={editorMode === 'split' ? 20 : 16}
-                      className={`w-full px-4 py-3 rounded-xl bg-background/50 border text-foreground placeholder:text-foreground/25 focus:outline-none focus:ring-2 transition-all resize-none font-mono text-sm leading-relaxed ${
+                      className={`w-full px-4 py-3 rounded-xl bg-background/50 border text-foreground placeholder:text-foreground/25 focus:outline-none focus:ring-2 transition-colors resize-none font-mono text-sm leading-relaxed disabled:opacity-60 disabled:cursor-not-allowed ${
                         validationErrors.content
-                          ? 'border-red-500/50 focus:ring-red-500/20'
+                          ? 'border-destructive/50 focus:ring-destructive/20'
                           : 'border-border/50 focus:ring-tech-cyan/20 focus:border-tech-cyan/50'
                       }`}
                       required
@@ -554,7 +688,7 @@ export default function NewArticlePage() {
                     <motion.p
                       initial={{ opacity: 0, y: -5 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="text-xs text-red-400 mt-2 flex items-center gap-1.5"
+                      className="text-xs text-destructive mt-2 flex items-center gap-1.5"
                     >
                       <AlertCircle className="w-3 h-3" />
                       内容至少需要 {MIN_CONTENT_LENGTH} 个字符
@@ -579,8 +713,8 @@ export default function NewArticlePage() {
           </GlassCardAdmin>
           <GlassCardAdmin className="p-6">
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 rounded-lg bg-purple-500/10">
-                <Sparkles className="w-5 h-5 text-purple-400" />
+              <div className="p-2 rounded-lg bg-cat-2/10">
+                <Sparkles className="w-5 h-5 text-cat-2" />
               </div>
               <div>
                 <h2 className="text-lg font-semibold text-foreground">附加信息</h2>
@@ -606,11 +740,11 @@ export default function NewArticlePage() {
                   onChange={handleInputChange}
                   placeholder="简短描述文章内容，用于 SEO 和列表展示..."
                   rows={3}
-                  className="w-full px-4 py-3 rounded-xl bg-background/50 border border-border/50 text-foreground placeholder:text-foreground/30 focus:outline-none focus:ring-2 focus:ring-tech-cyan/20 focus:border-tech-cyan/50 transition-all resize-none text-sm"
+                  className="w-full px-4 py-3 rounded-xl bg-background/50 border border-border/50 text-foreground placeholder:text-foreground/30 focus:outline-none focus:ring-2 focus:ring-tech-cyan/20 focus:border-tech-cyan/50 transition-colors resize-none text-sm"
                 />
                 <div className="flex items-center justify-between mt-2">
                   <p className="text-xs text-foreground/40">用于搜索引擎和社交分享</p>
-                  <p className={`text-xs ${formData.excerpt.length > 200 ? 'text-amber-500' : 'text-foreground/40'}`}>
+                  <p className={`text-xs ${formData.excerpt.length > 200 ? 'text-warning' : 'text-foreground/40'}`}>
                     {formData.excerpt.length} / 200
                   </p>
                 </div>
@@ -627,9 +761,15 @@ export default function NewArticlePage() {
                     value={formData.cover_image}
                     onChange={handleInputChange}
                     placeholder="https://example.com/image.jpg"
-                    className="flex-1 px-4 py-3 rounded-xl bg-background/50 border border-border/50 text-foreground placeholder:text-foreground/30 focus:outline-none focus:ring-2 focus:ring-tech-cyan/20 focus:border-tech-cyan/50 transition-all"
+                    className="flex-1 px-4 py-3 rounded-xl bg-background/50 border border-border/50 text-foreground placeholder:text-foreground/30 focus:outline-none focus:ring-2 focus:ring-tech-cyan/20 focus:border-tech-cyan/50 transition-colors"
                   />
                 </div>
+                {/* AI 自动找封面：读正文生成搜索词 → Unsplash 候选 → 点选填入 */}
+                <CoverPicker
+                  content={formData.content}
+                  onPick={url => setFormData(prev => ({ ...prev, cover_image: url }))}
+                  busy={isAiBusy}
+                />
                 {formData.cover_image && (
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
@@ -653,13 +793,13 @@ export default function NewArticlePage() {
           </GlassCardAdmin>
         </div>
         <div className="space-y-6">
-          <GlassCardAdmin className="p-5 sticky top-6">
+          <GlassCardAdmin className="p-5 sticky top-20">
             <div className="flex items-center gap-2 mb-4">
               <div className="relative flex-1">
                 <div className={`h-2 rounded-full overflow-hidden ${progressPercentage === 100 ? 'animate-pulse' : ''} bg-background/50`}>
                   <motion.div
                     className={`h-full rounded-full transition-colors ${
-                      progressPercentage === 100 ? 'bg-green-500' : progressPercentage >= 60 ? 'bg-tech-cyan' : 'bg-amber-500'
+                      progressPercentage === 100 ? 'bg-success' : progressPercentage >= 60 ? 'bg-tech-cyan' : 'bg-warning'
                     }`}
                     initial={{ width: 0 }}
                     animate={{ width: `${progressPercentage}%` }}
@@ -668,7 +808,7 @@ export default function NewArticlePage() {
                 </div>
               </div>
               <span className={`text-sm font-bold ${
-                progressPercentage === 100 ? 'text-green-500' : 'text-foreground/60'
+                progressPercentage === 100 ? 'text-success' : 'text-foreground/60'
               }`}>{progressPercentage}%</span>
             </div>
             <div className="space-y-2.5 mb-5">
@@ -687,7 +827,7 @@ export default function NewArticlePage() {
                         animate={{ scale: 1 }}
                         transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                       >
-                        <CheckCircle2 className="w-4 h-4 text-green-500" />
+                        <CheckCircle2 className="w-4 h-4 text-success" />
                       </motion.div>
                     ) : (
                       <div className="w-4 h-4 rounded-full border-2 border-foreground/20" />
@@ -720,10 +860,33 @@ export default function NewArticlePage() {
               </div>
             </div>
           </GlassCardAdmin>
+          {/* AI 协助面板：选段修改 + 全文建议（仅 Phase 2 且有写作会话时显示） */}
+          {writingSession && (
+            <ArticleAIAssist
+              sessionId={writingSession.id}
+              content={formData.content}
+              selection={editorSelection}
+              session={writingSession}
+              onSessionChange={setWritingSession}
+              onApplyRevision={(revision: WritingRevision) => {
+                if (revision.source === 'selection') {
+                  setFormData(prev => ({
+                    ...prev,
+                    content:
+                      prev.content.slice(0, revision.selection_start) +
+                      revision.replacement_text +
+                      prev.content.slice(revision.selection_end),
+                  }));
+                  setTouchedFields(prev => new Set(prev).add('content'));
+                }
+              }}
+              busy={isAiBusy}
+            />
+          )}
           <GlassCardAdmin className="p-5">
             <div className="flex items-center gap-2 mb-4">
-              <div className="p-1.5 rounded-lg bg-blue-500/10">
-                <FolderTree className="w-4 h-4 text-blue-400" />
+              <div className="p-1.5 rounded-lg bg-cat-1/10">
+                <FolderTree className="w-4 h-4 text-cat-1" />
               </div>
               <h2 className="text-base font-semibold text-foreground">分类与标签</h2>
             </div>
@@ -735,7 +898,7 @@ export default function NewArticlePage() {
                     name="category_id"
                     value={formData.category_id}
                     onChange={handleSelectChange}
-                    className="w-full px-4 py-2.5 rounded-xl bg-background/50 border border-border/50 text-foreground focus:outline-none focus:ring-2 focus:ring-tech-cyan/20 focus:border-tech-cyan/50 transition-all appearance-none cursor-pointer pr-10"
+                    className="w-full px-4 py-2.5 rounded-xl bg-background/50 border border-border/50 text-foreground focus:outline-none focus:ring-2 focus:ring-tech-cyan/20 focus:border-tech-cyan/50 transition-colors appearance-none cursor-pointer pr-10"
                   >
                     <option value="" className="bg-card text-foreground">选择分类...</option>
                     {categories.map(category => (
@@ -762,7 +925,7 @@ export default function NewArticlePage() {
                       value={tagSearchQuery}
                       onChange={(e) => setTagSearchQuery(e.target.value)}
                       onFocus={() => setShowTagDropdown(true)}
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-background/50 border border-border/50 text-foreground placeholder:text-foreground/30 focus:outline-none focus:ring-2 focus:ring-tech-cyan/20 focus:border-tech-cyan/50 transition-all text-sm"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-background/50 border border-border/50 text-foreground placeholder:text-foreground/30 focus:outline-none focus:ring-2 focus:ring-tech-cyan/20 focus:border-tech-cyan/50 transition-colors text-sm"
                     />
                   </div>
                   <AnimatePresence>
@@ -781,7 +944,7 @@ export default function NewArticlePage() {
                               key={tag.id}
                               type="button"
                               onClick={() => handleTagToggle(tag.id)}
-                              className={`w-full px-3 py-2 rounded-lg text-sm text-left transition-all flex items-center justify-between cursor-pointer ${
+                              className={`w-full px-3 py-2 rounded-lg text-sm text-left transition-colors flex items-center justify-between cursor-pointer ${
                                 formData.tags.includes(tag.id)
                                   ? 'bg-tech-cyan/20 text-tech-cyan'
                                   : 'hover:bg-background/50 text-foreground/60'
@@ -836,8 +999,8 @@ export default function NewArticlePage() {
           </GlassCardAdmin>
           <GlassCardAdmin className="p-5">
             <h2 className="text-base font-semibold text-foreground mb-4 flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-green-500/10">
-                <Send className="w-4 h-4 text-green-400" />
+              <div className="p-1.5 rounded-lg bg-success/10">
+                <Send className="w-4 h-4 text-success" />
               </div>
               发布操作
             </h2>
@@ -876,6 +1039,7 @@ export default function NewArticlePage() {
                   variant="ghost"
                   className="w-full justify-center"
                   disabled={isSubmitting}
+                  onClick={() => setEditorMode('preview')}
                 >
                   <Eye className="w-4 h-4 mr-2" />
                   预览文章
@@ -886,9 +1050,9 @@ export default function NewArticlePage() {
               <motion.div
                 initial={{ opacity: 0, y: 5 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mt-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20"
+                className="mt-4 p-3 rounded-lg bg-warning/10 border border-warning/20"
               >
-                <p className="text-xs text-amber-500 flex items-center gap-2">
+                <p className="text-xs text-warning flex items-center gap-2">
                   <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
                   请完成至少 40% 的内容再发布
                 </p>
@@ -897,13 +1061,14 @@ export default function NewArticlePage() {
           </GlassCardAdmin>
         </div>
       </div>
+        </>
+      )}
       {showTagDropdown && (
         <div
           className="fixed inset-0 z-10"
           onClick={() => setShowTagDropdown(false)}
         />
       )}
-      <ToastContainer toasts={toasts} onClose={removeToast} />
     </div>
   );
 }

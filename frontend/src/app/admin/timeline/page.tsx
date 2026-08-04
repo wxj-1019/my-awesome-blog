@@ -43,9 +43,9 @@ interface TimelineEvent {
 }
 
 const EVENT_TYPE_CONFIG: Record<string, { label: string; color: string; bgColor: string; icon: typeof Flag }> = {
-  milestone: { label: '里程碑', color: 'text-cyan-400', bgColor: 'bg-cyan-500/20', icon: Flag },
-  achievement: { label: '成就', color: 'text-yellow-400', bgColor: 'bg-yellow-500/20', icon: Trophy },
-  update: { label: '更新', color: 'text-green-400', bgColor: 'bg-green-500/20', icon: Bell },
+  milestone: { label: '里程碑', color: 'text-cat-3', bgColor: 'bg-cat-3/20', icon: Flag },
+  achievement: { label: '成就', color: 'text-cat-8', bgColor: 'bg-cat-8/20', icon: Trophy },
+  update: { label: '更新', color: 'text-cat-10', bgColor: 'bg-cat-10/20', icon: Bell },
 }
 
 const COLOR_OPTIONS = [
@@ -369,7 +369,7 @@ export default function TimelinePage() {
                                 {typeInfo.label}
                               </span>
                               {!event.is_active && (
-                                <span className="px-2 py-0.5 text-xs bg-gray-500/20 text-gray-400 dark:text-gray-500 dark:text-gray-400 rounded">
+                                <span className="px-2 py-0.5 text-xs bg-muted-foreground/20 text-muted-foreground rounded">
                                   已隐藏
                                 </span>
                               )}
@@ -406,7 +406,7 @@ export default function TimelinePage() {
                             </motion.button>
                             <motion.button
                               onClick={() => setDeleteDialog({ open: true, event })}
-                              className="p-2 text-foreground/50 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                              className="p-2 text-foreground/50 hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
                               whileHover={{ scale: 1.1 }}
                               whileTap={{ scale: 0.95 }}
                               title="删除"
@@ -432,7 +432,7 @@ export default function TimelinePage() {
                 <motion.button
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-glass-border/30 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-glass/10 transition-all"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-glass-border/30 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-glass/10 transition-colors"
                   whileHover={{ scale: currentPage === 1 ? 1 : 1.05 }}
                   whileTap={{ scale: currentPage === 1 ? 1 : 0.95 }}
                 >
@@ -442,7 +442,7 @@ export default function TimelinePage() {
                 <motion.button
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-glass-border/30 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-glass/10 transition-all"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-glass-border/30 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-glass/10 transition-colors"
                   whileHover={{ scale: currentPage === totalPages ? 1 : 1.05 }}
                   whileTap={{ scale: currentPage === totalPages ? 1 : 0.95 }}
                 >
@@ -499,7 +499,7 @@ export default function TimelinePage() {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-foreground/70 mb-2">
-                      事件标题 <span className="text-red-400">*</span>
+                      事件标题 <span className="text-destructive">*</span>
                     </label>
                     <FormInput
                       type="text"
@@ -523,7 +523,7 @@ export default function TimelinePage() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-foreground/70 mb-2">
-                        事件日期 <span className="text-red-400">*</span>
+                        事件日期 <span className="text-destructive">*</span>
                       </label>
                       <FormInput
                         type="date"
@@ -554,7 +554,7 @@ export default function TimelinePage() {
                           type="button"
                           onClick={() => setFormData(prev => ({ ...prev, color: color.value }))}
                           className={cn(
-                            "w-8 h-8 rounded-full border-2 transition-all",
+                            "w-8 h-8 rounded-full border-2 transition-transform",
                             formData.color === color.value ? "border-white scale-110" : "border-transparent"
                           )}
                           style={{ backgroundColor: color.value }}

@@ -124,7 +124,7 @@ const AddVideoModal: React.FC<AddVideoModalProps> = ({ isOpen, onClose, onAdd })
                             type="button"
                             onClick={() => setType(t)}
                             className={cn(
-                              "flex-1 py-1.5 text-xs font-medium rounded-md transition-all",
+                              "flex-1 py-1.5 text-xs font-medium rounded-md transition-colors",
                               type === t
                                 ? "bg-tech-cyan text-primary-foreground shadow-lg"
                                 : "text-muted-foreground hover:text-foreground"

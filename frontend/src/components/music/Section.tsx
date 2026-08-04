@@ -28,7 +28,7 @@ export default function Section({ title, titleClassName, children, moreLink, mor
             className={cn(
               'group inline-flex items-center gap-1',
               'text-sm font-medium text-primary',
-              'transition-all duration-300',
+              'transition-colors duration-300',
               'hover:text-accent hover:gap-2'
             )}
           >

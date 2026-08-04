@@ -17,27 +17,27 @@ export interface ToastProps {
 const toastVariants = {
   success: {
     icon: CheckCircle,
-    bgColor: 'bg-green-50 dark:bg-green-900/20',
-    iconColor: 'text-green-600 dark:text-green-400',
-    borderColor: 'border-green-200 dark:border-green-800',
+    bgColor: 'bg-success dark:bg-success/20',
+    iconColor: 'text-success dark:text-success',
+    borderColor: 'border-success dark:border-success',
   },
   error: {
     icon: XCircle,
-    bgColor: 'bg-red-50 dark:bg-red-900/20',
-    iconColor: 'text-red-600 dark:text-red-400',
-    borderColor: 'border-red-200 dark:border-red-800',
+    bgColor: 'bg-destructive dark:bg-destructive/20',
+    iconColor: 'text-destructive dark:text-destructive',
+    borderColor: 'border-destructive dark:border-destructive',
   },
   warning: {
     icon: AlertCircle,
-    bgColor: 'bg-yellow-50 dark:bg-yellow-900/20',
-    iconColor: 'text-yellow-600 dark:text-yellow-400',
-    borderColor: 'border-yellow-200 dark:border-yellow-800',
+    bgColor: 'bg-warning dark:bg-warning/20',
+    iconColor: 'text-warning dark:text-warning',
+    borderColor: 'border-warning dark:border-warning',
   },
   info: {
     icon: Info,
-    bgColor: 'bg-blue-50 dark:bg-blue-900/20',
-    iconColor: 'text-blue-600 dark:text-blue-400',
-    borderColor: 'border-blue-200 dark:border-blue-800',
+    bgColor: 'bg-cat-1 dark:bg-cat-1/20',
+    iconColor: 'text-cat-1 dark:text-cat-1',
+    borderColor: 'border-cat-1 dark:border-cat-1',
   },
 };
 
@@ -168,7 +168,26 @@ export const ToastContainer = ({
   );
 };
 
-export const useToast = () => {
+interface ToastContextValue {
+  toasts: ToastProps[];
+  addToast: (toast: Omit<ToastProps, 'id'>) => string;
+  removeToast: (id: string) => void;
+  success: (message: string, options?: Partial<ToastProps>) => string;
+  error: (message: string, options?: Partial<ToastProps>) => string;
+  warning: (message: string, options?: Partial<ToastProps>) => string;
+  info: (message: string, options?: Partial<ToastProps>) => string;
+}
+
+const ToastContext = React.createContext<ToastContextValue | null>(null);
+
+/**
+ * Toast 状态管理（原 useToast 的内部实现）。
+ *
+ * 历史问题：useToast 每次调用都创建独立的局部状态，子组件里弹的 toast
+ * 只在它自己的（未渲染的）状态里，永远不会显示。改为 Context 共享后，
+ * 任意层级组件弹出的 toast 都由 ToastProvider 统一渲染。
+ */
+const useToastState = (): ToastContextValue => {
   const [toasts, setToasts] = React.useState<ToastProps[]>([]);
 
   const addToast = React.useCallback(
@@ -221,4 +240,35 @@ export const useToast = () => {
     warning,
     info,
   };
+};
+
+interface ToastProviderProps {
+  children: React.ReactNode;
+  position?: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left';
+}
+
+/** 在 admin 布局根部挂载一次，子树内所有 useToast 共享同一组 toast。 */
+export const ToastProvider = ({
+  children,
+  position = 'top-right',
+}: ToastProviderProps) => {
+  const value = useToastState();
+  return (
+    <ToastContext.Provider value={value}>
+      {children}
+      <ToastContainer
+        toasts={value.toasts}
+        onClose={value.removeToast}
+        position={position}
+      />
+    </ToastContext.Provider>
+  );
+};
+
+export const useToast = (): ToastContextValue => {
+  const ctx = React.useContext(ToastContext);
+  if (!ctx) {
+    throw new Error('useToast 必须在 <ToastProvider> 内使用（见 admin/layout.tsx）');
+  }
+  return ctx;
 };

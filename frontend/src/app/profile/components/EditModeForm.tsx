@@ -96,7 +96,7 @@ export default function EditModeForm({ initialData, onSave, onCancel }: EditMode
   return (
     <GlassCard 
       padding="lg" 
-      className="border-tech-cyan/20 hover:shadow-[0_0_30px_var(--shadow-tech-cyan)] transition-all duration-300 animate-fade-in-up"
+      className="border-tech-cyan/20 hover:shadow-[0_0_30px_var(--shadow-tech-cyan)] transition-colors duration-300 animate-fade-in-up"
     >
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* 头部 */}
@@ -110,7 +110,7 @@ export default function EditModeForm({ initialData, onSave, onCancel }: EditMode
               type="button"
               variant="outline"
               onClick={onCancel}
-              className="border-tech-cyan/50 hover:bg-tech-cyan/10 hover:text-tech-cyan transition-all duration-300 hover:scale-105"
+              className="border-tech-cyan/50 hover:bg-tech-cyan/10 hover:text-tech-cyan transition-[colors,transform] duration-300 hover:scale-105"
               disabled={isSaving}
             >
               <X className="w-4 h-4" />
@@ -118,7 +118,7 @@ export default function EditModeForm({ initialData, onSave, onCancel }: EditMode
             </Button>
             <Button
               type="submit"
-              className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center gap-2"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-[colors,transform] duration-300 hover:scale-105 flex items-center gap-2"
               disabled={isSaving || Object.keys(errors).length > 0}
             >
               {isSaving ? (
@@ -168,7 +168,7 @@ export default function EditModeForm({ initialData, onSave, onCancel }: EditMode
                         onBlur={() => handleBlur(field.name)}
                         rows={4}
                         placeholder="介绍一下自己..."
-                        className={`bg-muted/50 border-tech-cyan/20 focus:border-tech-cyan/50 focus:ring-2 focus:ring-tech-cyan/20 transition-all duration-300 resize-none ${
+                        className={`bg-muted/50 border-tech-cyan/20 focus:border-tech-cyan/50 focus:ring-2 focus:ring-tech-cyan/20 transition-colors duration-300 resize-none ${
                           hasError ? 'border-destructive focus:border-destructive focus:ring-destructive/20' : ''
                         }`}
                       />
@@ -181,7 +181,7 @@ export default function EditModeForm({ initialData, onSave, onCancel }: EditMode
                         onChange={handleChange}
                         onBlur={() => handleBlur(field.name)}
                         placeholder={field.placeholder || ''}
-                        className={`bg-muted/50 border-tech-cyan/20 focus:border-tech-cyan/50 focus:ring-2 focus:ring-tech-cyan/20 transition-all duration-300 ${
+                        className={`bg-muted/50 border-tech-cyan/20 focus:border-tech-cyan/50 focus:ring-2 focus:ring-tech-cyan/20 transition-colors duration-300 ${
                           hasError ? 'border-destructive focus:border-destructive focus:ring-destructive/20' : ''
                         }`}
                       />

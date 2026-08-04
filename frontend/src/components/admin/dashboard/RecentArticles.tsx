@@ -49,14 +49,14 @@ export default function RecentArticles({ articles }: RecentArticlesProps) {
             articles.map((article, index) => (
               <motion.div
                 key={article.id}
-                className="flex items-center gap-4 p-3 rounded-xl hover:bg-glass/20 transition-all duration-300 group cursor-pointer"
+                className="flex items-center gap-4 p-3 rounded-xl hover:bg-glass/20 transition-colors duration-300 group cursor-pointer"
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.7 + index * 0.1, duration: 0.4 }}
                 whileHover={{ x: 4 }}
               >
-                <div className={`p-2 rounded-lg ${article.is_published ? 'bg-green-500/20' : 'bg-foreground/10'}`}>
-                  <FileText className={`w-4 h-4 ${article.is_published ? 'text-green-500' : 'text-foreground/50'}`} />
+                <div className={`p-2 rounded-lg ${article.is_published ? 'bg-success/20' : 'bg-foreground/10'}`}>
+                  <FileText className={`w-4 h-4 ${article.is_published ? 'text-success' : 'text-foreground/50'}`} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate group-hover:text-tech-cyan transition-colors text-foreground">

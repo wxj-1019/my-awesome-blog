@@ -3,17 +3,17 @@ Conversation Service
 对话管理服务层
 """
 
-from typing import List, Optional
+from typing import Optional
 from sqlalchemy.orm import Session
 from app.schemas.conversation import (
     ConversationCreate,
     ConversationUpdate,
     Conversation,
-    ConversationListResponse,
+    ConversationSummary,
     ChatRequest,
     ChatResponse,
-    ChatStreamChunk,
 )
+from app.schemas.pagination import Page
 from app.conversation.engine import conversation_engine
 from app.utils.logger import app_logger
 
@@ -80,10 +80,15 @@ class ConversationService:
         skip: int = 0,
         limit: int = 100,
         status: Optional[str] = None,
-    ) -> ConversationListResponse:
+    ) -> "Page[ConversationSummary]":
         """
         获取对话列表
-        
+
+        返回统一分页信封 Page[ConversationSummary]：
+        - 用 ConversationSummary（不含 messages）避免逐条懒加载消息造成 N+1
+          与响应体膨胀；
+        - 用 Page 与其它列表接口保持一致的 {items, total, skip, limit}。
+
         Args:
             db: 数据库会话
             tenant_id: 租户 ID
@@ -91,23 +96,23 @@ class ConversationService:
             skip: 跳过数量
             limit: 限制数量
             status: 状态筛选
-        
+
         Returns:
-            ConversationListResponse: 对话列表响应
+            Page[ConversationSummary]: 对话列表分页信封
         """
         from app.crud.conversation import count_conversations
-        
+
         conversations = await conversation_engine.list_conversations(
             db, tenant_id, user_id, skip, limit, status
         )
-        
+
         total = count_conversations(db, tenant_id, user_id, status)
-        
-        return ConversationListResponse(
-            conversations=conversations,
+
+        return Page[ConversationSummary](
+            items=[ConversationSummary.model_validate(c) for c in conversations],
             total=total,
-            page=skip // limit + 1,
-            page_size=limit,
+            skip=skip,
+            limit=limit,
         )
 
     async def chat(

@@ -94,7 +94,7 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, onClick, onContinueWatchin
             <img
               src={video.coverUrl}
               alt={video.title}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+              className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
             />
 
             {/* 封面 scrim 用 background token，浅/深主题各自压暗/压亮保证徽章可读 */}

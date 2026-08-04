@@ -128,7 +128,7 @@ export default function ContactForm() {
                 bg-background/80
                 text-foreground
                 placeholder-foreground/40
-                transition-all duration-300
+                transition-colors duration-300
                 resize-none
                 ${showError 
                   ? 'border-destructive focus:ring-4 focus:ring-destructive/10' 
@@ -151,7 +151,7 @@ export default function ContactForm() {
                 bg-background/80
                 text-foreground
                 placeholder-foreground/40
-                transition-all duration-300
+                transition-colors duration-300
                 ${showError 
                   ? 'border-destructive focus:ring-4 focus:ring-destructive/10' 
                   : 'border-foreground/10 hover:border-foreground/20 focus:border-tech-cyan focus:ring-4 focus:ring-tech-cyan/10'
@@ -209,7 +209,7 @@ export default function ContactForm() {
                 whileTap={{ scale: status === 'submitting' ? 1 : 0.98 }}
                 className={`
                   w-full py-4 rounded-2xl font-semibold font-sf-pro-text
-                  transition-all duration-300
+                  transition-shadow duration-300
                   flex items-center justify-center gap-3
                   shadow-lg
                   ${status === 'submitting'

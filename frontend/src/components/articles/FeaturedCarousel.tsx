@@ -1,6 +1,7 @@
 'use client';
 import { useState, useCallback, memo } from 'react';
 import { motion, AnimatePresence } from '@/lib/framer-motion';
+import { TRANSITION } from '@/lib/animation-utils';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight, Clock, Eye, Heart } from 'lucide-react';
@@ -26,11 +27,12 @@ function FeaturedCarousel({ articles }: FeaturedCarouselProps) {
     setCurrentIndex(index);
   }, [currentIndex]);
   const currentArticle = articles[currentIndex];
+  // 柔和化：以 crossfade 为主，仅保留轻微方向性位移与缩放，统一时长/缓动
   const variants = {
     enter: (direction: number) => ({
-      x: direction > 0 ? 1000 : -1000,
+      x: direction > 0 ? 48 : -48,
       opacity: 0,
-      scale: 0.5,
+      scale: 0.96,
       zIndex: 0
     }),
     center: {
@@ -39,26 +41,19 @@ function FeaturedCarousel({ articles }: FeaturedCarouselProps) {
       opacity: 1,
       scale: 1,
       rotateY: 0,
-      transition: {
-        x: { type: 'spring' as const, stiffness: 300, damping: 30 },
-        opacity: { duration: 0.2 },
-        scale: { duration: 0.2 }
-      }
+      transition: TRANSITION.DEFAULT
     },
     exit: (direction: number) => ({
       zIndex: 0,
-      x: direction < 0 ? 1000 : -1000,
+      x: direction < 0 ? 48 : -48,
       opacity: 0,
-      scale: 0.5,
-      transition: {
-        x: { type: 'spring' as const, stiffness: 300, damping: 30 },
-        opacity: { duration: 0.2 }
-      }
+      scale: 0.96,
+      transition: TRANSITION.FAST
     })
   };
   if (articles.length === 0) {return null;}
   return (
-    <section className="relative h-[80vh] w-full overflow-hidden bg-black">
+    <section className="relative h-[80vh] w-full overflow-hidden bg-background">
       <AnimatePresence initial={false} custom={direction} mode="wait">
         <motion.div
           key={currentIndex}
@@ -73,18 +68,18 @@ function FeaturedCarousel({ articles }: FeaturedCarouselProps) {
             <div className="hidden lg:block w-1/3">
               <div className="space-y-8">
                 <motion.h1 
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
-                  className="text-5xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-tech-cyan to-purple-500 mb-6"
+                  transition={{ ...TRANSITION.DEFAULT, delay: 0.2 }}
+                  className="text-5xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-tech-sky mb-6"
                 >
                   {currentArticle.title}
                 </motion.h1>
                 
                 <motion.p 
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
+                  transition={{ ...TRANSITION.DEFAULT, delay: 0.3 }}
                   className="text-lg text-muted-foreground mb-6 line-clamp-3"
                 >
                   {currentArticle.excerpt}
@@ -110,13 +105,13 @@ function FeaturedCarousel({ articles }: FeaturedCarouselProps) {
                   </div>
                 </div>
                 <motion.div
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 }}
+                  transition={{ ...TRANSITION.DEFAULT, delay: 0.4 }}
                 >
                   <Link
                     href={`/articles/${currentArticle.id}`}
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-tech-cyan text-white rounded-full font-semibold hover:bg-tech-cyan/90 transition-all active:scale-95"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-tech-cyan text-white rounded-full font-semibold hover:bg-tech-cyan/90 transition-[colors,transform] active:scale-95"
                   >
                     阅读文章
                     <ArrowRight className="w-5 h-5" />
@@ -127,10 +122,10 @@ function FeaturedCarousel({ articles }: FeaturedCarouselProps) {
             <div className="w-full lg:w-2/3 relative">
               {currentArticle.cover_image && (
                 <motion.div
-                  initial={{ scale: 0.9, opacity: 0 }}
+                  initial={{ scale: 0.96, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
-                  transition={{ duration: 0.5 }}
-                  className="relative aspect-video rounded-2xl overflow-hidden shadow-2xl"
+                  transition={TRANSITION.DEFAULT}
+                  className="relative aspect-video rounded-2xl overflow-hidden shadow-glass"
                 >
                   <Image
                     src={currentArticle.cover_image}
@@ -150,7 +145,7 @@ function FeaturedCarousel({ articles }: FeaturedCarouselProps) {
               )}
               <button
                 onClick={() => paginate(1)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 p-4 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm transition-all z-20 active:scale-95"
+                className="absolute right-4 top-1/2 -translate-y-1/2 p-4 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm transition-[colors,transform] z-20 active:scale-95"
                 aria-label="下一篇"
               >
                 <ArrowRight className="w-6 h-6 text-white" aria-hidden="true" />
@@ -164,10 +159,10 @@ function FeaturedCarousel({ articles }: FeaturedCarouselProps) {
           <button
             key={article.id}
             onClick={() => handleDotClick(index)}
-            className={`w-3 h-3 rounded-full transition-all ${
+            className={`w-3 h-3 rounded-full transition-[width,background-color] ${
               index === currentIndex 
                 ? 'bg-tech-cyan w-8' 
-                : 'bg-white/30 hover:bg-white/50'
+                : 'bg-foreground/20 hover:bg-foreground/40'
             }`}
             aria-label={`转到第 ${index + 1} 篇文章`}
           />

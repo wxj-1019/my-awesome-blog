@@ -103,7 +103,7 @@ export default function ContactCards() {
                       hover:shadow-xl
                       backdrop-blur-xl
                       overflow-hidden
-                      transition-all duration-300
+                      transition-colors duration-300
                     `}
                     style={{
                       '--card-color': card.color,
@@ -122,7 +122,7 @@ export default function ContactCards() {
                             bg-glass
                             shadow-lg
                             group-hover:shadow-xl
-                            transition-all duration-300
+                            transition-colors duration-300
                           `}
                           style={{
                             boxShadow: `0 4px 15px -3px color-mix(in srgb, ${card.color} 25%, transparent)`,
@@ -163,7 +163,7 @@ export default function ContactCards() {
                           <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" />
                         </motion.a>
                       )}
-                      <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-transparent to-transparent group-hover:via-[var(--card-color)] transition-all duration-500" />
+                      <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-transparent to-transparent group-hover:via-[var(--card-color)] transition-[colors,transform] duration-500" />
                     </div>
                     <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-foreground/10 to-transparent rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
                     <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-foreground/5 to-transparent rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />

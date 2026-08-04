@@ -48,7 +48,9 @@ export function useCodeBlockEnhancement(contentRef: RefObject<HTMLDivElement>) {
         leftContent.appendChild(languageLabel);
 
         const copyButton = document.createElement('button');
-        copyButton.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 bg-gray-700/50 hover:bg-gray-600/50 text-gray-300 cursor-pointer';
+        // 过渡类写在 JS 生成的 class 里 Tailwind 扫不到，改用内联 style 保证颜色过渡生效
+        copyButton.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-gray-700/50 hover:bg-gray-600/50 text-gray-300 cursor-pointer';
+        copyButton.style.transition = 'colors 0.22s ease';
         copyButton.innerHTML = `
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>

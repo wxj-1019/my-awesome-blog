@@ -18,18 +18,24 @@ import hashlib
 from app.core.config import settings
 
 # 允许的文件类型映射 (MIME类型 -> 扩展名列表)
+# 注意：不接受 SVG。SVG 可内嵌 <script> 造成存储型 XSS，且位图处理链路（Pillow
+# resize/WebP 转换）无法处理矢量图。如确需 SVG，须先引入 sanitize 再放开。
 ALLOWED_MIME_TYPES = {
     'image/jpeg': ['.jpg', '.jpeg'],
     'image/png': ['.png'],
     'image/gif': ['.gif'],
     'image/webp': ['.webp'],
-    'image/svg+xml': ['.svg'],
 }
 
-# 允许的所有扩展名
+# 允许的所有扩展名（含点，如 '.jpg'），由 MIME 映射派生，保持单一事实来源
 ALLOWED_EXTENSIONS: Set[str] = set()
 for exts in ALLOWED_MIME_TYPES.values():
     ALLOWED_EXTENSIONS.update(exts)
+
+# 位图扩展名（带点），供位图专用端点（/images/、头像）复用，避免各处硬编码
+ALLOWED_IMAGE_EXTENSIONS: List[str] = sorted(ALLOWED_EXTENSIONS)
+# 位图扩展名（不带点，如 'jpg'），供按 split('.')[-1] 解析的端点复用
+ALLOWED_IMAGE_EXTENSIONS_NO_DOT: List[str] = [e.lstrip('.') for e in ALLOWED_IMAGE_EXTENSIONS]
 
 
 class FileValidationError(HTTPException):

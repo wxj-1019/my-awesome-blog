@@ -85,7 +85,7 @@ export default function AvatarUploader({
     <div
       ref={dropZoneRef}
       className={cn(
-        'relative group cursor-pointer transition-all duration-300',
+        'relative group cursor-pointer transition-transform duration-300',
         isDragging && 'scale-105'
       )}
       onClick={handleClick}
@@ -118,7 +118,7 @@ export default function AvatarUploader({
         {/* 主头像容器 */}
         <motion.div
           className={cn(
-            'absolute inset-2 rounded-full overflow-hidden border-4 transition-all duration-300',
+            'absolute inset-2 rounded-full overflow-hidden border-4 transition-[colors,transform] duration-300',
             isDragging
               ? 'border-tech-cyan scale-110 shadow-[0_0_40px_var(--shadow-tech-cyan)]'
               : 'border-tech-cyan/30 shadow-[0_0_20px_var(--shadow-tech-cyan)]',
@@ -161,7 +161,7 @@ export default function AvatarUploader({
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
               className={cn(
-                'absolute bottom-0 right-0 p-3 rounded-full cursor-pointer transition-all duration-300 shadow-lg',
+                'absolute bottom-0 right-0 p-3 rounded-full cursor-pointer transition-[colors,transform] duration-300 shadow-lg',
                 uploadStatus === 'uploading'
                   ? 'bg-muted cursor-not-allowed'
                   : 'bg-tech-cyan hover:bg-tech-sky hover:scale-110 hover:rotate-180'
@@ -197,7 +197,7 @@ export default function AvatarUploader({
                 e.stopPropagation();
                 handleRemoveAvatar();
               }}
-              className="absolute top-0 left-0 p-2 rounded-full bg-destructive hover:bg-destructive/90 text-primary-foreground shadow-lg transition-all hover:scale-110"
+              className="absolute top-0 left-0 p-2 rounded-full bg-destructive hover:bg-destructive/90 text-primary-foreground shadow-lg transition-[colors,transform] hover:scale-110"
               title="删除头像"
             >
               <X className="w-4 h-4" />
@@ -207,7 +207,7 @@ export default function AvatarUploader({
         {/* 悬浮效果的光环 */}
         <div
           className={cn(
-            'absolute inset-0 rounded-full border-2 transition-all duration-500',
+            'absolute inset-0 rounded-full border-2 transition-[colors,transform] duration-500',
             isDragging
               ? 'border-tech-cyan/60 scale-110'
               : 'border-tech-cyan/0 group-hover:border-tech-cyan/30'

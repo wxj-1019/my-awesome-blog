@@ -28,7 +28,7 @@ const techItems: TechItem[] = [
 
 const logoLoopItems: LogoItem[] = techItems.map((item) => ({
   node: (
-    <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-glass/30 backdrop-blur-xl border border-glass-border hover:bg-glass/50 hover:border-primary/30 transition-all duration-300 group">
+    <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-glass/30 backdrop-blur-xl border border-glass-border hover:bg-glass/50 hover:border-primary/30 transition-colors duration-300 group">
       <div className="text-muted-foreground group-hover:text-primary transition-colors">
         {item.icon}
       </div>

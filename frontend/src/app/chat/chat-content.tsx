@@ -2,14 +2,17 @@
 
 import { useState, useEffect } from 'react';
 import { ChatLayout } from '@/components/chat/ChatLayout';
-import { ChatSidebar, ChatSession, SelectedPromptInfo } from '@/components/chat/ChatSidebar';
+import { ChatSidebar, ChatSession } from '@/components/chat/ChatSidebar';
 import { ChatWindow, ChatMessage } from '@/components/chat/ChatWindow';
+import SkillPickerDialog from '@/components/chat/SkillPickerDialog';
 import { useAuthCheck } from '@/hooks/useAuthCheck';
-import type { Prompt } from '@/types';
+import { showcaseSkills } from '@/mock/skills';
+import type { ShowcaseSkill } from '@/types/skill';
 
 // Local storage keys
 const STORAGE_KEY = 'chat_sessions_v1';
-const SELECTED_PROMPT_KEY = 'selected_prompt_v1';
+/** 选中的 skill slug 持久化 key（独立存放，跨会话保留工具选择） */
+const SELECTED_SKILL_KEY = 'chat_selected_skill';
 
 interface StoredData {
   sessions: ChatSession[];
@@ -23,7 +26,9 @@ export default function ChatPageContent() {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [sessionMessages, setSessionMessages] = useState<Record<string, ChatMessage[]>>({});
-  const [selectedPrompt, setSelectedPrompt] = useState<SelectedPromptInfo | null>(null);
+  // 当前选中的 skill（注入对话作为 system 提示）与选用弹窗开关
+  const [selectedSkill, setSelectedSkill] = useState<ShowcaseSkill | null>(null);
+  const [isSkillPickerOpen, setIsSkillPickerOpen] = useState(false);
 
   // Load from local storage on mount
   useEffect(() => {
@@ -42,17 +47,24 @@ export default function ChatPageContent() {
     } else {
       createNewSession();
     }
-
-    // Load selected prompt
-    const savedPrompt = localStorage.getItem(SELECTED_PROMPT_KEY);
-    if (savedPrompt) {
-      try {
-        setSelectedPrompt(JSON.parse(savedPrompt));
-      } catch (e) {
-        console.error('Failed to load selected prompt', e);
+    // 恢复选中的 skill（按 slug 从收藏列表查回完整对象）
+    const savedSlug = localStorage.getItem(SELECTED_SKILL_KEY);
+    if (savedSlug) {
+      const found = showcaseSkills.find((s) => s.slug === savedSlug);
+      if (found) {
+        setSelectedSkill(found);
       }
     }
   }, []);
+
+  // 选中的 skill slug 持久化（跨会话保留工具选择）
+  useEffect(() => {
+    if (selectedSkill) {
+      localStorage.setItem(SELECTED_SKILL_KEY, selectedSkill.slug);
+    } else {
+      localStorage.removeItem(SELECTED_SKILL_KEY);
+    }
+  }, [selectedSkill]);
 
   // Save to local storage whenever state changes
   useEffect(() => {
@@ -65,20 +77,11 @@ export default function ChatPageContent() {
     }
   }, [sessions, sessionMessages]);
 
-  // Save selected prompt to local storage
-  useEffect(() => {
-    if (selectedPrompt) {
-      localStorage.setItem(SELECTED_PROMPT_KEY, JSON.stringify(selectedPrompt));
-    } else {
-      localStorage.removeItem(SELECTED_PROMPT_KEY);
-    }
-  }, [selectedPrompt]);
-
   const createNewSession = () => {
     const newId = Date.now().toString();
     const newSession: ChatSession = {
       id: newId,
-      title: 'New Chat',
+      title: '新对话',
       updatedAt: Date.now(),
     };
     
@@ -134,19 +137,10 @@ export default function ChatPageContent() {
     }
   };
 
-  const handleSelectPrompt = (prompt: Prompt) => {
-    setSelectedPrompt({
-      id: prompt.id,
-      name: prompt.name,
-      description: prompt.description,
-      category: prompt.category,
-    });
-  };
-
   const currentMessages = currentSessionId ? sessionMessages[currentSessionId] || [] : [];
 
   return (
-    <ChatLayout 
+    <ChatLayout
       isSidebarOpen={isSidebarOpen}
       sidebar={
         <ChatSidebar
@@ -157,17 +151,26 @@ export default function ChatPageContent() {
           onDeleteSession={deleteSession}
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
-          onSelectPrompt={handleSelectPrompt}
-          selectedPrompt={selectedPrompt}
+          onOpenSkillPicker={() => setIsSkillPickerOpen(true)}
         />
       }
     >
       <ChatWindow
-        onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
         sessionMessages={currentMessages}
         onMessagesChange={updateMessages}
         onNewSession={createNewSession}
-        selectedPrompt={selectedPrompt}
+        selectedSkill={selectedSkill}
+        onOpenSkillPicker={() => setIsSkillPickerOpen(true)}
+        onClearSkill={() => setSelectedSkill(null)}
+      />
+      <SkillPickerDialog
+        isOpen={isSkillPickerOpen}
+        onClose={() => setIsSkillPickerOpen(false)}
+        onSelect={(skill) => {
+          setSelectedSkill(skill);
+          setIsSkillPickerOpen(false);
+        }}
+        currentSlug={selectedSkill?.slug ?? null}
       />
     </ChatLayout>
   );

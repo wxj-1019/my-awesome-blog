@@ -6,7 +6,7 @@ from app.crud.user import (
 )
 
 from app.crud.article import (
-    get_article_async, get_article_by_slug, get_articles,
+    get_article, get_article_async, get_article_by_slug, get_articles,
     create_article, update_article, delete_article,
     increment_view_count, get_featured_articles, get_related_articles,
     get_articles_with_categories_and_tags, get_popular_articles,
@@ -15,7 +15,8 @@ from app.crud.article import (
 
 from app.crud.comment import (
     get_comment, get_comments_by_article, get_comments_by_author, get_all_comments,
-    get_replies as get_comment_replies, create_comment, update_comment, delete_comment,
+    get_replies, get_replies as get_comment_replies,
+    create_comment, update_comment, delete_comment,
     approve_comment
 )
 
@@ -129,6 +130,14 @@ from app.crud.conversation import (
     delete_conversation_messages,
     update_conversation_stats,
     count_conversations,
+)
+
+from app.crud.writing_session import (
+    create_writing_session,
+    get_writing_session_for_user,
+    get_active_writing_session,
+    abandon_writing_session,
+    save_writing_session,
 )
 
 from app.crud.tenant import tenant

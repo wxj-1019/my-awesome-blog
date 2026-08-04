@@ -47,11 +47,12 @@ export default function HomeActSection({
   const rootRef = useRef<HTMLDivElement>(null);
 
   // 滚动叙事：幕标随滚动轻微上浮，接续引线在幕入画时垂落
+  // 阶段 B 柔和：视差行程 28→22，幕标漂移更含蓄
   const { scrollYProgress } = useScroll({
     target: rootRef,
     offset: ['start end', 'end start'],
   });
-  const headerY = useTransform(scrollYProgress, [0, 1], [28, -28]);
+  const headerY = useTransform(scrollYProgress, [0, 1], [22, -22]);
   const threadScaleY = useTransform(scrollYProgress, [0, 0.22], [0, 1]);
   const threadOpacity = useTransform(scrollYProgress, [0, 0.12, 0.9, 1], [0, 1, 1, 0.4]);
 

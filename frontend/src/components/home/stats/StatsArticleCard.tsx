@@ -22,7 +22,7 @@ export function StatsArticleCard({ article, index }: { article: StatsArticle; in
     >
       <Card
         key={article.id}
-        className="glass-card backdrop-blur-xl bg-card/40 hover:bg-card/60 hover:shadow-[0_0_40px_var(--shadow-tech-cyan),0_8px_32px_rgba(0,0,0,0.12)] border-glass-border hover:border-tech-cyan/30 transition-all duration-300 hover:scale-[1.02] overflow-hidden cursor-pointer"
+        className="glass-card backdrop-blur-xl bg-card/40 hover:bg-card/60 hover:shadow-[var(--glass-shadow)] border-glass-border hover:border-tech-cyan/30 transition-[colors,transform,box-shadow] duration-300 hover:scale-[1.01] overflow-hidden cursor-pointer"
       >
         <CardContent className="p-0">
           <div className="flex flex-col sm:flex-row">

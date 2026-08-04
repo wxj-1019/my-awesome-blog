@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import type { Route } from 'next';
-import { Cpu, MessageSquare, ArrowRight, Wrench } from 'lucide-react';
+import { Cpu, MessageSquare, ArrowRight, Wrench, Sparkles } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
 import PageShell from '@/components/layout/PageShell';
 import PageHeader from '@/components/layout/PageHeader';
@@ -25,6 +25,12 @@ const items: {
     title: '在线工具',
     description: '实用小工具集合（持续完善中）',
     icon: Cpu,
+  },
+  {
+    href: '/tools/skills' as Route,
+    title: 'AI 工具收藏',
+    description: '收藏优秀的 Skill 与 MCP',
+    icon: Sparkles,
   },
 ];
 

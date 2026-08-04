@@ -20,7 +20,8 @@ function HotArticles({ articles }: HotArticlesProps) {
   const textClass = themedClasses.textClass;
   const mutedTextClass = themedClasses.mutedTextClass;
   // 取前6篇热门文章（按浏览量排序）
-  const hotArticles = articles
+  // 注意：先 slice/展开复制再 sort，避免 Array.sort 原地修改传入的 props 数组
+  const hotArticles = [...articles]
     .sort((a, b) => b.view_count - a.view_count)
     .slice(0, 6);
   if (!hotArticles || hotArticles.length === 0) {
@@ -37,7 +38,7 @@ function HotArticles({ articles }: HotArticlesProps) {
           <Link
             key={article.id}
             href={`/articles/${article.id}`}
-            className="group block p-3 rounded-lg transition-all duration-200 hover:scale-[1.02]"
+            className="group block p-3 rounded-lg transition-transform duration-200 hover:scale-[1.02]"
           >
             <div className="flex items-start gap-3">
               {/* 排名徽章 */}

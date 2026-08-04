@@ -155,7 +155,7 @@ export default function ProfilePageContent() {
             <Button
               asChild
               variant="glass"
-              className="hover:scale-105 transition-all duration-200"
+              className="hover:scale-105 transition-transform duration-200"
             >
               <Link href="/login">
                 前往登录
@@ -173,7 +173,7 @@ export default function ProfilePageContent() {
       <div className="min-h-screen pt-24 pb-12 transition-colors duration-300">
         <div className="container mx-auto px-4 max-w-4xl">
           {saveStatus && (
-            <div className={`mb-6 p-4 rounded-lg transition-all duration-300 ${
+            <div className={`mb-6 p-4 rounded-lg transition-colors duration-300 ${
               saveStatus.success 
                 ? 'bg-success/20 text-success border border-success/30' 
                 : 'bg-destructive/20 text-destructive border border-destructive/30'

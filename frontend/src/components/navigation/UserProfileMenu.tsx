@@ -57,7 +57,7 @@ const UserProfileMenu: React.FC<UserProfileMenuProps> = ({ mounted }) => {
           <Button
             variant="glass"
             size="sm"
-            className="flex items-center justify-center text-foreground p-2 w-9 h-9 hover:bg-tech-cyan/20 transition-all duration-200 relative overflow-hidden"
+            className="flex items-center justify-center text-foreground p-2 w-9 h-9 hover:bg-tech-cyan/20 transition-[colors,transform] duration-200 relative overflow-hidden"
             aria-label="用户菜单"
           >
             {userAvatar ? (
@@ -150,7 +150,7 @@ const UserProfileMenu: React.FC<UserProfileMenuProps> = ({ mounted }) => {
           <DropdownMenuSeparator className={`my-1 ${themedClasses.separatorClass}`} />
           
           <DropdownMenuItem
-            className="group cursor-pointer py-2.5 px-3 rounded-lg focus:bg-destructive/15 hover:bg-destructive/15 transition-all duration-200"
+            className="group cursor-pointer py-2.5 px-3 rounded-lg focus:bg-destructive/15 hover:bg-destructive/15 transition-[colors,transform] duration-200"
           >
             <div className="flex items-center w-full">
               <LogOut className="h-4 w-4 mr-3 text-destructive group-hover:scale-110 transition-transform duration-200" />

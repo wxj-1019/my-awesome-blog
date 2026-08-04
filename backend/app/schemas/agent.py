@@ -42,3 +42,78 @@ class AgentPolishResponse(BaseModel):
     polished: str
     rounds: int  # 实际执行的修改轮数
     critiques: List[str] = Field(default_factory=list)  # 各轮评审意见
+
+
+# ── AI 导向写作：生成 / 改稿 / 元信息 ────────────────────────────────
+# 这三组 schema 配合后台「写文章」编辑器的 AI 流程：
+#   generate-stream：按主题流式生成全文（先查站内文，再流式吐 Markdown）
+#   revise-stream  ：基于现有正文 + 自然语言指令流式改稿
+#   meta           ：根据正文反推 title / slug / excerpt（非流式）
+
+
+class AgentGenerateRequest(BaseModel):
+    """按主题生成文章（流式）"""
+    topic: str = Field(..., min_length=1, max_length=4000, description="文章主题或要点")
+    requirements: Optional[str] = Field(
+        None, max_length=500, description="附加要求：字数 / 风格 / SEO 关键词等"
+    )
+    # auto=先查站内已发布文章作参考（保持风格一致、避免重复）；none=跳过检索
+    context_mode: str = Field("auto", description="auto | none")
+    provider: Optional[str] = Field(None, description="LLM provider，默认读配置")
+    model: Optional[str] = Field(None, description="模型名，默认 provider 配置")
+    max_iterations: int = Field(3, ge=1, le=15, description="工具循环上限；检索阶段通常 1-2 轮即够，过大徒增首字延迟")
+    temperature: float = Field(0.7, ge=0.0, le=2.0, description="生成温度")
+    max_tokens: Optional[int] = Field(None, ge=256, le=8192, description="正文 token 上限")
+
+
+class AgentReviseRequest(BaseModel):
+    """对话式改稿（流式）：把当前正文 + 自然语言指令交给 AI"""
+    content: str = Field(..., min_length=1, max_length=20000, description="当前编辑器正文（Markdown）")
+    instruction: str = Field(..., min_length=1, max_length=1000, description="修改指令，如『加一段案例』『改口语化』")
+    provider: Optional[str] = None
+    model: Optional[str] = None
+    temperature: float = Field(0.6, ge=0.0, le=2.0)
+    max_tokens: Optional[int] = Field(None, ge=256, le=8192)
+
+
+class AgentMetaRequest(BaseModel):
+    """根据正文反推标题 / slug / 摘要（非流式）"""
+    content: str = Field(..., min_length=1, max_length=20000, description="文章正文")
+    provider: Optional[str] = None
+    model: Optional[str] = None
+
+
+class AgentMetaResponse(BaseModel):
+    """元信息生成响应"""
+    title: str
+    slug: str
+    excerpt: str
+
+
+# ── 封面配图自动搜索 ────────────────────────────────────────────────
+# 流程：AI 从文章正文提取英文搜索词 → 后端代理调 Unsplash → 返回候选图供前端点选。
+# 后端代理的原因：避免在浏览器暴露 Unsplash access key，并可统一加缓存/限流。
+
+
+class AgentCoverRequest(BaseModel):
+    """封面配图搜索请求"""
+    content: str = Field(..., min_length=1, max_length=20000, description="文章正文，AI 据此提取搜索词")
+    # 用户手动指定搜索词时跳过 AI 生词（省钱、可控）
+    query: Optional[str] = Field(None, max_length=100, description="手动指定搜索词，留空则由 AI 生成")
+    provider: Optional[str] = None
+    model: Optional[str] = None
+
+
+class CoverImage(BaseModel):
+    """一张候选封面图（字段取自 Unsplash search 响应）"""
+    url: str = Field(..., description="封面用图（urls.regular，1080px，写入 cover_image）")
+    thumb_url: str = Field(..., description="候选网格缩略图（urls.thumb，200px）")
+    alt: str = Field("", description="图片描述（alt_description）")
+    author_name: str = Field("", description="摄影师署名（user.name）")
+    author_url: str = Field("", description="摄影师 Unsplash 主页（user.links.html）")
+
+
+class AgentCoverResponse(BaseModel):
+    """封面候选响应"""
+    query: str = Field(..., description="实际使用的搜索词（可能是 AI 生成的）")
+    images: List[CoverImage] = Field(default_factory=list, description="候选图列表")

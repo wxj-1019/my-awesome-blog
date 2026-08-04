@@ -85,7 +85,7 @@ export default function PlayerBar({
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50">
       <div className={cn(
-        'h-20 bg-card/95 backdrop-blur-2xl border-t border-glass-border shadow-2xl shadow-black/50 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]',
+        'h-20 bg-card/95 backdrop-blur-md border-t border-glass-border shadow-[var(--glass-shadow)] transition-[height] duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]',
         isExpanded && 'h-screen'
       )}>
         <div className="flex items-center h-20 px-6 max-w-screen-2xl mx-auto">
@@ -158,7 +158,7 @@ export default function PlayerBar({
             <div className="flex items-center gap-5 mb-2">
               <button
                 className={cn(
-                  "w-8 h-8 flex items-center justify-center transition-all duration-300 rounded-full",
+                  "w-8 h-8 flex items-center justify-center transition-colors duration-300 rounded-full",
                   playMode === 'random'
                     ? "text-primary bg-primary/10"
                     : "text-muted-foreground hover:text-foreground/70 hover:bg-foreground/5"
@@ -170,7 +170,7 @@ export default function PlayerBar({
               </button>
 
               <button
-                className="w-9 h-9 flex items-center justify-center text-foreground/70 hover:text-foreground hover:bg-foreground/5 rounded-full transition-all duration-300"
+                className="w-9 h-9 flex items-center justify-center text-foreground/70 hover:text-foreground hover:bg-foreground/5 rounded-full transition-colors duration-300"
                 onClick={onPrevious}
                 aria-label="上一首"
               >
@@ -180,7 +180,7 @@ export default function PlayerBar({
               <button
                 className={cn(
                   'w-11 h-11 bg-gradient-to-r from-tech-cyan to-tech-sky text-primary-foreground rounded-full flex items-center justify-center',
-                  'shadow-lg shadow-tech-cyan transition-all duration-300',
+                  'shadow-lg shadow-tech-cyan transition-[colors,transform] duration-300',
                   'hover:shadow-[0_0_30px_var(--shadow-tech-cyan)] hover:scale-105 active:scale-95'
                 )}
                 onClick={isPlaying ? onPause : onPlay}
@@ -194,7 +194,7 @@ export default function PlayerBar({
               </button>
 
               <button
-                className="w-9 h-9 flex items-center justify-center text-foreground/70 hover:text-foreground hover:bg-foreground/5 rounded-full transition-all duration-300"
+                className="w-9 h-9 flex items-center justify-center text-foreground/70 hover:text-foreground hover:bg-foreground/5 rounded-full transition-colors duration-300"
                 onClick={onNext}
                 aria-label="下一首"
               >
@@ -202,7 +202,7 @@ export default function PlayerBar({
               </button>
 
               <button
-                className="w-8 h-8 flex items-center justify-center text-muted-foreground hover:text-foreground/70 hover:bg-foreground/5 rounded-full transition-all duration-300"
+                className="w-8 h-8 flex items-center justify-center text-muted-foreground hover:text-foreground/70 hover:bg-foreground/5 rounded-full transition-colors duration-300"
                 onClick={onShowPlaylist}
                 aria-label="播放列表"
               >
@@ -221,7 +221,7 @@ export default function PlayerBar({
                 <div className="absolute inset-0 h-1.5 bg-foreground/10 rounded-full overflow-hidden">
                   {/* Progress with gradient */}
                   <div
-                    className="h-full bg-gradient-to-r from-tech-cyan to-tech-sky rounded-full transition-all duration-100"
+                    className="h-full bg-gradient-to-r from-tech-cyan to-tech-sky rounded-full transition-[width] duration-100"
                     style={{ width: `${(progress / duration) * 100}%` }}
                   />
                 </div>
@@ -238,7 +238,7 @@ export default function PlayerBar({
                 {/* Thumb */}
                 <div
                   className={cn(
-                    "absolute top-1/2 -mt-1.5 w-3.5 h-3.5 bg-foreground rounded-full pointer-events-none transition-all duration-200 scale-0 shadow-md",
+                    "absolute top-1/2 -mt-1.5 w-3.5 h-3.5 bg-foreground rounded-full pointer-events-none transition-transform duration-200 scale-0 shadow-md",
                     "group-hover:scale-100",
                     isDragging && "scale-100"
                   )}
@@ -282,7 +282,7 @@ export default function PlayerBar({
                 />
                 <div
                   className={cn(
-                    "absolute top-1/2 -mt-1.5 w-3 h-3 bg-foreground rounded-full pointer-events-none transition-all duration-200 scale-0 shadow-md",
+                    "absolute top-1/2 -mt-1.5 w-3 h-3 bg-foreground rounded-full pointer-events-none transition-transform duration-200 scale-0 shadow-md",
                     "group-hover:scale-100",
                     isVolumeDragging && "scale-100"
                   )}
@@ -294,7 +294,7 @@ export default function PlayerBar({
             <div className="w-[1px] h-4 bg-border mx-2" />
 
             <button
-              className="text-muted-foreground hover:text-foreground/70 transition-all duration-300 hover:scale-110"
+              className="text-muted-foreground hover:text-foreground/70 transition-[colors,transform] duration-300 hover:scale-110"
               onClick={onToggleExpand}
               aria-label={isExpanded ? '收起播放器' : '展开播放器'}
             >

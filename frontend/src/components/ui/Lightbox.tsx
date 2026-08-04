@@ -281,7 +281,7 @@ const Lightbox: React.FC<LightboxProps> = ({
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: -20 }}
-                            className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 p-2 md:p-3 bg-black/50 hover:bg-black/70 rounded-full text-white transition-all duration-200 z-10"
+                            className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 p-2 md:p-3 bg-black/50 hover:bg-black/70 rounded-full text-white transition-[colors,transform] duration-200 z-10"
                             onClick={handlePrevious}
                             disabled={isTransitioning}
                             aria-label="上一张图片"
@@ -292,7 +292,7 @@ const Lightbox: React.FC<LightboxProps> = ({
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: 20 }}
-                            className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 p-2 md:p-3 bg-black/50 hover:bg-black/70 rounded-full text-white transition-all duration-200 z-10"
+                            className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 p-2 md:p-3 bg-black/50 hover:bg-black/70 rounded-full text-white transition-[colors,transform] duration-200 z-10"
                             onClick={handleNext}
                             disabled={isTransitioning}
                             aria-label="下一张图片"
@@ -320,7 +320,7 @@ const Lightbox: React.FC<LightboxProps> = ({
                       {enableZoom && (
                         <>
                           <button
-                            className="p-2 bg-black/50 hover:bg-black/70 rounded-lg text-white transition-all duration-200"
+                            className="p-2 bg-black/50 hover:bg-black/70 rounded-lg text-white transition-colors duration-200"
                             onClick={handleZoomOut}
                             disabled={zoom <= 0.5}
                             aria-label="缩小"
@@ -328,7 +328,7 @@ const Lightbox: React.FC<LightboxProps> = ({
                             <ZoomOut className="w-5 h-5" aria-hidden="true" />
                           </button>
                           <button
-                            className="p-2 bg-black/50 hover:bg-black/70 rounded-lg text-white transition-all duration-200"
+                            className="p-2 bg-black/50 hover:bg-black/70 rounded-lg text-white transition-colors duration-200"
                             onClick={handleZoomIn}
                             disabled={zoom >= 5}
                             aria-label="放大"
@@ -336,7 +336,7 @@ const Lightbox: React.FC<LightboxProps> = ({
                             <ZoomIn className="w-5 h-5" aria-hidden="true" />
                           </button>
                           <button
-                            className="p-2 bg-black/50 hover:bg-black/70 rounded-lg text-white transition-all duration-200"
+                            className="p-2 bg-black/50 hover:bg-black/70 rounded-lg text-white transition-colors duration-200"
                             onClick={resetTransforms}
                             aria-label="重置视图"
                           >
@@ -346,7 +346,7 @@ const Lightbox: React.FC<LightboxProps> = ({
                       )}
                       {enableRotate && (
                         <button
-                          className="p-2 bg-black/50 hover:bg-black/70 rounded-lg text-white transition-all duration-200"
+                          className="p-2 bg-black/50 hover:bg-black/70 rounded-lg text-white transition-colors duration-200"
                           onClick={handleRotate}
                           aria-label="旋转图片"
                         >
@@ -357,7 +357,7 @@ const Lightbox: React.FC<LightboxProps> = ({
                     <div className="flex gap-2">
                       {enableFullscreen && (
                         <button
-                          className="p-2 bg-black/50 hover:bg-black/70 rounded-lg text-white transition-all duration-200"
+                          className="p-2 bg-black/50 hover:bg-black/70 rounded-lg text-white transition-colors duration-200"
                           onClick={handleFullscreen}
                           aria-label={isFullscreen ? '退出全屏' : '进入全屏'}
                         >
@@ -366,7 +366,7 @@ const Lightbox: React.FC<LightboxProps> = ({
                       )}
                       {enableDownload && (
                         <button
-                          className="p-2 bg-black/50 hover:bg-black/70 rounded-lg text-white transition-all duration-200"
+                          className="p-2 bg-black/50 hover:bg-black/70 rounded-lg text-white transition-colors duration-200"
                           onClick={handleDownload}
                           aria-label="下载图片"
                         >
@@ -375,7 +375,7 @@ const Lightbox: React.FC<LightboxProps> = ({
                       )}
                       {enableShare && (
                         <button
-                          className="p-2 bg-black/50 hover:bg-black/70 rounded-lg text-white transition-all duration-200"
+                          className="p-2 bg-black/50 hover:bg-black/70 rounded-lg text-white transition-colors duration-200"
                           onClick={handleShare}
                           aria-label="分享图片"
                         >
@@ -383,7 +383,7 @@ const Lightbox: React.FC<LightboxProps> = ({
                         </button>
                       )}
                       <button
-                        className="p-2 bg-black/50 hover:bg-black/70 rounded-lg text-white transition-all duration-200"
+                        className="p-2 bg-black/50 hover:bg-black/70 rounded-lg text-white transition-colors duration-200"
                         onClick={onClose}
                         aria-label="关闭预览"
                       >
@@ -431,7 +431,7 @@ const Lightbox: React.FC<LightboxProps> = ({
                 <button
                   key={image.id}
                   className={cn(
-                    'w-2 h-2 rounded-full transition-all duration-200',
+                    'w-2 h-2 rounded-full transition-colors duration-200',
                     index === currentImageIndex
                       ? 'bg-tech-cyan w-6'
                       : 'bg-white/30 hover:bg-white/50'

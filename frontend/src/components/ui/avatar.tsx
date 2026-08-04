@@ -26,7 +26,7 @@ const Avatar = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        'relative inline-flex items-center justify-center rounded-full overflow-hidden transition-all duration-300',
+        'relative inline-flex items-center justify-center rounded-full overflow-hidden transition-transform duration-300',
         'hover:scale-105',
         sizeStyles[size],
         variantStyles[variant],

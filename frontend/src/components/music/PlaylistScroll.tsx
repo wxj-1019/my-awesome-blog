@@ -44,7 +44,7 @@ export default function PlaylistScroll({
           'bg-glass backdrop-blur-xl border border-glass-border',
           'flex items-center justify-center',
           'text-foreground/70 hover:text-foreground hover:bg-foreground/10',
-          'transition-all duration-300 ease-out',
+          'transition-[colors,transform] duration-300 ease-out',
           'opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0',
           'hover:scale-110 active:scale-95'
         )}
@@ -62,7 +62,7 @@ export default function PlaylistScroll({
           'bg-glass backdrop-blur-xl border border-glass-border',
           'flex items-center justify-center',
           'text-foreground/70 hover:text-foreground hover:bg-foreground/10',
-          'transition-all duration-300 ease-out',
+          'transition-[colors,transform] duration-300 ease-out',
           'opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0',
           'hover:scale-110 active:scale-95'
         )}

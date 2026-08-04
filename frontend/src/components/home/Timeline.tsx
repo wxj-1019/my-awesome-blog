@@ -257,7 +257,7 @@ function TimelineEventItem({ event, index }: TimelineEventItemProps) {
 
           <p
             className={cn(
-              'text-xs sm:text-sm text-muted-foreground transition-all duration-300',
+              'text-xs sm:text-sm text-muted-foreground transition-colors duration-300',
               !isExpanded && 'line-clamp-2'
             )}
           >
@@ -297,7 +297,7 @@ function TimelineEventItem({ event, index }: TimelineEventItemProps) {
                             className={cn(
                               'relative group overflow-hidden rounded-lg',
                               'bg-glass/20 border border-glass-border',
-                              'cursor-pointer transition-all duration-300',
+                              'cursor-pointer transition-[colors,transform] duration-300',
                               'hover:scale-105 hover:shadow-lg'
                             )}
                             onClick={() => window.open(media.url, '_blank')}

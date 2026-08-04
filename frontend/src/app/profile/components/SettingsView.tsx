@@ -22,7 +22,7 @@ export default function SettingsView() {
   };
 
   return (
-    <GlassCard className="overflow-hidden border-border shadow-lg transition-all duration-300">
+    <GlassCard className="overflow-hidden border-border shadow-lg transition-colors duration-300">
       <div className="p-6">
         <h2 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
           <Shield className="w-5 h-5 text-tech-cyan" />

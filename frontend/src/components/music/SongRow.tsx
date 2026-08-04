@@ -30,7 +30,7 @@ export default function SongRow({
   return (
     <div 
       className={cn(
-        'group flex items-center h-14 px-4 transition-all duration-300 cursor-pointer rounded-xl mx-2',
+        'group flex items-center h-14 px-4 transition-colors duration-300 cursor-pointer rounded-xl mx-2',
         isCurrentSong
           ? 'bg-primary/10 text-primary'
           : 'hover:bg-foreground/5 text-foreground/80'
@@ -114,7 +114,7 @@ export default function SongRow({
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
           <button
-            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-foreground/5 text-muted-foreground hover:text-primary transition-all duration-300"
+            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-foreground/5 text-muted-foreground hover:text-primary transition-colors duration-300"
             aria-label="喜欢"
             onClick={(e) => {
               e.stopPropagation();
@@ -124,7 +124,7 @@ export default function SongRow({
             <Heart className="w-4 h-4" />
           </button>
           <button
-            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-foreground/5 text-muted-foreground hover:text-foreground transition-all duration-300"
+            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-foreground/5 text-muted-foreground hover:text-foreground transition-colors duration-300"
             aria-label="更多"
             onClick={(e) => {
               e.stopPropagation();

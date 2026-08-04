@@ -93,7 +93,7 @@ export default function ActivityView() {
   };
 
   return (
-    <GlassCard className="overflow-hidden border-border shadow-lg transition-all duration-300">
+    <GlassCard className="overflow-hidden border-border shadow-lg transition-colors duration-300">
       <div className="p-6">
         <h2 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
           <Clock className="w-5 h-5 text-tech-cyan" />
@@ -110,7 +110,7 @@ export default function ActivityView() {
               activities.map(activity => (
                 <div 
                   key={activity.id} 
-                  className="flex items-start gap-4 p-4 rounded-lg bg-glass/30 backdrop-blur-sm border border-glass-border transition-all duration-200 hover:bg-glass/50"
+                  className="flex items-start gap-4 p-4 rounded-lg bg-glass/30 backdrop-blur-sm border border-glass-border transition-colors duration-200 hover:bg-glass/50"
                 >
                   <div className="mt-1">
                     {getActivityIcon(activity.type)}

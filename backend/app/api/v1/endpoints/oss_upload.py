@@ -20,7 +20,8 @@ from app.utils.file_validation import (
     cleanup_temp_file,
     FileValidationError,
     BatchUploadLimitError,
-    validate_batch_upload
+    validate_batch_upload,
+    ALLOWED_IMAGE_EXTENSIONS_NO_DOT,
 )
 
 router = APIRouter()
@@ -51,7 +52,7 @@ async def upload_file_to_oss(
         
         # 对于图片，使用ImageService进行验证
         file_extension = file.filename.split('.')[-1].lower() if '.' in file.filename else ''
-        if file_extension in ["jpg", "jpeg", "png", "gif", "webp"]:
+        if file_extension in ALLOWED_IMAGE_EXTENSIONS_NO_DOT:
             image_service = ImageService()
             if not image_service.validate_image_format(temp_file_path):
                 raise HTTPException(
@@ -142,7 +143,7 @@ async def batch_upload_files_to_oss(
         # 对于图片，使用ImageService进行验证
         for temp_path, original_name, _ in processed_files:
             file_extension = original_name.split('.')[-1].lower() if '.' in original_name else ''
-            if file_extension in ["jpg", "jpeg", "png", "gif", "webp"]:
+            if file_extension in ALLOWED_IMAGE_EXTENSIONS_NO_DOT:
                 image_service = ImageService()
                 if not image_service.validate_image_format(temp_path):
                     raise HTTPException(

@@ -15,7 +15,9 @@
  * 阶段 A 柔和：略降饱和/描边/光晕，增大 radius，深色主色偏 teal
  */
 :root {
-  --background: #f4f6f8;
+  /* 阶段 B 柔和：浅底从中性灰蓝转为「晨雾海面」——低饱和青灰，
+     白卡在其上仍有足够对比，整体观感更湿润柔和 */
+  --background: #edf3f4;
   --foreground: #0f172a;
   /* 统一品牌色：科技青（浅色取深一档保证对比度） */
   --primary: #0284c7;
@@ -53,7 +55,8 @@
   --glass-default: rgba(255, 255, 255, 0.96);
   --glass-border: rgba(14, 165, 233, 0.2);
   --glass-glow: rgba(14, 165, 233, 0.16);
-  --glass-shadow: 0 12px 40px rgba(15, 23, 42, 0.08);
+  /* 阶段 B 柔和：更大弥散 + 更低不透明度，阴影如雾中投影 */
+  --glass-shadow: 0 14px 44px rgba(15, 23, 42, 0.06);
 
   /* 统一科技色系 - 使用青色系 */
   --tech-darkblue: #0c4a6e;
@@ -70,8 +73,8 @@
   --tech-pink: #f43f5e;
   --tech-purple-rgb: 124, 58, 237;
   --tech-pink-rgb: 244, 63, 94;
-  --shadow-tech-purple: rgba(124, 58, 237, 0.4);
-  --shadow-tech-pink: rgba(244, 63, 94, 0.4);
+  --shadow-tech-purple: rgba(124, 58, 237, 0.2);
+  --shadow-tech-pink: rgba(244, 63, 94, 0.2);
 
   /* 主色/中性色/强调色色阶 - Tailwind 引用 */
   --primary-50: #f0f9ff;
@@ -124,8 +127,12 @@
   --text-primary-high-contrast: #0f172a;
   --text-secondary-high-contrast: #475569;
 
-  --transition-duration: 0.22s;
-  --transition-easing: cubic-bezier(0.4, 0, 0.2, 1);
+  /* 阶段 B 柔和：微交互稍慢一拍 + 软出曲线（无过冲的 easeOutCubic 家族） */
+  --transition-duration: 0.28s;
+  --transition-easing: cubic-bezier(0.33, 1, 0.68, 1);
+  /* 入场/ reveal 用软出曲线；无限环境循环用呼吸曲线（近似正弦，两端更绵） */
+  --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-breathe: cubic-bezier(0.45, 0.05, 0.55, 0.95);
 
   --ripple-color: rgba(14, 165, 233, 0.25);
 
@@ -150,9 +157,28 @@
   --rope-to: #8b4513;
   --rope-mid: #c4956a;
 
-  /* Wave 装饰填充（Wave.tsx / WaveStack.tsx） */
-  --wave-fill-from: #e2e8f0;
+  /* Wave 装饰填充（Wave.tsx / WaveStack.tsx）；浅色起点随晨雾海面基调 */
+  --wave-fill-from: #dce9eb;
   --wave-fill-to: #ffffff;
+
+  /* ── 分类色板（categorical）────────────────────────────────────────
+     用途：需要「彼此可区分」而非「表达状态」的场景，如审计日志动作类型、
+     图表系列。语义状态请继续用 success / warning / destructive / info。
+
+     与状态色分开的理由：状态色只有 4 个且含义固定，把分类硬塞进去会让
+     不同类目撞色、丢失区分度；而分类色的唯一要求是相邻可辨。
+     排序按色相绕行，保证任意相邻两项对比明显。浅色取深一档保证在白卡上
+     的对比度（≥ 4.5:1 作前景色时）。 */
+  --cat-1: #0284c7;  /* 蓝 */
+  --cat-2: #7c3aed;  /* 紫 */
+  --cat-3: #0d9488;  /* 青绿 */
+  --cat-4: #c2410c;  /* 橙 */
+  --cat-5: #4f46e5;  /* 靛 */
+  --cat-6: #b91c1c;  /* 红 */
+  --cat-7: #0369a1;  /* 深蓝 */
+  --cat-8: #a16207;  /* 琥珀 */
+  --cat-9: #be185d;  /* 品红 */
+  --cat-10: #15803d; /* 绿 */
 }
 
 .dark {
@@ -193,7 +219,7 @@
   --glass-default: rgba(15, 23, 42, 0.9);
   --glass-border: rgba(94, 234, 212, 0.2);
   --glass-glow: rgba(94, 234, 212, 0.2);
-  --glass-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+  --glass-shadow: 0 16px 48px rgba(0, 0, 0, 0.28);
 
   /* 暗色主题科技色 - 更亮的青色确保对比度 */
   --tech-darkblue: #0c4a6e;
@@ -210,8 +236,8 @@
   --tech-pink: #fb7185;
   --tech-purple-rgb: 167, 139, 250;
   --tech-pink-rgb: 251, 113, 133;
-  --shadow-tech-purple: rgba(167, 139, 250, 0.5);
-  --shadow-tech-pink: rgba(251, 113, 133, 0.5);
+  --shadow-tech-purple: rgba(167, 139, 250, 0.25);
+  --shadow-tech-pink: rgba(251, 113, 133, 0.25);
 
   --text-primary: #f1f5f9;
   --text-secondary: #cbd5e1;
@@ -245,6 +271,18 @@
   /* Wave 装饰：深色用科技青过渡到背景 */
   --wave-fill-from: #5eead4;
   --wave-fill-to: #0f172a;
+
+  /* 分类色板：深色下整体提亮，保证在深底上的可读性（色相与浅色一一对应） */
+  --cat-1: #38bdf8;
+  --cat-2: #a78bfa;
+  --cat-3: #2dd4bf;
+  --cat-4: #fb923c;
+  --cat-5: #818cf8;
+  --cat-6: #f87171;
+  --cat-7: #7dd3fc;
+  --cat-8: #fbbf24;
+  --cat-9: #f472b6;
+  --cat-10: #4ade80;
 }
 
 @media (prefers-contrast: high) {

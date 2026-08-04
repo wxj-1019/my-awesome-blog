@@ -61,7 +61,7 @@ export default function Tabs({
                 onClick={() => !tab.disabled && setActiveTab(tab.id)}
                 disabled={tab.disabled}
                 className={cn(
-                  'relative flex items-center gap-2 font-medium rounded-md transition-all',
+                  'relative flex items-center gap-2 font-medium rounded-md transition-colors',
                   sizeClasses[size],
                   activeTab === tab.id
                     ? 'bg-tech-cyan text-black shadow-lg'
@@ -90,7 +90,7 @@ export default function Tabs({
                 onClick={() => !tab.disabled && setActiveTab(tab.id)}
                 disabled={tab.disabled}
                 className={cn(
-                  'relative flex items-center gap-2 font-medium transition-all',
+                  'relative flex items-center gap-2 font-medium transition-colors',
                   sizeClasses[size],
                   activeTab === tab.id
                     ? 'text-tech-cyan'
@@ -130,7 +130,7 @@ export default function Tabs({
                 animate={{ opacity: 1, y: 0, x: 0 }}
                 transition={{ delay: index * 0.05 }}
                 className={cn(
-                  'relative flex items-center gap-3 font-medium rounded-md transition-all overflow-hidden',
+                  'relative flex items-center gap-3 font-medium rounded-md transition-colors overflow-hidden',
                   sizeClasses[size],
                   activeTab === tab.id
                     ? 'bg-tech-cyan text-black'
@@ -170,7 +170,7 @@ export default function Tabs({
                 onClick={() => !tab.disabled && setActiveTab(tab.id)}
                 disabled={tab.disabled}
                 className={cn(
-                  'flex items-center gap-2 font-medium transition-all',
+                  'flex items-center gap-2 font-medium transition-colors',
                   sizeClasses[size],
                   'rounded-lg',
                   activeTab === tab.id

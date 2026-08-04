@@ -120,7 +120,7 @@ export default function MessageList({
           <div
             key={message.id}
             className={cn(
-              "p-4 rounded-xl transition-all duration-300",
+              "p-4 rounded-xl transition-transform duration-300",
               "hover:scale-[1.01]",
               themedClasses.cardBgClass
             )}

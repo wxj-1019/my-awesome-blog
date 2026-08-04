@@ -102,7 +102,7 @@ export default function TagCloud() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="搜索标签..."
-              className="w-full px-4 py-3 pl-10 rounded-lg bg-glass/40 border border-glass-border text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-tech-cyan/50 transition-all"
+              className="w-full px-4 py-3 pl-10 rounded-lg bg-glass/40 border border-glass-border text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-tech-cyan/50 transition-transform"
               aria-label="搜索标签"
             />
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -114,7 +114,7 @@ export default function TagCloud() {
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id)}
                 className={cn(
-                  'px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200',
+                  'px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200',
                   selectedCategory === cat.id
                     ? 'bg-tech-cyan text-white shadow-lg shadow-tech-cyan/30'
                     : 'bg-glass/40 text-gray-400 hover:bg-glass/60 hover:text-gray-200'
@@ -140,7 +140,7 @@ export default function TagCloud() {
               'bg-gradient-to-br',
               tag.color,
               'text-white',
-              'transform-gpu transition-all duration-300 ease-out',
+              'transform-gpu transition-[colors,transform] duration-300 ease-out',
               'hover:scale-105 hover:-translate-y-1 hover:shadow-xl',
               'cursor-pointer'
             )}
@@ -151,7 +151,7 @@ export default function TagCloud() {
             aria-label={`查看${tag.name}标签的文章 (${tag.count}篇)`}
           >
             <div className="relative z-10 flex flex-col items-center gap-2">
-              <Tag className="w-6 h-6 transform group-hover:rotate-12 transition-transform duration-300" />
+              <Tag className="w-6 h-6 transform group-hover:rotate-6 transition-transform duration-300" />
 
               <span className="font-semibold text-center text-sm sm:text-base">
                 {tag.name}

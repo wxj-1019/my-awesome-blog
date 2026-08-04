@@ -4,7 +4,7 @@ import type { Route } from 'next';
 import BrandLogo from './BrandLogo';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Home, BookOpen, Mail, Camera, Wrench, Search, X, Menu, Music, Film, Gamepad2, ChevronDown, MessageSquare, Cpu } from 'lucide-react';
+import { Home, BookOpen, Mail, Camera, Wrench, Search, X, Menu, Music, Film, Gamepad2, ChevronDown, MessageSquare, Cpu, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { RopeThemeToggler } from '@/components/ui/rope-theme-toggler';
 import UserProfileMenu from './UserProfileMenu';
@@ -44,6 +44,7 @@ const navLinks: NavLink[] = [
     children: [
       { href: '/chat', label: '模型对话', icon: MessageSquare },
       { href: '/online-tools', label: '在线工具', icon: Cpu },
+      { href: '/tools/skills', label: 'AI 工具收藏', icon: Sparkles },
     ]
   },
   { href: '/messages', label: '留言', icon: Mail },
@@ -78,8 +79,8 @@ function DropdownMenu({
         role="menu"
         aria-label={label}
         className={cn(
-          'w-full py-2 bg-glass backdrop-blur-3xl rounded-xl border border-glass-border shadow-2xl overflow-hidden',
-          'transition-all duration-200 ease-out origin-top',
+          'w-full py-2 bg-glass backdrop-blur-xl rounded-xl border border-glass-border shadow-2xl overflow-hidden',
+          'transition-transform duration-200 ease-out origin-top',
           isOpen
             ? 'opacity-100 translate-y-0 scale-100'
             : 'opacity-0 -translate-y-1 scale-95'
@@ -149,17 +150,19 @@ export default function Navbar() {
   }, []);
 
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
+    let rafId = 0;
     const handleScroll = () => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
+      if (rafId) {return;}
+      rafId = requestAnimationFrame(() => {
         setScrolled(window.scrollY > 10);
-      }, 10);
+        rafId = 0;
+      });
     };
-    window.addEventListener('scroll', handleScroll);
+    // passive: 不阻塞滚动；rAF 节流：每帧最多更新一次
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      clearTimeout(timeoutId);
+      if (rafId) {cancelAnimationFrame(rafId);}
     };
   }, []);
 
@@ -192,6 +195,13 @@ export default function Navbar() {
     }
   }, []);
 
+  // 后台管理系统有独立的 AdminSidebar + header，不渲染前台导航，
+  // 否则 fixed Navbar 会覆盖在 admin 的 sticky header 之上造成双层遮挡。
+  // 置于所有 hooks 之后，避免违反 hooks 调用顺序规则。
+  if (pathname?.startsWith('/admin')) {
+    return null;
+  }
+
   return (
     <>
       <header
@@ -202,10 +212,10 @@ export default function Navbar() {
         className={cn(
           // overflow-visible：桌面下拉与移动端面板从 h-16 顶栏向下展开，不可裁剪
           // header 高度固定 h-16，移动端面板为独立绝对定位层，不做高度补间推挤整页
-          'fixed top-0 left-0 right-0 z-[100] w-full h-16 overflow-visible transition-all duration-300',
+          'fixed top-0 left-0 right-0 z-[100] w-full h-16 overflow-visible transition-[background-color,box-shadow,backdrop-filter] duration-300',
           reducedMotion ? 'transition-none' : '',
           scrolled || isHovered || mobileMenuOpen
-            ? 'bg-glass backdrop-blur-3xl shadow-2xl'
+            ? 'bg-glass backdrop-blur-xl shadow-2xl'
             : 'bg-transparent backdrop-blur-0'
         )}
       >
@@ -388,7 +398,7 @@ export default function Navbar() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-tech-cyan hover:bg-tech-cyan/10 transition-all duration-300"
+                className="text-tech-cyan hover:bg-tech-cyan/10 transition-colors duration-300"
                 onClick={focusSearch}
                 aria-label="搜索 (Cmd/Ctrl + K)"
               >
@@ -414,18 +424,18 @@ export default function Navbar() {
             <Button
               variant="ghost"
               size="sm"
-              className="md:hidden flex items-center justify-center p-2 hover:bg-tech-cyan/10 transition-all duration-300"
+              className="md:hidden flex items-center justify-center p-2 hover:bg-tech-cyan/10 transition-colors duration-300"
               onClick={toggleMobileMenu}
               aria-label={mobileMenuOpen ? '关闭菜单' : '打开菜单'}
               aria-expanded={mobileMenuOpen}
             >
               <div className="relative w-5 h-5">
                 <X className={cn(
-                  "h-5 w-5 absolute inset-0 transition-all duration-200",
+                  "h-5 w-5 absolute inset-0 transition-transform duration-200",
                   mobileMenuOpen ? "opacity-100 rotate-0" : "opacity-0 rotate-90"
                 )} />
                 <Menu className={cn(
-                  "h-5 w-5 absolute inset-0 transition-all duration-200",
+                  "h-5 w-5 absolute inset-0 transition-transform duration-200",
                   mobileMenuOpen ? "opacity-0 -rotate-90" : "opacity-100 rotate-0"
                 )} />
               </div>
@@ -436,8 +446,8 @@ export default function Navbar() {
         {/* 移动端菜单：独立绝对定位层，只动 transform/opacity（面板下沉淡入） */}
         <div
           className={cn(
-            "md:hidden absolute top-16 left-0 right-0 bg-glass backdrop-blur-3xl border-b border-glass-border overflow-y-auto",
-            "transition-all duration-300 ease-out origin-top",
+            "md:hidden absolute top-16 left-0 right-0 bg-glass backdrop-blur-xl border-b border-glass-border overflow-y-auto",
+            "transition-transform duration-300 ease-out origin-top",
             reducedMotion ? 'transition-none' : '',
             mobileMenuOpen
               ? "opacity-100 translate-y-0 pointer-events-auto"
@@ -454,7 +464,7 @@ export default function Navbar() {
                 <div
                   key={link.href}
                   className={cn(
-                    'transition-all duration-300 ease-out',
+                    'transition-transform duration-300 ease-out',
                     reducedMotion ? 'transition-none' : '',
                     mobileMenuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
                   )}

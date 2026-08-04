@@ -48,13 +48,13 @@ const AdminSidebar = React.forwardRef<HTMLDivElement, AdminSidebarProps>(
         initial={false}
         className={cn(
           "fixed top-0 left-0 z-50 h-full",
-          "bg-gradient-to-b from-white/80 via-white/70 to-white/60",
-          "dark:from-slate-800/60 dark:via-slate-800/50 dark:to-slate-900/50",
-          "backdrop-blur-2xl",
-          "border-r border-slate-200/50 dark:border-slate-700/50",
-          "text-slate-800 dark:text-slate-200",
-          "transition-all duration-500 ease-out",
-          "shadow-2xl shadow-slate-900/5 dark:shadow-slate-950/20",
+          /* 玻璃侧栏：bg-glass 随主题切换，不再写 light/dark 双份渐变 */
+          "bg-glass",
+          "backdrop-blur-md",
+          "border-r border-glass-border",
+          "text-foreground",
+          "transition-transform duration-500 ease-out",
+          "shadow-[var(--glass-shadow)]",
           sidebarOpen ? "w-64" : "w-20",
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
@@ -64,7 +64,7 @@ const AdminSidebar = React.forwardRef<HTMLDivElement, AdminSidebarProps>(
         transition={{ duration: 0.5, ease: "easeInOut" }}
       >
         <motion.div 
-          className="h-16 flex items-center justify-between px-4 border-b border-slate-200/50 dark:border-slate-700/50 relative overflow-hidden"
+          className="h-16 flex items-center justify-between px-4 border-b border-glass-border relative overflow-hidden"
           animate={{ 
             justifyContent: sidebarOpen ? "space-between" : "center",
             paddingLeft: sidebarOpen ? 16 : 0,
@@ -85,14 +85,14 @@ const AdminSidebar = React.forwardRef<HTMLDivElement, AdminSidebarProps>(
             transition={{ duration: 0.3 }}
           >
             <motion.div 
-              className="w-9 h-9 rounded-xl bg-gradient-to-br from-tech-cyan via-tech-sky to-blue-500 flex items-center justify-center shadow-lg shadow-tech-cyan/30"
+              className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-tech-sky flex items-center justify-center shadow-lg shadow-tech-cyan/30"
               whileHover={{ rotate: 360, scale: 1.1 }}
               transition={{ duration: 0.5 }}
             >
-              <Sparkles className="w-5 h-5 text-white" />
+              <Sparkles className="w-5 h-5 text-primary-foreground" />
             </motion.div>
             <motion.span 
-              className="text-lg font-bold bg-gradient-to-r from-tech-cyan via-tech-sky to-blue-500 bg-clip-text text-transparent"
+              className="text-lg font-bold bg-gradient-to-r from-primary to-tech-sky bg-clip-text text-transparent"
               animate={{ opacity: sidebarOpen ? 1 : 0 }}
             >
               Admin
@@ -103,7 +103,7 @@ const AdminSidebar = React.forwardRef<HTMLDivElement, AdminSidebarProps>(
             whileHover={{ scale: 1.1, rotate: sidebarOpen ? 0 : 180 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => onSidebarToggle(!sidebarOpen)}
-            className="p-2.5 rounded-xl hover:bg-slate-100/50 dark:hover:bg-slate-700/50 transition-all duration-200 relative z-10 hidden lg:flex items-center justify-center group"
+            className="p-2.5 rounded-xl hover:bg-foreground/5 transition-colors duration-200 relative z-10 hidden lg:flex items-center justify-center group"
             aria-label={sidebarOpen ? '收起侧边栏' : '展开侧边栏'}
           >
             <motion.div
@@ -111,9 +111,9 @@ const AdminSidebar = React.forwardRef<HTMLDivElement, AdminSidebarProps>(
               transition={{ duration: 0.3 }}
             >
               {sidebarOpen ? (
-                <ChevronLeft className="w-5 h-5 text-foreground/50 group-hover:text-tech-cyan transition-colors" aria-hidden="true" />
+                <ChevronLeft className="w-5 h-5 text-foreground/50 group-hover:text-primary transition-colors" aria-hidden="true" />
               ) : (
-                <ChevronRight className="w-5 h-5 text-foreground/50 group-hover:text-tech-cyan transition-colors" aria-hidden="true" />
+                <ChevronRight className="w-5 h-5 text-foreground/50 group-hover:text-primary transition-colors" aria-hidden="true" />
               )}
             </motion.div>
           </motion.button>
@@ -122,7 +122,7 @@ const AdminSidebar = React.forwardRef<HTMLDivElement, AdminSidebarProps>(
             whileHover={{ scale: 1.1, rotate: 90 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => onMobileToggle(false)}
-            className="p-2.5 rounded-xl hover:bg-glass/50 transition-all duration-200 lg:hidden relative z-10"
+            className="p-2.5 rounded-xl hover:bg-glass/50 transition-colors duration-200 lg:hidden relative z-10"
             animate={{ opacity: mobileOpen ? 1 : 0 }}
             aria-label="关闭"
           >
@@ -139,7 +139,7 @@ const AdminSidebar = React.forwardRef<HTMLDivElement, AdminSidebarProps>(
         </motion.div>
 
         <motion.nav 
-          className="p-3 overflow-y-auto h-[calc(100vh-8rem)] scrollbar-thin scrollbar-thumb-slate-300/50 dark:scrollbar-thumb-slate-600/50 scrollbar-track-transparent"
+          className="p-3 overflow-y-auto h-[calc(100vh-8rem)] scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent"
           variants={{
             open: { opacity: 1 },
             closed: { opacity: 1 }
@@ -161,7 +161,7 @@ const AdminSidebar = React.forwardRef<HTMLDivElement, AdminSidebarProps>(
                 <AnimatePresence>
                   {sidebarOpen && (
                     <motion.h3 
-                      className="px-3 py-2 text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider flex items-center gap-2"
+                      className="px-3 py-2 text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider flex items-center gap-2"
                       role="heading"
                       aria-level={2}
                       variants={itemVariants}
@@ -169,9 +169,9 @@ const AdminSidebar = React.forwardRef<HTMLDivElement, AdminSidebarProps>(
                       animate="open"
                       exit="closed"
                     >
-                      <span className="w-8 h-px bg-gradient-to-r from-slate-300 to-transparent dark:from-slate-600" />
+                      <span className="w-8 h-px bg-gradient-to-r from-border to-transparent" />
                       {group.label}
-                      <span className="flex-1 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent dark:via-slate-700" />
+                      <span className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
                     </motion.h3>
                   )}
                 </AnimatePresence>
@@ -200,16 +200,16 @@ const AdminSidebar = React.forwardRef<HTMLDivElement, AdminSidebarProps>(
                           href={item.href as React.ComponentProps<typeof Link>['href']}
                           onClick={() => onMobileToggle(false)}
                           className={cn(
-                            "flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300 ease-out",
+                            "flex items-center gap-3 px-3 py-3 rounded-xl transition-colors duration-300 ease-out",
                             "relative overflow-hidden group",
-                            isActive 
-                              ? "bg-gradient-to-r from-tech-cyan/15 via-tech-sky/10 to-transparent text-slate-800 dark:text-slate-100 shadow-lg shadow-tech-cyan/10 border border-tech-cyan/20 dark:border-tech-cyan/30" 
-                              : "text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-slate-700/30"
+                            isActive
+                              ? "bg-gradient-to-r from-primary/15 via-tech-sky/10 to-transparent text-foreground shadow-tech-cyan border border-primary/25"
+                              : "text-muted-foreground hover:text-foreground hover:bg-foreground/5"
                           )}
                         >
                           {isActive && (
                             <motion.div 
-                              className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-tech-cyan via-tech-sky to-blue-500 rounded-r-full"
+                              className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary to-tech-sky rounded-r-full"
                               layoutId="activeIndicator"
                               initial={false}
                               transition={{ type: "spring", stiffness: 500, damping: 30 }}
@@ -218,7 +218,7 @@ const AdminSidebar = React.forwardRef<HTMLDivElement, AdminSidebarProps>(
                           
                           <motion.div
                             className={cn(
-                              "relative p-2 rounded-lg transition-all duration-300",
+                              "relative p-2 rounded-lg transition-colors duration-300",
                               isActive 
                                 ? "bg-gradient-to-br from-tech-cyan/25 to-tech-sky/25 shadow-md shadow-tech-cyan/20" 
                                 : "group-hover:bg-foreground/5"
@@ -227,13 +227,13 @@ const AdminSidebar = React.forwardRef<HTMLDivElement, AdminSidebarProps>(
                             animate={{ scale: isActive ? 1.05 : 1 }}
                           >
                             <Icon className={cn(
-                              "w-5 h-5 transition-all duration-300",
-                              isActive ? "text-tech-cyan" : "group-hover:text-tech-cyan/70"
+                              "w-5 h-5 transition-colors duration-300",
+                              isActive ? "text-primary" : "group-hover:text-primary/70"
                             )} />
                             
                             {isActive && (
                               <motion.div 
-                                className="absolute inset-0 rounded-lg bg-tech-cyan/20 blur-lg -z-10"
+                                className="absolute inset-0 rounded-lg bg-primary/20 blur-lg -z-10"
                                 animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.8, 0.5] }}
                                 transition={{ duration: 2, repeat: Infinity }}
                               />
@@ -254,7 +254,7 @@ const AdminSidebar = React.forwardRef<HTMLDivElement, AdminSidebarProps>(
                           
                           {isActive && sidebarOpen && (
                             <motion.div 
-                              className="absolute right-3 w-2 h-2 rounded-full bg-tech-cyan"
+                              className="absolute right-3 w-2 h-2 rounded-full bg-primary"
                               animate={{ scale: [1, 1.3, 1], opacity: [1, 0.7, 1] }}
                               transition={{ duration: 1.5, repeat: Infinity }}
                             />
@@ -272,7 +272,7 @@ const AdminSidebar = React.forwardRef<HTMLDivElement, AdminSidebarProps>(
         </motion.nav>
 
         <motion.div 
-          className="absolute bottom-0 left-0 right-0 p-3 border-t border-slate-200/50 dark:border-slate-700/50 bg-gradient-to-t from-white/50 to-transparent dark:from-slate-800/50"
+          className="absolute bottom-0 left-0 right-0 p-3 border-t border-glass-border bg-gradient-to-t from-glass/50 to-transparent"
           animate={{ 
             paddingLeft: sidebarOpen ? 12 : 8,
             paddingRight: sidebarOpen ? 12 : 8
@@ -281,9 +281,9 @@ const AdminSidebar = React.forwardRef<HTMLDivElement, AdminSidebarProps>(
           <Link
             href="/"
             className={cn(
-              "flex items-center gap-3 px-3 py-3 rounded-xl text-slate-500 dark:text-slate-400",
-              "hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-slate-700/30",
-              "transition-all duration-300 group relative overflow-hidden"
+              "flex items-center gap-3 px-3 py-3 rounded-xl text-muted-foreground",
+              "hover:text-foreground hover:bg-foreground/5",
+              "transition-colors duration-300 group relative overflow-hidden"
             )}
           >
             <motion.div

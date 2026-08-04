@@ -101,7 +101,7 @@ const MessageReactionsComponent = function MessageReactions({
               onClick={(e) => handleReactionClick(key, e)}
               className={cn(
                 "relative flex items-center gap-1 px-2 py-1 rounded-full border",
-                "text-sm transition-all duration-200",
+                "text-sm transition-colors duration-200",
                 isReacted
                   ? "bg-primary/20 text-primary border-primary/50"
                   : "bg-muted/40 text-muted-foreground border-border hover:border-primary/30"

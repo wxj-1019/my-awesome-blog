@@ -24,7 +24,7 @@ export default function GameSidebar({ activeSection, onSectionChange }: GameSide
   ];
 
   return (
-    <aside className="w-64 h-full hidden md:flex flex-col bg-card/50 backdrop-blur-2xl border-r border-glass-border pt-6 pb-4 px-4 flex-shrink-0">
+    <aside className="w-64 h-full hidden md:flex flex-col bg-card/50 backdrop-blur-md border-r border-glass-border pt-6 pb-4 px-4 flex-shrink-0">
       <div className="flex-1 overflow-y-auto scrollbar-hide">
         <div className="mb-8">
           <h2 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
@@ -36,7 +36,7 @@ export default function GameSidebar({ activeSection, onSectionChange }: GameSide
                 key={item.id}
                 onClick={() => onSectionChange(item.id)}
                 className={cn(
-                  'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 group',
+                  'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 group',
                   activeSection === item.id
                     ? 'bg-primary text-primary-foreground shadow-md'
                     : 'text-muted-foreground hover:bg-muted/50'
@@ -62,7 +62,7 @@ export default function GameSidebar({ activeSection, onSectionChange }: GameSide
                 key={item.id}
                 onClick={() => onSectionChange(item.id)}
                 className={cn(
-                  'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 group',
+                  'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 group',
                   activeSection === item.id
                     ? 'bg-primary text-primary-foreground shadow-md'
                     : 'text-muted-foreground hover:bg-muted/50'

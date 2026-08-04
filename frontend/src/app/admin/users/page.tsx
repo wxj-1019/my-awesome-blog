@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import Image from 'next/image'
 import { motion, AnimatePresence } from '@/lib/framer-motion'
 import { Plus, Edit, Trash2, Users as UsersIcon, Sparkles, Shield } from 'lucide-react'
@@ -13,6 +13,7 @@ import { useToast } from '@/components/admin/Toast'
 import LoadingState from '@/components/ui/LoadingState'
 import EmptyState from '@/components/ui/EmptyState'
 import GlassCardAdmin from '@/components/ui/GlassCardAdmin'
+import DataTable, { type Column } from '@/components/ui/DataTable'
 interface User {
   id: string
   username: string
@@ -94,7 +95,9 @@ export default function UsersPage() {
       setDeleteDialog({ open: false, user: null })
     }
   }
-  const toggleUserStatus = async (user: User) => {
+  /* useCallback：这两个函数进入下方 userColumns 的 useMemo 依赖，
+     不稳定引用会让列定义每次渲染都重建 */
+  const toggleUserStatus = useCallback(async (user: User) => {
     try {
       await adminApi.users.toggleStatus(user.id, !user.is_active)
       success(user.is_active ? '用户已禁用' : '用户已启用')
@@ -103,8 +106,8 @@ export default function UsersPage() {
       console.error('Failed to toggle user status:', err)
       error('更新用户状态失败，请重试')
     }
-  }
-  const openEditModal = (user: User) => {
+  }, [success, error, fetchUsers])
+  const openEditModal = useCallback((user: User) => {
     setEditingUser(user)
     setFormData({
       username: user.username,
@@ -114,12 +117,120 @@ export default function UsersPage() {
       is_superuser: user.is_superuser
     })
     setShowModal(true)
-  }
-  const filteredUsers = users.filter(user => 
+  }, [])
+  const filteredUsers = users.filter(user =>
     user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.full_name?.toLowerCase().includes(searchQuery.toLowerCase())
   )
+
+  /* DataTable 列定义：render 内保留原有的头像、状态徽章、角色徽章与操作按钮 */
+  const userColumns: Column<User>[] = useMemo(() => [
+    {
+      key: 'username',
+      title: '用户',
+      sortable: true,
+      render: (_value, user) => (
+        <div className="flex items-center gap-3">
+          <motion.div
+            className="w-10 h-10 rounded-full bg-gradient-to-br from-tech-cyan to-tech-sky flex items-center justify-center text-foreground font-medium shadow-lg shadow-tech-cyan/30 shrink-0"
+            whileHover={{ scale: 1.1, rotate: 5 }}
+            transition={{ duration: 0.2 }}
+          >
+            {user.avatar ? (
+              <Image src={user.avatar} alt="" width={40} height={40} className="rounded-full object-cover" />
+            ) : (
+              user.username.charAt(0).toUpperCase()
+            )}
+          </motion.div>
+          <div>
+            <p className="font-semibold text-foreground">{user.full_name || user.username}</p>
+            <p className="text-sm text-foreground/50">@{user.username}</p>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: 'email',
+      title: '邮箱',
+      sortable: true,
+      cellClassName: 'text-foreground/70',
+    },
+    {
+      key: 'is_active',
+      title: '状态',
+      sortable: true,
+      render: (_value, user) => (
+        <motion.button
+          onClick={(e) => { e.stopPropagation(); toggleUserStatus(user) }}
+          className={cn(
+            'px-3 py-1 text-xs font-medium rounded-full transition-colors duration-200',
+            user.is_active
+              ? 'bg-success/20 text-success border border-success/30'
+              : 'bg-muted-foreground/20 text-muted-foreground border border-muted-foreground/30'
+          )}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          {user.is_active ? '正常' : '禁用'}
+        </motion.button>
+      ),
+    },
+    {
+      key: 'is_superuser',
+      title: '角色',
+      sortable: true,
+      render: (_value, user) => (user.is_superuser ? (
+        <motion.span
+          className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-accent/20 text-accent border border-accent/30 rounded-full"
+          whileHover={{ scale: 1.05 }}
+        >
+          <Shield className="w-3.5 h-3.5" />
+          管理员
+        </motion.span>
+      ) : (
+        <span className="text-sm text-foreground/50">普通用户</span>
+      )),
+    },
+    {
+      key: 'created_at',
+      title: '注册时间',
+      sortable: true,
+      render: (_value, user) => (
+        <span className="text-sm text-foreground/50">
+          {user.created_at ? new Date(user.created_at).toLocaleDateString('zh-CN') : '-'}
+        </span>
+      ),
+    },
+    {
+      key: 'actions',
+      title: '操作',
+      cellClassName: 'text-right',
+      render: (_value, user) => (
+        <div className="flex items-center justify-end gap-1">
+          <motion.button
+            onClick={(e) => { e.stopPropagation(); openEditModal(user) }}
+            className="p-2 text-foreground/40 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors duration-200"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            title="编辑"
+          >
+            <Edit className="w-4 h-4" />
+          </motion.button>
+          <motion.button
+            onClick={(e) => { e.stopPropagation(); setDeleteDialog({ open: true, user }) }}
+            className="p-2 text-foreground/40 hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors duration-200"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            title="删除"
+          >
+            <Trash2 className="w-4 h-4" />
+          </motion.button>
+        </div>
+      ),
+    },
+  ], [toggleUserStatus, openEditModal])
+
   return (
     <div className="space-y-6">
       <motion.div
@@ -203,110 +314,16 @@ export default function UsersPage() {
               />
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="border-b border-glass-border/30">
-                  <tr>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-foreground/50 uppercase tracking-wider">用户</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-foreground/50 uppercase tracking-wider">邮箱</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-foreground/50 uppercase tracking-wider">状态</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-foreground/50 uppercase tracking-wider">角色</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-foreground/50 uppercase tracking-wider">注册时间</th>
-                    <th className="px-6 py-4 text-right text-xs font-semibold text-foreground/50 uppercase tracking-wider">操作</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-glass-border/20">
-                  <AnimatePresence>
-                    {filteredUsers.map((user, index) => (
-                      <motion.tr
-                        key={user.id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: 20 }}
-                        transition={{ delay: index * 0.05 }}
-                        className="hover:bg-glass/10 transition-colors duration-200 group"
-                      >
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <motion.div
-                              className="w-10 h-10 rounded-full bg-gradient-to-br from-tech-cyan to-tech-sky flex items-center justify-center text-white dark:text-gray-100 font-medium shadow-lg shadow-tech-cyan/30"
-                              whileHover={{ scale: 1.1, rotate: 5 }}
-                              transition={{ duration: 0.2 }}
-                            >
-                              {user.avatar ? (
-                                <Image src={user.avatar} alt="" width={40} height={40} className="rounded-full object-cover" />
-                              ) : (
-                                user.username.charAt(0).toUpperCase()
-                              )}
-                            </motion.div>
-                            <div>
-                              <p className="font-medium text-foreground font-semibold">{user.full_name || user.username}</p>
-                              <p className="text-sm text-foreground/50">@{user.username}</p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 text-sm text-foreground/70">
-                          {user.email}
-                        </td>
-                        <td className="px-6 py-4">
-                          <motion.button
-                            onClick={() => toggleUserStatus(user)}
-                            className={cn(
-                              "px-3 py-1 text-xs font-medium rounded-full transition-all duration-200",
-                              user.is_active 
-                                ? "bg-green-500/20 text-green-400 border border-green-500/30" 
-                                : "bg-gray-500/20 text-gray-400 dark:text-gray-500 dark:text-gray-400 border border-gray-500/30"
-                            )}
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                          >
-                            {user.is_active ? '正常' : '禁用'}
-                          </motion.button>
-                        </td>
-                        <td className="px-6 py-4">
-                          {user.is_superuser ? (
-                            <motion.span 
-                              className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-purple-500/20 text-purple-400 border border-purple-500/30 rounded-full"
-                              whileHover={{ scale: 1.05 }}
-                            >
-                              <Shield className="w-3.5 h-3.5" />
-                              管理员
-                            </motion.span>
-                          ) : (
-                            <span className="text-sm text-foreground/50">普通用户</span>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-foreground/50">
-                          {user.created_at ? new Date(user.created_at).toLocaleDateString('zh-CN') : '-'}
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center justify-end gap-1">
-                            <motion.button
-                              onClick={() => openEditModal(user)}
-                              className="p-2 text-foreground/40 hover:text-tech-cyan hover:bg-tech-cyan/10 rounded-lg transition-all duration-200"
-                              whileHover={{ scale: 1.1 }}
-                              whileTap={{ scale: 0.95 }}
-                              title="编辑"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </motion.button>
-                            <motion.button
-                              onClick={() => setDeleteDialog({ open: true, user })}
-                              className="p-2 text-foreground/40 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all duration-200"
-                              whileHover={{ scale: 1.1 }}
-                              whileTap={{ scale: 0.95 }}
-                              title="删除"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </motion.button>
-                          </div>
-                        </td>
-                      </motion.tr>
-                    ))}
-                  </AnimatePresence>
-                </tbody>
-              </table>
-            </div>
+            /* 表格改用 DataTable 基座：复用其排序 / 分页 / 行入场动画与统一样式。
+               toolbar={false} —— 本页已有覆盖 用户名/邮箱/姓名 的搜索框，
+               内置工具栏只按列 key 匹配，覆盖面更小，故关闭避免双搜索框。 */
+            <DataTable<User>
+              data={filteredUsers}
+              keyField="id"
+              toolbar={false}
+              pageSize={10}
+              columns={userColumns}
+            />
           )}
         </GlassCardAdmin>
       </motion.div>
@@ -349,7 +366,7 @@ export default function UsersPage() {
                 </div>
                 <motion.button
                   onClick={() => setShowModal(false)}
-                  className="p-2 text-foreground/40 hover:text-foreground hover:bg-glass/20 rounded-lg transition-all duration-200"
+                  className="p-2 text-foreground/40 hover:text-foreground hover:bg-glass/20 rounded-lg transition-colors duration-200"
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
                 >

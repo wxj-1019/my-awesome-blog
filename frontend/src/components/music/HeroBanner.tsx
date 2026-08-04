@@ -183,7 +183,7 @@ export default function HeroBanner({
               'bg-white/10 backdrop-blur-xl',
               'flex items-center justify-center',
               'text-white/80 hover:text-white hover:bg-white/20',
-              'transition-all duration-300 ease-out',
+              'transition-[colors,transform] duration-300 ease-out',
               'opacity-0 group-hover:opacity-100',
               'hover:scale-110 active:scale-95'
             )}
@@ -199,7 +199,7 @@ export default function HeroBanner({
               'bg-white/10 backdrop-blur-xl',
               'flex items-center justify-center',
               'text-white/80 hover:text-white hover:bg-white/20',
-              'transition-all duration-300 ease-out',
+              'transition-[colors,transform] duration-300 ease-out',
               'opacity-0 group-hover:opacity-100',
               'hover:scale-110 active:scale-95'
             )}
@@ -218,7 +218,7 @@ export default function HeroBanner({
               key={banner.id}
               onClick={() => goToSlide(index)}
               className={cn(
-                'rounded-full transition-all duration-300 ease-out',
+                'rounded-full transition-[colors,transform] duration-300 ease-out',
                 currentIndex === index
                   ? 'w-6 h-2 bg-gradient-to-r from-tech-lightcyan to-tech-sky'
                   : 'w-2 h-2 bg-white/40 hover:bg-white/60 hover:scale-110'

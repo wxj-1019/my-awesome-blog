@@ -199,9 +199,9 @@ export default function CategoriesPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               <AnimatePresence>
                 {categories.map((category, index) => (
-                  <motion.div
+                  <GlassCardAdmin variant="selectable" entrance={false}
                     key={category.id}
-                    className="relative overflow-hidden rounded-2xl border-2 border-glass-border/30 hover:border-tech-cyan/50 p-6 bg-glass/10 hover:bg-glass/20 backdrop-blur-lg transition-all duration-300 cursor-pointer group"
+                    className={'rounded-2xl p-6 group'}
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.9 }}
@@ -220,14 +220,14 @@ export default function CategoriesPage() {
                           style={{ backgroundColor: category.color }}
                           whileHover={{ scale: 1.1, rotate: 5 }}
                         >
-                          <span className="text-xl font-bold text-white dark:text-gray-100">
+                          <span className="text-xl font-bold text-foreground">
                             {category.name.charAt(0)}
                           </span>
                         </motion.div>
                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                           <motion.button
                             onClick={(e) => { e.stopPropagation(); openEditModal(category) }}
-                            className="p-2 text-foreground/60 hover:text-tech-cyan hover:bg-tech-cyan/10 rounded-lg transition-all duration-200"
+                            className="p-2 text-foreground/60 hover:text-tech-cyan hover:bg-tech-cyan/10 rounded-lg transition-colors duration-200"
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                           >
@@ -235,7 +235,7 @@ export default function CategoriesPage() {
                           </motion.button>
                           <motion.button
                             onClick={(e) => { e.stopPropagation(); setDeleteDialog({ open: true, category }) }}
-                            className="p-2 text-foreground/60 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all duration-200"
+                            className="p-2 text-foreground/60 hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors duration-200"
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                           >
@@ -270,7 +270,7 @@ export default function CategoriesPage() {
                         </motion.span>
                       </div>
                     </div>
-                  </motion.div>
+                  </GlassCardAdmin>
                 ))}
               </AnimatePresence>
             </div>
@@ -295,7 +295,7 @@ export default function CategoriesPage() {
               onClick={() => setShowModal(false)}
             />
             <motion.div 
-              className="relative bg-white dark:bg-slate-800 rounded-2xl p-6 w-full max-w-md shadow-2xl"
+              className="relative bg-card rounded-2xl p-6 w-full max-w-md shadow-2xl"
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -317,7 +317,7 @@ export default function CategoriesPage() {
                 </div>
                 <motion.button
                   onClick={() => setShowModal(false)}
-                  className="p-2 text-foreground/60 hover:text-foreground hover:bg-glass/10 rounded-xl transition-all duration-200"
+                  className="p-2 text-foreground/60 hover:text-foreground hover:bg-glass/10 rounded-xl transition-colors duration-200"
                   whileHover={{ scale: 1.1, rotate: 90 }}
                   whileTap={{ scale: 0.9 }}
                 >
@@ -359,7 +359,7 @@ export default function CategoriesPage() {
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     rows={3}
                     placeholder="输入分类描述（可选）"
-                    className="w-full px-4 py-3 border border-glass-border/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-tech-cyan/50 transition-all duration-200 bg-glass/10 text-foreground placeholder:text-foreground/40"
+                    className="w-full px-4 py-3 border border-glass-border/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-tech-cyan/50 transition-colors duration-200 bg-glass/10 text-foreground placeholder:text-foreground/40"
                   />
                 </div>
                 
@@ -389,7 +389,7 @@ export default function CategoriesPage() {
                   <motion.button
                     type="button"
                     onClick={() => setShowModal(false)}
-                    className="px-6 py-2.5 text-foreground hover:bg-glass/10 rounded-xl font-medium transition-all duration-200"
+                    className="px-6 py-2.5 text-foreground hover:bg-glass/10 rounded-xl font-medium transition-colors duration-200"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
@@ -397,7 +397,7 @@ export default function CategoriesPage() {
                   </motion.button>
                   <motion.button
                     type="submit"
-                    className="px-6 py-2.5 bg-gradient-to-r from-tech-cyan to-tech-sky text-white dark:text-gray-100 rounded-xl font-medium hover:shadow-lg hover:shadow-tech-cyan/25 transition-all duration-300"
+                    className="px-6 py-2.5 bg-gradient-to-r from-tech-cyan to-tech-sky text-foreground rounded-xl font-medium hover:shadow-lg hover:shadow-tech-cyan/25 transition-colors duration-300"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
