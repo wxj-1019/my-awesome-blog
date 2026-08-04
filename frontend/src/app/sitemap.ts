@@ -58,6 +58,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'weekly',
       priority: 0.6,
     },
+    {
+      url: `${baseUrl}/tools/tarot`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.5,
+    },
     // Skill 收藏馆 · 单 skill 沉浸详情页
     ...['taste', 'superpowers', 'brainstorm', 'frontend-design', 'webapp-testing'].map(
       (slug) => ({

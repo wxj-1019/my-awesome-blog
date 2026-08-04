@@ -4,6 +4,8 @@ const customJestConfig = {
   preset: 'ts-jest',
   testMatch: ['**/__tests__/**/*.{ts,tsx}', '**/?(*.)+(spec|test).{ts,tsx}'],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+  // next build 产物（含 standalone/package.json）不参与模块发现，避免 haste 命名碰撞
+  modulePathIgnorePatterns: ['<rootDir>/.next/'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '\\.(css|sass|scss)$': 'identity-obj-proxy',

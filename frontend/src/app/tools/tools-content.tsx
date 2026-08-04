@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import type { Route } from 'next';
-import { Cpu, MessageSquare, ArrowRight, Wrench, Sparkles } from 'lucide-react';
+import { Cpu, MessageSquare, ArrowRight, Wrench, Sparkles, MoonStar } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
 import PageShell from '@/components/layout/PageShell';
 import PageHeader from '@/components/layout/PageHeader';
@@ -31,6 +31,12 @@ const items: {
     title: 'AI 工具收藏',
     description: '收藏优秀的 Skill 与 MCP',
     icon: Sparkles,
+  },
+  {
+    href: '/tools/tarot' as Route,
+    title: '塔罗牌',
+    description: '抽牌占卜，正逆位牌义与 AI 深度解读',
+    icon: MoonStar,
   },
 ];
 

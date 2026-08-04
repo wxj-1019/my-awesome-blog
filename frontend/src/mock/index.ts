@@ -6,3 +6,4 @@ export { mockProjects, projectCategories, type Project, type GitHubStats } from 
 export { mockGames } from './games';
 export { MOCK_WEATHER } from './weather';
 export { showcaseSkills } from './skills';
+export { tarotDeck, tarotSpreads, getSpread } from './tarot';

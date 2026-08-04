@@ -72,7 +72,8 @@ export const streamChat = async (
   request: LLMChatRequest,
   onChunk: (chunk: string) => void,
   onComplete: () => void,
-  onError: (error: Error) => void
+  onError: (error: Error) => void,
+  signal?: AbortSignal
 ): Promise<void> => {
   const token =
     typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
@@ -84,6 +85,7 @@ export const streamChat = async (
         ...(token && { Authorization: `Bearer ${token}` }),
       },
       body: JSON.stringify(request),
+      ...(signal ? { signal } : {}),
     });
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
