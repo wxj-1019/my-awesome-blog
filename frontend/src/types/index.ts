@@ -136,6 +136,7 @@ export interface Message {
     username: string;
     avatar?: string;
   };
+  nickname?: string; // 游客昵称（author 为游客时展示）
   created_at: string;
   updated_at?: string; // 更新时间（编辑后）
   color?: string; // 弹幕颜色
@@ -162,6 +163,7 @@ export interface DanmakuMessage {
     username: string;
     avatar?: string;
   };
+  nickname?: string; // 游客昵称（author 为游客时展示）
   created_at: string;
   color: string;
   speed: number; // 弹幕速度
@@ -174,6 +176,7 @@ export interface CreateMessageRequest {
   content: string;
   color?: string;
   isDanmaku?: boolean;
+  nickname?: string; // 游客昵称（未登录时填写）
 }
 
 // 相册类型

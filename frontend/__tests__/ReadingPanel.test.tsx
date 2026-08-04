@@ -60,7 +60,7 @@ describe('ReadingPanel · 解读面板', () => {
     expect(screen.getByText(`过去的影响：${tarotDeck[18].reversed}`)).toBeInTheDocument();
   });
 
-  it('未登录点击 AI 解读 → 显示登录引导，不发起请求', () => {
+  it('未登录也可发起 AI 解读（游客免登录）', () => {
     render(
       <ReadingPanel
         question="今天运势如何？"
@@ -71,9 +71,7 @@ describe('ReadingPanel · 解读面板', () => {
     );
 
     fireEvent.click(screen.getByRole('button', { name: '开始解读' }));
-    expect(screen.getByText('AI 解读需要登录后使用。')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /去登录/ })).toHaveAttribute('href', '/login');
-    expect(mockStreamChat).not.toHaveBeenCalled();
+    expect(mockStreamChat).toHaveBeenCalledTimes(1);
   });
 
   it('已登录：问题与牌面写入 messages，流式 chunk 累积渲染', async () => {
@@ -115,8 +113,7 @@ describe('ReadingPanel · 解读面板', () => {
     expect(screen.getByRole('button', { name: '重新解读' })).toBeInTheDocument();
   });
 
-  it('401 错误 → 转为未登录引导', () => {
-    localStorage.setItem('auth_token', 'expired-token');
+  it('401 错误 → 展示错误提示（不再强制登录）', () => {
     render(
       <ReadingPanel
         question=""
@@ -130,7 +127,7 @@ describe('ReadingPanel · 解读面板', () => {
     act(() => {
       callbacks().onError(new Error('请求失败: 401 (Unauthorized)'));
     });
-    expect(screen.getByText('AI 解读需要登录后使用。')).toBeInTheDocument();
+    expect(screen.getByText(/解读失败：请求失败: 401/)).toBeInTheDocument();
   });
 
   it('其他错误 → 展示错误提示且预设牌义不受影响', () => {

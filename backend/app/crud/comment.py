@@ -151,7 +151,8 @@ def get_replies(db: Session, comment_id: UUID, skip: int = 0, limit: int = 100, 
     return query.order_by(Comment.created_at.asc()).offset(skip).limit(limit).all()
 
 
-def create_comment(db: Session, comment: CommentCreate, author_id: UUID) -> Comment:
+def create_comment(db: Session, comment: CommentCreate, author_id: Optional[UUID] = None) -> Comment:
+    """创建评论；游客评论 author_id 为 None，昵称取自 comment.nickname"""
     data = comment.model_dump()
     data["article_id"] = UUID(str(data["article_id"]))
     if data.get("parent_id") is not None:

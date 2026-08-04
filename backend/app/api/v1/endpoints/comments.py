@@ -114,10 +114,12 @@ def create_comment(
     *,
     db: Session = Depends(get_db),
     comment_in: CommentCreate,
-    current_user: User = Depends(get_current_active_user)
+    current_user: Optional[User] = Depends(get_current_user_optional)
 ) -> Any:
     """
     Create new comment
+
+    登录用户以账号身份发表；游客可用昵称匿名评论（author_id 为空）。
     """
     from uuid import UUID
     from app.crud.article import get_article
@@ -129,7 +131,11 @@ def create_comment(
             resource="Article",
             identifier=comment_in.article_id,
         )
-    comment = crud.create_comment(db, comment=comment_in, author_id=current_user.id)  # type: ignore
+    # 游客评论：昵称留空时给默认值，避免显示空名
+    author_id = current_user.id if current_user else None
+    if not current_user and not (comment_in.nickname or "").strip():
+        comment_in.nickname = "匿名游客"
+    comment = crud.create_comment(db, comment=comment_in, author_id=author_id)  # type: ignore
     return comment
 
 

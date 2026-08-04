@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional, List
 from uuid import UUID
-from pydantic import BaseModel, field_serializer
+from pydantic import BaseModel, Field, field_serializer
 
 
 # Base schemas
@@ -14,6 +14,7 @@ class MessageBase(BaseModel):
 # Create schemas
 class MessageCreate(MessageBase):
     parent_id: Optional[str] = None
+    nickname: Optional[str] = Field(default=None, max_length=50, description="游客昵称（未登录时展示）")
 
 
 # Update schemas
@@ -26,7 +27,8 @@ class MessageUpdate(BaseModel):
 # Response schemas
 class MessageInDBBase(MessageBase):
     id: UUID
-    author_id: UUID
+    author_id: Optional[UUID] = None
+    nickname: Optional[str] = None
     parent_id: Optional[UUID] = None
     likes: int
     level: int

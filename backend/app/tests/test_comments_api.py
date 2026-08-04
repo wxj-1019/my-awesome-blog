@@ -52,3 +52,35 @@ def test_create_comment(client, published_article):
     data = response.json()
     assert data["content"] == "Nice article!"
     assert data["article_id"] == str(published_article.id)
+
+
+def test_create_comment_as_guest(client, published_article):
+    """游客可免登录发表评论，author_id 为空、昵称落库"""
+    from app.core.dependencies import get_current_user_optional
+    from app.main import app
+    app.dependency_overrides.pop(get_current_user_optional, None)
+
+    payload = {
+        "content": "Guest comment",
+        "article_id": str(published_article.id),
+        "nickname": "游客小李",
+    }
+    response = client.post("/api/v1/comments/", json=payload)
+    assert response.status_code == status.HTTP_200_OK
+    data = response.json()
+    assert data["author_id"] is None
+    assert data["nickname"] == "游客小李"
+
+
+def test_create_comment_as_guest_default_nickname(client, published_article):
+    """游客未填昵称时后端默认「匿名游客」"""
+    from app.core.dependencies import get_current_user_optional
+    from app.main import app
+    app.dependency_overrides.pop(get_current_user_optional, None)
+
+    response = client.post(
+        "/api/v1/comments/",
+        json={"content": "Anonymous comment", "article_id": str(published_article.id)},
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["nickname"] == "匿名游客"

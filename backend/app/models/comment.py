@@ -19,7 +19,8 @@ class Comment(Base):
     
     # Foreign keys
     article_id = Column(UUIDType, ForeignKey("articles.id", ondelete="CASCADE"), nullable=False)
-    author_id = Column(UUIDType, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    author_id = Column(UUIDType, ForeignKey("users.id", ondelete="CASCADE"), nullable=True)  # 登录用户评论；游客为 NULL
+    nickname = Column(String(50), nullable=True)  # 游客昵称（author_id 为空时展示）
     parent_id = Column(UUIDType, ForeignKey("comments.id", ondelete="CASCADE"), nullable=True)
     
     # Relationships

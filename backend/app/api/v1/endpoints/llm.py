@@ -49,7 +49,6 @@ async def stream_chat(
     request: Request,
     *,
     chat_request: LLMChatRequest,
-    current_user: User = Depends(get_current_active_user),
 ):
     """
     LLM 流式聊天接口
@@ -67,6 +66,8 @@ async def stream_chat(
     - data: {"content": "增量内容", "finish_reason": null}
     - data: {"content": "更多内容", "finish_reason": null}
     - data: [DONE]
+
+    无需登录（游客可用，如塔罗 AI 解读），由限流保护。
     """
     app_logger.info(f"LLM stream chat request with provider: {chat_request.provider or 'default'}")
 

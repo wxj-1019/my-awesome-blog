@@ -20,7 +20,8 @@ class Message(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
     # Foreign keys
-    author_id = Column(UUIDType, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    author_id = Column(UUIDType, ForeignKey("users.id", ondelete="CASCADE"), nullable=True)  # 登录用户留言；游客为 NULL
+    nickname = Column(String(50), nullable=True)  # 游客昵称（author_id 为空时展示）
     parent_id = Column(UUIDType, ForeignKey("messages.id", ondelete="CASCADE"), nullable=True)
     
     # Relationships

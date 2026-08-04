@@ -14,6 +14,7 @@ class CommentBase(BaseModel):
 class CommentCreate(CommentBase):
     article_id: str
     parent_id: Optional[str] = None
+    nickname: Optional[str] = Field(default=None, max_length=50, description="游客昵称（未登录时展示）")
 
 
 # Update schemas
@@ -26,7 +27,8 @@ class CommentUpdate(BaseModel):
 class CommentInDBBase(CommentBase):
     id: UUID
     article_id: UUID
-    author_id: UUID
+    author_id: Optional[UUID] = None
+    nickname: Optional[str] = None
     parent_id: Optional[UUID] = None
     is_approved: bool
     created_at: datetime

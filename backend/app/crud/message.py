@@ -88,7 +88,8 @@ def get_replies(
     return query.order_by(Message.created_at.asc()).offset(skip).limit(limit).all()
 
 
-def create_message(db: Session, message: MessageCreate, author_id: UUID) -> Message:
+def create_message(db: Session, message: MessageCreate, author_id: Optional[UUID] = None) -> Message:
+    """创建留言；游客留言 author_id 为 None，昵称取自 message.nickname"""
     db_message = Message(
         **message.model_dump(),
         author_id=author_id,

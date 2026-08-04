@@ -93,6 +93,7 @@ conversation_create_rate_limit = limiter.limit("10 per minute")  # 创建对话
 memory_create_rate_limit = limiter.limit("30 per minute")  # 创建记忆
 image_upload_rate_limit = limiter.limit("10 per minute")  # 图片上传
 oss_upload_rate_limit = limiter.limit("20 per minute")  # OSS 上传
+message_create_rate_limit = limiter.limit("10 per minute")  # 留言创建接口（游客可发，防刷屏）
 
 # 批量操作限流
 batch_operation_rate_limit = limiter.limit("5 per minute")
@@ -115,5 +116,6 @@ __all__ = [
     'memory_create_rate_limit',
     'image_upload_rate_limit',
     'oss_upload_rate_limit',
+    'message_create_rate_limit',
     'batch_operation_rate_limit',
 ]

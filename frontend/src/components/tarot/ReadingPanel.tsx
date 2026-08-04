@@ -2,8 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
-import Link from 'next/link';
-import { Check, Copy, LogIn, RotateCcw, Share2, Sparkles, Square } from 'lucide-react';
+import { Check, Copy, RotateCcw, Share2, Sparkles, Square } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
 import TarotCardFace from '@/components/tarot/TarotCardFace';
 import ReadingErrorBoundary from '@/components/tarot/ReadingErrorBoundary';
@@ -16,7 +15,6 @@ import {
   orientationLabel,
 } from '@/lib/tarot';
 import { streamChat } from '@/lib/api/llm';
-import { TOKEN_KEY } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
 import type { DrawnCard, TarotSpread } from '@/types/tarot';
 
@@ -25,7 +23,7 @@ const MarkdownRenderer = dynamic(() => import('@/components/ui/MarkdownRenderer'
   ssr: false,
 });
 
-type AiState = 'idle' | 'streaming' | 'done' | 'error' | 'unauthorized';
+type AiState = 'idle' | 'streaming' | 'done' | 'error';
 
 interface ReadingPanelProps {
   question: string;
@@ -35,7 +33,7 @@ interface ReadingPanelProps {
 }
 
 /**
- * 解读面板：预设牌义（本地即时）+ 可选 AI 深度解读（/llm/chat/stream，需登录）。
+ * 解读面板：预设牌义（本地即时）+ 可选 AI 深度解读（/llm/chat/stream，无需登录）。
  * AI 失败不影响预设解读展示。
  */
 export default function ReadingPanel({ question, spread, drawn, onReset }: ReadingPanelProps) {
@@ -75,11 +73,6 @@ export default function ReadingPanel({ question, spread, drawn, onReset }: Readi
   }, [question, spread, drawn, aiText]);
 
   const startAiReading = useCallback(() => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem(TOKEN_KEY) : null;
-    if (!token) {
-      setAiState('unauthorized');
-      return;
-    }
     setAiState('streaming');
     setAiText('');
     setErrorMsg('');
@@ -99,13 +92,8 @@ export default function ReadingPanel({ question, spread, drawn, onReset }: Readi
           setAiState('done');
           return;
         }
-        // 后端未认证返回 401（错误信息含状态码或 Unauthorized 字样）
-        if (/401|unauthorized/i.test(err.message)) {
-          setAiState('unauthorized');
-        } else {
-          setAiState('error');
-          setErrorMsg(err.message);
-        }
+        setAiState('error');
+        setErrorMsg(err.message);
       },
       controller.signal
     );
@@ -197,7 +185,7 @@ export default function ReadingPanel({ question, spread, drawn, onReset }: Readi
             <div>
               <h3 className="text-sm font-semibold text-foreground">AI 深度解读</h3>
               <p className="text-xs text-muted-foreground">
-                结合你的问题与牌面，由站内 AI 生成个性化解读（需登录）
+                结合你的问题与牌面，由站内 AI 生成个性化解读
               </p>
             </div>
           </div>
@@ -223,19 +211,6 @@ export default function ReadingPanel({ question, spread, drawn, onReset }: Readi
             </div>
           )}
         </div>
-
-        {aiState === 'unauthorized' ? (
-          <p className="mt-3 text-sm text-muted-foreground">
-            AI 解读需要登录后使用。
-            <Link
-              href="/login"
-              className="ml-1 inline-flex items-center gap-1 text-primary hover:underline"
-            >
-              <LogIn className="h-3.5 w-3.5" aria-hidden />
-              去登录
-            </Link>
-          </p>
-        ) : null}
 
         {aiState === 'error' ? (
           <p className="mt-3 text-sm text-error">

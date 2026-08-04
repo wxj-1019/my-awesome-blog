@@ -12,6 +12,7 @@ interface RawMessage {
   id: string;
   content: string;
   author?: RawAuthor;
+  nickname?: string; // 游客昵称（author 为空时后端返回）
   created_at: string;
   updated_at?: string;
   color?: string;
@@ -37,9 +38,10 @@ const transformMessage = (msg: unknown): Message => {
     content: raw.content,
     author: {
       id: raw.author?.id || '',
-      username: raw.author?.username || '匿名用户',
+      username: raw.nickname || raw.author?.username || '匿名游客',
       avatar: raw.author?.avatar,
     },
+    nickname: raw.nickname,
     created_at: raw.created_at,
     color: raw.color || '#00D9FF',
     isDanmaku: raw.is_danmaku ?? true,
@@ -88,9 +90,10 @@ export const getDanmakuMessages = async (): Promise<DanmakuMessage[]> => {
         content: msg.content,
         author: {
           id: msg.author?.id || '',
-          username: msg.author?.username || '匿名用户',
+          username: msg.nickname || msg.author?.username || '匿名游客',
           avatar: msg.author?.avatar,
         },
+        nickname: msg.nickname,
         created_at: msg.created_at,
         color: msg.color || '#00D9FF',
         speed: msg.speed || Math.random() * 3 + 2,
@@ -116,6 +119,7 @@ export const createMessage = async (data: CreateMessageRequest): Promise<Message
       content: data.content,
       color: data.color,
       is_danmaku: data.isDanmaku,
+      nickname: data.nickname,
     },
   });
 

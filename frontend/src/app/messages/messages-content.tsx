@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
-import { Send, Pause, Play, MessageSquare, Sparkles } from 'lucide-react';
+import { Send, Pause, Play, Sparkles } from 'lucide-react';
 import { getMessages, createMessage, getDanmakuMessages, DANMAKU_COLORS, validateMessage } from '@/services/messageService';
 import { getCurrentUserApi } from '@/lib/api/auth';
 import { Message, UserProfile, DanmakuMessage } from '@/types';
@@ -65,6 +65,9 @@ export default function MessagesPageContent() {
   const [selectedColor, setSelectedColor] = useState(COLORS[0]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // 游客昵称（未登录时显示输入框，可留空由后端默认「匿名游客」）
+  const [nickname, setNickname] = useState('');
+  const isLoggedIn = !!currentUser;
   
   const [activeDanmaku, setActiveDanmaku] = useState<ActiveDanmakuItem[]>([]);
   const [isPaused, setIsPaused] = useState(false);
@@ -289,6 +292,8 @@ export default function MessagesPageContent() {
         content: content.trim(),
         color: selectedColor,
         isDanmaku: true,
+        // 游客带上昵称；登录用户由后端按账号身份处理
+        ...(!isLoggedIn ? { nickname: nickname.trim() } : {}),
       });
       
       setMessages(prev => [newMessage, ...prev]);
@@ -336,9 +341,7 @@ export default function MessagesPageContent() {
     } finally {
       setIsSubmitting(false);
     }
-  }, [content, selectedColor, rainbowMode, reducedMotion, getAvailableTrack]);
-
-  const isLoggedIn = !!currentUser;
+  }, [content, selectedColor, rainbowMode, reducedMotion, getAvailableTrack, isLoggedIn, nickname]);
 
   if (isLoading) {
     return (
@@ -407,98 +410,111 @@ export default function MessagesPageContent() {
         <FadeIn direction="up" delay={0.1} className="w-full max-w-xl">
           {/* 玻璃卡片用柔和影令牌，避免 shadow-2xl 重黑影压暗通透感 */}
           <div className="bg-glass/30 backdrop-blur-xl border border-glass-border rounded-2xl p-6 shadow-[var(--glass-shadow)]">
-            {!isLoggedIn ? (
-              <div className="text-center py-8">
-                <MessageSquare className="w-12 h-12 mx-auto mb-4 text-tech-cyan/50" />
-                <p className="text-foreground mb-3">登录后即可发送弹幕</p>
-                <a
-                  href="/login"
-                  className="inline-block px-6 py-2 bg-tech-cyan/20 text-tech-cyan rounded-full hover:bg-tech-cyan/30 transition-colors"
-                >
-                  去登录
-                </a>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit}>
+              {isLoggedIn ? (
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-tech-cyan to-tech-lightcyan flex items-center justify-center text-primary-foreground font-bold">
                     {currentUser?.username?.charAt(0)?.toUpperCase() || 'U'}
                   </div>
                   <span className="text-foreground font-medium">{currentUser?.username}</span>
                 </div>
-
-                <div className="relative mb-4">
-                  <textarea
-                    value={content}
-                    onChange={(e) => {
-                      setContent(e.target.value);
-                      setError(null);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        if (!isSubmitting && content.trim()) {
-                          handleSubmit(e);
-                        }
-                      }
-                    }}
-                    placeholder="写下你的弹幕... (Enter 发送)"
-                    maxLength={200}
-                    rows={3}
+              ) : (
+                <div className="mb-4">
+                  <label
+                    htmlFor="guest-nickname"
+                    className="block text-sm text-muted-foreground mb-1.5"
+                  >
+                    昵称（选填，默认「匿名游客」）
+                  </label>
+                  <input
+                    id="guest-nickname"
+                    type="text"
+                    value={nickname}
+                    onChange={(e) => setNickname(e.target.value)}
+                    maxLength={50}
+                    placeholder="你的昵称..."
                     className={cn(
-                      "w-full px-4 py-3 rounded-xl resize-none",
+                      "w-full px-4 py-2.5 rounded-xl",
                       "bg-glass border border-glass-border",
                       "focus:outline-none focus:ring-2 focus:ring-tech-cyan/50 focus:border-tech-cyan",
                       "placeholder:text-muted-foreground/60 text-foreground",
                       "transition-[colors,box-shadow] duration-200"
                     )}
                   />
-                  <div className="absolute bottom-2 right-3 text-xs text-muted-foreground/60">
-                    {content.length}/200
+                </div>
+              )}
+
+              <div className="relative mb-4">
+                <textarea
+                  value={content}
+                  onChange={(e) => {
+                    setContent(e.target.value);
+                    setError(null);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      if (!isSubmitting && content.trim()) {
+                        handleSubmit(e);
+                      }
+                    }
+                  }}
+                  placeholder="写下你的弹幕... (Enter 发送)"
+                  maxLength={200}
+                  rows={3}
+                  className={cn(
+                    "w-full px-4 py-3 rounded-xl resize-none",
+                    "bg-glass border border-glass-border",
+                    "focus:outline-none focus:ring-2 focus:ring-tech-cyan/50 focus:border-tech-cyan",
+                    "placeholder:text-muted-foreground/60 text-foreground",
+                    "transition-[colors,box-shadow] duration-200"
+                  )}
+                />
+                <div className="absolute bottom-2 right-3 text-xs text-muted-foreground/60">
+                  {content.length}/200
+                </div>
+              </div>
+
+              {error && (
+                <p className="text-destructive text-sm mb-3">{error}</p>
+              )}
+
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground text-sm">颜色:</span>
+                  <div className="flex gap-1.5">
+                    {COLORS.map((color) => (
+                      <button
+                        key={color}
+                        type="button"
+                        onClick={() => setSelectedColor(color)}
+                        className={cn(
+                          "w-6 h-6 rounded-full transition-transform duration-200 cursor-pointer",
+                          selectedColor === color && "ring-2 ring-primary ring-offset-2 ring-offset-transparent scale-110"
+                        )}
+                        style={{ backgroundColor: color }}
+                      />
+                    ))}
                   </div>
                 </div>
 
-                {error && (
-                  <p className="text-destructive text-sm mb-3">{error}</p>
-                )}
-
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-2">
-                    <span className="text-muted-foreground text-sm">颜色:</span>
-                    <div className="flex gap-1.5">
-                      {COLORS.map((color) => (
-                        <button
-                          key={color}
-                          type="button"
-                          onClick={() => setSelectedColor(color)}
-                          className={cn(
-                            "w-6 h-6 rounded-full transition-transform duration-200 cursor-pointer",
-                            selectedColor === color && "ring-2 ring-primary ring-offset-2 ring-offset-transparent scale-110"
-                          )}
-                          style={{ backgroundColor: color }}
-                        />
-                      ))}
-                    </div>
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={isSubmitting || !content.trim()}
-                    className={cn(
-                      "flex items-center gap-2 px-6 py-2.5 rounded-xl",
-                      "bg-gradient-to-r from-tech-cyan to-tech-lightcyan",
-                      "text-primary-foreground font-medium",
-                      "hover:opacity-90 transition-[colors,opacity] duration-200",
-                      "disabled:opacity-50 disabled:cursor-not-allowed",
-                      "cursor-pointer"
-                    )}
-                  >
-                    <Send className="w-4 h-4" />
-                    {isSubmitting ? '发送中...' : '发送弹幕'}
-                  </button>
-                </div>
-              </form>
-            )}
+                <button
+                  type="submit"
+                  disabled={isSubmitting || !content.trim()}
+                  className={cn(
+                    "flex items-center gap-2 px-6 py-2.5 rounded-xl",
+                    "bg-gradient-to-r from-tech-cyan to-tech-lightcyan",
+                    "text-primary-foreground font-medium",
+                    "hover:opacity-90 transition-[colors,opacity] duration-200",
+                    "disabled:opacity-50 disabled:cursor-not-allowed",
+                    "cursor-pointer"
+                  )}
+                >
+                  <Send className="w-4 h-4" />
+                  {isSubmitting ? '发送中...' : '发送弹幕'}
+                </button>
+              </div>
+            </form>
           </div>
 
           <div className="mt-6 text-center">

@@ -12,6 +12,7 @@ import { useThemedClasses } from '@/hooks/useThemedClasses';
 import { useCodeBlockEnhancement } from '@/hooks/useCodeBlockEnhancement';
 import { getArticleById, getRelatedArticles } from '@/services/articleService';
 import { getCommentTree, createComment } from '@/services/commentService';
+import { TOKEN_KEY } from '@/lib/api-client';
 import logger from '@/utils/logger';
 import type { RelatedArticle, Article } from '@/types';
 import { useLoading } from '@/context/loading-context';
@@ -72,12 +73,20 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
   const [commentsError, setCommentsError] = useState<string | null>(null);
   const [newCommentContent, setNewCommentContent] = useState('');
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+  // 游客评论：按本地 token 判断登录态，未登录时展示昵称输入框
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [guestNickname, setGuestNickname] = useState('');
   const contentRef = useRef<HTMLDivElement>(null);
   const { themedClasses } = useThemedClasses();
   const { showLoading, hideLoading } = useLoading();
   useCodeBlockEnhancement(contentRef);
   const readingProgress = useReadingProgress(contentRef);
   const activeHeading = useActiveHeading(toc);
+
+  // 挂载后同步登录态（客户端才可访问 localStorage）
+  useEffect(() => {
+    setIsLoggedIn(!!localStorage.getItem(TOKEN_KEY));
+  }, []);
 
   // 服务端已预取文章时，仅需加载相关文章和评论
   useEffect(() => {
@@ -173,6 +182,8 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
       const newComment = await createComment({
         content: newCommentContent.trim(),
         article_id: article.id,
+        // 游客带上昵称；登录用户由后端按账号身份处理
+        ...(!isLoggedIn ? { nickname: guestNickname.trim() } : {}),
       });
       setComments((prev) => [newComment, ...prev]);
       setNewCommentContent('');
@@ -195,6 +206,8 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
         content: content.trim(),
         article_id: article.id,
         parent_id: parentId,
+        // 游客带上昵称；登录用户由后端按账号身份处理
+        ...(!isLoggedIn ? { nickname: guestNickname.trim() } : {}),
       });
       setComments((prev) => addReplyToTree(prev, parentId, newReply));
     } catch (err) {
@@ -413,6 +426,25 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
                     />
                   )}
                   <div className="pt-6 mt-6 border-t border-dashed border-border">
+                    {!isLoggedIn ? (
+                      <div className="mb-3">
+                        <label
+                          htmlFor="guest-comment-nickname"
+                          className="block text-sm text-muted-foreground mb-1.5"
+                        >
+                          昵称（选填，默认「匿名游客」）
+                        </label>
+                        <input
+                          id="guest-comment-nickname"
+                          type="text"
+                          value={guestNickname}
+                          onChange={(e) => setGuestNickname(e.target.value)}
+                          maxLength={50}
+                          placeholder="你的昵称..."
+                          className="w-full px-4 py-2.5 rounded-lg border bg-muted/40 border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
+                        />
+                      </div>
+                    ) : null}
                     <textarea
                       rows={4}
                       placeholder="写下你的评论..."

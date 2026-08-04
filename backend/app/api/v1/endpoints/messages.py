@@ -1,14 +1,15 @@
 from typing import Any, List, Optional, Dict
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Request
 from sqlalchemy.orm import Session
 from app.core.database import get_db
-from app.core.dependencies import get_current_active_user, get_current_superuser
+from app.core.dependencies import get_current_user_optional, get_current_active_user, get_current_superuser
 from app import crud
 from app.schemas.message import (
     Message, MessageCreate, MessageUpdate,
     MessageWithAuthor, MessageWithReplies
 )
 from app.models.user import User
+from app.utils.rate_limit import message_create_rate_limit
 from uuid import UUID
 from app.utils.common_helpers import parse_uuid
 from app.utils.permission_helpers import check_edit_permission, check_delete_permission
@@ -65,22 +66,30 @@ def read_danmaku_messages(
 
 
 @router.post("/", response_model=Message)
+@message_create_rate_limit
 def create_message(
+    request: Request,
     *,
     db: Session = Depends(get_db),
     message_in: MessageCreate,
-    current_user: User = Depends(get_current_active_user)
+    current_user: Optional[User] = Depends(get_current_user_optional)
 ) -> Any:
     """
     Create new message
+
+    登录用户以账号身份发布；游客可用昵称匿名留言（author_id 为空）。
     """
-    # Set user level based on some logic (simplified here)
+    # 游客留言：昵称留空时给默认值，避免显示空名
+    author_id = current_user.id if current_user else None
+    if not current_user and not (message_in.nickname or "").strip():
+        message_in.nickname = "匿名游客"
     message = crud.create_message(
         db,
         message=message_in,
-        author_id=current_user.id  # type: ignore
+        author_id=author_id
     )
-    app_logger.info(f"创建留言成功: {message.id}, 操作者: {current_user.username}")
+    operator = current_user.username if current_user else (message.nickname or "匿名游客")
+    app_logger.info(f"创建留言成功: {message.id}, 操作者: {operator}")
     return message
 
 
@@ -236,11 +245,10 @@ def delete_message(
 @router.post("/{message_id}/like", response_model=Message)
 def like_message(
     message_id: str,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
+    db: Session = Depends(get_db)
 ) -> Any:
     """
-    Like a message
+    Like a message (public, no login required)
     """
     message_uuid = parse_uuid(message_id, error_detail="Invalid message ID format")
 
@@ -257,11 +265,10 @@ def like_message(
 @router.post("/{message_id}/unlike", response_model=Message)
 def unlike_message(
     message_id: str,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
+    db: Session = Depends(get_db)
 ) -> Any:
     """
-    Unlike a message (requires authentication)
+    Unlike a message (public, no login required)
     """
     message_uuid = parse_uuid(message_id, error_detail="Invalid message ID format")
 

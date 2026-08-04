@@ -9,7 +9,8 @@ export interface ApiComment {
   id: string;
   content: string;
   article_id: string;
-  author_id: string;
+  author_id: string | null;
+  nickname?: string | null; // 游客昵称（author 为空时后端返回）
   parent_id: string | null;
   is_approved: boolean;
   created_at: string;
@@ -26,6 +27,7 @@ export interface CommentCreate {
   content: string;
   article_id: string;
   parent_id?: string | null;
+  nickname?: string; // 游客昵称（未登录时填写）
 }
 
 export interface CommentUpdate {
@@ -43,8 +45,8 @@ function toUIComment(apiComment: ApiComment): UIComment {
     id: apiComment.id,
     content: apiComment.content,
     author: {
-      id: apiComment.author?.id || apiComment.author_id,
-      username: apiComment.author?.username || '匿名用户',
+      id: apiComment.author?.id || apiComment.author_id || '',
+      username: apiComment.nickname || apiComment.author?.username || '匿名游客',
       avatar: apiComment.author?.avatar || undefined,
     },
     createdAt: apiComment.created_at,
