@@ -11,8 +11,11 @@ from app.utils.cache_keys import CacheKeys, CacheTTL
 from sqlalchemy import text
 
 
-def get_article(db: Session, article_id: UUID) -> Optional[Article]:
-    return db.query(Article).filter(Article.id == article_id).first()
+def get_article(db: Session, article_id: UUID, include_deleted: bool = False) -> Optional[Article]:
+    query = db.query(Article).filter(Article.id == article_id)
+    if not include_deleted:
+        query = query.filter(Article.is_deleted == False)
+    return query.first()
 
 
 def _article_to_cache(article: Article) -> dict:

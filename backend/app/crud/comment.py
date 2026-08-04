@@ -5,8 +5,10 @@ from app.models.comment import Comment
 from app.schemas.comment import CommentCreate, CommentUpdate
 
 
-def get_comment(db: Session, comment_id: UUID, with_relationships: bool = False) -> Optional[Comment]:
+def get_comment(db: Session, comment_id: UUID, with_relationships: bool = False, include_deleted: bool = False) -> Optional[Comment]:
     query = db.query(Comment)
+    if not include_deleted:
+        query = query.filter(Comment.is_deleted == False)
     if with_relationships:
         from sqlalchemy.orm import joinedload
         query = query.options(joinedload(Comment.article)).options(joinedload(Comment.author))

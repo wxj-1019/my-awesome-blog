@@ -12,6 +12,8 @@ class Comment(Base):
     id = Column(UUIDType, primary_key=True, index=True, default=uuid.uuid4)
     content = Column(Text, nullable=False)
     is_approved = Column(Boolean, default=False)
+    is_deleted = Column(Boolean, default=False)  # 软删除（对齐 messages/conversations/memories）
+    deleted_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     

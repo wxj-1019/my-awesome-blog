@@ -115,14 +115,6 @@ async def read_featured_articles(
     return await asyncio.to_thread(crud.get_featured_articles, db, limit=limit)
 
 
-@router.get("/test-public")
-def test_public():
-    """
-    Test public endpoint in articles route
-    """
-    return {"message": "This is a test public endpoint in articles route", "status": "success"}
-
-
 @router.get("/popular", response_model=List[ArticleWithAuthor])
 @article_read_rate_limit
 async def read_popular_articles(
