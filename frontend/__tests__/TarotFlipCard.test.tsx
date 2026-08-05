@@ -31,9 +31,20 @@ describe('TarotFlipCard · 双面翻牌容器', () => {
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 
-  it('牌背与牌面内容均挂载（3D 双面结构）', () => {
-    render(<TarotFlipCard flipped={false} back={back} face={face} onFlip={jest.fn()} />);
+  it('翻开后牌背与牌面内容均挂载（3D 双面结构）', () => {
+    render(<TarotFlipCard flipped back={back} face={face} onFlip={jest.fn()} />);
     expect(screen.getByText('牌背内容')).toBeInTheDocument();
+    expect(screen.getByText('牌面内容')).toBeInTheDocument();
+  });
+
+  it('未翻开的牌面不在可访问树中；翻开后可见', () => {
+    const face = <span>牌面内容</span>;
+    const back = <span>牌背</span>;
+    const { rerender } = render(
+      <TarotFlipCard flipped={false} back={back} face={face} />
+    );
+    expect(screen.queryByText('牌面内容')).not.toBeInTheDocument();
+    rerender(<TarotFlipCard flipped back={back} face={face} />);
     expect(screen.getByText('牌面内容')).toBeInTheDocument();
   });
 });

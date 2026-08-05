@@ -38,7 +38,12 @@ export default function TarotFlipCard({
   const flippable = !flipped && !!onFlip;
 
   return (
-    <div className={cn('relative', className)} style={{ perspective: 1000 }}>
+    <div
+      role="group"
+      aria-label={ariaLabel}
+      className={cn('relative', className)}
+      style={{ perspective: 1000 }}
+    >
       {reducedMotion ? (
         <div className="relative h-full w-full">
           {flipped ? <div className={cn('h-full w-full', reversed && 'rotate-180')}>{face}</div> : back}
@@ -64,6 +69,7 @@ export default function TarotFlipCard({
               WebkitBackfaceVisibility: 'hidden',
               transform: 'rotateY(180deg)',
             }}
+            aria-hidden={!flipped}
           >
             {/* 逆位旋转放在 backface 容器内部，与翻转动画同步叠加，避免断层 */}
             <motion.div
@@ -72,7 +78,9 @@ export default function TarotFlipCard({
               animate={{ rotate: reversed ? 180 : 0 }}
               transition={TRANSITION.DEFAULT}
             >
-              {face}
+              {/* 未翻开时不渲染牌面（容器 absolute inset-0，布局不受影响），
+                  避免屏幕阅读器提前读到牌名；aria-hidden 双保险 */}
+              {flipped ? face : null}
             </motion.div>
           </div>
         </motion.div>

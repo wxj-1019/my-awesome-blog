@@ -295,11 +295,35 @@ export default function TarotContent() {
     onPickSpread: (s) => setSpreadType(s),
   });
 
+  /** 视图顺序：左右方向键循环切换的基准 */
+  const viewOrder: TarotView[] = ['reading', 'lexicon'];
+  /** 两个 Tab 按钮的 ref（方向键切换后手动聚焦新激活 Tab） */
+  const tabRefs = useRef<Partial<Record<TarotView, HTMLButtonElement | null>>>({});
+  /** Tab 方向键导航：左右循环切换视图并移动焦点（roving tabindex，仅激活 Tab 可 Tab 到） */
+  const handleTabKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') {return;}
+      const idx = viewOrder.indexOf(view);
+      const next =
+        e.key === 'ArrowRight'
+          ? viewOrder[(idx + 1) % viewOrder.length]
+          : viewOrder[(idx - 1 + viewOrder.length) % viewOrder.length];
+      e.preventDefault();
+      setView(next);
+      tabRefs.current[next]?.focus();
+    },
+    [view]
+  );
+
   const tabButton = (target: TarotView, label: string, icon: React.ReactNode) => (
     <button
+      ref={(el) => {tabRefs.current[target] = el;}}
       type="button"
       role="tab"
+      id={`tab-${target}`}
       aria-selected={view === target}
+      aria-controls={`panel-${target}`}
+      tabIndex={view === target ? 0 : -1}
       onClick={() => setView(target)}
       className={cn(
         'flex items-center gap-1.5 rounded-full px-4 py-2.5 min-h-11 text-sm font-medium transition-colors',
@@ -327,6 +351,7 @@ export default function TarotContent() {
       <div
         role="tablist"
         aria-label="塔罗页视图"
+        onKeyDown={handleTabKeyDown}
         className="mx-auto mb-10 flex w-fit gap-1 rounded-full border border-border/60 bg-glass/20 p-1"
       >
         {tabButton('reading', '占卜', <Wand2 className="h-4 w-4" aria-hidden />)}
@@ -334,7 +359,12 @@ export default function TarotContent() {
       </div>
 
       {/* ===== 占卜视图 ===== */}
-      <div className={cn(view === 'reading' ? '' : 'hidden')}>
+      <div
+        id="panel-reading"
+        role="tabpanel"
+        aria-labelledby="tab-reading"
+        className={cn(view === 'reading' ? '' : 'hidden')}
+      >
         <TarotOrnament />
 
         {/* 四步进度（移动端）：顶部横向紧凑条，lg 起移入左侧垂直轨 */}
@@ -555,6 +585,18 @@ export default function TarotContent() {
           {/* 翻牌与解读 */}
           {phase === 'revealing' ? (
             <FadeIn className="flex flex-col items-center gap-8">
+              {/* 翻牌结果播报区（视觉隐藏；仅翻牌改变时内容变化触发 aria-live，
+                  解读面板/历史/统计挂载不在此区域内，避免整段播报） */}
+              <p className="sr-only" aria-live="polite">
+                {drawn
+                  .map((d, i) =>
+                    flipped[i]
+                      ? `${spread.positions[i] ?? `第 ${i + 1} 张`}：${d.card.name} · ${orientationLabel(d.isReversed)}`
+                      : ''
+                  )
+                  .filter(Boolean)
+                  .join('，')}
+              </p>
               <SpreadSlots spread={spread} drawn={drawn} flipped={flipped} onFlip={flipCard} />
 
               {!allFlipped ? (
@@ -608,7 +650,12 @@ export default function TarotContent() {
       </div>
 
       {/* ===== 牌义速查视图 ===== */}
-      <div className={cn(view === 'lexicon' ? '' : 'hidden')}>
+      <div
+        id="panel-lexicon"
+        role="tabpanel"
+        aria-labelledby="tab-lexicon"
+        className={cn(view === 'lexicon' ? '' : 'hidden')}
+      >
         <TarotLexicon />
       </div>
     </PageShell>
