@@ -128,3 +128,12 @@ class TestImageGenEndpoint:
             json={"prompt": "", "size": "1024x1024", "count": 1},
         )
         assert resp.status_code == 422
+
+    def test_generate_image_public_without_login(self, client):
+        """游客可调用生图接口（无 token），由 IP 限流保护"""
+        response = client.post(
+            "/api/v1/image-gen/generate",
+            json={"prompt": "一只猫", "size": "1024x1024", "count": 1},
+        )
+        assert response.status_code != 401  # 服务/配置层错误可接受，认证层必须放行
+
