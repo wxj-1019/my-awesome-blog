@@ -89,7 +89,7 @@ export default function TarotCutDeck({ onCut, disabled }: TarotCutDeckProps) {
         disabled={disabled || cutting}
         aria-live="polite"
         className={cn(
-          'inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors',
+          'inline-flex min-h-11 items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors',
           'hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
           'disabled:pointer-events-none disabled:opacity-60'
         )}

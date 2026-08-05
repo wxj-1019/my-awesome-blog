@@ -32,9 +32,11 @@ describe('塔罗页无障碍', () => {
     delete globalThis.IntersectionObserver;
   });
 
+  // axe 全页扫描耗时 ~5s（默认 5s 超时贴边）：进程条等页面元素增加后，
+  // 并行跑全套件时偶发超时（"Exceeded timeout"），放宽到 15s 消抖
   it('占卜问牌阶段应无严重可访问性违规', async () => {
     await expectNoA11yViolations(<TarotContent />);
-  });
+  }, 15000);
 
   it('牌义速查视图应无严重可访问性违规', async () => {
     const { container } = render(<TarotContent />);
@@ -42,7 +44,7 @@ describe('塔罗页无障碍', () => {
 
     const results = await axe(container);
     expect(results).toHaveNoViolations();
-  });
+  }, 15000);
 
   it('牌义条目展开后应无严重可访问性违规', async () => {
     const { container } = render(<TarotContent />);
@@ -51,5 +53,5 @@ describe('塔罗页无障碍', () => {
 
     const results = await axe(container);
     expect(results).toHaveNoViolations();
-  });
+  }, 15000);
 });

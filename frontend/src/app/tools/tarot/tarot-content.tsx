@@ -16,6 +16,7 @@ import TarotHistory from '@/components/tarot/TarotHistory';
 import TarotLexicon from '@/components/tarot/TarotLexicon';
 import TarotOrnament from '@/components/tarot/TarotOrnament';
 import TarotStatsBar from '@/components/tarot/TarotStatsBar';
+import TarotStepper from '@/components/tarot/TarotStepper';
 import SpreadSlots from '@/components/tarot/SpreadSlots';
 import ReadingPanel from '@/components/tarot/ReadingPanel';
 import { useTarotShortcuts } from '@/hooks/useTarotShortcuts';
@@ -336,257 +337,274 @@ export default function TarotContent() {
       <div className={cn(view === 'reading' ? '' : 'hidden')}>
         <TarotOrnament />
 
-        {/* 问牌 */}
-        {phase === 'ask' ? (
-          <>
-            {/* 首次使用引导 */}
-            {showOnboard ? (
-              <FadeIn className="mx-auto mb-4 max-w-xl">
-                <div className="flex items-center gap-2 rounded-lg border border-tech-purple/30 bg-tech-purple/5 px-4 py-2.5 text-sm text-foreground/85">
-                  <Wand2 className="h-4 w-4 shrink-0 text-tech-purple" aria-hidden />
-                  <span className="flex-1">
-                    输入问题、选择牌阵后开始占卜。也可按
-                    <kbd className="mx-1 rounded border border-border bg-card px-1.5 py-0.5 text-[11px]">空格</kbd>
-                    快速开始，
-                    <kbd className="mx-1 rounded border border-border bg-card px-1.5 py-0.5 text-[11px]">1</kbd>
-                    <kbd className="ml-1 rounded border border-border bg-card px-1.5 py-0.5 text-[11px]">2</kbd>
-                    切换牌阵。
-                  </span>
-                  <button
-                    type="button"
-                    onClick={dismissOnboard}
-                    aria-label="关闭引导"
-                    className="shrink-0 rounded-full p-1 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    <RotateCcw className="h-3.5 w-3.5 rotate-45" aria-hidden />
-                  </button>
-                </div>
-              </FadeIn>
-            ) : null}
+        {/* 四步进度（移动端）：顶部横向紧凑条，lg 起移入左侧垂直轨 */}
+        <div className="mx-auto mb-6 max-w-xl lg:hidden">
+          <TarotStepper phase={phase} compact />
+        </div>
 
-            {/* 今日之牌 */}
-            {dailyCard ? (
-              <FadeIn className="mx-auto mb-6 max-w-xl">
-                <GlassCard padding="md" className="flex items-center gap-4">
-                  <div className="w-14 shrink-0">
-                    <div className={cn('aspect-[5/8] w-full', dailyCard.isReversed && 'rotate-180')}>
-                      <TarotCardFace card={dailyCard.card} />
-                    </div>
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs font-medium text-tech-purple">今日之牌</p>
-                    <h2 className="mt-0.5 text-base font-semibold text-foreground">
-                      {dailyCard.card.name} · {orientationLabel(dailyCard.isReversed)}
-                    </h2>
-                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                      {dailyCard.isReversed ? dailyCard.card.reversed : dailyCard.card.upright}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={startWithDaily}
-                    className="shrink-0 rounded-lg border border-tech-purple/40 px-3 py-1.5 text-xs font-medium text-tech-purple transition-colors hover:bg-tech-purple/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    以此占卜
-                  </button>
-                </GlassCard>
-              </FadeIn>
-            ) : null}
-
-            <FadeIn>
-              <GlassCard padding="lg" className="mx-auto max-w-xl">
-              <label
-                htmlFor="tarot-question"
-                className="mb-2 block text-sm font-medium text-foreground"
-              >
-                你的问题（可选）
-              </label>
-              <textarea
-                id="tarot-question"
-                rows={2}
-                value={question}
-                onChange={(e) => setQuestion(e.target.value)}
-                maxLength={200}
-                placeholder="在心中默念一个问题，或留空做一次综合占卜"
-                className="mb-5 w-full resize-none rounded-lg border border-input bg-background/60 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              />
-
-              <p className="mb-2 text-sm font-medium text-foreground">选择牌阵</p>
-              <div className="mb-6 grid grid-cols-1 gap-3 xs:grid-cols-2">
-                {tarotSpreads.map((s) => (
-                  <button
-                    key={s.type}
-                    type="button"
-                    onClick={() => setSpreadType(s.type)}
-                    aria-pressed={spreadType === s.type}
-                    className={cn(
-                      'rounded-xl border p-3.5 text-left transition-[border-color,background-color] duration-200',
-                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                      spreadType === s.type
-                        ? 'border-primary/60 bg-primary/5'
-                        : 'border-border hover:border-primary/30'
-                    )}
-                  >
-                    <span className="mb-1 block text-sm font-semibold text-foreground">
-                      {s.name}
-                    </span>
-                    <span className="block text-xs leading-relaxed text-muted-foreground">
-                      {s.description}
-                    </span>
-                  </button>
-                ))}
-              </div>
-
-              <button
-                type="button"
-                onClick={startReading}
-                className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                <Wand2 className="h-4 w-4" aria-hidden />
-                开始占卜
-              </button>
-            </GlassCard>
-          </FadeIn>
-            </>
-        ) : null}
-
-        {/* 洗牌（一次性动画，可跳过） */}
-        {phase === 'shuffling' ? (
-          <div className="flex flex-col items-center gap-8 py-10" aria-live="polite">
-            <div className="relative h-44 w-28">
-              {[0, 1, 2].map((i) => (
-                <motion.div
-                  key={i}
-                  className="absolute inset-0"
-                  style={{ transformOrigin: '50% 90%' }}
-                  initial={false}
-                  animate={
-                    reducedMotion
-                      ? { opacity: 1 }
-                      : { rotate: [0, -8 + i * 4, 7 - i * 3, 0], x: [0, -10 + i * 6, 9 - i * 5, 0] }
-                  }
-                  transition={{ duration: 0.8, ease: EASE.SNAPPY, delay: i * 0.05 }}
-                >
-                  <TarotCardBack />
-                </motion.div>
-              ))}
+        {/* lg+ 双栏：左侧垂直进度侧轨 + 主流程（min-w-0 防扇形牌堆撑破网格列） */}
+        <div className="lg:grid lg:grid-cols-[170px_minmax(0,1fr)] lg:gap-6">
+          <div className="hidden lg:block">
+            <div className="lg:sticky lg:top-24">
+              <TarotStepper phase={phase} />
             </div>
-            <p className="text-sm text-muted-foreground">洗牌中，请默念你的问题…</p>
-            <button
-              type="button"
-              onClick={goToCutting}
-              className="text-xs text-muted-foreground/70 underline-offset-4 transition-colors hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              跳过动画
-            </button>
           </div>
-        ) : null}
 
-        {/* 切牌 */}
-        {phase === 'cutting' ? (
-          <FadeIn>
-            <TarotCutDeck onCut={handleCut} />
-          </FadeIn>
-        ) : null}
+          <div className="min-w-0">
 
-        {/* 抽牌 */}
-        {phase === 'drawing' ? (
-          <FadeIn className="flex flex-col items-center gap-5">
-            <p className="text-sm text-muted-foreground" aria-live="polite">
-              凭直觉点击牌背，选出 <span className="font-semibold text-primary">{needCount}</span> 张牌
-              <span className="ml-2 text-xs">
-                （已选 {drawn.length} / {needCount}）
-              </span>
-            </p>
-            <TarotDeckFan
-              deck={deck}
-              pickedIds={pickedIds}
-              onPick={pickCard}
-              disabled={drawn.length >= needCount}
-            />
-            <div className="flex flex-wrap items-center justify-center gap-3">
-              <button
-                type="button"
-                onClick={randomPickAll}
-                disabled={drawn.length >= needCount}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-primary/40 px-4 py-2 text-sm text-primary transition-colors hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-              >
-                <Dices className="h-4 w-4" aria-hidden />
-                代我抽牌
-              </button>
-              {drawn.length > 0 ? (
+          {/* 问牌 */}
+          {phase === 'ask' ? (
+            <>
+              {/* 首次使用引导 */}
+              {showOnboard ? (
+                <FadeIn className="mx-auto mb-4 max-w-xl">
+                  <div className="flex items-center gap-2 rounded-lg border border-tech-purple/30 bg-tech-purple/5 px-4 py-2.5 text-sm text-foreground/85">
+                    <Wand2 className="h-4 w-4 shrink-0 text-tech-purple" aria-hidden />
+                    <span className="flex-1">
+                      输入问题、选择牌阵后开始占卜。也可按
+                      <kbd className="mx-1 rounded border border-border bg-card px-1.5 py-0.5 text-[11px]">空格</kbd>
+                      快速开始，
+                      <kbd className="mx-1 rounded border border-border bg-card px-1.5 py-0.5 text-[11px]">1</kbd>
+                      <kbd className="ml-1 rounded border border-border bg-card px-1.5 py-0.5 text-[11px]">2</kbd>
+                      切换牌阵。
+                    </span>
+                    <button
+                      type="button"
+                      onClick={dismissOnboard}
+                      aria-label="关闭引导"
+                      className="shrink-0 rounded-full p-1 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      <RotateCcw className="h-3.5 w-3.5 rotate-45" aria-hidden />
+                    </button>
+                  </div>
+                </FadeIn>
+              ) : null}
+
+              {/* 今日之牌 */}
+              {dailyCard ? (
+                <FadeIn className="mx-auto mb-6 max-w-xl">
+                  <GlassCard padding="md" className="flex items-center gap-4">
+                    <div className="w-14 shrink-0">
+                      <div className={cn('aspect-[5/8] w-full', dailyCard.isReversed && 'rotate-180')}>
+                        <TarotCardFace card={dailyCard.card} />
+                      </div>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-medium text-tech-purple">今日之牌</p>
+                      <h2 className="mt-0.5 text-base font-semibold text-foreground">
+                        {dailyCard.card.name} · {orientationLabel(dailyCard.isReversed)}
+                      </h2>
+                      <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                        {dailyCard.isReversed ? dailyCard.card.reversed : dailyCard.card.upright}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={startWithDaily}
+                      className="shrink-0 rounded-lg border border-tech-purple/40 px-3 py-1.5 text-xs font-medium text-tech-purple transition-colors hover:bg-tech-purple/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      以此占卜
+                    </button>
+                  </GlassCard>
+                </FadeIn>
+              ) : null}
+
+              <FadeIn>
+                <GlassCard padding="lg" className="mx-auto max-w-xl">
+                <label
+                  htmlFor="tarot-question"
+                  className="mb-2 block text-sm font-medium text-foreground"
+                >
+                  你的问题（可选）
+                </label>
+                <textarea
+                  id="tarot-question"
+                  rows={2}
+                  value={question}
+                  onChange={(e) => setQuestion(e.target.value)}
+                  maxLength={200}
+                  placeholder="在心中默念一个问题，或留空做一次综合占卜"
+                  className="mb-5 w-full resize-none rounded-lg border border-input bg-background/60 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                />
+
+                <p className="mb-2 text-sm font-medium text-foreground">选择牌阵</p>
+                <div className="mb-6 grid grid-cols-1 gap-3 xs:grid-cols-2">
+                  {tarotSpreads.map((s) => (
+                    <button
+                      key={s.type}
+                      type="button"
+                      onClick={() => setSpreadType(s.type)}
+                      aria-pressed={spreadType === s.type}
+                      className={cn(
+                        'rounded-xl border p-3.5 text-left transition-[border-color,background-color] duration-200',
+                        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                        spreadType === s.type
+                          ? 'border-primary/60 bg-primary/5'
+                          : 'border-border hover:border-primary/30'
+                      )}
+                    >
+                      <span className="mb-1 block text-sm font-semibold text-foreground">
+                        {s.name}
+                      </span>
+                      <span className="block text-xs leading-relaxed text-muted-foreground">
+                        {s.description}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+
                 <button
                   type="button"
-                  onClick={undoPick}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  onClick={startReading}
+                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
-                  <Undo2 className="h-4 w-4" aria-hidden />
-                  撤销上一张
+                  <Wand2 className="h-4 w-4" aria-hidden />
+                  开始占卜
                 </button>
-              ) : null}
+              </GlassCard>
+            </FadeIn>
+              </>
+          ) : null}
+
+          {/* 洗牌（一次性动画，可跳过） */}
+          {phase === 'shuffling' ? (
+            <div className="flex flex-col items-center gap-8 py-10" aria-live="polite">
+              <div className="relative h-44 w-28">
+                {[0, 1, 2].map((i) => (
+                  <motion.div
+                    key={i}
+                    className="absolute inset-0"
+                    style={{ transformOrigin: '50% 90%' }}
+                    initial={false}
+                    animate={
+                      reducedMotion
+                        ? { opacity: 1 }
+                        : { rotate: [0, -8 + i * 4, 7 - i * 3, 0], x: [0, -10 + i * 6, 9 - i * 5, 0] }
+                    }
+                    transition={{ duration: 0.8, ease: EASE.SNAPPY, delay: i * 0.05 }}
+                  >
+                    <TarotCardBack />
+                  </motion.div>
+                ))}
+              </div>
+              <p className="text-sm text-muted-foreground">洗牌中，请默念你的问题…</p>
+              <button
+                type="button"
+                onClick={goToCutting}
+                className="text-xs text-muted-foreground/70 underline-offset-4 transition-colors hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                跳过动画
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={reset}
-              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              <RotateCcw className="h-3.5 w-3.5" aria-hidden />
-              重新开始
-            </button>
-          </FadeIn>
-        ) : null}
+          ) : null}
 
-        {/* 翻牌与解读 */}
-        {phase === 'revealing' ? (
-          <FadeIn className="flex flex-col items-center gap-8">
-            <SpreadSlots spread={spread} drawn={drawn} flipped={flipped} onFlip={flipCard} />
+          {/* 切牌 */}
+          {phase === 'cutting' ? (
+            <FadeIn>
+              <TarotCutDeck onCut={handleCut} />
+            </FadeIn>
+          ) : null}
 
-            {!allFlipped ? (
+          {/* 抽牌 */}
+          {phase === 'drawing' ? (
+            <FadeIn className="flex flex-col items-center gap-5">
+              <p className="text-sm text-muted-foreground" aria-live="polite">
+                凭直觉点击牌背，选出 <span className="font-semibold text-primary">{needCount}</span> 张牌
+                <span className="ml-2 text-xs">
+                  （已选 {drawn.length} / {needCount}）
+                </span>
+              </p>
+              <TarotDeckFan
+                deck={deck}
+                pickedIds={pickedIds}
+                onPick={pickCard}
+                disabled={drawn.length >= needCount}
+              />
               <div className="flex flex-wrap items-center justify-center gap-3">
                 <button
                   type="button"
-                  onClick={revealSequentially}
-                  disabled={autoRevealing}
-                  aria-live="polite"
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-primary/40 px-4 py-2 text-sm text-primary transition-colors hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-60"
+                  onClick={randomPickAll}
+                  disabled={drawn.length >= needCount}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-primary/40 px-4 py-2 text-sm text-primary transition-colors hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
                 >
-                  {autoRevealing ? '揭示中…' : '逐张揭示'}
+                  <Dices className="h-4 w-4" aria-hidden />
+                  代我抽牌
                 </button>
-                <button
-                  type="button"
-                  onClick={revealAll}
-                  disabled={autoRevealing}
-                  className="rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-60"
-                >
-                  全部翻开
-                </button>
+                {drawn.length > 0 ? (
+                  <button
+                    type="button"
+                    onClick={undoPick}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <Undo2 className="h-4 w-4" aria-hidden />
+                    撤销上一张
+                  </button>
+                ) : null}
               </div>
-            ) : (
-              <div ref={readingRef} className="w-full scroll-mt-24">
-                <FadeIn className="w-full">
-                  <ReadingPanel
-                    question={question}
-                    spread={spread}
-                    drawn={drawn}
-                    onReset={reset}
-                    shareOpen={shareOpen}
-                    onShareOpenChange={setShareOpen}
-                  />
-                </FadeIn>
+              <button
+                type="button"
+                onClick={reset}
+                className="inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <RotateCcw className="h-3.5 w-3.5" aria-hidden />
+                重新开始
+              </button>
+            </FadeIn>
+          ) : null}
+
+          {/* 翻牌与解读 */}
+          {phase === 'revealing' ? (
+            <FadeIn className="flex flex-col items-center gap-8">
+              <SpreadSlots spread={spread} drawn={drawn} flipped={flipped} onFlip={flipCard} />
+
+              {!allFlipped ? (
+                <div className="flex flex-wrap items-center justify-center gap-3">
+                  <button
+                    type="button"
+                    onClick={revealSequentially}
+                    disabled={autoRevealing}
+                    aria-live="polite"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-primary/40 px-4 py-2 text-sm text-primary transition-colors hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-60"
+                  >
+                    {autoRevealing ? '揭示中…' : '逐张揭示'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={revealAll}
+                    disabled={autoRevealing}
+                    className="rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-60"
+                  >
+                    全部翻开
+                  </button>
+                </div>
+              ) : (
+                <div ref={readingRef} className="w-full scroll-mt-24">
+                  <FadeIn className="w-full">
+                    <ReadingPanel
+                      question={question}
+                      spread={spread}
+                      drawn={drawn}
+                      onReset={reset}
+                      shareOpen={shareOpen}
+                      onShareOpenChange={setShareOpen}
+                    />
+                  </FadeIn>
+                </div>
+              )}
+
+              {/* 抽牌统计 */}
+              <div className="w-full">
+                <TarotStatsBar stats={stats} />
               </div>
-            )}
 
-            {/* 抽牌统计 */}
-            <div className="w-full">
-              <TarotStatsBar stats={stats} />
-            </div>
-
-            {/* 占卜历史 */}
-            <div className="w-full">
-              <TarotHistory entries={history} onClear={clearHistory} />
-            </div>
-          </FadeIn>
-        ) : null}
+              {/* 占卜历史 */}
+              <div className="w-full">
+                <TarotHistory entries={history} onClear={clearHistory} />
+              </div>
+            </FadeIn>
+          ) : null}
+          </div>
+        </div>
       </div>
 
       {/* ===== 牌义速查视图 ===== */}

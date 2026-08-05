@@ -251,4 +251,24 @@ describe('TarotContent · 占卜流程状态机', () => {
     expect(screen.getByText('开始占卜')).toBeInTheDocument();
     expect(screen.queryByText('翻牌0')).not.toBeInTheDocument();
   });
+
+  it('显示四步进程，进度随阶段推进', () => {
+    render(<TarotContent />);
+    // 进程条两处挂载（移动端顶部紧凑条 + 桌面左侧垂直轨），按断点互斥显示；
+    // jsdom 不计算 CSS 断点，两个实例同存于 DOM，故用 getAllByText 断言
+    expect(screen.getAllByText('问牌').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('洗切').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('抽牌').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('解读').length).toBeGreaterThan(0);
+    // 初始：两条进程条的当前步（aria-current="step"）均为「问牌」
+    let current = screen.getAllByRole('listitem', { current: 'step' });
+    expect(current).toHaveLength(2);
+    expect(current[0].textContent).toContain('问牌');
+
+    // 开始占卜 → 洗牌阶段：当前步推进到「洗切」
+    fireEvent.click(screen.getByText('开始占卜'));
+    current = screen.getAllByRole('listitem', { current: 'step' });
+    expect(current).toHaveLength(2);
+    expect(current[0].textContent).toContain('洗切');
+  });
 });

@@ -39,7 +39,7 @@ export default function TarotHistory({ entries, onClear }: TarotHistoryProps) {
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="flex w-full items-center justify-center gap-2 rounded-lg border border-border/70 px-4 py-2.5 text-sm text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-border/70 px-4 py-2.5 text-sm text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <History className="h-4 w-4" aria-hidden />
         占卜历史（{entries.length}）
@@ -111,7 +111,7 @@ export default function TarotHistory({ entries, onClear }: TarotHistoryProps) {
             <button
               type="button"
               onClick={onClear}
-              className="flex w-full items-center justify-center gap-1.5 py-2 text-xs text-muted-foreground transition-colors hover:text-error focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="flex min-h-11 w-full items-center justify-center gap-1.5 py-2 text-xs text-muted-foreground transition-colors hover:text-error focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <Trash2 className="h-3.5 w-3.5" aria-hidden />
               清空历史

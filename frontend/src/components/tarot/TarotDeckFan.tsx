@@ -34,7 +34,7 @@ export default function TarotDeckFan({ deck, pickedIds, onPick, disabled }: Taro
     <div
       className="relative mx-auto h-52 w-full max-w-3xl select-none sm:h-60"
       role="group"
-      aria-label="牌堆：凭直觉点击抽牌"
+      aria-label="牌堆：凭直觉点击抽牌；键盘用户可使用「代我抽牌」"
     >
       {deck.map((card, i) => (
         <FanCard
@@ -76,6 +76,9 @@ const FanCard = memo(function FanCard({
   return (
     <motion.button
       type="button"
+      // 78 张重叠卡片不适合键盘逐个 Tab 导航：移出 Tab 序（鼠标/触屏仍可点），
+      // 键盘替代入口是页面上的「代我抽牌」按钮（见上方 aria-label）
+      tabIndex={-1}
       aria-label={`抽取一张牌（第 ${index + 1} 张）`}
       disabled={disabled || picked}
       onClick={() => onPick(card)}

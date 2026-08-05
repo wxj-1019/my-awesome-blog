@@ -93,14 +93,14 @@ export default function TarotLexicon() {
             onChange={(e) => setQuery(e.target.value)}
             placeholder="搜索牌名或关键词，如「月亮」「财运」"
             aria-label="搜索牌义"
-            className="w-full rounded-lg border border-input bg-background/60 py-2 pl-9 pr-9 text-sm text-foreground placeholder:text-muted-foreground/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="min-h-11 w-full rounded-lg border border-input bg-background/60 py-2 pl-9 pr-14 text-sm text-foreground placeholder:text-muted-foreground/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
           {query ? (
             <button
               type="button"
               onClick={() => setQuery('')}
               aria-label="清空搜索"
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full p-1 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="absolute right-2 top-1/2 flex min-h-11 min-w-11 -translate-y-1/2 items-center justify-center rounded-full p-1 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <X className="h-4 w-4" aria-hidden />
             </button>
@@ -112,7 +112,7 @@ export default function TarotLexicon() {
           aria-pressed={onlyFavorites}
           aria-label="只看收藏"
           className={cn(
-            'flex shrink-0 items-center gap-1 rounded-lg border px-3 py-2 text-xs transition-colors',
+            'flex min-h-11 shrink-0 items-center gap-1 rounded-lg border px-3 py-2 text-xs transition-colors',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
             onlyFavorites
               ? 'border-warning/50 bg-warning/10 text-warning'
@@ -140,7 +140,7 @@ export default function TarotLexicon() {
             onClick={() => setGroup(g)}
             aria-pressed={group === g}
             className={cn(
-              'rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors',
+              'min-h-11 rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
               group === g
                 ? 'bg-primary/15 text-primary'
@@ -284,7 +284,7 @@ function LexiconEntryInner({
           aria-pressed={isFavorite}
           aria-label={isFavorite ? `取消收藏${card.name}` : `收藏${card.name}`}
           className={cn(
-            'shrink-0 rounded-full p-1.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+            'flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full p-1.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
             isFavorite ? 'text-warning hover:text-warning/80' : 'text-muted-foreground/50 hover:text-warning'
           )}
         >
