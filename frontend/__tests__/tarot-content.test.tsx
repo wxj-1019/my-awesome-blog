@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import TarotContent from '@/app/tools/tarot/tarot-content';
 
 // jsdom 未实现 scrollIntoView（解读完成自动滚动），桩掉避免报错
@@ -65,10 +65,8 @@ jest.mock('@/components/tarot/SpreadSlots', () => ({
     </div>
   ),
 }));
-jest.mock('@/components/tarot/ReadingPanel', () => ({
-  __esModule: true,
-  default: () => <div>解读面板</div>,
-}));
+// 注意：ReadingPanel 不 mock——分享弹层（ShareCard）的 Esc 行为需要真实组件参与
+// （其依赖 TarotCardFace 已 mock；MarkdownRenderer 为 dynamic 懒加载，仅在 AI 解读时挂载）
 jest.mock('@/components/tarot/TarotHistory', () => ({
   __esModule: true,
   default: () => <div>历史面板</div>,
@@ -147,10 +145,10 @@ describe('TarotContent · 占卜流程状态机', () => {
       jest.advanceTimersByTime(420);
     });
     expect(screen.getByText('翻牌0')).toBeInTheDocument();
-    expect(screen.queryByText('解读面板')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '分享牌阵' })).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByText('翻牌0'));
-    expect(screen.getByText('解读面板')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '分享牌阵' })).toBeInTheDocument();
     expect(screen.getByText('历史面板')).toBeInTheDocument();
   });
 
@@ -210,5 +208,47 @@ describe('TarotContent · 占卜流程状态机', () => {
     // 切回占卜：进度保留（仍在切牌阶段）
     fireEvent.click(screen.getByRole('tab', { name: /占卜/ }));
     expect(screen.getByText('点击切牌')).toBeInTheDocument();
+  });
+
+  it('分享弹层打开时按 Esc 只关闭弹层，不重置占卜', async () => {
+    // 弹层退出动画由 framer-motion 驱动（模块加载时捕获真实 rAF），fake timers 下不会推进，
+    // 本测试改用真实计时器 + findBy* 等待阶段切换
+    jest.useRealTimers();
+    render(<TarotContent />);
+    fireEvent.click(screen.getByText('开始占卜'));
+    await screen.findByText('点击切牌', undefined, { timeout: 3000 });
+    fireEvent.click(screen.getByText('点击切牌'));
+    fireEvent.click(screen.getByText('扇形抽牌'));
+    await screen.findByText('翻牌0', undefined, { timeout: 3000 });
+    fireEvent.click(screen.getByText('翻牌0')); // 翻开唯一一张 → 解读面板
+    // 打开分享弹层（真实 ShareCard）
+    fireEvent.click(screen.getByRole('button', { name: '分享牌阵' }));
+    expect(screen.getByRole('dialog', { name: '分享牌阵' })).toBeInTheDocument();
+
+    act(() => {
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    });
+    // 弹层关闭（退出动画结束后移除），但占卜结果还在（未回到 ask）
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(screen.queryByText('开始占卜')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '分享牌阵' })).toBeInTheDocument();
+  });
+
+  it('未打开弹层时按 Esc 仍重置回问牌阶段', () => {
+    render(<TarotContent />);
+    fireEvent.click(screen.getByText('开始占卜'));
+    act(() => {
+      jest.advanceTimersByTime(900);
+    });
+    fireEvent.click(screen.getByText('点击切牌'));
+    fireEvent.click(screen.getByText('扇形抽牌'));
+    act(() => {
+      jest.advanceTimersByTime(420);
+    }); // 进入揭示（未翻牌）
+    act(() => {
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    });
+    expect(screen.getByText('开始占卜')).toBeInTheDocument();
+    expect(screen.queryByText('翻牌0')).not.toBeInTheDocument();
   });
 });

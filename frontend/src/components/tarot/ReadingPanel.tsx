@@ -30,13 +30,23 @@ interface ReadingPanelProps {
   spread: TarotSpread;
   drawn: DrawnCard[];
   onReset: () => void;
+  /** 分享弹层开关（受控）；未传时内部管理（默认行为不变） */
+  shareOpen?: boolean;
+  onShareOpenChange?: (open: boolean) => void;
 }
 
 /**
  * 解读面板：预设牌义（本地即时）+ 可选 AI 深度解读（/llm/chat/stream，无需登录）。
  * AI 失败不影响预设解读展示。
  */
-export default function ReadingPanel({ question, spread, drawn, onReset }: ReadingPanelProps) {
+export default function ReadingPanel({
+  question,
+  spread,
+  drawn,
+  onReset,
+  shareOpen,
+  onShareOpenChange,
+}: ReadingPanelProps) {
   const entries = buildReadingEntries(drawn, spread);
   const summary = useMemo(() => buildSpreadSummary(drawn), [drawn]);
   const [aiState, setAiState] = useState<AiState>('idle');
@@ -44,7 +54,9 @@ export default function ReadingPanel({ question, spread, drawn, onReset }: Readi
   const [errorMsg, setErrorMsg] = useState('');
   const [copied, setCopied] = useState(false);
   const [copyFailed, setCopyFailed] = useState(false);
-  const [shareOpen, setShareOpen] = useState(false);
+  const [internalShareOpen, setInternalShareOpen] = useState(false);
+  /** 分享弹层开关：受控优先，未受控时回退内部状态 */
+  const isShareOpen = shareOpen ?? internalShareOpen;
   /** 当前流式请求的控制器（停止按钮用） */
   const abortRef = useRef<AbortController | null>(null);
   /** 「已复制」提示的定时器 */
@@ -241,7 +253,10 @@ export default function ReadingPanel({ question, spread, drawn, onReset }: Readi
         ) : null}
         <button
           type="button"
-          onClick={() => setShareOpen(true)}
+          onClick={() => {
+            onShareOpenChange?.(true);
+            setInternalShareOpen(true);
+          }}
           className="inline-flex items-center gap-1.5 rounded-lg border border-tech-purple/40 px-4 py-2 text-sm text-tech-purple transition-colors hover:bg-tech-purple/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <Share2 className="h-4 w-4" aria-hidden />
@@ -279,8 +294,11 @@ export default function ReadingPanel({ question, spread, drawn, onReset }: Readi
       </p>
 
       <ShareCard
-        open={shareOpen}
-        onClose={() => setShareOpen(false)}
+        open={isShareOpen}
+        onClose={() => {
+          onShareOpenChange?.(false);
+          setInternalShareOpen(false);
+        }}
         question={question}
         spread={spread}
         drawn={drawn}

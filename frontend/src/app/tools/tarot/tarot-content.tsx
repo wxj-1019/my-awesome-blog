@@ -61,6 +61,8 @@ export default function TarotContent() {
   const [dailyCard, setDailyCard] = useState<DrawnCard | null>(null);
   /** 首次访问引导（localStorage 标记，挂载后读取避免 hydration 不一致） */
   const [showOnboard, setShowOnboard] = useState(false);
+  /** 分享弹层开关（提升到页面级：弹层打开时快捷键让位，Esc 只关弹层不重置占卜） */
+  const [shareOpen, setShareOpen] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   /** 逐张揭示的定时器集合（reset/卸载时统一清理） */
   const revealTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -274,10 +276,10 @@ export default function TarotContent() {
     setAutoRevealing(false);
   }, [clearTimers]);
 
-  /** 占卜流程键盘快捷键（弹层由 ReadingPanel/ShareCard 内部管理，这里只接管占卜流程键） */
+  /** 占卜流程键盘快捷键（分享弹层打开或切到速查视图时让位，弹层 Esc 由 ShareCard 自行处理） */
   useTarotShortcuts({
     phase,
-    modalOpen: view !== 'reading',
+    modalOpen: shareOpen || view !== 'reading',
     onStart: startReading,
     onFlipNext: flipNext,
     onReset: reset,
@@ -554,7 +556,14 @@ export default function TarotContent() {
             ) : (
               <div ref={readingRef} className="w-full scroll-mt-24">
                 <FadeIn className="w-full">
-                  <ReadingPanel question={question} spread={spread} drawn={drawn} onReset={reset} />
+                  <ReadingPanel
+                    question={question}
+                    spread={spread}
+                    drawn={drawn}
+                    onReset={reset}
+                    shareOpen={shareOpen}
+                    onShareOpenChange={setShareOpen}
+                  />
                 </FadeIn>
               </div>
             )}
