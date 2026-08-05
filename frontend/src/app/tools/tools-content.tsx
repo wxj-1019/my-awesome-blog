@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import type { Route } from 'next';
-import { Cpu, MessageSquare, ArrowRight, Wrench, Sparkles, MoonStar } from 'lucide-react';
+import { Cpu, MessageSquare, ArrowRight, Wrench, Sparkles, MoonStar, ImageIcon } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
 import PageShell from '@/components/layout/PageShell';
 import PageHeader from '@/components/layout/PageHeader';
@@ -37,6 +37,12 @@ const items: {
     title: '塔罗牌',
     description: '抽牌占卜，正逆位牌义与 AI 深度解读',
     icon: MoonStar,
+  },
+  {
+    href: '/tools/image-gen' as Route,
+    title: '图片生成',
+    description: '输入提示词，AI 文生图并下载',
+    icon: ImageIcon,
   },
 ];
 

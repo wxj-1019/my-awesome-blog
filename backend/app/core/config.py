@@ -132,6 +132,11 @@ class Settings(BaseSettings):
     UNSPLASH_ACCESS_KEY: str = Field(default="", description="Unsplash API access key（申请：https://unsplash.com/oauth/applications）")
     COVER_PER_PAGE: int = Field(default=6, ge=1, le=12, description="每次封面搜索返回的候选图数量")
 
+    # 火山方舟文生图（图片生成工具页，key 只存后端、由后端代理调用）
+    ARK_API_KEY: str = Field(default="", description="火山方舟 API Key（https://console.volcengine.com/ark）")
+    ARK_IMAGE_MODEL: str = Field(default="doubao-seedream-3-0-t2i-250415", description="文生图模型 id（按方舟控制台/文档实际开通的模型填写）")
+    ARK_API_BASE: str = Field(default="https://ark.cn-beijing.volces.com/api/v3", description="火山方舟 API 基础地址")
+
     # Prompt Management
     PROMPT_DEFAULT_VERSION: str = Field(default="v1", description="默认提示词版本")
     PROMPT_MAX_VERSIONS: int = Field(default=10, description="每个提示词最多保留的版本数")

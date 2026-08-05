@@ -4,7 +4,7 @@ from app.api.v1.endpoints import (
     categories, tags, friend_links, portfolio, timeline_events,
     statistics, subscriptions, images, audit_logs, analytics, oss_upload,
     messages, albums, monitoring, llm, prompts, weather, conversations, memories,
-    tenants, agent, writing_sessions,
+    tenants, agent, writing_sessions, image_gen,
 )
 
 api_router = APIRouter()
@@ -40,3 +40,4 @@ api_router.include_router(weather.router, prefix="/weather", tags=["weather"])
 api_router.include_router(conversations.router, prefix="/conversations", tags=["conversations"])
 api_router.include_router(memories.router, prefix="/memories", tags=["memories"])
 api_router.include_router(tenants.router, prefix="/tenants", tags=["tenants"])
+api_router.include_router(image_gen.router, prefix="/image-gen", tags=["image-gen"])
