@@ -1,10 +1,12 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ImageIcon, Loader2, Sparkles, Wand2 } from 'lucide-react';
+import { ImageIcon, ImageOff, Loader2, RefreshCw, Sparkles, Wand2 } from 'lucide-react';
 import PageShell from '@/components/layout/PageShell';
 import PageHeader from '@/components/layout/PageHeader';
 import GlassCard from '@/components/ui/GlassCard';
+import { Button } from '@/components/ui/Button';
+import EmptyState from '@/components/ui/EmptyState';
 import Lightbox, { type LightboxImage } from '@/components/ui/Lightbox';
 import { FadeIn } from '@/components/motion';
 import { generateImages, type GeneratedImage } from '@/lib/api/imageGen';
@@ -36,6 +38,8 @@ export default function ImageGenContent() {
   const [state, setState] = useState<GenState>('idle');
   const [images, setImages] = useState<GeneratedImage[]>([]);
   const [errorMsg, setErrorMsg] = useState('');
+  /** 加载失败的图片 URL 集合：失败的图用占位卡片替代 <img>，避免碎图图标 */
+  const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
@@ -58,6 +62,8 @@ export default function ImageGenContent() {
     abortRef.current = controller;
     setState('loading');
     setErrorMsg('');
+    // 新一轮生成：清掉上一轮的加载失败记录，重新渲染图片
+    setFailedImages(new Set());
     try {
       const resp = await generateImages({ prompt: text, size, count }, controller.signal);
       setImages(resp.images);
@@ -197,11 +203,34 @@ export default function ImageGenContent() {
           </button>
 
           {state === 'error' ? (
-            <p className="mt-3 text-sm text-error">{errorMsg}</p>
+            <div className="mt-3 flex flex-wrap items-center gap-3">
+              <p role="alert" className="text-sm text-error">{errorMsg}</p>
+              {/* 重试沿用上一次的提示词/尺寸/张数（均为保留状态），直接重新发起生成 */}
+              <Button variant="outline" size="sm" onClick={handleGenerate}>
+                <RefreshCw className="h-3.5 w-3.5" aria-hidden />
+                重试
+              </Button>
+            </div>
           ) : null}
         </GlassCard>
 
-        {/* 结果区 */}
+        {/* 结果区：成功但无图 → 空态 + 重新生成；成功且有图 → 网格展示 */}
+        {state === 'done' && images.length === 0 ? (
+          <FadeIn>
+            <GlassCard padding="md">
+              <EmptyState
+                icon={ImageIcon}
+                title="没有生成结果"
+                description="可调整提示词后重试"
+                action={{
+                  label: '重新生成',
+                  icon: RefreshCw,
+                  onClick: handleGenerate,
+                }}
+              />
+            </GlassCard>
+          </FadeIn>
+        ) : null}
         {state === 'done' && images.length > 0 ? (
           <FadeIn>
             <GlassCard padding="md">
@@ -213,23 +242,47 @@ export default function ImageGenContent() {
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {images.map((img, i) => (
                   <div key={`${img.url}-${i}`} className="group relative">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setLightboxIndex(i);
-                        setLightboxOpen(true);
-                      }}
-                      aria-label={`查看生成图片 ${i + 1}`}
-                      className="block w-full overflow-hidden rounded-lg border border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={img.url}
-                        alt={`生成图片 ${i + 1}`}
-                        className="aspect-square w-full object-cover transition-transform duration-200 group-hover:scale-105"
-                        loading="lazy"
-                      />
-                    </button>
+                    {failedImages.has(img.url) ? (
+                      /* 加载失败的图：占位卡片 + 重试按钮（重新渲染 <img> 触发浏览器重载） */
+                      <div className="flex aspect-square w-full flex-col items-center justify-center gap-2 rounded-lg border border-border bg-muted/30 text-center text-muted-foreground">
+                        <ImageOff className="h-5 w-5" aria-hidden />
+                        <span className="text-xs">图片加载失败</span>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setFailedImages((prev) => {
+                              const next = new Set(prev);
+                              next.delete(img.url);
+                              return next;
+                            })
+                          }
+                          className="rounded border border-border px-2 py-0.5 text-[11px] transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        >
+                          重试加载
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setLightboxIndex(i);
+                          setLightboxOpen(true);
+                        }}
+                        aria-label={`查看生成图片 ${i + 1}`}
+                        className="block w-full overflow-hidden rounded-lg border border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={img.url}
+                          alt={prompt.trim() || `生成图片 ${i + 1}`}
+                          className="aspect-square w-full object-cover transition-transform duration-200 group-hover:scale-105"
+                          loading="lazy"
+                          onError={() =>
+                            setFailedImages((prev) => new Set(prev).add(img.url))
+                          }
+                        />
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>

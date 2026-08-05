@@ -121,4 +121,21 @@ describe('ImageGenContent · 图片生成工具页', () => {
     fireEvent.click(example!);
     expect((screen.getByLabelText('提示词') as HTMLTextAreaElement).value).toContain('月光下的静谧湖泊');
   });
+
+  it('成功但返回空数组 → 显示空态与行动', async () => {
+    mockGenerate.mockResolvedValue({ images: [], model: 'm' });
+    render(<ImageGenContent />);
+    fireEvent.change(screen.getByLabelText('提示词'), { target: { value: '空结果' } });
+    fireEvent.click(screen.getByRole('button', { name: '生成图片' }));
+    expect(await screen.findByText(/没有生成结果/)).toBeInTheDocument();
+  });
+
+  it('生成失败 → role=alert 展示错误并可重试', async () => {
+    mockGenerate.mockRejectedValue(new Error('模型限流'));
+    render(<ImageGenContent />);
+    fireEvent.change(screen.getByLabelText('提示词'), { target: { value: '失败场景' } });
+    fireEvent.click(screen.getByRole('button', { name: '生成图片' }));
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent('模型限流');
+  });
 });
