@@ -19,7 +19,7 @@ interface UseTarotShortcutsOptions {
  * - 1 / 2：ask 阶段切换单张 / 三张牌阵
  * - Esc：占卜中=重置回问牌阶段
  *
- * 输入框聚焦时空格/数字键不触发（避免误触）。
+ * 输入框或按钮/链接等可交互控件聚焦时，空格/数字键不触发（避免误触）。
  */
 export function useTarotShortcuts({
   phase,
@@ -33,10 +33,15 @@ export function useTarotShortcuts({
     if (modalOpen) {return;}
 
     const handler = (e: KeyboardEvent) => {
-      // 输入框聚焦时让位
+      // 输入框与可交互控件聚焦时让位，避免 Space/数字键抢占原生行为
+      // （window 等非元素目标不在此列，直接进入快捷键分发）
       const target = e.target as HTMLElement | null;
-      if (target && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)) {return;}
-      if (target?.isContentEditable) {return;}
+      if (target instanceof HTMLElement) {
+        const interactiveTag = /^(INPUT|TEXTAREA|SELECT|BUTTON|A)$/.test(target.tagName);
+        if (interactiveTag) {return;}
+        if (target.isContentEditable) {return;}
+        if (target.getAttribute('role') === 'button' || target.getAttribute('role') === 'tab') {return;}
+      }
 
       switch (e.key) {
         case ' ':

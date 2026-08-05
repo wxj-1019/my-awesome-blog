@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react';
+import { fireEvent, render } from '@testing-library/react';
 import { useTarotShortcuts } from '@/hooks/useTarotShortcuts';
 import type { TarotPhase } from '@/types/tarot';
 
@@ -82,5 +82,23 @@ describe('useTarotShortcuts · 占卜快捷键', () => {
     fireKey('Escape');
     expect(onStart).not.toHaveBeenCalled();
     expect(onReset).not.toHaveBeenCalled();
+  });
+
+  it('焦点在 button 上时按 Space 不触发 onStart（交还原生行为）', () => {
+    const onStart = jest.fn();
+    const button = document.createElement('button');
+    document.body.appendChild(button);
+    button.focus();
+
+    render(
+      <Probe
+        phase="ask"
+        handlers={{ onStart, onFlipNext: jest.fn(), onReset: jest.fn(), onPickSpread: jest.fn() }}
+      />
+    );
+
+    fireEvent.keyDown(button, { key: ' ' });
+    expect(onStart).not.toHaveBeenCalled();
+    document.body.removeChild(button);
   });
 });
