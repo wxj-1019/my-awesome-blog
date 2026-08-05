@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from '@/lib/framer-motion';
-import { X, ZoomIn, ZoomOut, RotateCw, Download, Share2, ChevronLeft, ChevronRight, Maximize2, Minimize2 } from 'lucide-react';
+import { motion, AnimatePresence, useReducedMotion } from '@/lib/framer-motion';
+import { X, ZoomIn, ZoomOut, RotateCw, Download, Share2, ChevronLeft, ChevronRight, Maximize2, Minimize2, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/components/ui/use-toast';
+import { TRANSITION } from '@/lib/animation-utils';
 
 export interface LightboxImage {
   id: string;
@@ -32,6 +33,22 @@ interface LightboxProps {
   keyboardNavigation?: boolean;
 }
 
+/** 图片切换过渡时长（由 TRANSITION.FAST 驱动，与入场动画节奏一致） */
+const SWITCH_DELAY_MS = (TRANSITION.FAST.duration ?? 0.28) * 1000;
+
+/** 从 URL 或响应 Content-Type 推断图片扩展名，兜底 .png */
+function inferImageExtension(src: string, contentType?: string): string {
+  const urlExt = src.split('?')[0].match(/\.(png|jpe?g|webp|gif|avif|svg)$/i)?.[1];
+  if (urlExt) {
+    return urlExt.toLowerCase() === 'jpeg' ? 'jpg' : urlExt.toLowerCase();
+  }
+  const mimeExt = contentType?.match(/image\/(png|jpeg|webp|gif|avif|svg\+xml)/i)?.[1];
+  if (mimeExt) {
+    return mimeExt.toLowerCase() === 'jpeg' ? 'jpg' : mimeExt.toLowerCase();
+  }
+  return 'png';
+}
+
 const Lightbox: React.FC<LightboxProps> = ({
   images,
   currentIndex,
@@ -54,13 +71,26 @@ const Lightbox: React.FC<LightboxProps> = ({
   const [showControls, setShowControls] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(currentIndex);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const [downloadError, setDownloadError] = useState(false);
+  const prefersReducedMotion = useReducedMotion();
   const { toast } = useToast();
 
   const currentImage = images[currentImageIndex];
 
+  // 偏好减弱动态效果时，入场/出场动画改为瞬时（时长 0）
+  const entranceTransition = prefersReducedMotion ? { duration: 0 } : TRANSITION.FAST;
+
   useEffect(() => {
     setCurrentImageIndex(currentIndex);
   }, [currentIndex]);
+
+  // 打开时把键盘焦点移入对话框容器（容器带 tabIndex=-1；焦点归还由调用方负责）
+  useEffect(() => {
+    if (isOpen) {
+      document.getElementById('lightbox-container')?.focus();
+    }
+  }, [isOpen]);
 
   const resetTransforms = useCallback(() => {
     setZoom(1);
@@ -73,7 +103,8 @@ const Lightbox: React.FC<LightboxProps> = ({
     setIsTransitioning(true);
     setCurrentImageIndex(prev => (prev + 1) % images.length);
     resetTransforms();
-    setTimeout(() => setIsTransitioning(false), 300);
+    setDownloadError(false);
+    setTimeout(() => setIsTransitioning(false), SWITCH_DELAY_MS);
     onNext?.();
   }, [images.length, isTransitioning, resetTransforms, onNext]);
 
@@ -82,7 +113,8 @@ const Lightbox: React.FC<LightboxProps> = ({
     setIsTransitioning(true);
     setCurrentImageIndex(prev => (prev - 1 + images.length) % images.length);
     resetTransforms();
-    setTimeout(() => setIsTransitioning(false), 300);
+    setDownloadError(false);
+    setTimeout(() => setIsTransitioning(false), SWITCH_DELAY_MS);
     onPrevious?.();
   }, [images.length, isTransitioning, resetTransforms, onPrevious]);
 
@@ -133,21 +165,31 @@ const Lightbox: React.FC<LightboxProps> = ({
   }, [isOpen, keyboardNavigation, onClose, handleNext, handlePrevious, handleZoomIn, handleZoomOut, handleRotate]);
 
   const handleDownload = useCallback(async () => {
+    if (downloading) {return;}
+    setDownloading(true);
+    setDownloadError(false);
     try {
       const response = await fetch(currentImage.src);
+      if (!response.ok) {
+        throw new Error(`下载请求失败：HTTP ${response.status}`);
+      }
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${currentImage.title || currentImage.alt}.jpg`;
+      a.download = `${currentImage.title || currentImage.alt}.${inferImageExtension(currentImage.src, blob.type)}`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
+      toast({ description: '图片已下载' });
     } catch (error) {
       console.error('下载失败:', error);
+      setDownloadError(true);
+    } finally {
+      setDownloading(false);
     }
-  }, [currentImage]);
+  }, [currentImage, downloading, toast]);
 
   const handleShare = useCallback(async () => {
     if (navigator.share) {
@@ -165,8 +207,21 @@ const Lightbox: React.FC<LightboxProps> = ({
     }
   }, [currentImage, toast]);
 
-  const handleFullscreen = useCallback(() => {
-    setIsFullscreen(prev => !prev);
+  const handleFullscreen = useCallback(async () => {
+    const el = document.getElementById('lightbox-container');
+    if (!el) {return;}
+    if (document.fullscreenElement) {
+      await document.exitFullscreen().catch(() => {});
+    } else {
+      await el.requestFullscreen?.().catch(() => {});
+    }
+  }, []);
+
+  // 监听浏览器全屏状态变化，同步按钮图标
+  useEffect(() => {
+    const onFsChange = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', onFsChange);
+    return () => document.removeEventListener('fullscreenchange', onFsChange);
   }, []);
 
   const handleWheel = useCallback((e: React.WheelEvent) => {
@@ -215,40 +270,37 @@ const Lightbox: React.FC<LightboxProps> = ({
     return () => clearTimeout(timeoutId);
   }, [showControls]);
 
-  useEffect(() => {
-    if (isFullscreen && document.fullscreenEnabled) {
-      const element = document.getElementById('lightbox-container');
-      if (element) {
-        if (isFullscreen) {
-          element.requestFullscreen?.();
-        } else {
-          document.exitFullscreen?.();
-        }
-      }
-    }
-  }, [isFullscreen]);
-
   if (!isOpen || !currentImage) {return null;}
+
+  const controlBarClassName = cn(
+    'transition-opacity duration-200',
+    showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'
+  );
 
   return (
     <AnimatePresence>
       {isOpen && (
         <motion.div
           id="lightbox-container"
+          tabIndex={-1}
+          role="dialog"
+          aria-modal="true"
+          aria-label={currentImage.alt}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
-          className="fixed inset-0 bg-black/95 backdrop-blur-sm z-50 flex items-center justify-center"
+          transition={entranceTransition}
+          className="fixed inset-0 bg-black/95 backdrop-blur-sm z-50 flex items-center justify-center outline-none"
           onClick={onClose}
           onMouseEnter={() => setShowControls(true)}
           onMouseMove={() => setShowControls(true)}
+          onFocusCapture={() => setShowControls(true)}
         >
           <motion.div
             className="relative w-full h-full flex flex-col"
             initial={{ scale: 0.95 }}
             animate={{ scale: 1 }}
-            transition={{ duration: 0.3 }}
+            transition={entranceTransition}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex-1 flex items-center justify-center overflow-hidden p-4 md:p-8">
@@ -272,159 +324,165 @@ const Lightbox: React.FC<LightboxProps> = ({
                   draggable={false}
                 />
 
-                <AnimatePresence>
-                  {showControls && (
-                    <>
-                      {images.length > 1 && (
-                        <>
-                          <motion.button
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 p-2 md:p-3 bg-black/50 hover:bg-black/70 rounded-full text-white transition-[colors,transform] duration-200 z-10"
-                            onClick={handlePrevious}
-                            disabled={isTransitioning}
-                            aria-label="上一张图片"
-                          >
-                            <ChevronLeft className="w-6 h-6 md:w-8 md:h-8" aria-hidden="true" />
-                          </motion.button>
-                          <motion.button
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: 20 }}
-                            className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 p-2 md:p-3 bg-black/50 hover:bg-black/70 rounded-full text-white transition-[colors,transform] duration-200 z-10"
-                            onClick={handleNext}
-                            disabled={isTransitioning}
-                            aria-label="下一张图片"
-                          >
-                            <ChevronRight className="w-6 h-6 md:w-8 md:h-8" aria-hidden="true" />
-                          </motion.button>
-                        </>
+                {images.length > 1 && (
+                  <>
+                    <button
+                      className={cn(
+                        'absolute left-2 md:left-4 top-1/2 -translate-y-1/2 p-2.5 md:p-3 bg-black/50 hover:bg-black/70 rounded-full text-white transition-[colors,transform,opacity] duration-200 z-10',
+                        showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'
                       )}
-                    </>
-                  )}
-                </AnimatePresence>
+                      onClick={handlePrevious}
+                      disabled={isTransitioning}
+                      aria-label="上一张图片"
+                      aria-hidden={!showControls}
+                    >
+                      <ChevronLeft className="w-6 h-6 md:w-8 md:h-8" aria-hidden="true" />
+                    </button>
+                    <button
+                      className={cn(
+                        'absolute right-2 md:right-4 top-1/2 -translate-y-1/2 p-2.5 md:p-3 bg-black/50 hover:bg-black/70 rounded-full text-white transition-[colors,transform,opacity] duration-200 z-10',
+                        showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'
+                      )}
+                      onClick={handleNext}
+                      disabled={isTransitioning}
+                      aria-label="下一张图片"
+                      aria-hidden={!showControls}
+                    >
+                      <ChevronRight className="w-6 h-6 md:w-8 md:h-8" aria-hidden="true" />
+                    </button>
+                  </>
+                )}
               </div>
             </div>
 
-            <AnimatePresence>
-              {showControls && (
-                <>
-                  <motion.div
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    className="absolute top-4 left-4 right-4 flex justify-between items-start z-20"
-                  >
-                    <div className="flex gap-2">
-                      {enableZoom && (
-                        <>
-                          <button
-                            className="p-2 bg-black/50 hover:bg-black/70 rounded-lg text-white transition-colors duration-200"
-                            onClick={handleZoomOut}
-                            disabled={zoom <= 0.5}
-                            aria-label="缩小"
-                          >
-                            <ZoomOut className="w-5 h-5" aria-hidden="true" />
-                          </button>
-                          <button
-                            className="p-2 bg-black/50 hover:bg-black/70 rounded-lg text-white transition-colors duration-200"
-                            onClick={handleZoomIn}
-                            disabled={zoom >= 5}
-                            aria-label="放大"
-                          >
-                            <ZoomIn className="w-5 h-5" aria-hidden="true" />
-                          </button>
-                          <button
-                            className="p-2 bg-black/50 hover:bg-black/70 rounded-lg text-white transition-colors duration-200"
-                            onClick={resetTransforms}
-                            aria-label="重置视图"
-                          >
-                            <Maximize2 className="w-5 h-5" aria-hidden="true" />
-                          </button>
-                        </>
-                      )}
-                      {enableRotate && (
-                        <button
-                          className="p-2 bg-black/50 hover:bg-black/70 rounded-lg text-white transition-colors duration-200"
-                          onClick={handleRotate}
-                          aria-label="旋转图片"
-                        >
-                          <RotateCw className="w-5 h-5" aria-hidden="true" />
-                        </button>
-                      )}
-                    </div>
-                    <div className="flex gap-2">
-                      {enableFullscreen && (
-                        <button
-                          className="p-2 bg-black/50 hover:bg-black/70 rounded-lg text-white transition-colors duration-200"
-                          onClick={handleFullscreen}
-                          aria-label={isFullscreen ? '退出全屏' : '进入全屏'}
-                        >
-                          {isFullscreen ? <Minimize2 className="w-5 h-5" aria-hidden="true" /> : <Maximize2 className="w-5 h-5" aria-hidden="true" />}
-                        </button>
-                      )}
-                      {enableDownload && (
-                        <button
-                          className="p-2 bg-black/50 hover:bg-black/70 rounded-lg text-white transition-colors duration-200"
-                          onClick={handleDownload}
-                          aria-label="下载图片"
-                        >
-                          <Download className="w-5 h-5" aria-hidden="true" />
-                        </button>
-                      )}
-                      {enableShare && (
-                        <button
-                          className="p-2 bg-black/50 hover:bg-black/70 rounded-lg text-white transition-colors duration-200"
-                          onClick={handleShare}
-                          aria-label="分享图片"
-                        >
-                          <Share2 className="w-5 h-5" aria-hidden="true" />
-                        </button>
-                      )}
-                      <button
-                        className="p-2 bg-black/50 hover:bg-black/70 rounded-lg text-white transition-colors duration-200"
-                        onClick={onClose}
-                        aria-label="关闭预览"
-                      >
-                        <X className="w-5 h-5" aria-hidden="true" />
-                      </button>
-                    </div>
-                  </motion.div>
-
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 20 }}
-                    className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 md:p-6 z-20"
-                  >
-                    <div className="max-w-4xl mx-auto">
-                      {currentImage.title && (
-                        <h3 className="text-white text-xl md:text-2xl font-bold mb-2">
-                          {currentImage.title}
-                        </h3>
-                      )}
-                      {currentImage.description && (
-                        <p className="text-white/80 text-sm md:text-base mb-2">
-                          {currentImage.description}
-                        </p>
-                      )}
-                      <div className="flex items-center justify-between text-white/60 text-sm">
-                        {currentImage.date && <span>{currentImage.date}</span>}
-                        <div className="flex items-center gap-2">
-                          <span>{zoom.toFixed(1)}x</span>
-                          {images.length > 1 && (
-                            <span>
-                              {currentImageIndex + 1} / {images.length}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                </>
+            <div
+              className={cn(
+                'absolute top-4 left-4 right-4 flex justify-between items-start z-20',
+                controlBarClassName
               )}
-            </AnimatePresence>
+              aria-hidden={!showControls}
+            >
+              <div className="flex gap-2">
+                {enableZoom && (
+                  <>
+                    <button
+                      className="p-2.5 bg-black/50 hover:bg-black/70 rounded-lg text-white transition-colors duration-200"
+                      onClick={handleZoomOut}
+                      disabled={zoom <= 0.5}
+                      aria-label="缩小"
+                    >
+                      <ZoomOut className="w-5 h-5" aria-hidden="true" />
+                    </button>
+                    <button
+                      className="p-2.5 bg-black/50 hover:bg-black/70 rounded-lg text-white transition-colors duration-200"
+                      onClick={handleZoomIn}
+                      disabled={zoom >= 5}
+                      aria-label="放大"
+                    >
+                      <ZoomIn className="w-5 h-5" aria-hidden="true" />
+                    </button>
+                    <button
+                      className="p-2.5 bg-black/50 hover:bg-black/70 rounded-lg text-white transition-colors duration-200"
+                      onClick={resetTransforms}
+                      aria-label="重置视图"
+                    >
+                      <Maximize2 className="w-5 h-5" aria-hidden="true" />
+                    </button>
+                  </>
+                )}
+                {enableRotate && (
+                  <button
+                    className="p-2.5 bg-black/50 hover:bg-black/70 rounded-lg text-white transition-colors duration-200"
+                    onClick={handleRotate}
+                    aria-label="旋转图片"
+                  >
+                    <RotateCw className="w-5 h-5" aria-hidden="true" />
+                  </button>
+                )}
+              </div>
+              <div className="flex gap-2">
+                {enableFullscreen && (
+                  <button
+                    className="p-2.5 bg-black/50 hover:bg-black/70 rounded-lg text-white transition-colors duration-200"
+                    onClick={handleFullscreen}
+                    aria-label={isFullscreen ? '退出全屏' : '进入全屏'}
+                  >
+                    {isFullscreen ? <Minimize2 className="w-5 h-5" aria-hidden="true" /> : <Maximize2 className="w-5 h-5" aria-hidden="true" />}
+                  </button>
+                )}
+                {enableDownload && (
+                  <button
+                    className="p-2.5 bg-black/50 hover:bg-black/70 rounded-lg text-white transition-colors duration-200"
+                    onClick={handleDownload}
+                    disabled={downloading}
+                    aria-label="下载图片"
+                  >
+                    {downloading ? (
+                      <Loader2 className="w-5 h-5 animate-spin" aria-hidden="true" />
+                    ) : (
+                      <Download className="w-5 h-5" aria-hidden="true" />
+                    )}
+                  </button>
+                )}
+                {enableShare && (
+                  <button
+                    className="p-2.5 bg-black/50 hover:bg-black/70 rounded-lg text-white transition-colors duration-200"
+                    onClick={handleShare}
+                    aria-label="分享图片"
+                  >
+                    <Share2 className="w-5 h-5" aria-hidden="true" />
+                  </button>
+                )}
+                <button
+                  className="p-2.5 bg-black/50 hover:bg-black/70 rounded-lg text-white transition-colors duration-200"
+                  onClick={onClose}
+                  aria-label="关闭预览"
+                >
+                  <X className="w-5 h-5" aria-hidden="true" />
+                </button>
+              </div>
+            </div>
+
+            <div
+              className={cn(
+                'absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 md:p-6 z-20',
+                controlBarClassName
+              )}
+              aria-hidden={!showControls}
+            >
+              <div className="max-w-4xl mx-auto">
+                {currentImage.title && (
+                  <h3 className="text-white text-xl md:text-2xl font-bold mb-2">
+                    {currentImage.title}
+                  </h3>
+                )}
+                {currentImage.description && (
+                  <p className="text-white/80 text-sm md:text-base mb-2">
+                    {currentImage.description}
+                  </p>
+                )}
+                <div className="flex items-center justify-between text-white/60 text-sm">
+                  {currentImage.date && <span>{currentImage.date}</span>}
+                  <div className="flex items-center gap-2">
+                    <span>{zoom.toFixed(1)}x</span>
+                    {images.length > 1 && (
+                      <span>
+                        {currentImageIndex + 1} / {images.length}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {downloadError && (
+              <p
+                role="alert"
+                className="absolute top-20 right-4 md:right-8 z-30 bg-red-950/80 text-red-200 text-sm px-3 py-2 rounded-lg"
+              >
+                下载失败，请重试
+              </p>
+            )}
 
             <div className="absolute bottom-20 md:bottom-24 left-1/2 -translate-x-1/2 flex gap-1 z-20">
               {images.map((image, index) => (
@@ -439,6 +497,7 @@ const Lightbox: React.FC<LightboxProps> = ({
                   onClick={() => {
                     setCurrentImageIndex(index);
                     resetTransforms();
+                    setDownloadError(false);
                   }}
                   aria-label={`查看第 ${index + 1} 张图片${image.title ? `：${image.title}` : ''}`}
                   aria-current={index === currentImageIndex ? 'true' : undefined}
