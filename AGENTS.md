@@ -162,6 +162,6 @@ docker-compose -f docker-compose.prod.yml up -d
 | Live2D | 根布局中注释；缺 `public/wanko/runtime`，勿擅自启用 |
 | 测试 DB | 默认 SQLite；PG 全文搜索相关用例可能 skip |
 | 环境变量 | 密钥与 DB URL 只从 env 读取；README/compose 不写死生产密码 |
-| 双数据源 | 部分 Next `app/api/*` 与 FastAPI 并存时，改前确认页面实际调用哪一侧 |
+| 双数据源 | ~~历史曾存在 Next `app/api/*` 代理与 FastAPI 并存~~，现已清理。前端统一走 `@/lib/api/*` + `apiFetch` 直连 FastAPI，新增数据接口直接建 service，勿再在 `frontend/src/app/api/` 下加 route handler |
 
 更完整的历史条目见 [`docs/changelog-agents.md`](./docs/changelog-agents.md)。

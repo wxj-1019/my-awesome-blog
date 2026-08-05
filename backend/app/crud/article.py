@@ -444,10 +444,14 @@ def get_popular_articles(db: Session, limit: int = 5, days: int = 30):
     since_date = datetime.now(timezone.utc) - timedelta(days=days)
 
     # 查询热门文章（考虑浏览量和评论数）
-    # 使用 joinedload 预加载作者信息，避免 N+1 查询
+    # 使用 joinedload 预加载作者/分类/标签，避免序列化时 N+1 查询
     popular_articles = (
         db.query(Article)
-        .options(joinedload(Article.author))  # 预加载作者
+        .options(
+            joinedload(Article.author),  # 预加载作者
+            joinedload(Article.categories),  # 预加载分类
+            joinedload(Article.tags),  # 预加载标签
+        )
         .join(Comment, Comment.article_id == Article.id, isouter=True)  # 左连接评论表
         .filter(and_(Article.is_published == True, Article.published_at >= since_date))
         .group_by(Article.id)  # 按文章分组
