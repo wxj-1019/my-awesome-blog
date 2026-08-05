@@ -138,4 +138,24 @@ describe('ImageGenContent · 图片生成工具页', () => {
     const alert = await screen.findByRole('alert');
     expect(alert).toHaveTextContent('模型限流');
   });
+
+  it('成功生成后进入会话历史；历史最多 5 组并支持恢复', async () => {
+    mockGenerate.mockResolvedValue({
+      images: [{ url: 'https://cdn.example.com/a.png', size: '1024x1024' }],
+      model: 'm',
+    });
+    render(<ImageGenContent />);
+    // 生成两组
+    fireEvent.change(screen.getByLabelText('提示词'), { target: { value: '第一组' } });
+    fireEvent.click(screen.getByRole('button', { name: '生成图片' }));
+    await screen.findByText('生成结果');
+    fireEvent.change(screen.getByLabelText('提示词'), { target: { value: '第二组' } });
+    fireEvent.click(screen.getByRole('button', { name: '生成图片' }));
+    await screen.findByText('生成结果');
+
+    expect(screen.getByText(/本次会话历史/)).toBeInTheDocument();
+    // 恢复第一组：点击历史项后提示词回到「第一组」
+    fireEvent.click(screen.getByText('第一组'));
+    expect((screen.getByLabelText('提示词') as HTMLTextAreaElement).value).toBe('第一组');
+  });
 });

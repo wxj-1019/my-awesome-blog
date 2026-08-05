@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ImageIcon, ImageOff, Loader2, RefreshCw, Sparkles, Wand2 } from 'lucide-react';
+import { History, ImageIcon, ImageOff, Loader2, RefreshCw, RotateCcw, Sparkles, Wand2 } from 'lucide-react';
 import PageShell from '@/components/layout/PageShell';
 import PageHeader from '@/components/layout/PageHeader';
 import GlassCard from '@/components/ui/GlassCard';
@@ -10,6 +10,7 @@ import EmptyState from '@/components/ui/EmptyState';
 import Lightbox, { type LightboxImage } from '@/components/ui/Lightbox';
 import { FadeIn } from '@/components/motion';
 import { generateImages, type GeneratedImage } from '@/lib/api/imageGen';
+import { addHistoryEntry, type GenHistoryEntry } from '@/lib/image-gen-history';
 import { cn } from '@/lib/utils';
 
 /** 尺寸预设（火山 Seedream 常用） */
@@ -27,6 +28,18 @@ const EXAMPLE_PROMPTS = [
   '未来城市的空中花园，垂直绿化建筑，落日余晖，概念艺术',
 ];
 
+/** 尺寸字符串 → 结果图对应的宽高比 class（未知尺寸兜底方图） */
+const SIZE_ASPECT: Record<string, string> = {
+  '1024x1024': 'aspect-square',
+  '1024x1536': 'aspect-[3/4]',
+  '1536x1024': 'aspect-[4/3]',
+};
+
+/** 历史条目提示词过长时截断显示 */
+function truncatePrompt(text: string): string {
+  return text.length > 24 ? `${text.slice(0, 24)}…` : text;
+}
+
 /** 生成状态机：idle → loading → done | error；取消时回 idle */
 type GenState = 'idle' | 'loading' | 'done' | 'error';
 
@@ -40,6 +53,10 @@ export default function ImageGenContent() {
   const [errorMsg, setErrorMsg] = useState('');
   /** 加载失败的图片 URL 集合：失败的图用占位卡片替代 <img>，避免碎图图标 */
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
+  /** 本次会话的生成历史（刷新后清空），最多保留最近 5 组 */
+  const [history, setHistory] = useState<GenHistoryEntry[]>([]);
+  /** 当前结果区对应的历史条目 id：用于高亮历史项；新请求开始即清空 */
+  const [activeEntryId, setActiveEntryId] = useState<string | null>(null);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
@@ -62,12 +79,26 @@ export default function ImageGenContent() {
     abortRef.current = controller;
     setState('loading');
     setErrorMsg('');
-    // 新一轮生成：清掉上一轮的加载失败记录，重新渲染图片
+    // 新一轮生成：清掉上一轮的加载失败记录与结果高亮，重新渲染图片
     setFailedImages(new Set());
+    setActiveEntryId(null);
     try {
       const resp = await generateImages({ prompt: text, size, count }, controller.signal);
       setImages(resp.images);
       setState('done');
+      // 成功且有图 → 记入会话历史（新条目在头部，超出上限自动丢弃最旧的）
+      if (resp.images.length > 0) {
+        const entry: GenHistoryEntry = {
+          id: globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+          createdAt: Date.now(),
+          prompt: text,
+          size,
+          count,
+          images: resp.images,
+        };
+        setActiveEntryId(entry.id);
+        setHistory((prev) => addHistoryEntry(prev, entry));
+      }
     } catch (err) {
       // 主动取消：浏览器 fetch 中止抛 DOMException AbortError（不一定 instanceof Error）
       const errName =
@@ -89,6 +120,17 @@ export default function ImageGenContent() {
     }
   }, [prompt, size, count]);
 
+  /** 恢复历史条目：回填提示词/尺寸/张数，并重新展示该组结果 */
+  const handleRestore = useCallback((entry: GenHistoryEntry) => {
+    setPrompt(entry.prompt);
+    setSize(entry.size);
+    setCount(entry.count);
+    setImages(entry.images);
+    setActiveEntryId(entry.id);
+    setState('done');
+    setErrorMsg('');
+  }, []);
+
   const lightboxImages: LightboxImage[] = images.map((img, i) => ({
     id: `${i}`,
     src: img.url,
@@ -104,194 +146,273 @@ export default function ImageGenContent() {
         align="center"
       />
 
-      <div className="mx-auto max-w-3xl space-y-6">
-        {/* 输入区 */}
-        <GlassCard padding="lg">
-          <label htmlFor="gen-prompt" className="mb-2 block text-sm font-medium text-foreground">
-            提示词
-          </label>
-          <textarea
-            id="gen-prompt"
-            rows={3}
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            maxLength={1000}
-            placeholder="描述你想生成的画面，如：月光下的静谧湖泊，超现实主义风格"
-            className="mb-3 w-full resize-none rounded-lg border border-input bg-background/60 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          />
-
-          {/* 示例提示词 */}
-          <div className="mb-4 flex flex-wrap gap-1.5">
-            {EXAMPLE_PROMPTS.map((p) => (
-              <button
-                key={p}
-                type="button"
-                onClick={() => setPrompt(p)}
-                className="rounded-full border border-border px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                {p.length > 16 ? `${p.slice(0, 16)}…` : p}
-              </button>
-            ))}
-          </div>
-
-          {/* 尺寸 + 张数 */}
-          <div className="mb-4 flex flex-wrap items-center gap-4">
-            <div role="group" aria-label="尺寸" className="flex gap-1.5">
-              {SIZE_PRESETS.map((s) => (
-                <button
-                  key={s.value}
-                  type="button"
-                  onClick={() => setSize(s.value)}
-                  aria-pressed={size === s.value}
-                  className={cn(
-                    'rounded-lg border px-2.5 py-1 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                    size === s.value
-                      ? 'border-primary/60 bg-primary/5 text-primary'
-                      : 'border-border text-muted-foreground hover:border-primary/30'
-                  )}
-                >
-                  {s.label}
-                </button>
-              ))}
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">张数</span>
-              {[1, 2, 4].map((n) => (
-                <button
-                  key={n}
-                  type="button"
-                  onClick={() => setCount(n)}
-                  aria-pressed={count === n}
-                  className={cn(
-                    'h-7 w-7 rounded-lg border text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                    count === n
-                      ? 'border-primary/60 bg-primary/5 text-primary'
-                      : 'border-border text-muted-foreground hover:border-primary/30'
-                  )}
-                >
-                  {n}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => {
-              // 生成中点击按钮 = 取消当前请求
-              if (state === 'loading') {
-                abortRef.current?.abort();
-                return;
-              }
-              handleGenerate();
-            }}
-            disabled={state !== 'loading' && !prompt.trim()}
-            aria-busy={state === 'loading'}
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-60"
-          >
-            {state === 'loading' ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                生成中… 可取消
-              </>
-            ) : (
-              <>
-                <Wand2 className="h-4 w-4" aria-hidden />
-                生成图片
-              </>
-            )}
-          </button>
-
-          {state === 'error' ? (
-            <div className="mt-3 flex flex-wrap items-center gap-3">
-              <p role="alert" className="text-sm text-error">{errorMsg}</p>
-              {/* 重试沿用上一次的提示词/尺寸/张数（均为保留状态），直接重新发起生成 */}
-              <Button variant="outline" size="sm" onClick={handleGenerate}>
-                <RefreshCw className="h-3.5 w-3.5" aria-hidden />
-                重试
-              </Button>
-            </div>
-          ) : null}
-        </GlassCard>
-
-        {/* 结果区：成功但无图 → 空态 + 重新生成；成功且有图 → 网格展示 */}
-        {state === 'done' && images.length === 0 ? (
-          <FadeIn>
-            <GlassCard padding="md">
-              <EmptyState
-                icon={ImageIcon}
-                title="没有生成结果"
-                description="可调整提示词后重试"
-                action={{
-                  label: '重新生成',
-                  icon: RefreshCw,
-                  onClick: handleGenerate,
-                }}
+      <div className="mx-auto max-w-5xl">
+        <div className="grid gap-6 lg:grid-cols-[minmax(280px,36%)_minmax(0,64%)] lg:items-start">
+          {/* 左列：输入区（lg 以下为第一行） */}
+          <div className="space-y-6">
+            {/* 输入区 */}
+            <GlassCard padding="lg">
+              <label htmlFor="gen-prompt" className="mb-2 block text-sm font-medium text-foreground">
+                提示词
+              </label>
+              <textarea
+                id="gen-prompt"
+                rows={3}
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                maxLength={1000}
+                placeholder="描述你想生成的画面，如：月光下的静谧湖泊，超现实主义风格"
+                className="mb-3 w-full resize-none rounded-lg border border-input bg-background/60 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               />
-            </GlassCard>
-          </FadeIn>
-        ) : null}
-        {state === 'done' && images.length > 0 ? (
-          <FadeIn>
-            <GlassCard padding="md">
-              <div className="mb-3 flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-tech-purple" aria-hidden />
-                <h2 className="text-sm font-semibold text-foreground">生成结果</h2>
-                <span className="ml-auto text-xs text-muted-foreground">{images.length} 张</span>
-              </div>
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                {images.map((img, i) => (
-                  <div key={`${img.url}-${i}`} className="group relative">
-                    {failedImages.has(img.url) ? (
-                      /* 加载失败的图：占位卡片 + 重试按钮（重新渲染 <img> 触发浏览器重载） */
-                      <div className="flex aspect-square w-full flex-col items-center justify-center gap-2 rounded-lg border border-border bg-muted/30 text-center text-muted-foreground">
-                        <ImageOff className="h-5 w-5" aria-hidden />
-                        <span className="text-xs">图片加载失败</span>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setFailedImages((prev) => {
-                              const next = new Set(prev);
-                              next.delete(img.url);
-                              return next;
-                            })
-                          }
-                          className="rounded border border-border px-2 py-0.5 text-[11px] transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                        >
-                          重试加载
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setLightboxIndex(i);
-                          setLightboxOpen(true);
-                        }}
-                        aria-label={`查看生成图片 ${i + 1}`}
-                        className="block w-full overflow-hidden rounded-lg border border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                      >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={img.url}
-                          alt={prompt.trim() || `生成图片 ${i + 1}`}
-                          className="aspect-square w-full object-cover transition-transform duration-200 group-hover:scale-105"
-                          loading="lazy"
-                          onError={() =>
-                            setFailedImages((prev) => new Set(prev).add(img.url))
-                          }
-                        />
-                      </button>
-                    )}
-                  </div>
+
+              {/* 示例提示词 */}
+              <div className="mb-4 flex flex-wrap gap-1.5">
+                {EXAMPLE_PROMPTS.map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => setPrompt(p)}
+                    className="rounded-full border border-border px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    {p.length > 16 ? `${p.slice(0, 16)}…` : p}
+                  </button>
                 ))}
               </div>
-              <p className="mt-3 text-center text-xs text-muted-foreground">
-                点击图片可放大、下载；生成图地址为临时链接，请及时保存
-              </p>
+
+              {/* 尺寸 + 张数 */}
+              <div className="mb-4 flex flex-wrap items-center gap-4">
+                <div role="group" aria-label="尺寸" className="flex gap-1.5">
+                  {SIZE_PRESETS.map((s) => (
+                    <button
+                      key={s.value}
+                      type="button"
+                      onClick={() => setSize(s.value)}
+                      aria-pressed={size === s.value}
+                      className={cn(
+                        'rounded-lg border px-2.5 py-1 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                        size === s.value
+                          ? 'border-primary/60 bg-primary/5 text-primary'
+                          : 'border-border text-muted-foreground hover:border-primary/30'
+                      )}
+                    >
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">张数</span>
+                  {[1, 2, 4].map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => setCount(n)}
+                      aria-pressed={count === n}
+                      className={cn(
+                        'h-7 w-7 rounded-lg border text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                        count === n
+                          ? 'border-primary/60 bg-primary/5 text-primary'
+                          : 'border-border text-muted-foreground hover:border-primary/30'
+                      )}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  // 生成中点击按钮 = 取消当前请求
+                  if (state === 'loading') {
+                    abortRef.current?.abort();
+                    return;
+                  }
+                  handleGenerate();
+                }}
+                disabled={state !== 'loading' && !prompt.trim()}
+                aria-busy={state === 'loading'}
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-60"
+              >
+                {state === 'loading' ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                    生成中… 可取消
+                  </>
+                ) : (
+                  <>
+                    <Wand2 className="h-4 w-4" aria-hidden />
+                    生成图片
+                  </>
+                )}
+              </button>
+
+              {state === 'error' ? (
+                <div className="mt-3 flex flex-wrap items-center gap-3">
+                  <p role="alert" className="text-sm text-error">{errorMsg}</p>
+                  {/* 重试沿用上一次的提示词/尺寸/张数（均为保留状态），直接重新发起生成 */}
+                  <Button variant="outline" size="sm" onClick={handleGenerate}>
+                    <RefreshCw className="h-3.5 w-3.5" aria-hidden />
+                    重试
+                  </Button>
+                </div>
+              ) : null}
             </GlassCard>
-          </FadeIn>
-        ) : null}
+          </div>
+
+          {/* 右列：结果区 + 本次会话历史（lg 以下跟在输入区之后） */}
+          <div className="space-y-6">
+            {/* 结果区：成功但无图 → 空态 + 重新生成；成功且有图 → 网格展示 */}
+            {state === 'done' && images.length === 0 ? (
+              <FadeIn>
+                <GlassCard padding="md">
+                  <EmptyState
+                    icon={ImageIcon}
+                    title="没有生成结果"
+                    description="可调整提示词后重试"
+                    action={{
+                      label: '重新生成',
+                      icon: RefreshCw,
+                      onClick: handleGenerate,
+                    }}
+                  />
+                </GlassCard>
+              </FadeIn>
+            ) : null}
+            {state === 'done' && images.length > 0 ? (
+              <FadeIn>
+                <GlassCard padding="md">
+                  <div className="mb-3 flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-tech-purple" aria-hidden />
+                    <h2 className="text-sm font-semibold text-foreground">生成结果</h2>
+                    <span className="ml-auto text-xs text-muted-foreground">{images.length} 张</span>
+                  </div>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                    {images.map((img, i) => (
+                      <div key={`${img.url}-${i}`} className="group relative">
+                        {failedImages.has(img.url) ? (
+                          /* 加载失败的图：占位卡片 + 重试按钮（重新渲染 <img> 触发浏览器重载） */
+                          <div
+                            className={cn(
+                              'flex w-full flex-col items-center justify-center gap-2 rounded-lg border border-border bg-muted/30 text-center text-muted-foreground',
+                              SIZE_ASPECT[img.size] ?? 'aspect-square'
+                            )}
+                          >
+                            <ImageOff className="h-5 w-5" aria-hidden />
+                            <span className="text-xs">图片加载失败</span>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setFailedImages((prev) => {
+                                  const next = new Set(prev);
+                                  next.delete(img.url);
+                                  return next;
+                                })
+                              }
+                              className="rounded border border-border px-2 py-0.5 text-[11px] transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                            >
+                              重试加载
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setLightboxIndex(i);
+                              setLightboxOpen(true);
+                            }}
+                            aria-label={`查看生成图片 ${i + 1}`}
+                            className={cn(
+                              'block w-full overflow-hidden rounded-lg border border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                              SIZE_ASPECT[img.size] ?? 'aspect-square'
+                            )}
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={img.url}
+                              alt={prompt.trim() || `生成图片 ${i + 1}`}
+                              className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
+                              loading="lazy"
+                              onError={() =>
+                                setFailedImages((prev) => new Set(prev).add(img.url))
+                              }
+                            />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  <p className="mt-3 text-center text-xs text-muted-foreground">
+                    点击图片可放大、下载；生成图地址为临时链接，请及时保存
+                  </p>
+                </GlassCard>
+              </FadeIn>
+            ) : null}
+
+            {/* 本次会话历史：刷新后清空，最多 5 组，点击条目一键恢复 */}
+            {history.length > 0 ? (
+              <FadeIn>
+                <GlassCard padding="md">
+                  <div className="mb-3 flex items-center gap-2">
+                    <History className="h-4 w-4 text-tech-purple" aria-hidden />
+                    <h2 className="text-sm font-semibold text-foreground">本次会话历史（刷新后清空）</h2>
+                    <span className="ml-auto text-xs text-muted-foreground">最多 5 组</span>
+                  </div>
+                  <ul className="space-y-2">
+                    {history.map((entry) => {
+                      const first = entry.images[0];
+                      const active = entry.id === activeEntryId;
+                      return (
+                        <li key={entry.id}>
+                          <button
+                            type="button"
+                            onClick={() => handleRestore(entry)}
+                            aria-current={active ? 'true' : undefined}
+                            className={cn(
+                              'flex w-full items-center gap-3 rounded-lg border p-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                              active
+                                ? 'border-primary/60 bg-primary/5'
+                                : 'border-border hover:border-primary/30'
+                            )}
+                          >
+                            {/* 缩略图：加载失败的图复用 failedImages 占位（与结果区一致） */}
+                            {first && !failedImages.has(first.url) ? (
+                              <span className="h-14 w-14 shrink-0 overflow-hidden rounded-md border border-border">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={first.url}
+                                  alt=""
+                                  className="h-full w-full object-cover"
+                                  loading="lazy"
+                                  onError={() =>
+                                    setFailedImages((prev) => new Set(prev).add(first.url))
+                                  }
+                                />
+                              </span>
+                            ) : (
+                              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-md border border-border bg-muted/30 text-muted-foreground">
+                                <ImageOff className="h-4 w-4" aria-hidden />
+                              </span>
+                            )}
+                            <span className="min-w-0 flex-1">
+                              <span className="block truncate text-sm text-foreground">
+                                {truncatePrompt(entry.prompt)}
+                              </span>
+                              <span className="mt-0.5 block text-xs text-muted-foreground">
+                                {entry.size} · {entry.count} 张
+                              </span>
+                            </span>
+                            <RotateCcw className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </GlassCard>
+              </FadeIn>
+            ) : null}
+          </div>
+        </div>
       </div>
 
       <Lightbox
