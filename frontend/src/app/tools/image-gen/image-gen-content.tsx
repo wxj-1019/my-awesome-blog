@@ -1,9 +1,10 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { History, ImageIcon, ImageOff, Loader2, RefreshCw, RotateCcw, Sparkles, Wand2 } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowLeft, History, ImageIcon, ImageOff, Loader2, RefreshCw, RotateCcw, Sparkles, Wand2 } from 'lucide-react';
 import PageShell from '@/components/layout/PageShell';
-import PageHeader from '@/components/layout/PageHeader';
+import PageActHeader from '@/components/layout/PageActHeader';
 import GlassCard from '@/components/ui/GlassCard';
 import { Button } from '@/components/ui/Button';
 import EmptyState from '@/components/ui/EmptyState';
@@ -104,7 +105,11 @@ export default function ImageGenContent() {
       const errName =
         err instanceof Error ? err.name : (err as { name?: unknown } | null)?.name;
       if (errName === 'AbortError') {
-        setState('idle');
+        // 仅当没有新请求/恢复接管时才回 idle：恢复历史会主动中止在途请求，
+        // 此时状态已由 handleRestore 设为 done，不能回退成 idle
+        if (abortRef.current === controller) {
+          setState('idle');
+        }
         return;
       }
       const msg = err instanceof Error ? err.message : '生成失败，请稍后重试';
@@ -122,6 +127,9 @@ export default function ImageGenContent() {
 
   /** 恢复历史条目：回填提示词/尺寸/张数，并重新展示该组结果 */
   const handleRestore = useCallback((entry: GenHistoryEntry) => {
+    // 恢复历史时中止在途请求，避免旧请求回写覆盖恢复后的结果
+    abortRef.current?.abort();
+    abortRef.current = null;
     setPrompt(entry.prompt);
     setSize(entry.size);
     setCount(entry.count);
@@ -139,11 +147,25 @@ export default function ImageGenContent() {
 
   return (
     <PageShell density="default">
-      <PageHeader
+      {/* 轻量返回路径：紧凑面包屑，键盘可达，回到百宝箱 */}
+      <div className="mb-6 flex justify-center">
+        <Link
+          href="/tools"
+          className="inline-flex min-h-11 items-center gap-1.5 rounded-md text-xs text-muted-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" aria-hidden />
+          百宝箱 / 图片生成
+        </Link>
+      </div>
+
+      {/* 幕标式页头（PageActHeader 自带 FadeIn；className 覆盖为 token 色，浅色模式可读） */}
+      <PageActHeader
+        kicker="图片生成 · IMAGE STUDIO"
         title="图片生成"
-        description="输入提示词，AI 帮你生成图片——火山方舟文生图驱动"
+        description="输入提示词，AI 帮你生成图片"
         icon={ImageIcon}
         align="center"
+        className="[&_[data-act-kicker]]:text-primary [&_h1]:text-foreground [&_p]:text-muted-foreground"
       />
 
       <div className="mx-auto max-w-5xl">
@@ -342,9 +364,6 @@ export default function ImageGenContent() {
                       </div>
                     ))}
                   </div>
-                  <p className="mt-3 text-center text-xs text-muted-foreground">
-                    点击图片可放大、下载；生成图地址为临时链接，请及时保存
-                  </p>
                 </GlassCard>
               </FadeIn>
             ) : null}
@@ -353,10 +372,16 @@ export default function ImageGenContent() {
             {history.length > 0 ? (
               <FadeIn>
                 <GlassCard padding="md">
-                  <div className="mb-3 flex items-center gap-2">
-                    <History className="h-4 w-4 text-tech-purple" aria-hidden />
-                    <h2 className="text-sm font-semibold text-foreground">本次会话历史（刷新后清空）</h2>
-                    <span className="ml-auto text-xs text-muted-foreground">最多 5 组</span>
+                  <div className="mb-3">
+                    <div className="flex items-center gap-2">
+                      <History className="h-4 w-4 text-tech-purple" aria-hidden />
+                      <h2 className="text-sm font-semibold text-foreground">本次会话历史</h2>
+                      <span className="ml-auto text-xs text-muted-foreground">最多 5 组</span>
+                    </div>
+                    {/* 临时链接与保留期限说明：原在结果区底部，移入历史区头部统一提示 */}
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      生成图地址为临时链接，请及时保存；历史仅本次会话保留，刷新后清空
+                    </p>
                   </div>
                   <ul className="space-y-2">
                     {history.map((entry) => {

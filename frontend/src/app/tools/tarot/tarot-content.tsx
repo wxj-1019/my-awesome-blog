@@ -1,9 +1,10 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { BookOpen, Dices, MoonStar, RotateCcw, Undo2, Wand2 } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowLeft, BookOpen, Dices, MoonStar, RotateCcw, Undo2, Wand2 } from 'lucide-react';
 import PageShell from '@/components/layout/PageShell';
-import PageHeader from '@/components/layout/PageHeader';
+import PageActHeader from '@/components/layout/PageActHeader';
 import GlassCard from '@/components/ui/GlassCard';
 import { FadeIn } from '@/components/motion';
 import { motion, useReducedMotion } from '@/lib/framer-motion';
@@ -340,11 +341,25 @@ export default function TarotContent() {
 
   return (
     <PageShell density="default">
-      <PageHeader
-        title="塔罗牌"
-        description="静心、提问、抽牌——78 张韦特塔罗正逆位解读，可选 AI 深度解读"
+      {/* 轻量返回路径：紧凑面包屑，键盘可达，回到百宝箱 */}
+      <div className="mb-6 flex justify-center">
+        <Link
+          href="/tools"
+          className="inline-flex min-h-11 items-center gap-1.5 rounded-md text-xs text-muted-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" aria-hidden />
+          百宝箱 / 塔罗占卜
+        </Link>
+      </div>
+
+      {/* 幕标式页头（PageActHeader 自带 FadeIn；className 覆盖为 token 色，浅色模式可读） */}
+      <PageActHeader
+        kicker="塔罗占卜 · TAROT"
+        title="塔罗占卜"
+        description="抽牌占卜，正逆位牌义与 AI 深度解读"
         icon={MoonStar}
         align="center"
+        className="[&_[data-act-kicker]]:text-primary [&_h1]:text-foreground [&_p]:text-muted-foreground"
       />
 
       {/* 视图切换（两面板同时挂载，hidden 切换以保留占卜进度） */}
