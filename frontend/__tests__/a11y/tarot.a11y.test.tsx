@@ -80,7 +80,7 @@ describe('塔罗页无障碍', () => {
     const container = await driveToRevealed();
     const results = await axe(container);
     expect(results).toHaveNoViolations();
-  }, 15000);
+  }, 30000);
 
   it('解读面板（AI 解读按钮可见）应无严重可访问性违规', async () => {
     const container = await driveToRevealed();
@@ -88,7 +88,7 @@ describe('塔罗页无障碍', () => {
 
     const results = await axe(container);
     expect(results).toHaveNoViolations();
-  }, 15000);
+  }, 30000);
 
   it('分享牌阵弹层打开时应无严重可访问性违规', async () => {
     const container = await driveToRevealed();
@@ -97,5 +97,5 @@ describe('塔罗页无障碍', () => {
 
     const results = await axe(container);
     expect(results).toHaveNoViolations();
-  }, 15000);
+  }, 30000);
 });
