@@ -9,7 +9,7 @@ import GlassCard from '@/components/ui/GlassCard';
 import { Button } from '@/components/ui/Button';
 import EmptyState from '@/components/ui/EmptyState';
 import Lightbox, { type LightboxImage } from '@/components/ui/Lightbox';
-import { FadeIn } from '@/components/motion';
+import { FadeIn, Stagger, StaggerItem } from '@/components/motion';
 import { generateImages, type GeneratedImage } from '@/lib/api/imageGen';
 import { addHistoryEntry, type GenHistoryEntry } from '@/lib/image-gen-history';
 import { cn } from '@/lib/utils';
@@ -302,16 +302,22 @@ export default function ImageGenContent() {
               </FadeIn>
             ) : null}
             {state === 'done' && images.length > 0 ? (
-              <FadeIn>
+              /* 结果卡 reveal：Stagger 级联入场（标题先入、图片依次浮现，仅 opacity+y 轻量揭示，
+                 不逐张弹跳；reduced-motion 时 Stagger 直接渲染）。
+                 key 绑定 activeEntryId：恢复历史时整组重挂载，避免 Stagger 已 visible 时
+                 新卡片卡在 opacity:0（同 skills-content 的 key 重挂载模式） */
+              <Stagger key={activeEntryId ?? 'fresh'}>
                 <GlassCard padding="md">
-                  <div className="mb-3 flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-tech-purple" aria-hidden />
-                    <h2 className="text-sm font-semibold text-foreground">生成结果</h2>
-                    <span className="ml-auto text-xs text-muted-foreground">{images.length} 张</span>
-                  </div>
+                  <StaggerItem>
+                    <div className="mb-3 flex items-center gap-2">
+                      <Sparkles className="h-4 w-4 text-tech-purple" aria-hidden />
+                      <h2 className="text-sm font-semibold text-foreground">生成结果</h2>
+                      <span className="ml-auto text-xs text-muted-foreground">{images.length} 张</span>
+                    </div>
+                  </StaggerItem>
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
                     {images.map((img, i) => (
-                      <div key={`${img.url}-${i}`} className="group relative">
+                      <StaggerItem key={`${img.url}-${i}`} className="group relative">
                         {failedImages.has(img.url) ? (
                           /* 加载失败的图：占位卡片 + 重试按钮（重新渲染 <img> 触发浏览器重载） */
                           <div
@@ -361,11 +367,11 @@ export default function ImageGenContent() {
                             />
                           </button>
                         )}
-                      </div>
+                      </StaggerItem>
                     ))}
                   </div>
                 </GlassCard>
-              </FadeIn>
+              </Stagger>
             ) : null}
 
             {/* 本次会话历史：刷新后清空，最多 5 组，点击条目一键恢复 */}

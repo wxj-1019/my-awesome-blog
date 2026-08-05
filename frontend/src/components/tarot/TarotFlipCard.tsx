@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { motion, useReducedMotion } from '@/lib/framer-motion';
-import { EASE, TRANSITION } from '@/lib/animation-utils';
+import { TRANSITION } from '@/lib/animation-utils';
 import { cn } from '@/lib/utils';
 
 interface TarotFlipCardProps {
@@ -86,7 +86,8 @@ export default function TarotFlipCard({
         </motion.div>
       )}
 
-      {/* 翻开瞬间的一次性辉光（仅 opacity，非循环） */}
+      {/* 翻开瞬间的一次性辉光（仅 opacity，非循环）；
+          时长对齐翻牌本体 TRANSITION.DEFAULT（0.62s），reduced-motion 时整层不渲染 */}
       {!reducedMotion ? (
         <motion.div
           aria-hidden
@@ -97,7 +98,7 @@ export default function TarotFlipCard({
           }}
           initial={false}
           animate={flipped ? { opacity: [0, 0.9, 0] } : { opacity: 0 }}
-          transition={{ duration: 0.75, ease: EASE.SMOOTH }}
+          transition={TRANSITION.DEFAULT}
         />
       ) : null}
 

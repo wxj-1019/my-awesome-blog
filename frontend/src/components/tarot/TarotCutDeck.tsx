@@ -13,7 +13,11 @@ interface TarotCutDeckProps {
   disabled?: boolean;
 }
 
-/** 切牌动画时长（ms） */
+/** 切牌动画时长（ms），reduced-motion 时近似跳过。
+ *  下方两叠/上叠的位移 duration（0.32/0.34）与 delay 属于流程编排：整体在
+ *  CUT_MS(800ms) 窗口内完成，onCut 回调到点即触发——非视觉过渡令牌；
+ *  上叠用 EASE.SNAPPY 表达「切开」的利落感（无 SNAPPY 短时令牌组合），
+ *  下叠用 EASE.SMOOTH（即 TRANSITION.MICRO 同款缓动）。 */
 const CUT_MS = 800;
 
 /**

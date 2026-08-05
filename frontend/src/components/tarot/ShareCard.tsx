@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Download, Share2, X } from 'lucide-react';
 import { AnimatePresence, motion } from '@/lib/framer-motion';
-import { EASE } from '@/lib/animation-utils';
+import { TRANSITION } from '@/lib/animation-utils';
 import { buildReadingText } from '@/lib/tarot';
 import { buildSpreadSvg, downloadBlob, svgToPngBlob } from '@/lib/tarot-share';
 import { cn } from '@/lib/utils';
@@ -66,13 +66,15 @@ export default function ShareCard({ open, onClose, question, spread, drawn, aiTe
 
   return (
     <AnimatePresence>
+      {/* 弹层出入：遮罩与面板统一走 TRANSITION.MICRO（0.24s/SMOOTH，≤300ms 反馈），
+          与共享 ModalMotion 弹层族缓动一致（均为 SMOOTH），不再手写 duration */}
       {open ? (
         <motion.div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
+          transition={TRANSITION.MICRO}
           onClick={onClose}
           role="dialog"
           aria-modal="true"
@@ -83,7 +85,7 @@ export default function ShareCard({ open, onClose, question, spread, drawn, aiTe
             initial={{ opacity: 0, y: 20, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.98 }}
-            transition={{ duration: 0.24, ease: EASE.SNAPPY }}
+            transition={TRANSITION.MICRO}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-4 flex items-center justify-between">

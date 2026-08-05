@@ -219,7 +219,8 @@ export default function TarotContent() {
   useEffect(() => {
     if (drawn.length !== needCount) {return;}
     setFlipped(new Array(needCount).fill(false));
-    // 给「选中牌淡出」留一点时间再切场景
+    // 给「选中牌淡出」留一点时间再切场景（流程计时常量 420ms，非视觉过渡令牌；
+    // reduced-motion 缩短为 80ms 仅保证状态可感知）
     const t = setTimeout(() => setPhase('revealing'), reducedMotion ? 80 : 420);
     timerRef.current = t;
     return () => {
@@ -260,7 +261,8 @@ export default function TarotContent() {
     );
   }, [needCount, reducedMotion, revealAll]);
 
-  /** 全部翻开后滚动到解读面板（scroll-mt 避开固定 Navbar，不抢首次 reveal） */
+  /** 全部翻开后滚动到解读面板（scroll-mt 避开固定 Navbar；350ms 为流程计时——
+   *  等末张翻牌动画稳定再滚动，不抢首次 reveal，非视觉过渡令牌） */
   useEffect(() => {
     if (!allFlipped) {return;}
     const t = setTimeout(() => {
@@ -515,6 +517,9 @@ export default function TarotContent() {
           {phase === 'shuffling' ? (
             <div className="flex flex-col items-center gap-8 py-10" aria-live="polite">
               <div className="relative h-44 w-28">
+                {/* 洗牌振荡 0.8s（SNAPPY）+ i*0.05 延迟编排在 SHUFFLE_MS(900ms) 窗口内完成：
+                    属流程计时常量而非视觉令牌（换 TRANSITION.SLOW 0.85s 会随延迟超出窗口，
+                    末张动画在阶段切换时被截断） */}
                 {[0, 1, 2].map((i) => (
                   <motion.div
                     key={i}
