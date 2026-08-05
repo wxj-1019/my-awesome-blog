@@ -24,22 +24,6 @@ export default function OnlineToolsContent() {
 
       <Stagger className="max-w-xl mx-auto grid gap-4">
         <StaggerItem>
-          <GlassCard padding="md" className="text-left">
-            <div className="flex items-start gap-3">
-              <div className="p-2 rounded-lg bg-muted/50 text-muted-foreground">
-                <Construction className="w-5 h-5" aria-hidden />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h2 className="font-semibold text-foreground mb-1">更多工具筹备中</h2>
-                <p className="text-sm text-muted-foreground">
-                  JSON 格式化、编码转换、正则测试等将陆续加入此页。
-                </p>
-              </div>
-            </div>
-          </GlassCard>
-        </StaggerItem>
-
-        <StaggerItem>
           <Link
             href="/chat"
             className="block group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xl"
@@ -66,6 +50,23 @@ export default function OnlineToolsContent() {
               </div>
             </GlassCard>
           </Link>
+        </StaggerItem>
+
+        {/* 占位卡片放列表最下面：已上线的工具优先展示 */}
+        <StaggerItem>
+          <GlassCard padding="md" className="text-left">
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-lg bg-muted/50 text-muted-foreground">
+                <Construction className="w-5 h-5" aria-hidden />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h2 className="font-semibold text-foreground mb-1">更多工具筹备中</h2>
+                <p className="text-sm text-muted-foreground">
+                  JSON 格式化、编码转换、正则测试等将陆续加入此页。
+                </p>
+              </div>
+            </div>
+          </GlassCard>
         </StaggerItem>
 
         <StaggerItem>
