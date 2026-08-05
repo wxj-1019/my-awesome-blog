@@ -99,8 +99,16 @@ export default function TarotContent() {
   /** 今日之牌：挂载后按当天日期确定性抽取（避免 SSR/CSR 跨天不一致） */
   useEffect(() => {
     setDailyCard(getDailyCard(tarotDeck, new Date()));
-    // 首次访问未引导过则展示引导（仅客户端读取 localStorage）
-    if (typeof window !== 'undefined' && !window.localStorage.getItem('tarot_onboarded')) {
+    // 首次访问未引导过则展示引导（仅客户端读取 localStorage；读取抛异常时按未引导处理）
+    let onboarded = false;
+    if (typeof window !== 'undefined') {
+      try {
+        onboarded = !!window.localStorage.getItem('tarot_onboarded');
+      } catch {
+        // 隐私模式等场景 localStorage 不可用，降级为未引导（引导可关闭，不影响使用）
+      }
+    }
+    if (!onboarded) {
       setShowOnboard(true);
     }
   }, []);

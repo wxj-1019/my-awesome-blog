@@ -87,10 +87,15 @@ export function addHistoryEntry(
   return [entry, ...entries].slice(0, HISTORY_MAX);
 }
 
-/** 从 localStorage 读取历史（解析失败返回 []；SSR 时返回 []） */
+/** 从 localStorage 读取历史（解析失败/不可用时返回 []；SSR 时返回 []） */
 export function loadHistory(storage?: Pick<Storage, 'getItem'>): TarotHistoryEntry[] {
   if (typeof window === 'undefined') {return [];}
-  return parseHistory((storage ?? window.localStorage).getItem(HISTORY_KEY));
+  try {
+    return parseHistory((storage ?? window.localStorage).getItem(HISTORY_KEY));
+  } catch {
+    // localStorage 不可用（隐私模式等）时静默降级
+    return [];
+  }
 }
 
 /** 写入 localStorage（不可用时静默降级） */

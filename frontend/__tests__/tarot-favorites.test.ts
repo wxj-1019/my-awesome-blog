@@ -1,4 +1,4 @@
-import { parseFavorites, toggleFavorite, FAVORITES_MAX } from '@/lib/tarot-favorites';
+import { loadFavorites, parseFavorites, toggleFavorite, FAVORITES_MAX } from '@/lib/tarot-favorites';
 import { tarotDeck } from '@/mock/tarot';
 
 describe('parseFavorites · 收藏解析', () => {
@@ -17,6 +17,22 @@ describe('parseFavorites · 收藏解析', () => {
   it('去重', () => {
     const raw = JSON.stringify(['moon', 'moon', 'sun']);
     expect(parseFavorites(raw)).toEqual(['moon', 'sun']);
+  });
+});
+
+describe('loadFavorites · localStorage 读取', () => {
+  it('storage.getItem 抛异常时 loadFavorites 降级为空数组', () => {
+    const broken: Pick<Storage, 'getItem'> = {
+      getItem() { throw new Error('SecurityError: The operation is insecure.'); },
+    };
+    expect(loadFavorites(broken)).toEqual([]);
+  });
+
+  it('读取正常时返回解析后的收藏', () => {
+    const storage: Pick<Storage, 'getItem'> = {
+      getItem: () => JSON.stringify(['moon', 'sun']),
+    };
+    expect(loadFavorites(storage)).toEqual(['moon', 'sun']);
   });
 });
 

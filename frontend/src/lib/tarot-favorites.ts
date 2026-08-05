@@ -43,10 +43,15 @@ export function toggleFavorite(ids: readonly string[], cardId: string): string[]
   return [...ids, cardId];
 }
 
-/** 从 localStorage 读取收藏 */
+/** 从 localStorage 读取收藏（不可用时返回 []） */
 export function loadFavorites(storage?: Pick<Storage, 'getItem'>): string[] {
   if (typeof window === 'undefined') {return [];}
-  return parseFavorites((storage ?? window.localStorage).getItem(FAVORITES_KEY));
+  try {
+    return parseFavorites((storage ?? window.localStorage).getItem(FAVORITES_KEY));
+  } catch {
+    // localStorage 不可用（隐私模式等）时静默降级
+    return [];
+  }
 }
 
 /** 写入 localStorage */

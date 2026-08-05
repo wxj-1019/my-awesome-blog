@@ -1,4 +1,4 @@
-import { addStats, computeTopCards, emptyStats, sanitizeStats } from '@/lib/tarot-stats';
+import { addStats, computeTopCards, emptyStats, loadStats, sanitizeStats } from '@/lib/tarot-stats';
 import { tarotDeck } from '@/mock/tarot';
 import type { DrawnCard } from '@/types/tarot';
 
@@ -48,6 +48,31 @@ describe('sanitizeStats · 校验', () => {
     });
     expect(cleaned.cardCount).toEqual({ moon: 2 });
     expect(cleaned.totalReadings).toBe(2);
+  });
+});
+
+describe('loadStats · localStorage 读取', () => {
+  it('storage.getItem 抛异常时 loadStats 降级为空统计', () => {
+    const broken: Pick<Storage, 'getItem'> = {
+      getItem() { throw new Error('SecurityError: The operation is insecure.'); },
+    };
+    expect(loadStats(broken)).toEqual(emptyStats());
+  });
+
+  it('读取正常时返回解析后的统计', () => {
+    const storage: Pick<Storage, 'getItem'> = {
+      getItem: () =>
+        JSON.stringify({
+          cardCount: { moon: 2 },
+          orientation: { upright: 1, reversed: 1 },
+          totalReadings: 2,
+        }),
+    };
+    expect(loadStats(storage)).toEqual({
+      cardCount: { moon: 2 },
+      orientation: { upright: 1, reversed: 1 },
+      totalReadings: 2,
+    });
   });
 });
 

@@ -1,4 +1,4 @@
-import { addHistoryEntry, parseHistory, sanitizeEntry, HISTORY_MAX } from '@/lib/tarot-history';
+import { addHistoryEntry, loadHistory, parseHistory, sanitizeEntry, HISTORY_MAX } from '@/lib/tarot-history';
 import type { TarotHistoryEntry } from '@/lib/tarot-history';
 
 function makeEntry(overrides: Partial<TarotHistoryEntry> = {}): TarotHistoryEntry {
@@ -62,6 +62,22 @@ describe('parseHistory · localStorage 解析', () => {
     ]);
     const entries = parseHistory(raw);
     expect(entries.map((e) => e.id)).toEqual(['e1', 'e2']);
+  });
+});
+
+describe('loadHistory · localStorage 读取', () => {
+  it('storage.getItem 抛异常时 loadHistory 降级为空数组', () => {
+    const broken: Pick<Storage, 'getItem'> = {
+      getItem() { throw new Error('SecurityError: The operation is insecure.'); },
+    };
+    expect(loadHistory(broken)).toEqual([]);
+  });
+
+  it('读取正常时返回解析后的历史', () => {
+    const storage: Pick<Storage, 'getItem'> = {
+      getItem: () => JSON.stringify([makeEntry({ id: 'e1' })]),
+    };
+    expect(loadHistory(storage).map((e) => e.id)).toEqual(['e1']);
   });
 });
 
