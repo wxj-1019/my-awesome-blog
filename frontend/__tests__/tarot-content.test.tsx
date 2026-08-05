@@ -117,6 +117,22 @@ describe('TarotContent · 占卜流程状态机', () => {
     expect(screen.getByText('扇形抽牌')).toBeInTheDocument();
   });
 
+  it('跳过洗牌后推进超过 900ms 仍停留在选牌阶段（旧 timer 不回退）', () => {
+    render(<TarotContent />);
+    fireEvent.click(screen.getByText('开始占卜'));
+    // 跳过动画：应清除原 900ms 洗牌 timer
+    fireEvent.click(screen.getByText('跳过动画'));
+    fireEvent.click(screen.getByText('点击切牌'));
+    expect(screen.getByText('扇形抽牌')).toBeInTheDocument();
+
+    // 原洗牌 timer 到点后不得把流程改回切牌
+    act(() => {
+      jest.advanceTimersByTime(900);
+    });
+    expect(screen.getByText('扇形抽牌')).toBeInTheDocument();
+    expect(screen.queryByText('点击切牌')).not.toBeInTheDocument();
+  });
+
   it('单张牌阵：抽满 1 张 → 揭示阶段 → 全部翻开 → 解读面板', () => {
     render(<TarotContent />);
     fireEvent.click(screen.getByText('开始占卜'));

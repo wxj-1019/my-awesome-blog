@@ -84,6 +84,13 @@ export default function TarotContent() {
     revealTimersRef.current = [];
   }, []);
 
+  /** 进入切牌阶段：先清除洗牌 timer，防止跳过动画后旧 timer 把流程改回切牌 */
+  const goToCutting = useCallback(() => {
+    if (timerRef.current) {clearTimeout(timerRef.current);}
+    timerRef.current = null;
+    setPhase('cutting');
+  }, []);
+
   // 卸载时清理定时器
   useEffect(() => clearTimers, [clearTimers]);
 
@@ -160,11 +167,8 @@ export default function TarotContent() {
     setFlipped([]);
     setAutoRevealing(false);
     setPhase('shuffling');
-    timerRef.current = setTimeout(
-      () => setPhase('cutting'),
-      reducedMotion ? 120 : SHUFFLE_MS
-    );
-  }, [reducedMotion, dismissOnboard]);
+    timerRef.current = setTimeout(goToCutting, reducedMotion ? 120 : SHUFFLE_MS);
+  }, [reducedMotion, dismissOnboard, goToCutting]);
 
   /** 切牌：真实改变牌序（数组旋转），动画由 TarotCutDeck 内部完成后回调 */
   const handleCut = useCallback(() => {
@@ -460,7 +464,7 @@ export default function TarotContent() {
             <p className="text-sm text-muted-foreground">洗牌中，请默念你的问题…</p>
             <button
               type="button"
-              onClick={() => setPhase('cutting')}
+              onClick={goToCutting}
               className="text-xs text-muted-foreground/70 underline-offset-4 transition-colors hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               跳过动画
