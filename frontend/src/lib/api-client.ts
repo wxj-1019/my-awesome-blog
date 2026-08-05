@@ -105,6 +105,13 @@ export async function apiFetch(
     }
     return response;
   } catch (error) {
+    // 主动取消（AbortSignal）不做重试：信号已中止，重试必然立刻失败，直接抛给调用方。
+    // 浏览器 fetch 中止抛 DOMException AbortError（不一定 instanceof Error），故用名称兜底判断
+    const errName =
+      error instanceof Error ? error.name : (error as { name?: unknown } | null)?.name;
+    if (errName === 'AbortError') {
+      throw error;
+    }
     if (retries > 0) {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       return apiFetch(input, options, retries - 1);

@@ -1,15 +1,13 @@
 'use client';
 
-import { useCallback, useState } from 'react';
-import { ImageIcon, Loader2, LogIn, Sparkles, Wand2 } from 'lucide-react';
-import Link from 'next/link';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { ImageIcon, Loader2, Sparkles, Wand2 } from 'lucide-react';
 import PageShell from '@/components/layout/PageShell';
 import PageHeader from '@/components/layout/PageHeader';
 import GlassCard from '@/components/ui/GlassCard';
 import Lightbox, { type LightboxImage } from '@/components/ui/Lightbox';
 import { FadeIn } from '@/components/motion';
 import { generateImages, type GeneratedImage } from '@/lib/api/imageGen';
-import { TOKEN_KEY } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
 
 /** 尺寸预设（火山 Seedream 常用） */
@@ -27,9 +25,10 @@ const EXAMPLE_PROMPTS = [
   '未来城市的空中花园，垂直绿化建筑，落日余晖，概念艺术',
 ];
 
-type GenState = 'idle' | 'loading' | 'done' | 'error' | 'unauthorized';
+/** 生成状态机：idle → loading → done | error；取消时回 idle */
+type GenState = 'idle' | 'loading' | 'done' | 'error';
 
-/** 图片生成工具页：输入提示词 → 后端代理火山方舟文生图 → 网格展示/放大/下载 */
+/** 图片生成工具页：输入提示词 → 后端代理火山方舟文生图 → 网格展示/放大/下载（公开，无需登录） */
 export default function ImageGenContent() {
   const [prompt, setPrompt] = useState('');
   const [size, setSize] = useState<string>(SIZE_PRESETS[0].value);
@@ -40,28 +39,46 @@ export default function ImageGenContent() {
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
+  /** 当前请求的 AbortController：新请求/取消/卸载时中止旧请求 */
+  const abortRef = useRef<AbortController | null>(null);
+
+  // 组件卸载时中止未完成的生成请求
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort();
+    };
+  }, []);
+
   const handleGenerate = useCallback(async () => {
     const text = prompt.trim();
     if (!text) {return;}
-    const token = typeof window !== 'undefined' ? localStorage.getItem(TOKEN_KEY) : null;
-    if (!token) {
-      setState('unauthorized');
-      return;
-    }
+    // 新请求先取消上一个未完成的请求
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
     setState('loading');
     setErrorMsg('');
     try {
-      const resp = await generateImages({ prompt: text, size, count });
+      const resp = await generateImages({ prompt: text, size, count }, controller.signal);
       setImages(resp.images);
       setState('done');
     } catch (err) {
+      // 主动取消：浏览器 fetch 中止抛 DOMException AbortError（不一定 instanceof Error）
+      const errName =
+        err instanceof Error ? err.name : (err as { name?: unknown } | null)?.name;
+      if (errName === 'AbortError') {
+        setState('idle');
+        return;
+      }
       const msg = err instanceof Error ? err.message : '生成失败，请稍后重试';
-      // 未登录/登录过期
-      if (/401|unauthorized/i.test(msg)) {
-        setState('unauthorized');
-      } else {
-        setState('error');
-        setErrorMsg(msg);
+      // 公开接口极少返回 401/403；真遇到登录态失效时提示刷新即可，不做跳转引导
+      const status = (err as { status?: number } | null)?.status;
+      setState('error');
+      setErrorMsg(status === 401 || status === 403 ? '登录状态已失效，请刷新后重试' : msg);
+    } finally {
+      // 请求已结算（成功/失败/取消），清掉引用，避免后续误中止新请求
+      if (abortRef.current === controller) {
+        abortRef.current = null;
       }
     }
   }, [prompt, size, count]);
@@ -154,14 +171,22 @@ export default function ImageGenContent() {
 
           <button
             type="button"
-            onClick={handleGenerate}
-            disabled={state === 'loading' || !prompt.trim()}
+            onClick={() => {
+              // 生成中点击按钮 = 取消当前请求
+              if (state === 'loading') {
+                abortRef.current?.abort();
+                return;
+              }
+              handleGenerate();
+            }}
+            disabled={state !== 'loading' && !prompt.trim()}
+            aria-busy={state === 'loading'}
             className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-60"
           >
             {state === 'loading' ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                生成中（约 20-60 秒）…
+                生成中… 可取消
               </>
             ) : (
               <>
@@ -171,15 +196,6 @@ export default function ImageGenContent() {
             )}
           </button>
 
-          {state === 'unauthorized' ? (
-            <p className="mt-3 text-sm text-muted-foreground">
-              图片生成需要登录后使用。
-              <Link href="/login" className="ml-1 inline-flex items-center gap-1 text-primary hover:underline">
-                <LogIn className="h-3.5 w-3.5" aria-hidden />
-                去登录
-              </Link>
-            </p>
-          ) : null}
           {state === 'error' ? (
             <p className="mt-3 text-sm text-error">{errorMsg}</p>
           ) : null}
