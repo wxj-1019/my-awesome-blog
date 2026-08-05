@@ -69,10 +69,11 @@ const TarotStatsBar = memo(function TarotStatsBar({ stats }: TarotStatsBarProps)
         <div className="mt-3 flex items-center gap-2">
           <span className="text-xs text-muted-foreground">正逆位</span>
           <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-border">
+            {/* 比例条纯装饰：数值已由右侧「76% / 24%」文本朗读，无需重复标注；
+                无 role 的 div 上加 aria-label 会被 axe 判为 aria-prohibited-attr（serious） */}
             <div
               className="h-full rounded-full bg-success"
               style={{ width: `${uprightPct}%` }}
-              aria-label={`正位 ${uprightPct}%`}
             />
           </div>
           <span className="text-xs text-success">{uprightPct}%</span>

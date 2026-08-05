@@ -127,10 +127,10 @@ export default function ReadingPanel({
       {/* 整体联动（三张牌阵） */}
       {summary ? (
         <GlassCard padding="md" className="border-tech-purple/30">
-          <h3 className="mb-1.5 flex items-center gap-2 text-sm font-semibold text-foreground">
+          <h2 className="mb-1.5 flex items-center gap-2 text-sm font-semibold text-foreground">
             <Sparkles className="h-4 w-4 text-tech-purple" aria-hidden />
             整体联动
-          </h3>
+          </h2>
           <div className="space-y-1.5 text-sm leading-relaxed text-foreground/85">
             {summary.split('\n').map((line, i) => (
               <p key={i}>{line}</p>
@@ -154,12 +154,13 @@ export default function ReadingPanel({
                 <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
                   {position}
                 </span>
-                <h3 className="font-semibold text-foreground">
+                {/* 牌名标题：h2 与页头 h1 保持层级连续（axe heading-order 不允许跳级） */}
+                <h2 className="font-semibold text-foreground">
                   {d.card.name}
                   <span className="ml-1.5 text-xs font-normal text-muted-foreground">
                     {d.card.nameEn}
                   </span>
-                </h3>
+                </h2>
                 <span
                   className={cn(
                     'rounded-full px-2 py-0.5 text-xs',
@@ -195,7 +196,7 @@ export default function ReadingPanel({
               <Sparkles className="h-4 w-4" aria-hidden />
             </span>
             <div>
-              <h3 className="text-sm font-semibold text-foreground">AI 深度解读</h3>
+              <h2 className="text-sm font-semibold text-foreground">AI 深度解读</h2>
               <p className="text-xs text-muted-foreground">
                 结合你的问题与牌面，由站内 AI 生成个性化解读
               </p>
