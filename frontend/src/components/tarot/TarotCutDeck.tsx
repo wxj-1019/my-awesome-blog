@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Scissors } from 'lucide-react';
 import { motion, useReducedMotion } from '@/lib/framer-motion';
 import { EASE } from '@/lib/animation-utils';
@@ -24,6 +24,8 @@ const CUT_MS = 800;
 export default function TarotCutDeck({ onCut, disabled }: TarotCutDeckProps) {
   const reducedMotion = useReducedMotion();
   const [cutting, setCutting] = useState(false);
+  // 切牌 timer 句柄：卸载时清理，防止 stale callback 把流程推回 drawing
+  const timerRef = useRef<number | null>(null);
 
   const handleCut = useCallback(() => {
     if (cutting) {return;}
@@ -32,10 +34,17 @@ export default function TarotCutDeck({ onCut, disabled }: TarotCutDeckProps) {
       return;
     }
     setCutting(true);
-    window.setTimeout(() => {
+    timerRef.current = window.setTimeout(() => {
       onCut();
     }, CUT_MS);
   }, [cutting, onCut, reducedMotion]);
+
+  // 卸载时清掉未触发的切牌 timer
+  useEffect(() => () => {
+    if (timerRef.current !== null) {
+      window.clearTimeout(timerRef.current);
+    }
+  }, []);
 
   return (
     <div className="flex flex-col items-center gap-8 py-4">
