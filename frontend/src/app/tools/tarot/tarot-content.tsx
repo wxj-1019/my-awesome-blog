@@ -302,7 +302,7 @@ export default function TarotContent() {
       aria-selected={view === target}
       onClick={() => setView(target)}
       className={cn(
-        'flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium transition-colors',
+        'flex items-center gap-1.5 rounded-full px-4 py-2.5 min-h-11 text-sm font-medium transition-colors',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
         view === target
           ? 'bg-primary/15 text-primary'
@@ -352,9 +352,9 @@ export default function TarotContent() {
 
           <div className="min-w-0">
 
-          {/* 问牌 */}
-          {phase === 'ask' ? (
-            <>
+            {/* 问牌 */}
+            {phase === 'ask' ? (
+              <>
               {/* 首次使用引导 */}
               {showOnboard ? (
                 <FadeIn className="mx-auto mb-4 max-w-xl">
@@ -372,7 +372,7 @@ export default function TarotContent() {
                       type="button"
                       onClick={dismissOnboard}
                       aria-label="关闭引导"
-                      className="shrink-0 rounded-full p-1 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      className="flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full p-1 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       <RotateCcw className="h-3.5 w-3.5 rotate-45" aria-hidden />
                     </button>
@@ -401,7 +401,7 @@ export default function TarotContent() {
                     <button
                       type="button"
                       onClick={startWithDaily}
-                      className="shrink-0 rounded-lg border border-tech-purple/40 px-3 py-1.5 text-xs font-medium text-tech-purple transition-colors hover:bg-tech-purple/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      className="shrink-0 rounded-lg border border-tech-purple/40 px-3 py-1.5 min-h-11 text-xs font-medium text-tech-purple transition-colors hover:bg-tech-purple/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       以此占卜
                     </button>
@@ -456,7 +456,7 @@ export default function TarotContent() {
                 <button
                   type="button"
                   onClick={startReading}
-                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="flex w-full min-h-11 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <Wand2 className="h-4 w-4" aria-hidden />
                   开始占卜
@@ -464,7 +464,7 @@ export default function TarotContent() {
               </GlassCard>
             </FadeIn>
               </>
-          ) : null}
+            ) : null}
 
           {/* 洗牌（一次性动画，可跳过） */}
           {phase === 'shuffling' ? (
@@ -491,7 +491,7 @@ export default function TarotContent() {
               <button
                 type="button"
                 onClick={goToCutting}
-                className="text-xs text-muted-foreground/70 underline-offset-4 transition-colors hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="inline-flex min-h-11 items-center text-xs text-muted-foreground/70 underline-offset-4 transition-colors hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 跳过动画
               </button>
@@ -525,7 +525,7 @@ export default function TarotContent() {
                   type="button"
                   onClick={randomPickAll}
                   disabled={drawn.length >= needCount}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-primary/40 px-4 py-2 text-sm text-primary transition-colors hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+                  className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-primary/40 px-4 py-2 text-sm text-primary transition-colors hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
                 >
                   <Dices className="h-4 w-4" aria-hidden />
                   代我抽牌
@@ -534,7 +534,7 @@ export default function TarotContent() {
                   <button
                     type="button"
                     onClick={undoPick}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     <Undo2 className="h-4 w-4" aria-hidden />
                     撤销上一张
@@ -544,7 +544,7 @@ export default function TarotContent() {
               <button
                 type="button"
                 onClick={reset}
-                className="inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="inline-flex min-h-11 items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <RotateCcw className="h-3.5 w-3.5" aria-hidden />
                 重新开始
@@ -564,7 +564,7 @@ export default function TarotContent() {
                     onClick={revealSequentially}
                     disabled={autoRevealing}
                     aria-live="polite"
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-primary/40 px-4 py-2 text-sm text-primary transition-colors hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-60"
+                    className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-primary/40 px-4 py-2 text-sm text-primary transition-colors hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-60"
                   >
                     {autoRevealing ? '揭示中…' : '逐张揭示'}
                   </button>
@@ -572,7 +572,7 @@ export default function TarotContent() {
                     type="button"
                     onClick={revealAll}
                     disabled={autoRevealing}
-                    className="rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-60"
+                    className="min-h-11 rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-60"
                   >
                     全部翻开
                   </button>
