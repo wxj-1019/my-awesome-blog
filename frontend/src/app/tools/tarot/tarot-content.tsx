@@ -397,14 +397,14 @@ export default function TarotContent() {
             </div>
           </div>
 
-          <div className="min-w-0">
+          <div className="min-w-0 max-w-3xl mx-auto">
 
             {/* 问牌 */}
             {phase === 'ask' ? (
               <>
               {/* 首次使用引导 */}
               {showOnboard ? (
-                <FadeIn className="mx-auto mb-4 max-w-xl">
+                <FadeIn className="mb-4">
                   <div className="flex items-center gap-2 rounded-lg border border-tech-purple/30 bg-tech-purple/5 px-4 py-2.5 text-sm text-foreground/85">
                     <Wand2 className="h-4 w-4 shrink-0 text-tech-purple" aria-hidden />
                     <span className="flex-1">
@@ -429,7 +429,7 @@ export default function TarotContent() {
 
               {/* 今日之牌 */}
               {dailyCard ? (
-                <FadeIn className="mx-auto mb-6 max-w-xl">
+                <FadeIn className="mb-6">
                   <GlassCard padding="md" className="flex items-center gap-4">
                     <div className="w-14 shrink-0">
                       <div className={cn('aspect-[5/8] w-full', dailyCard.isReversed && 'rotate-180')}>
@@ -457,7 +457,7 @@ export default function TarotContent() {
               ) : null}
 
               <FadeIn>
-                <GlassCard padding="lg" className="mx-auto max-w-xl">
+                <GlassCard padding="lg">
                 <label
                   htmlFor="tarot-question"
                   className="mb-2 block text-sm font-medium text-foreground"
