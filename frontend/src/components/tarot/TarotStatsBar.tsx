@@ -8,6 +8,7 @@ import { computeTopCards } from '@/lib/tarot-stats';
 import { cn } from '@/lib/utils';
 import type { TarotStats } from '@/lib/tarot-stats';
 import type { TarotSuit } from '@/types/tarot';
+import TarotCardImage from './TarotCardImage';
 import TarotGlyph from './TarotGlyph';
 
 interface TarotStatsBarProps {
@@ -54,7 +55,18 @@ const TarotStatsBar = memo(function TarotStatsBar({ stats }: TarotStatsBarProps)
               return (
                 <span key={cardId} className="inline-flex items-center gap-1">
                   {i > 0 ? <span className="text-muted-foreground/40">·</span> : null}
-                  <TarotGlyph glyph={card.arcana === 'major' ? card.glyph : (card.suit ?? 'pentacles')} className={cn('h-4 w-4', textClass)} />
+                  {/* 统计缩略图：AI 生成牌面图优先，失败回退花色符号 */}
+                  <span className="h-5 w-3.5 shrink-0 overflow-hidden rounded-[2px] border border-border/60">
+                    <TarotCardImage
+                      card={card}
+                      className="h-full w-full"
+                      fallback={
+                        <span className={cn('flex h-full w-full items-center justify-center', textClass)}>
+                          <TarotGlyph glyph={card.arcana === 'major' ? card.glyph : (card.suit ?? 'pentacles')} className="h-3 w-3" />
+                        </span>
+                      }
+                    />
+                  </span>
                   <span className="text-xs text-foreground/85">{card.name}</span>
                   <span className="text-[11px] text-muted-foreground">×{count}</span>
                 </span>

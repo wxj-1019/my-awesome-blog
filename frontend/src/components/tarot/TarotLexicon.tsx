@@ -10,6 +10,7 @@ import { loadFavorites, saveFavorites, toggleFavorite } from '@/lib/tarot-favori
 import { useInViewport } from '@/hooks/useInViewport';
 import { cn } from '@/lib/utils';
 import type { TarotCard, TarotSuit } from '@/types/tarot';
+import TarotCardImage from './TarotCardImage';
 import TarotGlyph from './TarotGlyph';
 
 /** 分组标签与配色（token 分类色板，与牌面保持一致） */
@@ -258,7 +259,18 @@ function LexiconEntryInner({
           <span className={cn('shrink-0 text-muted-foreground text-xs w-7 text-center', meta.text)}>
             {entryNumeral(card)}
           </span>
-          <TarotGlyph glyph={card.arcana === 'major' ? card.glyph : (card.suit ?? 'pentacles')} className={cn('h-6 w-6 shrink-0', meta.text)} />
+          {/* 列表缩略图：AI 生成牌面图优先，失败回退花色符号 */}
+          <span className="h-9 w-6 shrink-0 overflow-hidden rounded-sm border border-border/60">
+            <TarotCardImage
+              card={card}
+              className="h-full w-full"
+              fallback={
+                <span className={cn('flex h-full w-full items-center justify-center', meta.text)}>
+                  <TarotGlyph glyph={card.arcana === 'major' ? card.glyph : (card.suit ?? 'pentacles')} className="h-5 w-5" />
+                </span>
+              }
+            />
+          </span>
           <span className="min-w-0 flex-1">
             <span className="block text-sm font-semibold text-foreground">
               {card.name}
@@ -302,6 +314,21 @@ function LexiconEntryInner({
             transition={{ duration: 0.24, ease: EASE.SMOOTH }}
             className="border-t border-border/70 px-4 py-3"
           >
+            {/* 展开大图：AI 生成牌面图（竖版 2:3），失败回退花色符号 */}
+            <div className="mb-3 flex justify-center">
+              <div className="aspect-[5/8] w-32 overflow-hidden rounded-lg border border-border/70 shadow-sm">
+                <TarotCardImage
+                  card={card}
+                  className="h-full w-full"
+                  fallback={
+                    <span className={cn('flex h-full w-full items-center justify-center', meta.text)}>
+                      <TarotGlyph glyph={card.arcana === 'major' ? card.glyph : (card.suit ?? 'pentacles')} className="h-14 w-14" />
+                    </span>
+                  }
+                />
+              </div>
+            </div>
+
             {/* 元数据徽标：元素 · 占星 */}
             {card.element || card.astrology ? (
               <div className="mb-2.5 flex flex-wrap gap-1.5">
