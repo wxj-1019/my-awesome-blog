@@ -46,7 +46,7 @@ const navLinks: NavLink[] = [
       { href: '/online-tools', label: '在线工具', icon: Cpu },
       { href: '/tools/skills', label: 'AI 工具收藏', icon: Sparkles },
       { href: '/tools/tarot', label: '塔罗牌', icon: MoonStar },
-      { href: '/tools/image-gen', label: '图片生成', icon: ImageIcon },
+      { href: '/tools/image-gen', label: '图片·视频生成', icon: ImageIcon },
     ]
   },
   { href: '/messages', label: '留言', icon: Mail },

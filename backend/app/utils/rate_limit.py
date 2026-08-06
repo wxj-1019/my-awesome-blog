@@ -94,6 +94,7 @@ memory_create_rate_limit = limiter.limit("30 per minute")  # 创建记忆
 image_upload_rate_limit = limiter.limit("10 per minute")  # 图片上传
 oss_upload_rate_limit = limiter.limit("20 per minute")  # OSS 上传
 image_gen_rate_limit = limiter.limit("6 per minute")  # 文生图（游客 IP 限流，成本较高）
+video_gen_rate_limit = limiter.limit("2 per minute")  # 文生视频（更耗算力，限流收紧）
 message_create_rate_limit = limiter.limit("10 per minute")  # 留言创建接口（游客可发，防刷屏）
 
 # 批量操作限流
@@ -118,6 +119,7 @@ __all__ = [
     'image_upload_rate_limit',
     'oss_upload_rate_limit',
     'image_gen_rate_limit',
+    'video_gen_rate_limit',
     'message_create_rate_limit',
     'batch_operation_rate_limit',
 ]

@@ -40,8 +40,8 @@ const items: {
   },
   {
     href: '/tools/image-gen' as Route,
-    title: '图片生成',
-    description: '输入提示词，AI 文生图并下载',
+    title: '图片·视频生成',
+    description: '输入提示词，AI 生成图片或视频，可预览下载',
     icon: ImageIcon,
   },
 ];

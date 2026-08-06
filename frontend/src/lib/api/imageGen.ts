@@ -1,28 +1,35 @@
 /**
- * 图片生成（火山方舟文生图）客户端。
- * key 只存后端，本模块只调后端代理端点 /image-gen/generate。
+ * 图片/视频生成（RunningHub 异步工作流）客户端。
+ * key 只存后端，本模块只调后端代理端点：
+ * - POST /image-gen/tasks/image  |  POST /image-gen/tasks/video（创建任务）
+ * - GET  /image-gen/tasks/{task_id}（查询状态，前端轮询）
  */
 
 import { apiFetch } from '@/lib/api-client';
 
-/** 模型来源：火山方舟 / OpenAI 兼容中转 */
-export type ImageGenProvider = 'ark' | 'openai';
+/** 生成类型：图片 / 视频 */
+export type GenType = 'image' | 'video';
 
-export interface ImageGenRequest {
+/** 任务状态（RunningHub：pending → running → success | fail） */
+export type TaskStatus = 'pending' | 'running' | 'success' | 'fail';
+
+export interface CreateGenTaskRequest {
+  type: GenType;
   prompt: string;
-  size?: string;
-  count?: number;
-  provider?: ImageGenProvider;
+  /** 工作流额外输入（如负面词、尺寸、参考图），键名依工作流而定 */
+  workflowInputs?: Record<string, string>;
 }
 
-export interface GeneratedImage {
-  url: string;
-  size: string;
+export interface CreateGenTaskResponse {
+  task_id: string;
 }
 
-export interface ImageGenResponse {
-  images: GeneratedImage[];
-  model: string;
+export interface GenTaskStatusResponse {
+  task_id: string;
+  status: TaskStatus;
+  images: string[];
+  video_url: string | null;
+  fail_reason: string | null;
 }
 
 /** 携带 HTTP 状态码的生成错误，便于调用方区分登录态失效（401/403）等场景 */
@@ -35,33 +42,40 @@ export class ImageGenError extends Error {
   }
 }
 
-/** 文生图：后端代理调用火山方舟，返回图片 URL 列表（公开，限流保护） */
-export const generateImages = async (
-  request: ImageGenRequest,
-  signal?: AbortSignal
-): Promise<ImageGenResponse> => {
-  const response = await apiFetch(`/image-gen/generate`, {
+/** 解析后端错误体（项目统一 {"error": {"message": ...}}；兼容 detail） */
+const parseError = async (response: Response): Promise<ImageGenError> => {
+  const errorData = await response.json().catch(() => ({}));
+  const message =
+    errorData?.error?.message ?? errorData.detail ?? `请求失败: ${response.status}`;
+  return new ImageGenError(message, response.status);
+};
+
+/** 创建 RunningHub 生成任务，返回 task_id 供轮询（type 决定走图片/视频端点） */
+export const createGenTask = async (
+  request: CreateGenTaskRequest
+): Promise<CreateGenTaskResponse> => {
+  const response = await apiFetch(`/image-gen/tasks/${request.type}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(request),
-    signal,
   });
   if (!response.ok) {
-    // 项目后端统一错误体：{"error": {"message": ...}}；兼容旧 detail 格式
-    const errorData = await response.json().catch(() => ({}));
-    const message =
-      errorData?.error?.message ?? errorData.detail ?? `请求失败: ${response.status}`;
-    throw new ImageGenError(message, response.status);
+    throw await parseError(response);
   }
   const data = await response.json();
-  // 响应形状校验：images 必须为非空 URL 数组（malformed 归入 error）
-  if (
-    !data ||
-    !Array.isArray(data.images) ||
-    data.images.length === 0 ||
-    data.images.some((img: unknown) => !img || typeof (img as { url?: unknown }).url !== 'string')
-  ) {
+  if (!data || typeof data.task_id !== 'string' || !data.task_id) {
     throw new ImageGenError('生成服务返回异常结果，请重试', 200);
   }
-  return data as ImageGenResponse;
+  return data as CreateGenTaskResponse;
+};
+
+/** 查询生成任务状态与结果（轮询用，轻量请求） */
+export const getGenTaskStatus = async (
+  taskId: string
+): Promise<GenTaskStatusResponse> => {
+  const response = await apiFetch(`/image-gen/tasks/${taskId}`, { method: 'GET' });
+  if (!response.ok) {
+    throw await parseError(response);
+  }
+  return (await response.json()) as GenTaskStatusResponse;
 };
