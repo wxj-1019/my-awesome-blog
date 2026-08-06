@@ -1,8 +1,11 @@
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import type { TarotCard } from '@/types/tarot';
 import { toRomanNumeral } from '@/lib/tarot';
 import { cn } from '@/lib/utils';
 import TarotGlyph from './TarotGlyph';
+
+/** AI 生成牌面图路径（public/tarot/{id}.png；批量生成后存在，缺省回退 SVG 符号） */
+const AI_IMAGE_BASE = '/tarot/';
 
 /** 花色配色：全部走 token 分类色板（双主题自适应），大阿尔克那用神秘紫 */
 const SUIT_META: Record<string, { text: string; tintVar: string }> = {
@@ -73,8 +76,34 @@ const TarotCardFace = memo(function TarotCardFace({ card, className }: TarotCard
 
 export default TarotCardFace;
 
-/** 中央图案：按牌型分派 */
+/** 中央图案：AI 生成图优先（加载失败回退 SVG 符号） */
 function CenterMotif({ card }: { card: TarotCard }) {
+  return (
+    <AiOrGlyph card={card} fallback={<SvgMotif card={card} />} />
+  );
+}
+
+/**
+ * AI 图 + SVG 双通道：优先渲染 public/tarot/{id}.png，
+ * 图片加载失败或不存在时回退到 SVG 符号（保持牌面始终可见）。
+ */
+function AiOrGlyph({ card, fallback }: { card: TarotCard; fallback: React.ReactNode }) {
+  const [failed, setFailed] = useState(false);
+  const src = `${AI_IMAGE_BASE}${card.id}.png`;
+  if (failed) {return <>{fallback}</>;}
+  return (
+    <img
+      src={src}
+      alt={`${card.name} 牌面`}
+      loading="lazy"
+      onError={() => setFailed(true)}
+      className="h-full max-h-full w-full object-contain drop-shadow-sm"
+    />
+  );
+}
+
+/** 原有 SVG 符号中央图案：按牌型分派 */
+function SvgMotif({ card }: { card: TarotCard }) {
   if (card.arcana === 'major') {
     return <TarotGlyph glyph={card.glyph} className="h-14 w-14" />;
   }
