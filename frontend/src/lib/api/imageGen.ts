@@ -32,6 +32,15 @@ export interface GenTaskStatusResponse {
   fail_reason: string | null;
 }
 
+/** RunningHub 账户信息（抽屉「账户」Tab 展示） */
+export interface RunningHubAccount {
+  remain_coins: string;
+  current_task_counts: string;
+  remain_money: string | null;
+  currency: string | null;
+  api_type: string;
+}
+
 /** 携带 HTTP 状态码的生成错误，便于调用方区分登录态失效（401/403）等场景 */
 export class ImageGenError extends Error {
   status?: number;
@@ -78,4 +87,13 @@ export const getGenTaskStatus = async (
     throw await parseError(response);
   }
   return (await response.json()) as GenTaskStatusResponse;
+};
+
+/** 查询 RunningHub 账户信息（RH 币/余额/运行中任务数/API 类型） */
+export const getGenAccount = async (): Promise<RunningHubAccount> => {
+  const response = await apiFetch('/image-gen/account', { method: 'GET' });
+  if (!response.ok) {
+    throw await parseError(response);
+  }
+  return (await response.json()) as RunningHubAccount;
 };

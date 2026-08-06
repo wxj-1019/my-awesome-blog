@@ -15,6 +15,7 @@ from app.schemas.image_gen import (
     ImageGenStatusResponse,
     ImageGenTaskRequest,
     ImageGenTaskResponse,
+    RunningHubAccountResponse,
 )
 from app.services import image_gen_service
 from app.utils.logger import app_logger
@@ -79,5 +80,18 @@ async def get_task_status(
     """查询生成任务状态（pending/running/success/fail）与结果，前端轮询。"""
     try:
         return await image_gen_service.get_task_status(task_id)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
+
+
+@router.get("/account", response_model=RunningHubAccountResponse)
+@image_gen_rate_limit
+async def get_account_info(
+    request: Request,
+    current_user: Optional[User] = Depends(get_current_user_optional),
+) -> RunningHubAccountResponse:
+    """查询 RunningHub 账户信息（RH 币/余额/运行中任务数），抽屉展示用。"""
+    try:
+        return await image_gen_service.get_account_info()
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e

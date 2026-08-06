@@ -139,6 +139,8 @@ class Settings(BaseSettings):
     # 标准模型端点（文生图/文生视频，平台「标准 API」页面可查；也可填自建工作流 API 端点）
     RUNNINGHUB_IMAGE_ENDPOINT: str = Field(default="rhart-image-g-2-official/text-to-image", description="文生图标准模型端点（/openapi/v2 相对路径）")
     RUNNINGHUB_VIDEO_ENDPOINT: str = Field(default="rhart-video-v3.1-fast/text-to-video", description="文生视频标准模型端点（/openapi/v2 相对路径）")
+    # 账户信息接口（余额/RH 币/运行中任务数）；复用 RUNNINGHUB_API_KEY
+    RUNNINGHUB_ACCOUNT_URL: str = Field(default="https://www.runninghub.cn/uc/openapi/accountStatus", description="RunningHub 账户信息接口地址")
 
     # Prompt Management
     PROMPT_DEFAULT_VERSION: str = Field(default="v1", description="默认提示词版本")

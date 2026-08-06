@@ -5,7 +5,7 @@ import pytest
 
 from app.core.config import settings
 from app.schemas.image_gen import ImageGenTaskRequest
-from app.services.image_gen_service import create_task, get_task_status
+from app.services.image_gen_service import create_task, get_account_info, get_task_status
 
 
 class FakeResponse:
@@ -52,6 +52,9 @@ def setup_runninghub(monkeypatch):
     monkeypatch.setattr(settings, "RUNNINGHUB_BASE_URL", "https://www.runninghub.cn/openapi/v2")
     monkeypatch.setattr(settings, "RUNNINGHUB_IMAGE_ENDPOINT", "rhart-image-g-2-official/text-to-image")
     monkeypatch.setattr(settings, "RUNNINGHUB_VIDEO_ENDPOINT", "rhart-video-v3.1-fast/text-to-video")
+    monkeypatch.setattr(
+        settings, "RUNNINGHUB_ACCOUNT_URL", "https://www.runninghub.cn/uc/openapi/accountStatus"
+    )
 
 
 def make_request(**overrides) -> ImageGenTaskRequest:
@@ -300,3 +303,92 @@ class TestImageGenEndpoint:
             json={"type": "image", "prompt": "一只猫"},
         )
         assert response.status_code != 401  # 服务/配置层错误可接受，认证层必须放行
+
+
+class TestAccountInfo:
+    async def test_account_success(self, monkeypatch):
+        setup_runninghub(monkeypatch)
+        fake = FakeAsyncClient().set_response(
+            FakeResponse(
+                200,
+                {
+                    "code": 0,
+                    "msg": "success",
+                    "data": {
+                        "remainCoins": "622",
+                        "currentTaskCounts": "0",
+                        "remainMoney": "178.56",
+                        "currency": "CNY",
+                        "apiType": "SHARED",
+                    },
+                },
+            )
+        )
+        monkeypatch.setattr(httpx, "AsyncClient", lambda *a, **k: fake)
+
+        resp = await get_account_info()
+        assert resp.remain_coins == "622"
+        assert resp.current_task_counts == "0"
+        assert resp.remain_money == "178.56"
+        assert resp.currency == "CNY"
+        assert resp.api_type == "SHARED"
+        # 账户接口：POST + Bearer + body 携带 apikey
+        assert fake.request_url.endswith("/uc/openapi/accountStatus")
+        assert fake.request_kwargs["json"] == {"apikey": "rh-test-key"}
+        assert fake.request_kwargs["headers"]["Authorization"] == "Bearer rh-test-key"
+
+    async def test_account_missing_fields_default(self, monkeypatch):
+        """remainMoney/currency 可空时兜底"""
+        setup_runninghub(monkeypatch)
+        fake = FakeAsyncClient().set_response(
+            FakeResponse(200, {"code": 0, "data": {"remainCoins": "10", "currentTaskCounts": "1"}})
+        )
+        monkeypatch.setattr(httpx, "AsyncClient", lambda *a, **k: fake)
+
+        resp = await get_account_info()
+        assert resp.remain_coins == "10"
+        assert resp.current_task_counts == "1"
+        assert resp.remain_money is None
+        assert resp.currency is None
+        assert resp.api_type == "UNKNOWN"
+
+    async def test_account_non_zero_code_raises(self, monkeypatch):
+        setup_runninghub(monkeypatch)
+        fake = FakeAsyncClient().set_response(
+            FakeResponse(200, {"code": 1001, "msg": "TOKEN_INVALID"})
+        )
+        monkeypatch.setattr(httpx, "AsyncClient", lambda *a, **k: fake)
+
+        with pytest.raises(ValueError, match="TOKEN_INVALID"):
+            await get_account_info()
+
+    def test_account_endpoint_success(self, client, monkeypatch):
+        setup_runninghub(monkeypatch)
+        fake = FakeAsyncClient().set_response(
+            FakeResponse(
+                200,
+                {
+                    "code": 0,
+                    "data": {
+                        "remainCoins": "622",
+                        "currentTaskCounts": "0",
+                        "remainMoney": "178.56",
+                        "currency": "CNY",
+                        "apiType": "SHARED",
+                    },
+                },
+            )
+        )
+        monkeypatch.setattr(httpx, "AsyncClient", lambda *a, **k: fake)
+
+        resp = client.get("/api/v1/image-gen/account")
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["remain_coins"] == "622"
+        assert body["api_type"] == "SHARED"
+
+    def test_account_no_key_400(self, client, monkeypatch):
+        monkeypatch.setattr(settings, "RUNNINGHUB_API_KEY", "")
+        resp = client.get("/api/v1/image-gen/account")
+        assert resp.status_code == 400
+        assert "未配置" in resp.json()["error"]["message"]

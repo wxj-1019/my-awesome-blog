@@ -6,12 +6,10 @@ import {
   ArrowLeft,
   Clapperboard,
   Download,
-  History,
   ImageIcon,
   ImageOff,
   Loader2,
   RefreshCw,
-  RotateCcw,
   Sparkles,
   Wand2,
 } from 'lucide-react';
@@ -20,14 +18,22 @@ import PageActHeader from '@/components/layout/PageActHeader';
 import GlassCard from '@/components/ui/GlassCard';
 import { Button } from '@/components/ui/Button';
 import EmptyState from '@/components/ui/EmptyState';
+import GenDrawer, { type AccountLoadState } from '@/components/ui/GenDrawer';
 import Lightbox, { type LightboxImage } from '@/components/ui/Lightbox';
 import { FadeIn, Stagger, StaggerItem } from '@/components/motion';
 import {
   createGenTask,
+  getGenAccount,
   type GenType,
 } from '@/lib/api/imageGen';
 import { useTaskPolling } from '@/hooks/useTaskPolling';
-import { addHistoryEntry, type GenHistoryEntry } from '@/lib/image-gen-history';
+import {
+  addHistoryEntry,
+  deleteHistoryEntry,
+  loadHistory,
+  saveHistory,
+  type GenHistoryEntry,
+} from '@/lib/image-gen-history';
 import { cn } from '@/lib/utils';
 
 /** 画幅预设（作为工作流额外输入 aspect_ratio 传给 RunningHub；清晰度/质量固定档） */
@@ -62,11 +68,6 @@ const SIZE_ASPECT: Record<string, string> = {
   '4:3': 'aspect-[4/3]',
 };
 
-/** 历史条目提示词过长时截断显示 */
-function truncatePrompt(text: string): string {
-  return text.length > 24 ? `${text.slice(0, 24)}…` : text;
-}
-
 /** 生成状态机：idle → submitting（创建任务）→ polling（轮询结果）→ done | error；取消时回 idle */
 type GenState = 'idle' | 'submitting' | 'polling' | 'done' | 'error';
 
@@ -82,15 +83,62 @@ export default function ImageGenContent() {
   const [errorMsg, setErrorMsg] = useState('');
   /** 加载失败的图片 URL 集合：失败的图用占位卡片替代 <img>，避免碎图图标 */
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
-  /** 本次会话的生成历史（刷新后清空），最多保留最近 5 组 */
-  const [history, setHistory] = useState<GenHistoryEntry[]>([]);
+  /** 生成历史（localStorage 持久化，跨会话保留，最多 30 条） */
+  const [history, setHistory] = useState<GenHistoryEntry[]>(() => loadHistory());
   /** 当前结果区对应的历史条目 id：用于高亮历史项；新请求开始即清空 */
   const [activeEntryId, setActiveEntryId] = useState<string | null>(null);
+  /** 生成记录抽屉开关 */
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  /** RunningHub 账户信息加载状态（抽屉「账户」Tab 用） */
+  const [accountState, setAccountState] = useState<AccountLoadState>({ status: 'idle' });
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
   // 轮询 hook：提交后 start(taskId)，success/fail/timeout/error 自动终止
   const polling = useTaskPolling({});
+
+  /** 刷新账户信息（打开抽屉/切账户/手动重试时调用） */
+  const refreshAccount = useCallback(async () => {
+    setAccountState({ status: 'loading' });
+    try {
+      const account = await getGenAccount();
+      setAccountState({ status: 'success', account });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : '获取账户信息失败，请稍后重试';
+      setAccountState({ status: 'error', message: msg });
+    }
+  }, []);
+
+  // 打开抽屉时自动加载账户（若尚未加载过）
+  useEffect(() => {
+    if (drawerOpen && accountState.status === 'idle') {
+      void refreshAccount();
+    }
+  }, [drawerOpen, accountState.status, refreshAccount]);
+
+  /** 新增历史条目并持久化（纯函数 + 写 localStorage） */
+  const appendHistory = useCallback((entry: GenHistoryEntry) => {
+    setHistory((prev) => {
+      const next = addHistoryEntry(prev, entry);
+      saveHistory(next);
+      return next;
+    });
+  }, []);
+
+  /** 删除单条历史并持久化 */
+  const handleDeleteHistory = useCallback((id: string) => {
+    setHistory((prev) => {
+      const next = deleteHistoryEntry(prev, id);
+      saveHistory(next);
+      return next;
+    });
+  }, []);
+
+  /** 清空全部历史 */
+  const handleClearHistory = useCallback(() => {
+    setHistory([]);
+    saveHistory([]);
+  }, []);
 
   /** 取消当前生成（提交中不可取消——请求很短；轮询中调 stop 终止） */
   const handleCancel = useCallback(() => {
@@ -158,7 +206,7 @@ export default function ImageGenContent() {
           videoUrl: result.video_url ?? null,
         };
         setActiveEntryId(entry.id);
-        setHistory((prev) => addHistoryEntry(prev, entry));
+        appendHistory(entry);
       }
     } else if (status === 'fail' || status === 'timeout' || status === 'error') {
       setImages([]);
@@ -166,7 +214,7 @@ export default function ImageGenContent() {
       setState('error');
       setErrorMsg(error ?? '生成失败，请稍后重试');
     }
-  }, [polling, state, kind, prompt, size, count, errorMsg]);
+  }, [polling, state, kind, prompt, size, count, errorMsg, appendHistory]);
 
   /** 恢复历史条目：回填类型/提示词/尺寸/张数，并重新展示该组结果 */
   const handleRestore = useCallback(
@@ -506,81 +554,22 @@ export default function ImageGenContent() {
                 </GlassCard>
               </Stagger>
             ) : null}
-
-            {/* 本次会话历史：刷新后清空，最多 5 组，点击条目一键恢复 */}
-            {history.length > 0 ? (
-              <FadeIn>
-                <GlassCard padding="md">
-                  <div className="mb-3">
-                    <div className="flex items-center gap-2">
-                      <History className="h-4 w-4 text-tech-purple" aria-hidden />
-                      <h2 className="text-sm font-semibold text-foreground">本次会话历史</h2>
-                      <span className="ml-auto text-xs text-muted-foreground">最多 5 组</span>
-                    </div>
-                    {/* 临时链接与保留期限说明：原在结果区底部，移入历史区头部统一提示 */}
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      生成地址为临时链接，请及时保存；历史仅本次会话保留，刷新后清空
-                    </p>
-                  </div>
-                  <ul className="space-y-2">
-                    {history.map((entry) => {
-                      const first = entry.images[0];
-                      const active = entry.id === activeEntryId;
-                      return (
-                        <li key={entry.id}>
-                          <button
-                            type="button"
-                            onClick={() => handleRestore(entry)}
-                            aria-current={active ? 'true' : undefined}
-                            className={cn(
-                              'flex w-full items-center gap-3 rounded-lg border p-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                              active
-                                ? 'border-primary/60 bg-primary/5'
-                                : 'border-border hover:border-primary/30'
-                            )}
-                          >
-                            {/* 缩略图：图片取首图；视频显示播放图标（加载失败复用占位） */}
-                            {entry.kind === 'image' && first && !failedImages.has(first) ? (
-                              <span className="h-14 w-14 shrink-0 overflow-hidden rounded-md border border-border">
-                                <img
-                                  src={first}
-                                  alt=""
-                                  className="h-full w-full object-cover"
-                                  loading="lazy"
-                                  onError={() =>
-                                    setFailedImages((prev) => new Set(prev).add(first))
-                                  }
-                                />
-                              </span>
-                            ) : (
-                              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-md border border-border bg-muted/30 text-muted-foreground">
-                                {entry.kind === 'video' ? (
-                                  <Clapperboard className="h-4 w-4" aria-hidden />
-                                ) : (
-                                  <ImageOff className="h-4 w-4" aria-hidden />
-                                )}
-                              </span>
-                            )}
-                            <span className="min-w-0 flex-1">
-                              <span className="block truncate text-sm text-foreground">
-                                {truncatePrompt(entry.prompt)}
-                              </span>
-                              <span className="mt-0.5 block text-xs text-muted-foreground">
-                                {entry.kind === 'video' ? '视频' : `${entry.size ?? ''} · ${entry.count ?? 1} 张`}
-                              </span>
-                            </span>
-                            <RotateCcw className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
-                          </button>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </GlassCard>
-              </FadeIn>
-            ) : null}
           </div>
         </div>
       </div>
+
+      {/* 生成记录抽屉：右下角悬浮按钮 + 右侧滑入面板（历史记录/账户） */}
+      <GenDrawer
+        isOpen={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        onToggle={() => setDrawerOpen((v) => !v)}
+        entries={history}
+        onRestore={handleRestore}
+        onDelete={handleDeleteHistory}
+        onClear={handleClearHistory}
+        accountState={accountState}
+        onRefreshAccount={refreshAccount}
+      />
 
       <Lightbox
         images={lightboxImages}

@@ -34,3 +34,13 @@ class ImageGenStatusResponse(BaseModel):
     images: List[str] = Field(default_factory=list, description="生成图片 URL（status=success 且为图片时）")
     video_url: Optional[str] = Field(None, description="生成视频 URL（status=success 且为视频时）")
     fail_reason: Optional[str] = Field(None, description="失败原因（status=fail 时）")
+
+
+class RunningHubAccountResponse(BaseModel):
+    """RunningHub 账户信息响应（余额/RH 币/运行中任务数）"""
+
+    remain_coins: str = Field(..., description="RH 币数量")
+    current_task_counts: str = Field(..., description="当前正在运行任务数量")
+    remain_money: Optional[str] = Field(None, description="钱包余额")
+    currency: Optional[str] = Field(None, description="钱包货币单位")
+    api_type: str = Field(..., description="API 类型（NORMAL/SHARED 等）")

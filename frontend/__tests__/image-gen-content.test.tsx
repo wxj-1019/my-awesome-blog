@@ -1,10 +1,11 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import ImageGenContent from '@/app/tools/image-gen/image-gen-content';
-import { createGenTask, getGenTaskStatus } from '@/lib/api/imageGen';
+import { createGenTask, getGenAccount, getGenTaskStatus } from '@/lib/api/imageGen';
 
 jest.mock('@/lib/api/imageGen', () => ({
   createGenTask: jest.fn(),
   getGenTaskStatus: jest.fn(),
+  getGenAccount: jest.fn(),
 }));
 
 // Lightbox 依赖 useToast 与 DOM API，mock 掉避免副作用
@@ -15,6 +16,7 @@ jest.mock('@/components/ui/Lightbox', () => ({
 
 const mockCreateTask = createGenTask as jest.Mock;
 const mockGetStatus = getGenTaskStatus as jest.Mock;
+const mockGetAccount = getGenAccount as jest.Mock;
 
 /** 等待当前微任务队列清空（提交/轮询的 Promise 链） */
 const flushPromises = async () => {
@@ -43,6 +45,14 @@ describe('ImageGenContent · 图片/视频生成工具页', () => {
     localStorage.clear();
     mockCreateTask.mockReset();
     mockGetStatus.mockReset();
+    mockGetAccount.mockReset();
+    mockGetAccount.mockResolvedValue({
+      remain_coins: '622',
+      current_task_counts: '0',
+      remain_money: '178.56',
+      currency: 'CNY',
+      api_type: 'SHARED',
+    });
     jest.useFakeTimers();
   });
 
@@ -165,7 +175,7 @@ describe('ImageGenContent · 图片/视频生成工具页', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('生成服务未配置');
   });
 
-  it('成功生成后进入会话历史；历史最多 5 组并支持恢复（含 kind）', async () => {
+  it('成功生成后写入持久化历史，抽屉展示并可恢复（含 kind）', async () => {
     mockCreateTask.mockResolvedValue({ task_id: 'task-1' });
     mockGetStatus.mockResolvedValue({
       task_id: 'task-1',
@@ -193,10 +203,83 @@ describe('ImageGenContent · 图片/视频生成工具页', () => {
     await flushPromises();
     await screen.findByText('生成结果');
 
-    expect(screen.getByText(/本次会话历史/)).toBeInTheDocument();
+    // 打开抽屉：悬浮按钮
+    fireEvent.click(screen.getByRole('button', { name: '打开生成记录' }));
+    expect(await screen.findByText('生成记录')).toBeInTheDocument();
+    expect(screen.getByText(/共 2 条/)).toBeInTheDocument();
+
     // 恢复第一组：点击历史项后提示词回到「第一组」，且恢复为图片类型
     fireEvent.click(screen.getByText('第一组'));
     expect((screen.getByLabelText('提示词') as HTMLTextAreaElement).value).toBe('第一组');
     expect(screen.getByRole('button', { name: '图片' })).toHaveAttribute('aria-pressed', 'true');
+
+    // 历史已持久化到 localStorage（跨刷新保留）
+    const saved = JSON.parse(localStorage.getItem('image_gen_history_v1') ?? '[]');
+    expect(saved.map((e: { prompt: string }) => e.prompt)).toEqual(['第二组', '第一组']);
+  });
+
+  it('抽屉可删除单条历史与清空全部', async () => {
+    // 预置 localStorage 历史，模拟跨会话持久化
+    localStorage.setItem(
+      'image_gen_history_v1',
+      JSON.stringify([
+        {
+          id: 'a1',
+          createdAt: Date.now(),
+          kind: 'image',
+          prompt: '预置历史一',
+          images: ['https://cdn.example.com/p1.png'],
+          videoUrl: null,
+        },
+        {
+          id: 'a2',
+          createdAt: Date.now(),
+          kind: 'video',
+          prompt: '预置历史二',
+          images: [],
+          videoUrl: 'https://cdn.example.com/p2.mp4',
+        },
+      ])
+    );
+
+    render(<ImageGenContent />);
+    fireEvent.click(screen.getByRole('button', { name: '打开生成记录' }));
+    await screen.findByText(/共 2 条/);
+
+    // 删除单条
+    fireEvent.click(screen.getAllByRole('button', { name: '删除' })[0]);
+    expect(screen.getByText(/共 1 条/)).toBeInTheDocument();
+    expect(JSON.parse(localStorage.getItem('image_gen_history_v1') ?? '[]')).toHaveLength(1);
+
+    // 清空全部
+    fireEvent.click(screen.getByRole('button', { name: /清空/ }));
+    expect(screen.getByText('还没有生成记录')).toBeInTheDocument();
+    expect(JSON.parse(localStorage.getItem('image_gen_history_v1') ?? '[]')).toHaveLength(0);
+  });
+
+  it('抽屉「账户」Tab 加载失败可重试，成功后展示账户信息', async () => {
+    // 首次加载失败
+    mockGetAccount.mockRejectedValue(new Error('生成服务调用失败'));
+    render(<ImageGenContent />);
+    fireEvent.click(screen.getByRole('button', { name: '打开生成记录' }));
+    await screen.findByText('生成记录');
+
+    // 打开即自动加载账户 → 失败显示错误
+    fireEvent.click(screen.getByRole('button', { name: /账户/ }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('生成服务调用失败');
+
+    // 重试成功 → 展示账户信息
+    mockGetAccount.mockResolvedValue({
+      remain_coins: '622',
+      current_task_counts: '0',
+      remain_money: '178.56',
+      currency: 'CNY',
+      api_type: 'SHARED',
+    });
+    fireEvent.click(screen.getByRole('button', { name: /重试/ }));
+    expect(await screen.findByText('622')).toBeInTheDocument();
+    expect(screen.getByText('RH 币')).toBeInTheDocument();
+    expect(screen.getByText('178.56 CNY')).toBeInTheDocument();
+    expect(screen.getByText('SHARED')).toBeInTheDocument();
   });
 });

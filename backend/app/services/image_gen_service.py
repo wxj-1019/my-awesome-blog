@@ -18,6 +18,7 @@ from app.schemas.image_gen import (
     ImageGenStatusResponse,
     ImageGenTaskRequest,
     ImageGenTaskResponse,
+    RunningHubAccountResponse,
 )
 from app.utils.logger import app_logger
 
@@ -131,6 +132,54 @@ async def get_task_status(task_id: str) -> ImageGenStatusResponse:
 
     # 非终态（QUEUED/CREATE/RUNNING 等）统一为 running 继续轮询
     return ImageGenStatusResponse(task_id=task_id, status="running")
+
+
+async def get_account_info() -> RunningHubAccountResponse:
+    """查询 RunningHub 账户信息（RH 币/余额/运行中任务数/API 类型）"""
+    key = _config_or_raise()
+    account_url = (
+        settings.RUNNINGHUB_ACCOUNT_URL
+        or "https://www.runninghub.cn/uc/openapi/accountStatus"
+    )
+
+    try:
+        async with httpx.AsyncClient(timeout=_HTTP_TIMEOUT) as client:
+            resp = await client.post(
+                account_url,
+                json={"apikey": key},
+                headers={"Authorization": f"Bearer {key}"},
+            )
+    except httpx.HTTPError as e:
+        app_logger.warning(f"RunningHub 查询账户失败：{e}")
+        raise ValueError(f"生成服务请求失败：{e}") from e
+
+    try:
+        body = resp.json()
+    except Exception:
+        raise ValueError(f"生成服务响应异常（HTTP {resp.status_code}）") from None
+
+    # 账户接口：{code, msg, data:{remainCoins,currentTaskCounts,remainMoney,currency,apiType}}
+    if resp.status_code != 200 or not isinstance(body, dict):
+        app_logger.warning(f"RunningHub 查询账户失败：{resp.status_code} {body}")
+        raise ValueError(f"生成服务调用失败（HTTP {resp.status_code}）")
+    code = body.get("code")
+    if code not in (0, 200):
+        msg = body.get("msg") or body.get("message") or ""
+        app_logger.warning(f"RunningHub 查询账户失败：code={code} {msg}")
+        raise ValueError(f"生成服务调用失败（{msg or code}）")
+
+    data = body.get("data") or {}
+    account = RunningHubAccountResponse(
+        remain_coins=str(data.get("remainCoins") or data.get("remain_coins") or "0"),
+        current_task_counts=str(data.get("currentTaskCounts") or data.get("current_task_counts") or "0"),
+        remain_money=data.get("remainMoney") or data.get("remain_money"),
+        currency=data.get("currency"),
+        api_type=str(data.get("apiType") or data.get("api_type") or "UNKNOWN"),
+    )
+    app_logger.info(
+        f"RunningHub 账户查询成功 coins={account.remain_coins} running={account.current_task_counts}"
+    )
+    return account
 
 
 def _parse_body(resp: httpx.Response, action: str) -> Dict[str, Any]:
