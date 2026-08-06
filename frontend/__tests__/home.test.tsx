@@ -76,7 +76,7 @@ const HomeWithProvider = () => (
 );
 
 describe('Home Page', () => {
-  it('renders Chinese act labels and page sections in narrative order', () => {
+  it('renders Chinese act labels and page sections in narrative order', async () => {
     render(<HomeWithProvider />);
 
     expect(screen.getByText('第一幕 · 展厅')).toBeInTheDocument();
@@ -84,6 +84,9 @@ describe('Home Page', () => {
     expect(screen.getByText('第三幕 · 洋流')).toBeInTheDocument();
     expect(screen.getByText('第四幕 · 靠岸')).toBeInTheDocument();
     expect(screen.queryByText('第三幕 · 航迹')).not.toBeInTheDocument();
+
+    // ReadingStats 为 dynamic(ssr:false) 懒加载：等待其 chunk 加载完成再收集顺序
+    await screen.findByRole('region', { name: 'reading-stats' });
 
     const sections = screen.getAllByRole('region');
     const labels = sections.map((section) => section.getAttribute('aria-label'));

@@ -1,10 +1,11 @@
 'use client'
 
+import dynamic from 'next/dynamic'
+
 import HeroSection from '@/components/home/HeroSection'
 import FeaturedHighlights from '@/components/home/FeaturedHighlights'
 import StatsPanel from '@/components/home/StatsPanel'
 import TechStack from '@/components/home/TechStack'
-import ReadingStats from '@/components/home/ReadingStats'
 import Timeline from '@/components/home/Timeline'
 import ScrollProgress from '@/components/home/ScrollProgress'
 import MobileDrawer from '@/components/home/MobileDrawer'
@@ -16,6 +17,12 @@ import {
   HOME_GLOW,
   ShoreBeacon,
 } from '@/components/home/narrative'
+
+// 阅读统计（recharts 图表，~500KB）位于第三幕、首屏之外：拆独立 chunk 懒加载，
+// 避免图表库进入首屏关键路径（ssr:false 对首屏外组件无感知影响）
+const ReadingStats = dynamic(() => import('@/components/home/ReadingStats'), {
+  ssr: false,
+})
 
 /**
  * 首页 · 深海 × 电影

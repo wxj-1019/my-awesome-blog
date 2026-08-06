@@ -2,11 +2,16 @@ import { memo, useState } from 'react';
 import type { TarotCard } from '@/types/tarot';
 import { cn } from '@/lib/utils';
 
-/** AI 生成牌面图基础路径（public/tarot/{id}.png；批量生成后存在，缺省回退 SVG 符号） */
+/** AI 生成牌面图基础路径（public/tarot/{id}.webp；WebP 压缩版，体积约为 PNG 的 1/10） */
 export const TAROT_IMAGE_BASE = '/tarot/';
 
-/** 每张牌的 AI 牌面图 URL */
+/** 每张牌的 AI 牌面图 URL（优先 WebP；旧 PNG 仅作回退） */
 export function tarotCardImageSrc(card: TarotCard): string {
+  return `${TAROT_IMAGE_BASE}${card.id}.webp`;
+}
+
+/** 旧 PNG 回退地址（WebP 缺失/加载失败时使用） */
+export function tarotCardImagePngSrc(card: TarotCard): string {
   return `${TAROT_IMAGE_BASE}${card.id}.png`;
 }
 
@@ -20,8 +25,9 @@ interface TarotCardImageProps {
 }
 
 /**
- * AI 生成牌面图组件：优先渲染 public/tarot/{id}.png，
- * 图片加载失败或不存在时回退到 fallback（通常是 SVG 符号，保持牌面始终可见）。
+ * AI 生成牌面图组件：优先渲染 public/tarot/{id}.webp（体积优化版），
+ * WebP 加载失败时回退同一张牌的 PNG，两者都失败再回退到 fallback
+ * （通常是 SVG 符号，保证牌面始终可见）。
  * 用于牌面卡片、词典列表、统计等所有展示场景，保证全站统一走生成的华丽牌面。
  */
 const TarotCardImage = memo(function TarotCardImage({
@@ -30,15 +36,16 @@ const TarotCardImage = memo(function TarotCardImage({
   fallback,
   alt,
 }: TarotCardImageProps) {
-  const [failed, setFailed] = useState(false);
-  const src = tarotCardImageSrc(card);
-  if (failed) {return fallback ? <>{fallback}</> : null;}
+  const [stage, setStage] = useState<'webp' | 'png' | 'failed'>('webp');
+  if (stage === 'failed') {return fallback ? <>{fallback}</> : null;}
   return (
     <img
-      src={src}
+      src={stage === 'webp' ? tarotCardImageSrc(card) : tarotCardImagePngSrc(card)}
       alt={alt ?? `${card.name} 牌面`}
       loading="lazy"
-      onError={() => setFailed(true)}
+      onError={() =>
+        setStage((prev) => (prev === 'webp' ? 'png' : 'failed'))
+      }
       className={cn('object-contain drop-shadow-sm', className)}
     />
   );

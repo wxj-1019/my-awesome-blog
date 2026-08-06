@@ -1,5 +1,6 @@
 'use client'
 
+import dynamic from 'next/dynamic'
 import { useState, useEffect } from 'react'
 import FriendLinks from './FriendLinks'
 import ProfileCard from './ProfileCard'
@@ -13,8 +14,13 @@ import {
 import logger from '@/utils/logger'
 import type { Article as BackendArticle } from '@/types'
 import { StatsArticleList } from './stats/StatsArticleList'
-import { StatsCharts } from './stats/StatsCharts'
 import type { StatsArticle } from './stats/types'
+
+// 图表（recharts）拆独立 chunk：不阻塞首屏关键路径，统计数据就绪后再加载
+const StatsCharts = dynamic(
+  () => import('./stats/StatsCharts').then((m) => m.StatsCharts),
+  { ssr: false }
+)
 
 interface FriendLink {
   id: string
