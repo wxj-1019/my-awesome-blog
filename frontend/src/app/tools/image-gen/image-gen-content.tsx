@@ -30,12 +30,16 @@ import { useTaskPolling } from '@/hooks/useTaskPolling';
 import { addHistoryEntry, type GenHistoryEntry } from '@/lib/image-gen-history';
 import { cn } from '@/lib/utils';
 
-/** 尺寸预设（作为工作流额外输入传给 RunningHub，依模板是否支持而定） */
+/** 画幅预设（作为工作流额外输入 aspect_ratio 传给 RunningHub；清晰度/质量固定档） */
 const SIZE_PRESETS = [
-  { label: '1:1 方图', value: '1024x1024' },
-  { label: '3:4 竖图', value: '1024x1536' },
-  { label: '4:3 横图', value: '1536x1024' },
+  { label: '1:1 方图', value: '1:1' },
+  { label: '3:4 竖图', value: '3:4' },
+  { label: '4:3 横图', value: '4:3' },
 ] as const;
+
+/** RunningHub 文生图工作流固定档位：清晰度 2k、质量 medium（档位支持见 rhart-image-g-2-official 模板） */
+const RUNNINGHUB_RESOLUTION = '2k';
+const RUNNINGHUB_QUALITY = 'medium';
 
 /** 生成类型选项：图片 / 视频 */
 const KIND_OPTIONS: Array<{ value: GenType; label: string }> = [
@@ -51,11 +55,11 @@ const EXAMPLE_PROMPTS = [
   '未来城市的空中花园，垂直绿化建筑，落日余晖，概念艺术',
 ];
 
-/** 尺寸字符串 → 结果图对应的宽高比 class（未知尺寸兜底方图） */
+/** 画幅字符串 → 结果图对应的宽高比 class（未知画幅兜底方图） */
 const SIZE_ASPECT: Record<string, string> = {
-  '1024x1024': 'aspect-square',
-  '1024x1536': 'aspect-[3/4]',
-  '1536x1024': 'aspect-[4/3]',
+  '1:1': 'aspect-square',
+  '3:4': 'aspect-[3/4]',
+  '4:3': 'aspect-[4/3]',
 };
 
 /** 历史条目提示词过长时截断显示 */
@@ -109,7 +113,15 @@ export default function ImageGenContent() {
         type: kind,
         prompt: text,
         workflowInputs:
-          kind === 'image' ? { size, count: String(count) } : undefined,
+          kind === 'image'
+            ? {
+                // RunningHub 工作流参数：清晰度档 + 质量档 + 画幅比例 + 张数
+                resolution: RUNNINGHUB_RESOLUTION,
+                quality: RUNNINGHUB_QUALITY,
+                aspect_ratio: size,
+                count: String(count),
+              }
+            : undefined,
       });
       // 创建成功：进入轮询；结束回调由 hook 的状态驱动下方渲染
       polling.start(task_id);

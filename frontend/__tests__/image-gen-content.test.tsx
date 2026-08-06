@@ -85,7 +85,12 @@ describe('ImageGenContent · 图片/视频生成工具页', () => {
     expect(mockCreateTask).toHaveBeenCalledWith({
       type: 'image',
       prompt: '月光下的湖泊',
-      workflowInputs: { size: '1024x1024', count: '1' },
+      workflowInputs: {
+        resolution: '2k',
+        quality: 'medium',
+        aspect_ratio: '1:1',
+        count: '1',
+      },
     });
     expect(mockGetStatus).toHaveBeenCalledWith('task-1');
   });
