@@ -132,13 +132,13 @@ class Settings(BaseSettings):
     UNSPLASH_ACCESS_KEY: str = Field(default="", description="Unsplash API access key（申请：https://unsplash.com/oauth/applications）")
     COVER_PER_PAGE: int = Field(default=6, ge=1, le=12, description="每次封面搜索返回的候选图数量")
 
-    # RunningHub AI 工作流（图片/视频生成工具页；异步任务模式，key 只存后端）
-    RUNNINGHUB_API_KEY: str = Field(default="", description="RunningHub API Key（平台后台生成）")
-    RUNNINGHUB_BASE_URL: str = Field(default="https://www.runninghub.cn/api/v1", description="RunningHub API 基础地址")
-    RUNNINGHUB_IMAGE_WORKFLOW_ID: str = Field(default="", description="文生图工作流模板 id（RunningHub 工作流页获取）")
-    RUNNINGHUB_VIDEO_WORKFLOW_ID: str = Field(default="", description="文生视频工作流模板 id")
-    RUNNINGHUB_IMAGE_INPUT_KEY: str = Field(default="prompt", description="文生图工作流的提示词输入参数名（依工作流节点而定）")
-    RUNNINGHUB_VIDEO_INPUT_KEY: str = Field(default="prompt", description="文生视频工作流的提示词输入参数名")
+    # RunningHub 标准模型 API（图片/视频生成工具页；异步任务模式，key 只存后端）
+    # 认证：Authorization: Bearer；提交：POST {base}/{endpoint}；轮询：POST {base}/query
+    RUNNINGHUB_API_KEY: str = Field(default="", description="RunningHub API Key（平台开放 API 页面生成，需企业级共享 key 才能调标准模型）")
+    RUNNINGHUB_BASE_URL: str = Field(default="https://www.runninghub.cn/openapi/v2", description="RunningHub OpenAPI v2 基础地址")
+    # 标准模型端点（文生图/文生视频，平台「标准 API」页面可查；也可填自建工作流 API 端点）
+    RUNNINGHUB_IMAGE_ENDPOINT: str = Field(default="rhart-image-g-2-official/text-to-image", description="文生图标准模型端点（/openapi/v2 相对路径）")
+    RUNNINGHUB_VIDEO_ENDPOINT: str = Field(default="rhart-video-v3.1-fast/text-to-video", description="文生视频标准模型端点（/openapi/v2 相对路径）")
 
     # Prompt Management
     PROMPT_DEFAULT_VERSION: str = Field(default="v1", description="默认提示词版本")

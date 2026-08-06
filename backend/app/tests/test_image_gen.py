@@ -1,4 +1,4 @@
-"""图片/视频生成（RunningHub 异步工作流）测试：service 与 endpoint"""
+"""图片/视频生成（RunningHub OpenAPI v2 标准模型 API）测试：service 与 endpoint"""
 
 import httpx
 import pytest
@@ -26,10 +26,9 @@ class FakeAsyncClient:
     """模拟 httpx.AsyncClient：按动作返回预设响应，并记录请求参数"""
 
     def __init__(self, *args, **kwargs):
-        self._response = FakeResponse(200, {"code": 200, "data": {"taskId": "task-123"}})
-        self.request_kwargs = None
-        self.request_params = None
+        self._response = FakeResponse(200, {"taskId": "task-123", "status": "QUEUED"})
         self.request_url = None
+        self.request_kwargs = None
 
     def set_response(self, resp: FakeResponse):
         self._response = resp
@@ -46,20 +45,13 @@ class FakeAsyncClient:
         self.request_kwargs = kwargs
         return self._response
 
-    async def get(self, url, **kwargs):
-        self.request_url = url
-        self.request_params = kwargs.get("params")
-        return self._response
-
 
 def setup_runninghub(monkeypatch):
-    """配置最小可用的 RunningHub 凭据（图片+视频工作流）"""
+    """配置最小可用的 RunningHub 凭据（标准模型端点）"""
     monkeypatch.setattr(settings, "RUNNINGHUB_API_KEY", "rh-test-key")
-    monkeypatch.setattr(settings, "RUNNINGHUB_BASE_URL", "https://www.runninghub.cn/api/v1")
-    monkeypatch.setattr(settings, "RUNNINGHUB_IMAGE_WORKFLOW_ID", "wf-image")
-    monkeypatch.setattr(settings, "RUNNINGHUB_VIDEO_WORKFLOW_ID", "wf-video")
-    monkeypatch.setattr(settings, "RUNNINGHUB_IMAGE_INPUT_KEY", "prompt")
-    monkeypatch.setattr(settings, "RUNNINGHUB_VIDEO_INPUT_KEY", "prompt")
+    monkeypatch.setattr(settings, "RUNNINGHUB_BASE_URL", "https://www.runninghub.cn/openapi/v2")
+    monkeypatch.setattr(settings, "RUNNINGHUB_IMAGE_ENDPOINT", "rhart-image-g-2-official/text-to-image")
+    monkeypatch.setattr(settings, "RUNNINGHUB_VIDEO_ENDPOINT", "rhart-video-v3.1-fast/text-to-video")
 
 
 def make_request(**overrides) -> ImageGenTaskRequest:
@@ -74,10 +66,10 @@ class TestCreateTask:
         with pytest.raises(ValueError, match="未配置"):
             await create_task(make_request())
 
-    async def test_no_workflow_raises(self, monkeypatch):
+    async def test_no_endpoint_raises(self, monkeypatch):
         setup_runninghub(monkeypatch)
-        monkeypatch.setattr(settings, "RUNNINGHUB_IMAGE_WORKFLOW_ID", "")
-        with pytest.raises(ValueError, match="工作流"):
+        monkeypatch.setattr(settings, "RUNNINGHUB_IMAGE_ENDPOINT", "")
+        with pytest.raises(ValueError, match="模型端点"):
             await create_task(make_request())
 
     async def test_success_returns_task_id(self, monkeypatch):
@@ -87,24 +79,19 @@ class TestCreateTask:
 
         resp = await create_task(make_request())
         assert resp.task_id == "task-123"
-        # 请求 URL 与 body 校验
-        assert fake.request_url.endswith("/task/create")
-        body = fake.request_kwargs["json"]
-        assert body["workflow_id"] == "wf-image"
-        assert body["workflow_inputs"] == {"prompt": "月光下的湖泊"}
-        # api-key 鉴权（Authorization 不参与）
-        assert fake.request_kwargs["headers"]["api-key"] == "rh-test-key"
+        # 提交到标准模型端点，Bearer 鉴权，body 为模型参数
+        assert fake.request_url.endswith("/rhart-image-g-2-official/text-to-image")
+        assert fake.request_kwargs["json"] == {"prompt": "月光下的湖泊"}
+        assert fake.request_kwargs["headers"]["Authorization"] == "Bearer rh-test-key"
 
-    async def test_video_uses_video_workflow(self, monkeypatch):
+    async def test_video_uses_video_endpoint(self, monkeypatch):
         setup_runninghub(monkeypatch)
         fake = FakeAsyncClient()
         monkeypatch.setattr(httpx, "AsyncClient", lambda *a, **k: fake)
 
-        resp = await create_task(make_request(type="video", prompt="海鸥飞过灯塔"))
-        assert resp.task_id == "task-123"
-        body = fake.request_kwargs["json"]
-        assert body["workflow_id"] == "wf-video"
-        assert body["workflow_inputs"] == {"prompt": "海鸥飞过灯塔"}
+        await create_task(make_request(type="video", prompt="海鸥飞过灯塔"))
+        assert fake.request_url.endswith("/rhart-video-v3.1-fast/text-to-video")
+        assert fake.request_kwargs["json"] == {"prompt": "海鸥飞过灯塔"}
 
     async def test_workflow_extra_inputs_merged(self, monkeypatch):
         setup_runninghub(monkeypatch)
@@ -112,28 +99,27 @@ class TestCreateTask:
         monkeypatch.setattr(httpx, "AsyncClient", lambda *a, **k: fake)
 
         await create_task(
-            make_request(workflow_inputs={"negative_prompt": "模糊", "size": "1024x1024"})
+            make_request(workflow_inputs={"aspectRatio": "9:16", "resolution": "1k"})
         )
-        body = fake.request_kwargs["json"]
-        assert body["workflow_inputs"] == {
+        assert fake.request_kwargs["json"] == {
             "prompt": "月光下的湖泊",
-            "negative_prompt": "模糊",
-            "size": "1024x1024",
+            "aspectRatio": "9:16",
+            "resolution": "1k",
         }
 
-    async def test_non_200_raises(self, monkeypatch):
+    async def test_error_code_raises(self, monkeypatch):
         setup_runninghub(monkeypatch)
         fake = FakeAsyncClient().set_response(
-            FakeResponse(401, {"code": 401, "msg": "invalid api-key"}, text="unauthorized")
+            FakeResponse(200, {"taskId": "", "status": "", "errorCode": "1014", "errorMessage": "Access Denied"})
         )
         monkeypatch.setattr(httpx, "AsyncClient", lambda *a, **k: fake)
 
-        with pytest.raises(ValueError, match="HTTP 401"):
+        with pytest.raises(ValueError, match="Access Denied"):
             await create_task(make_request())
 
     async def test_missing_task_id_raises(self, monkeypatch):
         setup_runninghub(monkeypatch)
-        fake = FakeAsyncClient().set_response(FakeResponse(200, {"code": 200, "data": {}}))
+        fake = FakeAsyncClient().set_response(FakeResponse(200, {"taskId": "", "status": ""}))
         monkeypatch.setattr(httpx, "AsyncClient", lambda *a, **k: fake)
 
         with pytest.raises(ValueError, match="异常"):
@@ -141,10 +127,10 @@ class TestCreateTask:
 
 
 class TestGetTaskStatus:
-    async def test_pending(self, monkeypatch):
+    async def test_queued_running(self, monkeypatch):
         setup_runninghub(monkeypatch)
         fake = FakeAsyncClient().set_response(
-            FakeResponse(200, {"code": 200, "data": {"taskId": "t1", "status": "running"}})
+            FakeResponse(200, {"taskId": "t1", "status": "QUEUED"})
         )
         monkeypatch.setattr(httpx, "AsyncClient", lambda *a, **k: fake)
 
@@ -152,23 +138,22 @@ class TestGetTaskStatus:
         assert resp.status == "running"
         assert resp.images == []
         assert resp.video_url is None
-        assert fake.request_params == {"taskId": "t1"}
+        # 轮询走 POST /query
+        assert fake.request_url.endswith("/query")
+        assert fake.request_kwargs["json"] == {"taskId": "t1"}
 
-    async def test_success_images_list(self, monkeypatch):
+    async def test_success_images_results(self, monkeypatch):
         setup_runninghub(monkeypatch)
         fake = FakeAsyncClient().set_response(
             FakeResponse(
                 200,
                 {
-                    "code": 200,
-                    "data": {
-                        "taskId": "t1",
-                        "status": "success",
-                        "result": [
-                            "https://cdn.example.com/a.png",
-                            "https://cdn.example.com/b.png",
-                        ],
-                    },
+                    "taskId": "t1",
+                    "status": "SUCCESS",
+                    "results": [
+                        {"url": "https://cdn.example.com/a.png", "outputType": "png"},
+                        {"url": "https://cdn.example.com/b.png", "outputType": "png"},
+                    ],
                 },
             )
         )
@@ -179,41 +164,17 @@ class TestGetTaskStatus:
         assert resp.images == ["https://cdn.example.com/a.png", "https://cdn.example.com/b.png"]
         assert resp.video_url is None
 
-    async def test_success_images_dict(self, monkeypatch):
-        """兼容 result 为 {images: [...]} 对象形态"""
+    async def test_success_video_results(self, monkeypatch):
         setup_runninghub(monkeypatch)
         fake = FakeAsyncClient().set_response(
             FakeResponse(
                 200,
                 {
-                    "code": 200,
-                    "data": {
-                        "taskId": "t1",
-                        "status": "success",
-                        "result": {"images": ["https://cdn.example.com/c.png"]},
-                    },
-                },
-            )
-        )
-        monkeypatch.setattr(httpx, "AsyncClient", lambda *a, **k: fake)
-
-        resp = await get_task_status("t1")
-        assert resp.status == "success"
-        assert resp.images == ["https://cdn.example.com/c.png"]
-
-    async def test_success_video_url(self, monkeypatch):
-        """视频结果：result 为视频 URL 或 {video_url: ...}"""
-        setup_runninghub(monkeypatch)
-        fake = FakeAsyncClient().set_response(
-            FakeResponse(
-                200,
-                {
-                    "code": 200,
-                    "data": {
-                        "taskId": "t1",
-                        "status": "success",
-                        "result": "https://cdn.example.com/clip.mp4",
-                    },
+                    "taskId": "t1",
+                    "status": "SUCCESS",
+                    "results": [
+                        {"url": "https://cdn.example.com/clip.mp4", "outputType": "video"}
+                    ],
                 },
             )
         )
@@ -224,29 +185,33 @@ class TestGetTaskStatus:
         assert resp.images == []
         assert resp.video_url == "https://cdn.example.com/clip.mp4"
 
-    async def test_fail_returns_reason(self, monkeypatch):
+    async def test_failed_returns_reason(self, monkeypatch):
         setup_runninghub(monkeypatch)
         fake = FakeAsyncClient().set_response(
             FakeResponse(
                 200,
-                {"code": 200, "data": {"taskId": "t1", "status": "fail", "failReason": "审核未通过"}},
+                {
+                    "taskId": "t1",
+                    "status": "FAILED",
+                    "failedReason": {"msg": "审核未通过"},
+                },
             )
         )
         monkeypatch.setattr(httpx, "AsyncClient", lambda *a, **k: fake)
 
         resp = await get_task_status("t1")
         assert resp.status == "fail"
-        assert resp.fail_reason == "审核未通过"
+        assert resp.fail_reason == "{'msg': '审核未通过'}"
 
-    async def test_unknown_status_normalized(self, monkeypatch):
+    async def test_cancel_returns_fail(self, monkeypatch):
         setup_runninghub(monkeypatch)
         fake = FakeAsyncClient().set_response(
-            FakeResponse(200, {"code": 200, "data": {"taskId": "t1", "status": "processing"}})
+            FakeResponse(200, {"taskId": "t1", "status": "CANCEL"})
         )
         monkeypatch.setattr(httpx, "AsyncClient", lambda *a, **k: fake)
 
         resp = await get_task_status("t1")
-        assert resp.status == "running"  # 未知状态归一化为 running 继续轮询
+        assert resp.status == "fail"
 
 
 class TestImageGenEndpoint:
@@ -273,7 +238,6 @@ class TestImageGenEndpoint:
         )
         assert resp.status_code == 200
         assert resp.json()["task_id"] == "task-123"
-        # 走视频工作流（monkeypatch 的 fake 未捕获创建参数，仅断言端点正常）
 
     def test_create_image_forces_type_image(self, client, monkeypatch):
         """即使请求体 type=video，经 /tasks/image 端点也被强制为 image（防绕过视频限流）"""
@@ -286,8 +250,8 @@ class TestImageGenEndpoint:
             json={"type": "video", "prompt": "试图绕过的请求"},
         )
         assert resp.status_code == 200
-        body = fake.request_kwargs["json"]
-        assert body["workflow_id"] == "wf-image"
+        # 图片端点应打到文生图模型
+        assert fake.request_url.endswith("/rhart-image-g-2-official/text-to-image")
 
     def test_get_task_status(self, client, monkeypatch):
         setup_runninghub(monkeypatch)
@@ -295,12 +259,9 @@ class TestImageGenEndpoint:
             FakeResponse(
                 200,
                 {
-                    "code": 200,
-                    "data": {
-                        "taskId": "t1",
-                        "status": "success",
-                        "result": ["https://cdn.example.com/a.png"],
-                    },
+                    "taskId": "t1",
+                    "status": "SUCCESS",
+                    "results": [{"url": "https://cdn.example.com/a.png", "outputType": "png"}],
                 },
             )
         )

@@ -1,10 +1,14 @@
-"""图片/视频生成服务：后端代理调用 RunningHub 异步工作流 API（key 不出后端）。
+"""图片/视频生成服务：后端代理调用 RunningHub OpenAPI v2 标准模型 API（key 不出后端）。
 
-模式：创建任务（POST /task/create）→ 返回 task_id → 调用方轮询
-GET /task/status 直到 success/fail。失败统一抛 ValueError，由端点层转 HTTP 400。
+模式（官方 SDK 协议，已验证）：
+1. 提交：POST {base}/{endpoint}，header `Authorization: Bearer`，body 为模型参数
+   → 响应 {taskId, status: "QUEUED"|"CREATE"|"RUNNING"|"SUCCESS"|"FAILED"|"CANCEL"}
+2. 轮询：POST {base}/query，body {"taskId": "..."} 直到终态
+   → SUCCESS：results[] 含 url/outputType/text；FAILED/CANCEL：failedReason
+失败统一抛 ValueError，由端点层转 HTTP 400。
 """
 
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 import httpx
 
@@ -18,11 +22,15 @@ from app.schemas.image_gen import (
 from app.utils.logger import app_logger
 
 # 任务创建/状态查询超时
-_HTTP_TIMEOUT = 20.0
+_HTTP_TIMEOUT = 30.0
+
+# 非终态：继续轮询；终态：SUCCESS 成功，FAILED/CANCEL 失败
+_NON_TERMINAL = {"QUEUED", "CREATE", "RUNNING", "PENDING"}
+_TERMINAL_FAIL = {"FAILED", "CANCEL", "CANCELLED", "ERROR"}
 
 
 def _config_or_raise() -> str:
-    """校验并返回 RunningHub 基础配置；缺配置抛 ValueError"""
+    """校验并返回 RunningHub API Key；缺失抛 ValueError"""
     key = settings.RUNNINGHUB_API_KEY.strip()
     if not key:
         app_logger.warning("图片/视频生成服务未配置：RUNNINGHUB_API_KEY 为空")
@@ -30,185 +38,180 @@ def _config_or_raise() -> str:
     return key
 
 
-def _workflow_id_for(gen_type: GenType) -> str:
-    """按类型取工作流 id，缺失抛 ValueError"""
-    wid = (
-        settings.RUNNINGHUB_IMAGE_WORKFLOW_ID.strip()
+def _endpoint_for(gen_type: GenType) -> str:
+    """按类型取标准模型端点（/openapi/v2 相对路径），缺失抛 ValueError"""
+    endpoint = (
+        settings.RUNNINGHUB_IMAGE_ENDPOINT.strip()
         if gen_type == "image"
-        else settings.RUNNINGHUB_VIDEO_WORKFLOW_ID.strip()
+        else settings.RUNNINGHUB_VIDEO_ENDPOINT.strip()
     )
-    if not wid:
-        app_logger.warning(f"生成服务未配置：{gen_type} 工作流 id 为空")
-        raise ValueError("生成服务未配置（工作流），请联系管理员")
-    return wid
-
-
-def _input_key_for(gen_type: GenType) -> str:
-    """按类型取工作流提示词输入参数名"""
-    return (
-        settings.RUNNINGHUB_IMAGE_INPUT_KEY.strip() or "prompt"
-        if gen_type == "image"
-        else settings.RUNNINGHUB_VIDEO_INPUT_KEY.strip() or "prompt"
-    )
+    if not endpoint:
+        app_logger.warning(f"生成服务未配置：{gen_type} 模型端点为空")
+        raise ValueError("生成服务未配置（模型端点），请联系管理员")
+    return endpoint.lstrip("/")
 
 
 async def create_task(request: ImageGenTaskRequest) -> ImageGenTaskResponse:
-    """创建 RunningHub 工作流任务，返回 task_id"""
+    """提交 RunningHub 标准模型任务，返回 task_id"""
     key = _config_or_raise()
-    workflow_id = _workflow_id_for(request.type)
-    input_key = _input_key_for(request.type)
+    endpoint = _endpoint_for(request.type)
+    base_url = (settings.RUNNINGHUB_BASE_URL or "https://www.runninghub.cn/openapi/v2").rstrip("/")
 
-    base_url = (settings.RUNNINGHUB_BASE_URL or "https://www.runninghub.cn/api/v1").rstrip("/")
-    workflow_inputs: Dict[str, str] = {input_key: request.prompt.strip()}
+    # 工作流额外输入可覆盖默认参数（如 resolution/quality/duration），prompt 始终为提示词
+    payload: Dict[str, str] = {"prompt": request.prompt.strip()}
     if request.workflow_inputs:
-        workflow_inputs.update(request.workflow_inputs)
-
-    payload = {"workflow_id": workflow_id, "workflow_inputs": workflow_inputs}
+        payload.update(request.workflow_inputs)
 
     try:
         async with httpx.AsyncClient(timeout=_HTTP_TIMEOUT) as client:
             resp = await client.post(
-                f"{base_url}/task/create",
+                f"{base_url}/{endpoint}",
                 json=payload,
-                headers={"api-key": key},
+                headers={"Authorization": f"Bearer {key}"},
             )
     except httpx.HTTPError as e:
-        app_logger.warning(f"RunningHub 创建任务失败：{e}")
+        app_logger.warning(f"RunningHub 提交任务失败：{e}")
         raise ValueError(f"生成服务请求失败：{e}") from e
 
-    body = _parse_body(resp, action="创建任务")
-    data = body.get("data") or {}
-    task_id = data.get("taskId") or data.get("task_id")
+    body = _parse_body(resp, action="提交任务")
+    # 官方响应平铺结构：{taskId, status, results, errorCode, errorMessage}
+    task_id = body.get("taskId") or body.get("task_id")
     if not task_id:
-        app_logger.warning(f"RunningHub 创建任务响应缺 taskId：{body}")
+        app_logger.warning(f"RunningHub 提交任务响应缺 taskId：{body}")
         raise ValueError("生成服务返回异常，请稍后重试")
 
-    app_logger.info(f"RunningHub 任务已创建 type={request.type} task_id={task_id}")
+    app_logger.info(f"RunningHub 任务已提交 type={request.type} task_id={task_id}")
     return ImageGenTaskResponse(task_id=str(task_id))
 
 
 async def get_task_status(task_id: str) -> ImageGenStatusResponse:
-    """查询 RunningHub 任务状态，解析图片/视频结果"""
+    """查询 RunningHub 任务状态（POST /query），解析图片/视频结果"""
     key = _config_or_raise()
-    base_url = (settings.RUNNINGHUB_BASE_URL or "https://www.runninghub.cn/api/v1").rstrip("/")
+    base_url = (settings.RUNNINGHUB_BASE_URL or "https://www.runninghub.cn/openapi/v2").rstrip("/")
 
     try:
         async with httpx.AsyncClient(timeout=_HTTP_TIMEOUT) as client:
-            resp = await client.get(
-                f"{base_url}/task/status",
-                params={"taskId": task_id},
-                headers={"api-key": key},
+            resp = await client.post(
+                f"{base_url}/query",
+                json={"taskId": task_id},
+                headers={"Authorization": f"Bearer {key}"},
             )
     except httpx.HTTPError as e:
         app_logger.warning(f"RunningHub 查询任务失败：{e}")
         raise ValueError(f"生成服务请求失败：{e}") from e
 
     body = _parse_body(resp, action="查询任务")
-    data = body.get("data") or {}
-    status = str(data.get("status") or "running").lower()
-    if status not in ("pending", "running", "success", "fail"):
-        status = "running"
+    # 官方响应平铺结构：{taskId, status, results, failedReason, errorCode, errorMessage}
+    status = str(body.get("status") or "running").upper()
 
     # 失败
-    if status == "fail":
-        reason = data.get("failReason") or data.get("fail_reason") or data.get("reason") or ""
+    if status in _TERMINAL_FAIL:
+        reason = (
+            body.get("failedReason")
+            or body.get("failReason")
+            or body.get("fail_reason")
+            or body.get("reason")
+        )
         return ImageGenStatusResponse(
-            task_id=task_id, status="fail", fail_reason=str(reason) or "任务失败，请重试"
+            task_id=task_id,
+            status="fail",
+            fail_reason=str(reason) or "任务失败，请重试",
         )
 
-    # 成功：兼容解析 result（字符串 URL / 数组 / {images:[...]} / {video:[...]} / {video_url:...}）
-    images: list[str] = []
-    video_holder: dict = {}
-    if status == "success":
-        result = data.get("result")
-        _parse_result(result, images, video_holder)
+    # 成功：results[] 含 url/outputType/text
+    if status == "SUCCESS":
+        results = body.get("results") or []
+        images, video_urls = _parse_results(results)
+        return ImageGenStatusResponse(
+            task_id=task_id,
+            status="success",
+            images=images,
+            video_url=video_urls[0] if video_urls else None,
+        )
 
-    return ImageGenStatusResponse(
-        task_id=task_id,
-        status=status,
-        images=images,
-        video_url=video_holder.get("video_url"),
-    )
+    # 非终态（QUEUED/CREATE/RUNNING 等）统一为 running 继续轮询
+    return ImageGenStatusResponse(task_id=task_id, status="running")
 
 
 def _parse_body(resp: httpx.Response, action: str) -> Dict[str, Any]:
-    """校验响应并解析 JSON body"""
+    """校验响应并解析 JSON body（标准模型 API：错误经 errorCode/errorMessage 表达）"""
     try:
         body = resp.json()
     except Exception:
         raise ValueError(f"生成服务响应异常（HTTP {resp.status_code}）") from None
 
-    if resp.status_code != 200 or body.get("code") not in (200, 0):
-        msg = ""
-        if isinstance(body, dict):
-            msg = body.get("msg") or body.get("message") or ""
+    if isinstance(body, dict):
+        error_code = body.get("errorCode") or body.get("error_code")
+        error_message = body.get("errorMessage") or body.get("error_message")
+        if error_code:
+            app_logger.warning(f"RunningHub {action}失败：{error_code} {error_message}")
+            raise ValueError(f"生成服务调用失败（{error_message or error_code}）")
+
+    if resp.status_code != 200 or not isinstance(body, dict):
         app_logger.warning(f"RunningHub {action}失败：{resp.status_code} {body}")
-        raise ValueError(f"生成服务调用失败（HTTP {resp.status_code}）{msg}")
+        raise ValueError(f"生成服务调用失败（HTTP {resp.status_code}）")
 
     return body
 
 
-def _parse_result(result: Any, images: list[str], video_url_holder: dict) -> None:
-    """把 RunningHub 工作流 result 解析为图片/视频 URL 列表。
+def _parse_results(results: Any) -> tuple[List[str], List[str]]:
+    """把任务 results 解析为 (图片 URL 列表, 视频 URL 列表)
 
-    依工作流输出节点结构不同，兼容常见形态：
-    - 字符串：单个 URL（可能是图片或视频，按后缀粗判）
-    - 数组：[url, ...] 或 [{url|image|video|file_name|base64?}, ...]
-    - 对象：{images: [...]} / {video: [...]} / {video_url: ...} / {image_url: ...}
+    官方响应：results 为 [{url, outputType, text, ...}]。
+    兼容旧工作流形态：字符串 URL / 纯数组 / {images:[...]} / {video_url:...}。
     """
-    if result is None:
-        return
+    images: List[str] = []
+    videos: List[str] = []
 
-    if isinstance(result, str):
-        _classify_url(result, images, video_url_holder)
-        return
+    if not isinstance(results, list):
+        if isinstance(results, str):
+            _classify_url(results, images, videos)
+        elif isinstance(results, dict):
+            _parse_dict(results, images, videos)
+        return images, videos
 
-    if isinstance(result, list):
-        for item in result:
-            if isinstance(item, str):
-                _classify_url(item, images, video_url_holder)
-            elif isinstance(item, dict):
-                _classify_dict_item(item, images, video_url_holder)
-        return
+    for item in results:
+        if isinstance(item, str):
+            _classify_url(item, images, videos)
+        elif isinstance(item, dict):
+            # 官方字段：url + outputType（image/video/png/mp4 等）
+            url = item.get("url") or item.get("outputUrl") or item.get("image_url") or item.get("video_url")
+            if not url:
+                continue
+            output_type = str(item.get("outputType") or item.get("type") or "").lower()
+            if "video" in output_type or url.lower().endswith((".mp4", ".webm", ".mov", ".avi", ".m3u8")):
+                videos.append(str(url))
+            else:
+                images.append(str(url))
 
-    if isinstance(result, dict):
-        for key in ("images", "image_urls", "image", "img"):
-            val = result.get(key)
-            if isinstance(val, list):
-                for v in val:
-                    if isinstance(v, str):
-                        images.append(v)
-            elif isinstance(val, str) and val:
-                images.append(val)
-        for key in ("video_url", "video", "videos", "url"):
-            val = result.get(key)
-            if isinstance(val, str) and val:
-                video_url_holder["video_url"] = val
-            elif isinstance(val, list):
-                for v in val:
-                    if isinstance(v, str) and v:
-                        video_url_holder["video_url"] = v
-                        break
+    return images, videos
 
 
-def _classify_dict_item(item: Dict[str, Any], images: list[str], video_url_holder: dict) -> None:
-    """单条结果对象：优先取 url/image/video 字段"""
-    for key in ("url", "image", "image_url", "src", "file_name"):
-        val = item.get(key)
-        if isinstance(val, str) and val and not val.startswith("data:"):
+def _parse_dict(data: Dict[str, Any], images: List[str], videos: List[str]) -> None:
+    """兼容 result 为对象形态：{images:[...]} / {video_url:...} / {url:...}"""
+    for key in ("images", "image_urls", "image", "img"):
+        val = data.get(key)
+        if isinstance(val, list):
+            for v in val:
+                if isinstance(v, str):
+                    images.append(v)
+        elif isinstance(val, str) and val:
             images.append(val)
-            return
-    for key in ("video", "video_url"):
-        val = item.get(key)
+    for key in ("video_url", "video", "videos", "url"):
+        val = data.get(key)
         if isinstance(val, str) and val:
-            video_url_holder["video_url"] = val
-            return
+            videos.append(val)
+        elif isinstance(val, list):
+            for v in val:
+                if isinstance(v, str) and v:
+                    videos.append(v)
+                    break
 
 
-def _classify_url(url: str, images: list[str], video_url_holder: dict) -> None:
+def _classify_url(url: str, images: List[str], videos: List[str]) -> None:
     """按 URL 后缀粗判图片/视频；未知后缀默认按图片"""
     lower = url.lower()
     if any(lower.endswith(ext) for ext in (".mp4", ".webm", ".mov", ".avi", ".m3u8")):
-        video_url_holder["video_url"] = url
+        videos.append(url)
     else:
         images.append(url)
