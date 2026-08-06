@@ -137,12 +137,14 @@ export default function HeroSection() {
         }}
         aria-hidden="true"
       >
-        {/* 视频骨架屏：poster 图负责首屏立即可见，不再需要 shimmer */}
+        {/* 视频加载中：poster 立即可见 + 中央加载圆环；就绪后由渐变层淡出露出视频 */}
         {shouldLoadVideo && !videoLoaded && !videoError && (
-          <div
-            className="absolute inset-0 bg-slate-300 dark:bg-slate-700"
-            aria-hidden="true"
-          />
+          <div className="absolute inset-0 flex items-center justify-center" aria-hidden="true">
+            <div className="relative flex h-12 w-12 items-center justify-center">
+              <div className="absolute inset-0 rounded-full border border-glass-border" />
+              <div className="absolute inset-0 animate-spin rounded-full border-2 border-tech-cyan border-t-transparent motion-reduce:animate-none" />
+            </div>
+          </div>
         )}
 
         {shouldLoadVideo && !videoError && (
@@ -152,7 +154,7 @@ export default function HeroSection() {
             loop
             muted
             playsInline
-            preload="metadata"
+            preload="auto"
             poster={posterImage}
             className="absolute inset-0 w-full h-full object-cover"
             src={backgroundVideo}
