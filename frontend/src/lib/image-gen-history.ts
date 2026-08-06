@@ -1,12 +1,13 @@
-import type { GeneratedImage } from '@/lib/api/imageGen';
+import type { GeneratedImage, ImageGenProvider } from '@/lib/api/imageGen';
 
-/** 会话历史条目：一次成功生成的完整快照（提示词/尺寸/张数/图片），可一键恢复 */
+/** 会话历史条目：一次成功生成的完整快照（提示词/尺寸/张数/来源/图片），可一键恢复 */
 export interface GenHistoryEntry {
   id: string;
   createdAt: number;
   prompt: string;
   size: string;
   count: number;
+  provider?: ImageGenProvider;
   images: GeneratedImage[];
 }
 

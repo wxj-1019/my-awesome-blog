@@ -158,4 +158,41 @@ describe('ImageGenContent · 图片生成工具页', () => {
     fireEvent.click(screen.getByText('第一组'));
     expect((screen.getByLabelText('提示词') as HTMLTextAreaElement).value).toBe('第一组');
   });
+
+  it('切换到 OpenAI gpt-image 来源后请求携带 provider=openai', async () => {
+    mockGenerate.mockResolvedValue({
+      images: [{ url: 'data:image/png;base64,QUJD', size: '1024x1024' }],
+      model: 'gpt-image-2',
+    });
+    render(<ImageGenContent />);
+
+    // 默认火山，切换 OpenAI
+    expect(screen.getByRole('button', { name: '火山 Seedream' })).toHaveAttribute('aria-pressed', 'true');
+    fireEvent.click(screen.getByRole('button', { name: 'OpenAI gpt-image' }));
+
+    fireEvent.change(screen.getByLabelText('提示词'), { target: { value: '星空下的猫' } });
+    fireEvent.click(screen.getByRole('button', { name: '生成图片' }));
+
+    await screen.findByText('生成结果');
+    expect(mockGenerate).toHaveBeenCalledWith(
+      expect.objectContaining({ prompt: '星空下的猫', provider: 'openai' }),
+      expect.anything()
+    );
+  });
+
+  it('历史条目恢复时回填模型来源（gpt-image 前缀）', async () => {
+    mockGenerate.mockResolvedValue({
+      images: [{ url: 'https://cdn.example.com/a.png', size: '1024x1024' }],
+      model: 'gpt-image-2',
+    });
+    render(<ImageGenContent />);
+
+    // 用 OpenAI 生成一组 → 历史条目应显示 gpt-image 前缀
+    fireEvent.click(screen.getByRole('button', { name: 'OpenAI gpt-image' }));
+    fireEvent.change(screen.getByLabelText('提示词'), { target: { value: '历史组' } });
+    fireEvent.click(screen.getByRole('button', { name: '生成图片' }));
+    await screen.findByText('生成结果');
+
+    expect(screen.getByText(/gpt-image · /)).toBeInTheDocument();
+  });
 });

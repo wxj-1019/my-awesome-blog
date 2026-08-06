@@ -137,6 +137,11 @@ class Settings(BaseSettings):
     ARK_IMAGE_MODEL: str = Field(default="doubao-seedream-3-0-t2i-250415", description="文生图模型 id（按方舟控制台/文档实际开通的模型填写）")
     ARK_API_BASE: str = Field(default="https://ark.cn-beijing.volces.com/api/v3", description="火山方舟 API 基础地址")
 
+    # OpenAI 兼容图片生成（中转站接入，如 portdan.com；key 只存后端）
+    OPENAI_IMAGE_BASE_URL: str = Field(default="", description="OpenAI 兼容中转站 base URL（如 https://portdan.com/v1）")
+    OPENAI_API_KEY: str = Field(default="", description="OpenAI 兼容中转站 API Key")
+    OPENAI_IMAGE_MODEL: str = Field(default="gpt-image-2", description="图片生成模型 id（如 gpt-image-2 / gpt-image-1）")
+
     # Prompt Management
     PROMPT_DEFAULT_VERSION: str = Field(default="v1", description="默认提示词版本")
     PROMPT_MAX_VERSIONS: int = Field(default=10, description="每个提示词最多保留的版本数")

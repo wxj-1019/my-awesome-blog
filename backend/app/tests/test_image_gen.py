@@ -93,6 +93,58 @@ class TestImageGenService:
             await generate_images(make_request())
 
 
+class TestImageGenOpenAI:
+    """OpenAI 兼容中转分支（provider=openai）"""
+
+    def setup_openai(self, monkeypatch):
+        monkeypatch.setattr(settings, "OPENAI_IMAGE_BASE_URL", "https://relay.example.com/v1")
+        monkeypatch.setattr(settings, "OPENAI_API_KEY", "sk-relay")
+        monkeypatch.setattr(settings, "OPENAI_IMAGE_MODEL", "gpt-image-2")
+
+    def make_openai_request(self, **overrides):
+        base = {"prompt": "一只猫", "size": "1024x1024", "count": 1, "provider": "openai"}
+        base.update(overrides)
+        return ImageGenRequest(**base)
+
+    async def test_openai_success_b64_to_data_url(self, monkeypatch):
+        self.setup_openai(monkeypatch)
+        fake = FakeAsyncClient().set_response(
+            FakeResponse(200, {"data": [{"b64_json": "QUJD"}]})  # base64("ABC")
+        )
+        monkeypatch.setattr(httpx, "AsyncClient", lambda *a, **k: fake)
+
+        resp = await generate_images(self.make_openai_request())
+        assert resp.model == "gpt-image-2"
+        assert resp.images[0].url == "data:image/png;base64,QUJD"
+        body = fake.request_kwargs["json"]
+        assert body["model"] == "gpt-image-2"
+        assert body["n"] == 1
+        assert body["response_format"] == "b64_json"
+        assert fake.request_kwargs["headers"]["Authorization"] == "Bearer sk-relay"
+
+    async def test_openai_no_config_raises(self, monkeypatch):
+        monkeypatch.setattr(settings, "OPENAI_IMAGE_BASE_URL", "")
+        monkeypatch.setattr(settings, "OPENAI_API_KEY", "")
+        with pytest.raises(ValueError, match="未配置"):
+            await generate_images(self.make_openai_request())
+
+    async def test_openai_non_200_raises(self, monkeypatch):
+        self.setup_openai(monkeypatch)
+        fake = FakeAsyncClient().set_response(
+            FakeResponse(404, {"error": {"message": "Not found"}}, text="Not found")
+        )
+        monkeypatch.setattr(httpx, "AsyncClient", lambda *a, **k: fake)
+        with pytest.raises(ValueError, match="HTTP 404"):
+            await generate_images(self.make_openai_request())
+
+    async def test_openai_empty_data_raises(self, monkeypatch):
+        self.setup_openai(monkeypatch)
+        fake = FakeAsyncClient().set_response(FakeResponse(200, {"data": []}))
+        monkeypatch.setattr(httpx, "AsyncClient", lambda *a, **k: fake)
+        with pytest.raises(ValueError, match="为空"):
+            await generate_images(self.make_openai_request())
+
+
 class TestImageGenEndpoint:
     def test_generate_success(self, client, monkeypatch):
         monkeypatch.setattr(settings, "ARK_API_KEY", "test-key")

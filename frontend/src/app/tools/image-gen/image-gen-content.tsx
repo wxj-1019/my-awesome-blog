@@ -10,16 +10,22 @@ import { Button } from '@/components/ui/Button';
 import EmptyState from '@/components/ui/EmptyState';
 import Lightbox, { type LightboxImage } from '@/components/ui/Lightbox';
 import { FadeIn, Stagger, StaggerItem } from '@/components/motion';
-import { generateImages, type GeneratedImage } from '@/lib/api/imageGen';
+import { generateImages, type GeneratedImage, type ImageGenProvider } from '@/lib/api/imageGen';
 import { addHistoryEntry, type GenHistoryEntry } from '@/lib/image-gen-history';
 import { cn } from '@/lib/utils';
 
-/** 尺寸预设（火山 Seedream 常用） */
+/** 尺寸预设（火山 Seedream / gpt-image 常用） */
 const SIZE_PRESETS = [
   { label: '1:1 方图', value: '1024x1024' },
   { label: '3:4 竖图', value: '1024x1536' },
   { label: '4:3 横图', value: '1536x1024' },
 ] as const;
+
+/** 模型来源选项 */
+const PROVIDER_OPTIONS: Array<{ value: ImageGenProvider; label: string }> = [
+  { value: 'ark', label: '火山 Seedream' },
+  { value: 'openai', label: 'OpenAI gpt-image' },
+];
 
 /** 示例提示词 */
 const EXAMPLE_PROMPTS = [
@@ -49,6 +55,7 @@ export default function ImageGenContent() {
   const [prompt, setPrompt] = useState('');
   const [size, setSize] = useState<string>(SIZE_PRESETS[0].value);
   const [count, setCount] = useState(1);
+  const [provider, setProvider] = useState<ImageGenProvider>('ark');
   const [state, setState] = useState<GenState>('idle');
   const [images, setImages] = useState<GeneratedImage[]>([]);
   const [errorMsg, setErrorMsg] = useState('');
@@ -84,7 +91,7 @@ export default function ImageGenContent() {
     setFailedImages(new Set());
     setActiveEntryId(null);
     try {
-      const resp = await generateImages({ prompt: text, size, count }, controller.signal);
+      const resp = await generateImages({ prompt: text, size, count, provider }, controller.signal);
       setImages(resp.images);
       setState('done');
       // 成功且有图 → 记入会话历史（新条目在头部，超出上限自动丢弃最旧的）
@@ -95,6 +102,7 @@ export default function ImageGenContent() {
           prompt: text,
           size,
           count,
+          provider,
           images: resp.images,
         };
         setActiveEntryId(entry.id);
@@ -123,9 +131,9 @@ export default function ImageGenContent() {
         abortRef.current = null;
       }
     }
-  }, [prompt, size, count]);
+  }, [prompt, size, count, provider]);
 
-  /** 恢复历史条目：回填提示词/尺寸/张数，并重新展示该组结果 */
+  /** 恢复历史条目：回填提示词/尺寸/张数/来源，并重新展示该组结果 */
   const handleRestore = useCallback((entry: GenHistoryEntry) => {
     // 恢复历史时中止在途请求，避免旧请求回写覆盖恢复后的结果
     abortRef.current?.abort();
@@ -133,6 +141,7 @@ export default function ImageGenContent() {
     setPrompt(entry.prompt);
     setSize(entry.size);
     setCount(entry.count);
+    if (entry.provider) {setProvider(entry.provider);}
     setImages(entry.images);
     setActiveEntryId(entry.id);
     setState('done');
@@ -201,8 +210,26 @@ export default function ImageGenContent() {
                 ))}
               </div>
 
-              {/* 尺寸 + 张数 */}
+              {/* 模型来源 + 尺寸 + 张数 */}
               <div className="mb-4 flex flex-wrap items-center gap-4">
+                <div role="group" aria-label="模型来源" className="flex gap-1.5">
+                  {PROVIDER_OPTIONS.map((p) => (
+                    <button
+                      key={p.value}
+                      type="button"
+                      onClick={() => setProvider(p.value)}
+                      aria-pressed={provider === p.value}
+                      className={cn(
+                        'rounded-lg border px-2.5 py-1 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                        provider === p.value
+                          ? 'border-tech-purple/60 bg-tech-purple/10 text-tech-purple'
+                          : 'border-border text-muted-foreground hover:border-tech-purple/40 hover:text-tech-purple'
+                      )}
+                    >
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
                 <div role="group" aria-label="尺寸" className="flex gap-1.5">
                   {SIZE_PRESETS.map((s) => (
                     <button
@@ -430,6 +457,7 @@ export default function ImageGenContent() {
                                 {truncatePrompt(entry.prompt)}
                               </span>
                               <span className="mt-0.5 block text-xs text-muted-foreground">
+                                {entry.provider === 'openai' ? 'gpt-image · ' : ''}
                                 {entry.size} · {entry.count} 张
                               </span>
                             </span>

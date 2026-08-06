@@ -5,10 +5,14 @@
 
 import { apiFetch } from '@/lib/api-client';
 
+/** 模型来源：火山方舟 / OpenAI 兼容中转 */
+export type ImageGenProvider = 'ark' | 'openai';
+
 export interface ImageGenRequest {
   prompt: string;
   size?: string;
   count?: number;
+  provider?: ImageGenProvider;
 }
 
 export interface GeneratedImage {
