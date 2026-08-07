@@ -14,7 +14,8 @@ const STEPS = ['排队', '生成', '完成'] as const;
 
 /**
  * 生成过程阶段进度条：节点状态 = 完成（勾）/ 激活（旋转指示） / 未到。
- * 只动 opacity/transform；旋转动画在 reduced-motion 下由 motion-reduce 关闭。
+ * 动画仅激活节点 Loader 旋转（transform）与连接线/节点颜色过渡（transition-colors）；
+ * 旋转动画在 reduced-motion 下由 motion-reduce 关闭。
  */
 export default function ProgressSteps({
   activeIndex,

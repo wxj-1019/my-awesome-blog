@@ -27,10 +27,24 @@ describe('ProgressSteps · 生成进度步进条', () => {
     );
   });
 
+  it('activeIndex=1 时首段连接线已填充，次段未填充', () => {
+    const { container } = render(
+      <ProgressSteps activeIndex={1} statusText="正在生成…" />
+    );
+    const connectors = container.querySelectorAll('span.mx-2.h-px');
+    expect(connectors).toHaveLength(2);
+    expect(connectors[0]).toHaveClass('bg-primary/60');
+    expect(connectors[1]).toHaveClass('bg-border');
+  });
+
   it('activeIndex=2 时全部完成，无激活节点', () => {
-    render(<ProgressSteps activeIndex={2} statusText="生成完成" />);
+    const { container } = render(
+      <ProgressSteps activeIndex={2} statusText="生成完成" />
+    );
     expect(
       screen.queryByRole('listitem', { current: 'step' })
     ).not.toBeInTheDocument();
+    // 三个节点均渲染完成勾（Check），无旋转指示（Loader2）：3 个 svg = 3 个勾
+    expect(container.querySelectorAll('svg')).toHaveLength(3);
   });
 });
