@@ -9,6 +9,8 @@ export interface GenHistoryEntry {
   /** 图片尺寸/张数（kind=image 时回填用；RunningHub 标准模型是否支持取决于模型） */
   size?: string;
   count?: number;
+  /** 图生图参考图 URL（kind=image 且基于参考图生成时非空） */
+  refImageUrl?: string | null;
   /** 生成图片 URL（kind=image 时非空） */
   images: string[];
   /** 生成视频 URL（kind=video 时非空） */
@@ -43,6 +45,7 @@ export function sanitizeEntry(raw: unknown): GenHistoryEntry | null {
     prompt: r.prompt,
     size: typeof r.size === 'string' ? r.size : undefined,
     count: typeof r.count === 'number' ? r.count : undefined,
+    refImageUrl: typeof r.refImageUrl === 'string' ? r.refImageUrl : null,
     images: r.images as string[],
     videoUrl: typeof r.videoUrl === 'string' ? r.videoUrl : null,
   };

@@ -18,6 +18,12 @@ export interface CreateGenTaskRequest {
   prompt: string;
   /** 工作流额外输入（如负面词、尺寸、参考图），键名依工作流而定（后端字段为 snake_case，勿改） */
   workflow_inputs?: Record<string, string>;
+  /** 图片模型标识（仅 type=image 生效）；图生图模式仅支持 rhart-image-g-2-official */
+  model?: string;
+  /** 图片生成模式：text 文生图 / image 图生图（配合 image_urls） */
+  mode?: 'text' | 'image';
+  /** 图生图参考图 URL 列表（mode=image 时非空；后端映射为 RunningHub 的 imageUrls） */
+  image_urls?: string[];
 }
 
 export interface CreateGenTaskResponse {

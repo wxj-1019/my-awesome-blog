@@ -17,6 +17,7 @@ function makeEntry(overrides: Partial<GenHistoryEntry> = {}): GenHistoryEntry {
     prompt: '月光下的静谧湖泊',
     images: ['https://cdn.example.com/a.png'],
     videoUrl: null,
+    refImageUrl: null,
     ...overrides,
   };
 }
@@ -66,6 +67,31 @@ describe('sanitizeEntry · 历史条目校验', () => {
     expect(dirty!.size).toBeUndefined();
     expect(dirty!.count).toBeUndefined();
     expect(dirty!.videoUrl).toBeNull();
+  });
+
+  it('sanitizeEntry 兼容旧数据（无 refImageUrl → null）', () => {
+    const old = {
+      id: 'e1',
+      createdAt: 1,
+      kind: 'image',
+      prompt: '月光',
+      images: ['https://cdn/x.png'],
+      videoUrl: null,
+    };
+    expect(sanitizeEntry(old)?.refImageUrl).toBeNull();
+  });
+
+  it('sanitizeEntry 保留合法 refImageUrl', () => {
+    const entry = {
+      id: 'e2',
+      createdAt: 1,
+      kind: 'image',
+      prompt: '月光',
+      images: ['https://cdn/x.png'],
+      videoUrl: null,
+      refImageUrl: 'https://cdn/ref.png',
+    };
+    expect(sanitizeEntry(entry)?.refImageUrl).toBe('https://cdn/ref.png');
   });
 });
 
