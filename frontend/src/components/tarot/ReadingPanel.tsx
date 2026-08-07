@@ -145,7 +145,7 @@ export default function ReadingPanel({
           <div className="flex gap-4">
             {/* 牌面小缩略图：与上方翻牌结果视觉连接 */}
             <div className="w-16 shrink-0">
-              <div className={cn('aspect-[5/8] w-full', d.isReversed && 'rotate-180')}>
+              <div className={cn('aspect-[2/3] w-full', d.isReversed && 'rotate-180')}>
                 <TarotCardFace card={d.card} />
               </div>
             </div>

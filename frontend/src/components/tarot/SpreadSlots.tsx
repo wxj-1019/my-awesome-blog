@@ -23,7 +23,7 @@ export default function SpreadSlots({ spread, drawn, flipped, onFlip }: SpreadSl
             {spread.positions[i] ?? `第 ${i + 1} 张`}
           </span>
           <TarotFlipCard
-            className="aspect-[5/8] w-full"
+            className="aspect-[2/3] w-full"
             flipped={flipped[i] ?? false}
             reversed={d.isReversed}
             onFlip={() => onFlip(i)}

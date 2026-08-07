@@ -7,7 +7,7 @@ interface TarotCardBackProps {
 
 /**
  * 塔罗牌背：星月纹样（SVG，token 渐变底）。
- * 与牌面同尺寸使用（外层给 aspect-[5/8]），图案自身填满。
+ * 与牌面同尺寸使用（外层给 aspect-[2/3]，匹配 AI 生成图 720×1080），图案自身填满。
  */
 const TarotCardBack = memo(function TarotCardBack({ className }: TarotCardBackProps) {
   return (

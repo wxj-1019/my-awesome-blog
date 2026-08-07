@@ -432,7 +432,7 @@ export default function TarotContent() {
                 <FadeIn className="mb-6">
                   <GlassCard padding="md" className="flex items-center gap-4">
                     <div className="w-14 shrink-0">
-                      <div className={cn('aspect-[5/8] w-full', dailyCard.isReversed && 'rotate-180')}>
+                      <div className={cn('aspect-[2/3] w-full', dailyCard.isReversed && 'rotate-180')}>
                         <TarotCardFace card={dailyCard.card} />
                       </div>
                     </div>

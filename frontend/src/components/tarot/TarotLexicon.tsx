@@ -316,7 +316,7 @@ function LexiconEntryInner({
           >
             {/* 展开大图：AI 生成牌面图（竖版 2:3），失败回退花色符号 */}
             <div className="mb-3 flex justify-center">
-              <div className="aspect-[5/8] w-32 overflow-hidden rounded-lg border border-border/70 shadow-sm">
+              <div className="aspect-[2/3] w-32 overflow-hidden rounded-lg border border-border/70 shadow-sm">
                 <TarotCardImage
                   card={card}
                   className="h-full w-full"
