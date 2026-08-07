@@ -96,17 +96,21 @@ export default function CanvasStage({
 
   const lightboxImages: LightboxImage[] = useMemo(
     () =>
-      images.map((url, i) => ({
-        id: `${i}`,
-        src: url,
-        alt: prompt.trim() || `生成图片 ${i + 1}`,
-      })),
-    [images, prompt]
+      // 过滤掉加载失败的图：失败项在网格中渲染为占位（非按钮），不进 Lightbox；
+      // 预览索引由网格按钮按「之前未失败项数量」换算（见 ResultPanel 网格 onClick）
+      images
+        .filter(url => !failedImages.has(url))
+        .map((url, i) => ({
+          id: `${i}`,
+          src: url,
+          alt: prompt.trim() || `生成图片 ${i + 1}`,
+        })),
+    [images, prompt, failedImages]
   );
 
   /** 进度阶段映射：submitting=排队，polling+pending=排队，polling+running=生成，done=完成 */
   const progressIndex: 0 | 1 | 2 =
-    state === 'done' ? 2 : phase === 'running' ? 1 : 0;
+    state === 'done' || phase === 'done' ? 2 : phase === 'running' ? 1 : 0;
   const progressText =
     state === 'submitting'
       ? '正在提交任务…'
@@ -177,7 +181,6 @@ export default function CanvasStage({
         >
           <ResultPanel
             state={state}
-            phase={phase}
             kind={kind}
             prompt={prompt}
             size={size}
@@ -226,7 +229,7 @@ export default function CanvasStage({
 
 interface ResultPanelProps extends Omit<
   CanvasStageProps,
-  'history' | 'onRestore' | 'onDelete' | 'onClear'
+  'history' | 'onRestore' | 'onDelete' | 'onClear' | 'phase'
 > {
   progressIndex: 0 | 1 | 2;
   progressText: string;
@@ -358,7 +361,14 @@ function ResultPanel({
                 ) : (
                   <button
                     type="button"
-                    onClick={() => onLightboxOpen(i)}
+                    // 网格按全量数组迭代（i 为全量索引）；换算为「之前未失败项数量」
+                    // 即该图在 lightboxImages 中的位置，保证预览与展示一致
+                    onClick={() =>
+                      onLightboxOpen(
+                        images.filter((u, j) => j < i && !failedImages.has(u))
+                          .length
+                      )
+                    }
                     aria-label={`查看生成图片 ${i + 1}`}
                     className={cn(
                       'block w-full overflow-hidden rounded-lg border border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
@@ -416,6 +426,7 @@ function ResultPanel({
 
 function VideoResult({ url }: { url: string }) {
   const [videoLoading, setVideoLoading] = useState(true);
+  const [videoError, setVideoError] = useState(false);
 
   return (
     <div>
@@ -433,7 +444,16 @@ function VideoResult({ url }: { url: string }) {
           controls
           preload="metadata"
           onLoadStart={() => setVideoLoading(true)}
-          onCanPlay={() => setVideoLoading(false)}
+          onCanPlay={() => {
+            setVideoLoading(false);
+            // 链接修复后原生重试成功（onCanPlay 会再次触发），清除错误提示
+            setVideoError(false);
+          }}
+          onError={() => {
+            // 加载失败（404/链接过期）：隐藏旋转指示并提示
+            setVideoLoading(false);
+            setVideoError(true);
+          }}
           className="aspect-video w-full bg-black/5"
           aria-label="生成的视频"
         >
@@ -443,6 +463,11 @@ function VideoResult({ url }: { url: string }) {
           </a>
         </video>
       </div>
+      {videoError ? (
+        <p className="mt-2 text-sm text-error">
+          视频加载失败，链接可能已过期，请重新生成或下载
+        </p>
+      ) : null}
       <div className="mt-3 flex items-center gap-2">
         <a
           href={url}

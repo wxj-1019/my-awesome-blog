@@ -4,7 +4,9 @@ import type { GenHistoryEntry } from '@/lib/image-gen-history';
 
 jest.mock('@/components/ui/Lightbox', () => ({
   __esModule: true,
-  default: () => <div data-testid="lightbox" />,
+  default: ({ currentIndex }: { currentIndex: number }) => (
+    <div data-testid="lightbox" data-current-index={currentIndex} />
+  ),
 }));
 
 const baseProps = {
@@ -110,5 +112,94 @@ describe('CanvasStage · 创作台画布', () => {
     expect(screen.getByText('还没有生成记录')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('tab', { name: '结果' }));
     expect(screen.getByText('生成结果')).toBeInTheDocument();
+  });
+
+  it('视频加载失败：onError 隐藏加载指示并显示错误提示', () => {
+    const { container } = render(
+      <CanvasStage
+        {...baseProps}
+        state="done"
+        phase="done"
+        kind="video"
+        videoUrl="https://cdn.example.com/clip.mp4"
+        hasResult
+      />
+    );
+    // 初始加载中：存在旋转指示
+    expect(container.querySelector('.animate-spin')).toBeInTheDocument();
+    fireEvent.error(screen.getByLabelText('生成的视频'));
+    // 指示消失，错误提示可见
+    expect(container.querySelector('.animate-spin')).not.toBeInTheDocument();
+    expect(screen.getByText(/视频加载失败/)).toBeInTheDocument();
+  });
+
+  it('图片加载失败占位：展示重试按钮并回调 URL', () => {
+    const onImageRetry = jest.fn();
+    const url = 'https://cdn.example.com/a.png';
+    render(
+      <CanvasStage
+        {...baseProps}
+        state="done"
+        phase="done"
+        images={[url]}
+        failedImages={new Set([url])}
+        hasResult
+        onImageRetry={onImageRetry}
+      />
+    );
+    expect(screen.getByText('图片加载失败')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '重试加载' }));
+    expect(onImageRetry).toHaveBeenCalledWith(url);
+  });
+
+  it('Lightbox 索引与可见图片对齐：失败占位不进入预览序列', () => {
+    const ok = 'https://cdn.example.com/ok.png';
+    const fail = 'https://cdn.example.com/fail.png';
+    render(
+      <CanvasStage
+        {...baseProps}
+        state="done"
+        phase="done"
+        images={[fail, ok]}
+        failedImages={new Set([fail])}
+        hasResult
+      />
+    );
+    // fail 渲染为占位（非按钮），ok 是唯一可点击按钮
+    expect(screen.getByText('图片加载失败')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '查看生成图片 2' }));
+    // 应打开过滤后第 1 张（索引 0），而不是全量索引 1
+    expect(screen.getByTestId('lightbox')).toHaveAttribute(
+      'data-current-index',
+      '0'
+    );
+  });
+
+  it('done 但无结果：空态展示并触发重新生成', () => {
+    const onRetry = jest.fn();
+    render(
+      <CanvasStage {...baseProps} state="done" phase="done" onRetry={onRetry} />
+    );
+    expect(screen.getByText('没有生成结果')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '重新生成' }));
+    expect(onRetry).toHaveBeenCalled();
+  });
+
+  it('历史 tab：点击记录可恢复（onRestore 回调）', () => {
+    const onRestore = jest.fn();
+    const entry: GenHistoryEntry = {
+      id: 'e1',
+      createdAt: Date.now(),
+      kind: 'image',
+      prompt: '月光',
+      images: ['https://cdn.example.com/a.png'],
+      videoUrl: null,
+    };
+    render(
+      <CanvasStage {...baseProps} history={[entry]} onRestore={onRestore} />
+    );
+    fireEvent.click(screen.getByRole('tab', { name: '历史' }));
+    fireEvent.click(screen.getByRole('button', { name: /恢复记录/ }));
+    expect(onRestore).toHaveBeenCalledWith(entry);
   });
 });
