@@ -18,6 +18,12 @@ class ImageGenTaskRequest(BaseModel):
     prompt: str = Field(..., min_length=1, max_length=1000, description="描述提示词（中文/英文均可）")
     # 工作流额外输入（如负面词、尺寸、参考图等），键名依工作流而定
     workflow_inputs: Optional[Dict[str, str]] = Field(None, description="工作流额外输入参数（可选）")
+    # 图片模型标识（仅 type=image 生效；视频走 RUNNINGHUB_VIDEO_ENDPOINT 固定端点）
+    model: str = Field(default="rhart-image-g-2-official", description="图片生成模型标识")
+    # 图片生成模式：text 文生图 / image 图生图（配合 image_urls 使用）
+    mode: Literal["text", "image"] = Field(default="text", description="图片生成模式")
+    # 图生图参考图 URL 列表（mode=image 时必填，RunningHub 键名为 imageUrls）
+    image_urls: Optional[List[str]] = Field(None, description="图生图参考图 URL 列表（可选）")
 
 
 class ImageGenTaskResponse(BaseModel):

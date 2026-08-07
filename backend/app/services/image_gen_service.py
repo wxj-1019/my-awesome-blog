@@ -14,7 +14,6 @@ import httpx
 
 from app.core.config import settings
 from app.schemas.image_gen import (
-    GenType,
     ImageGenStatusResponse,
     ImageGenTaskRequest,
     ImageGenTaskResponse,
@@ -39,29 +38,42 @@ def _config_or_raise() -> str:
     return key
 
 
-def _endpoint_for(gen_type: GenType) -> str:
-    """按类型取标准模型端点（/openapi/v2 相对路径），缺失抛 ValueError"""
-    endpoint = (
-        settings.RUNNINGHUB_IMAGE_ENDPOINT.strip()
-        if gen_type == "image"
-        else settings.RUNNINGHUB_VIDEO_ENDPOINT.strip()
-    )
+def _endpoint_for_video() -> str:
+    """取视频模型端点（走配置端点），缺失抛 ValueError"""
+    endpoint = settings.RUNNINGHUB_VIDEO_ENDPOINT.strip()
     if not endpoint:
-        app_logger.warning(f"生成服务未配置：{gen_type} 模型端点为空")
+        app_logger.warning("生成服务未配置：视频模型端点为空")
         raise ValueError("生成服务未配置（模型端点），请联系管理员")
     return endpoint.lstrip("/")
+
+
+def _image_endpoint_for(model: str, mode: str) -> str:
+    """按模型与模式拼图片端点（{model}/text-to-image 或 {model}/image-to-image）"""
+    model = model.strip()
+    if not model:
+        app_logger.warning("图片生成服务未配置：模型为空")
+        raise ValueError("生成服务未配置（模型），请联系管理员")
+    task = "image-to-image" if mode == "image" else "text-to-image"
+    return f"{model}/{task}"
 
 
 async def create_task(request: ImageGenTaskRequest) -> ImageGenTaskResponse:
     """提交 RunningHub 标准模型任务，返回 task_id"""
     key = _config_or_raise()
-    endpoint = _endpoint_for(request.type)
+    # 图片端点按 (model, mode) 动态拼接；视频保持配置端点
+    endpoint = (
+        _image_endpoint_for(request.model, request.mode)
+        if request.type == "image"
+        else _endpoint_for_video()
+    )
     base_url = (settings.RUNNINGHUB_BASE_URL or "https://www.runninghub.cn/openapi/v2").rstrip("/")
 
     # 工作流额外输入可覆盖默认参数（如 resolution/quality/duration），prompt 始终为提示词
-    payload: Dict[str, str] = {"prompt": request.prompt.strip()}
+    payload: Dict[str, Any] = {"prompt": request.prompt.strip()}
     if request.workflow_inputs:
         payload.update(request.workflow_inputs)
+    if request.image_urls:
+        payload["imageUrls"] = request.image_urls
 
     try:
         async with httpx.AsyncClient(timeout=_HTTP_TIMEOUT) as client:

@@ -69,11 +69,10 @@ class TestCreateTask:
         with pytest.raises(ValueError, match="未配置"):
             await create_task(make_request())
 
-    async def test_no_endpoint_raises(self, monkeypatch):
+    async def test_no_model_raises(self, monkeypatch):
         setup_runninghub(monkeypatch)
-        monkeypatch.setattr(settings, "RUNNINGHUB_IMAGE_ENDPOINT", "")
-        with pytest.raises(ValueError, match="模型端点"):
-            await create_task(make_request())
+        with pytest.raises(ValueError, match="模型"):
+            await create_task(make_request(model=""))
 
     async def test_success_returns_task_id(self, monkeypatch):
         setup_runninghub(monkeypatch)
@@ -95,6 +94,34 @@ class TestCreateTask:
         await create_task(make_request(type="video", prompt="海鸥飞过灯塔"))
         assert fake.request_url.endswith("/rhart-video-v3.1-fast/text-to-video")
         assert fake.request_kwargs["json"] == {"prompt": "海鸥飞过灯塔"}
+
+    async def test_image_endpoint_by_model_and_mode(self, monkeypatch):
+        setup_runninghub(monkeypatch)
+        fake = FakeAsyncClient()
+        monkeypatch.setattr(httpx, "AsyncClient", lambda *a, **k: fake)
+
+        # 默认 model/mode → rhart 文生图（现状端点）
+        await create_task(make_request())
+        assert fake.request_url.endswith("/rhart-image-g-2-official/text-to-image")
+
+        # 显式 model=seedream-v5-pro + text → seedream 文生图
+        await create_task(make_request(model="seedream-v5-pro"))
+        assert fake.request_url.endswith("/seedream-v5-pro/text-to-image")
+
+        # mode=image + image_urls → rhart 图生图端点 + imageUrls 数组透传
+        await create_task(
+            make_request(
+                mode="image",
+                image_urls=["https://cdn.example.com/a.png"],
+            )
+        )
+        assert fake.request_url.endswith("/rhart-image-g-2-official/image-to-image")
+        assert fake.request_kwargs["json"]["imageUrls"] == ["https://cdn.example.com/a.png"]
+
+    async def test_empty_model_raises(self, monkeypatch):
+        setup_runninghub(monkeypatch)
+        with pytest.raises(ValueError, match="模型"):
+            await create_task(make_request(model="  "))
 
     async def test_workflow_extra_inputs_merged(self, monkeypatch):
         setup_runninghub(monkeypatch)
