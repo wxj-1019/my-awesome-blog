@@ -72,4 +72,13 @@ describe('图片/视频生成页无障碍', () => {
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   }, 15000);
+
+  it('参考图图生图模式（URL 预览 + 模型下拉）应无严重可访问性违规', async () => {
+    const { container } = render(<ImageGenContent />);
+    fireEvent.change(screen.getByLabelText('参考图 URL'), { target: { value: 'https://cdn.example.com/ref.png' } });
+    fireEvent.click(screen.getByRole('button', { name: '应用' }));
+
+    const results = await axe(container);
+    expect(results).toHaveNoViolations();
+  }, 15000);
 });
