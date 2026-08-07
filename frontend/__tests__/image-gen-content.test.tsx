@@ -1,6 +1,10 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import ImageGenContent from '@/app/tools/image-gen/image-gen-content';
-import { createGenTask, getGenAccount, getGenTaskStatus } from '@/lib/api/imageGen';
+import {
+  createGenTask,
+  getGenAccount,
+  getGenTaskStatus,
+} from '@/lib/api/imageGen';
 
 jest.mock('@/lib/api/imageGen', () => ({
   createGenTask: jest.fn(),
@@ -35,8 +39,14 @@ const runGenerateFlow = async (opts: {
   if (opts.kind === 'video') {
     fireEvent.click(screen.getByRole('button', { name: '视频' }));
   }
-  fireEvent.change(screen.getByLabelText('提示词'), { target: { value: opts.prompt } });
-  fireEvent.click(screen.getByRole('button', { name: opts.kind === 'video' ? '生成视频' : '生成图片' }));
+  fireEvent.change(screen.getByLabelText('提示词'), {
+    target: { value: opts.prompt },
+  });
+  fireEvent.click(
+    screen.getByRole('button', {
+      name: opts.kind === 'video' ? '生成视频' : '生成图片',
+    })
+  );
   await flushPromises(); // createGenTask → start → 立即 getGenTaskStatus
 };
 
@@ -62,19 +72,33 @@ describe('ImageGenContent · 图片/视频生成工具页', () => {
 
   it('渲染输入区：类型切换、提示词、尺寸预设、张数、生成按钮', () => {
     render(<ImageGenContent />);
-    expect(screen.getByRole('button', { name: '图片' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: '图片' })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    );
     expect(screen.getByRole('button', { name: '视频' })).toBeInTheDocument();
     expect(screen.getByLabelText('提示词')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '1:1 方图' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '生成图片' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: '1:1 方图' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: '生成图片' })
+    ).toBeInTheDocument();
   });
 
   it('切换到视频 Tab：隐藏尺寸/张数，按钮文案变为生成视频', () => {
     render(<ImageGenContent />);
     fireEvent.click(screen.getByRole('button', { name: '视频' }));
-    expect(screen.getByRole('button', { name: '视频' })).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.queryByRole('button', { name: '1:1 方图' })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '生成视频' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '视频' })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    );
+    expect(
+      screen.queryByRole('button', { name: '1:1 方图' })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: '生成视频' })
+    ).toBeInTheDocument();
   });
 
   it('图片生成成功 → 渲染图片网格并调用 createGenTask(type=image)', async () => {
@@ -82,7 +106,10 @@ describe('ImageGenContent · 图片/视频生成工具页', () => {
     mockGetStatus.mockResolvedValue({
       task_id: 'task-1',
       status: 'success',
-      images: ['https://cdn.example.com/a.png', 'https://cdn.example.com/b.png'],
+      images: [
+        'https://cdn.example.com/a.png',
+        'https://cdn.example.com/b.png',
+      ],
       video_url: null,
       fail_reason: null,
     });
@@ -90,12 +117,16 @@ describe('ImageGenContent · 图片/视频生成工具页', () => {
     await runGenerateFlow({ prompt: '月光下的湖泊' });
 
     expect(await screen.findByText('生成结果')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '查看生成图片 1' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '查看生成图片 2' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: '查看生成图片 1' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: '查看生成图片 2' })
+    ).toBeInTheDocument();
     expect(mockCreateTask).toHaveBeenCalledWith({
       type: 'image',
       prompt: '月光下的湖泊',
-      workflowInputs: {
+      workflow_inputs: {
         resolution: '2k',
         quality: 'medium',
         aspect_ratio: '1:1',
@@ -125,7 +156,11 @@ describe('ImageGenContent · 图片/视频生成工具页', () => {
     expect(mockCreateTask).toHaveBeenCalledWith({
       type: 'video',
       prompt: '海鸥飞过灯塔',
-      workflowInputs: undefined,
+      workflow_inputs: {
+        aspectRatio: '16:9',
+        resolution: '1080p',
+        quality: 'medium',
+      },
     });
   });
 
@@ -140,11 +175,15 @@ describe('ImageGenContent · 图片/视频生成工具页', () => {
     });
 
     await runGenerateFlow({ prompt: '一只猫' });
-    expect(await screen.findByRole('button', { name: '生成中… 可取消' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('button', { name: '生成中… 可取消' })
+    ).toBeInTheDocument();
 
     // 点击取消 → 回到初始，无错误
     fireEvent.click(screen.getByRole('button', { name: '生成中… 可取消' }));
-    expect(screen.getByRole('button', { name: '生成图片' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: '生成图片' })
+    ).toBeInTheDocument();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
@@ -160,19 +199,96 @@ describe('ImageGenContent · 图片/视频生成工具页', () => {
 
     await runGenerateFlow({ prompt: '失败场景' });
 
-    const alert = await screen.findByRole('alert');
-    expect(alert).toHaveTextContent('审核未通过');
+    // 接入创作台后错误两处展示：输入卡（左列）+ 画布（右列），均带 role=alert
+    const alerts = await screen.findAllByRole('alert');
+    expect(alerts.length).toBeGreaterThan(0);
+    expect(alerts[0]).toHaveTextContent('审核未通过');
   });
 
   it('创建任务请求失败 → 展示错误信息', async () => {
     mockCreateTask.mockRejectedValue(new Error('生成服务未配置，请联系管理员'));
 
     render(<ImageGenContent />);
-    fireEvent.change(screen.getByLabelText('提示词'), { target: { value: '测试' } });
+    fireEvent.change(screen.getByLabelText('提示词'), {
+      target: { value: '测试' },
+    });
     fireEvent.click(screen.getByRole('button', { name: '生成图片' }));
     await flushPromises();
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('生成服务未配置');
+    const alerts = await screen.findAllByRole('alert');
+    expect(alerts.length).toBeGreaterThan(0);
+    expect(alerts[0]).toHaveTextContent('生成服务未配置');
+  });
+
+  it('输入提示词后显示字数统计与清空按钮，点击清空恢复空', () => {
+    render(<ImageGenContent />);
+    const textarea = screen.getByLabelText('提示词');
+    fireEvent.change(textarea, { target: { value: '月光' } });
+    expect(screen.getByText('2/1000')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '清空提示词' }));
+    expect(textarea).toHaveValue('');
+  });
+
+  it('空态画布显示灵感卡片，点击填入提示词', () => {
+    render(<ImageGenContent />);
+    // 左列示例 chips 为截断文本，画布灵感卡为完整提示词 → 用完整名称精确定位画布卡片
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: '月光下的静谧湖泊，倒映着满天繁星，雾气缭绕，超现实主义风格',
+      })
+    );
+    // 点击后整条示例提示词填入输入框（onExampleSelect 透传完整提示词）
+    expect(screen.getByLabelText('提示词')).toHaveValue(
+      '月光下的静谧湖泊，倒映着满天繁星，雾气缭绕，超现实主义风格'
+    );
+  });
+
+  it('画布 tab 可切换到历史（空历史显示空态）并切回结果', () => {
+    render(<ImageGenContent />);
+    fireEvent.click(screen.getByRole('tab', { name: '历史' }));
+    expect(screen.getByText('还没有生成记录')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('tab', { name: '结果' }));
+    expect(screen.getByRole('tabpanel')).toBeInTheDocument();
+  });
+
+  it('生成中显示进度节点（排队阶段）', async () => {
+    mockCreateTask.mockResolvedValue({ task_id: 'task-1' });
+    mockGetStatus.mockResolvedValue({
+      task_id: 'task-1',
+      status: 'running',
+      images: [],
+      video_url: null,
+      fail_reason: null,
+    });
+
+    render(<ImageGenContent />);
+    fireEvent.change(screen.getByLabelText('提示词'), {
+      target: { value: '一只猫' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '生成图片' }));
+    await flushPromises();
+    expect(screen.getByRole('status')).toHaveTextContent(/生成/);
+  });
+
+  it('抽屉打开后每 30 秒自动刷新账户信息', async () => {
+    render(<ImageGenContent />);
+    // 打开抽屉：立即加载一次
+    fireEvent.click(screen.getByRole('button', { name: '打开生成记录' }));
+    fireEvent.click(screen.getByRole('button', { name: '账户' }));
+    await flushPromises();
+    expect(mockGetAccount).toHaveBeenCalledTimes(1);
+    // 快进 30s：再次刷新
+    await act(async () => {
+      jest.advanceTimersByTime(30_000);
+      await Promise.resolve();
+    });
+    expect(mockGetAccount).toHaveBeenCalledTimes(2);
+    // 快进 60s：累计 4 次（30s 间隔）
+    await act(async () => {
+      jest.advanceTimersByTime(60_000);
+      await Promise.resolve();
+    });
+    expect(mockGetAccount).toHaveBeenCalledTimes(4);
   });
 
   it('成功生成后写入持久化历史，抽屉展示并可恢复（含 kind）', async () => {
@@ -198,7 +314,9 @@ describe('ImageGenContent · 图片/视频生成工具页', () => {
       video_url: 'https://cdn.example.com/clip2.mp4',
       fail_reason: null,
     });
-    fireEvent.change(screen.getByLabelText('提示词'), { target: { value: '第二组' } });
+    fireEvent.change(screen.getByLabelText('提示词'), {
+      target: { value: '第二组' },
+    });
     fireEvent.click(screen.getByRole('button', { name: '生成视频' }));
     await flushPromises();
     await screen.findByText('生成结果');
@@ -210,12 +328,22 @@ describe('ImageGenContent · 图片/视频生成工具页', () => {
 
     // 恢复第一组：点击历史项后提示词回到「第一组」，且恢复为图片类型
     fireEvent.click(screen.getByText('第一组'));
-    expect((screen.getByLabelText('提示词') as HTMLTextAreaElement).value).toBe('第一组');
-    expect(screen.getByRole('button', { name: '图片' })).toHaveAttribute('aria-pressed', 'true');
+    expect((screen.getByLabelText('提示词') as HTMLTextAreaElement).value).toBe(
+      '第一组'
+    );
+    expect(screen.getByRole('button', { name: '图片' })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    );
 
     // 历史已持久化到 localStorage（跨刷新保留）
-    const saved = JSON.parse(localStorage.getItem('image_gen_history_v1') ?? '[]');
-    expect(saved.map((e: { prompt: string }) => e.prompt)).toEqual(['第二组', '第一组']);
+    const saved = JSON.parse(
+      localStorage.getItem('image_gen_history_v1') ?? '[]'
+    );
+    expect(saved.map((e: { prompt: string }) => e.prompt)).toEqual([
+      '第二组',
+      '第一组',
+    ]);
   });
 
   it('抽屉可删除单条历史与清空全部', async () => {
@@ -249,12 +377,16 @@ describe('ImageGenContent · 图片/视频生成工具页', () => {
     // 删除单条
     fireEvent.click(screen.getAllByRole('button', { name: '删除' })[0]);
     expect(screen.getByText(/共 1 条/)).toBeInTheDocument();
-    expect(JSON.parse(localStorage.getItem('image_gen_history_v1') ?? '[]')).toHaveLength(1);
+    expect(
+      JSON.parse(localStorage.getItem('image_gen_history_v1') ?? '[]')
+    ).toHaveLength(1);
 
     // 清空全部
     fireEvent.click(screen.getByRole('button', { name: /清空/ }));
     expect(screen.getByText('还没有生成记录')).toBeInTheDocument();
-    expect(JSON.parse(localStorage.getItem('image_gen_history_v1') ?? '[]')).toHaveLength(0);
+    expect(
+      JSON.parse(localStorage.getItem('image_gen_history_v1') ?? '[]')
+    ).toHaveLength(0);
   });
 
   it('抽屉「账户」Tab 加载失败可重试，成功后展示账户信息', async () => {
@@ -266,7 +398,9 @@ describe('ImageGenContent · 图片/视频生成工具页', () => {
 
     // 打开即自动加载账户 → 失败显示错误
     fireEvent.click(screen.getByRole('button', { name: /账户/ }));
-    expect(await screen.findByRole('alert')).toHaveTextContent('生成服务调用失败');
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      '生成服务调用失败'
+    );
 
     // 重试成功 → 展示账户信息
     mockGetAccount.mockResolvedValue({

@@ -16,8 +16,8 @@ export type TaskStatus = 'pending' | 'running' | 'success' | 'fail';
 export interface CreateGenTaskRequest {
   type: GenType;
   prompt: string;
-  /** 工作流额外输入（如负面词、尺寸、参考图），键名依工作流而定 */
-  workflowInputs?: Record<string, string>;
+  /** 工作流额外输入（如负面词、尺寸、参考图），键名依工作流而定（后端字段为 snake_case，勿改） */
+  workflow_inputs?: Record<string, string>;
 }
 
 export interface CreateGenTaskResponse {
