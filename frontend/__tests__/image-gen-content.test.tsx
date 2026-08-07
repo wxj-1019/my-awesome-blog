@@ -201,8 +201,10 @@ describe('ImageGenContent · 图片/视频生成工具页', () => {
 
     // 接入创作台后错误两处展示：输入卡（左列）+ 画布（右列），均带 role=alert
     const alerts = await screen.findAllByRole('alert');
-    expect(alerts.length).toBeGreaterThan(0);
-    expect(alerts[0]).toHaveTextContent('审核未通过');
+    expect(alerts).toHaveLength(2);
+    for (const alert of alerts) {
+      expect(alert).toHaveTextContent('审核未通过');
+    }
   });
 
   it('创建任务请求失败 → 展示错误信息', async () => {
@@ -216,8 +218,10 @@ describe('ImageGenContent · 图片/视频生成工具页', () => {
     await flushPromises();
 
     const alerts = await screen.findAllByRole('alert');
-    expect(alerts.length).toBeGreaterThan(0);
-    expect(alerts[0]).toHaveTextContent('生成服务未配置');
+    expect(alerts).toHaveLength(2);
+    for (const alert of alerts) {
+      expect(alert).toHaveTextContent('生成服务未配置');
+    }
   });
 
   it('输入提示词后显示字数统计与清空按钮，点击清空恢复空', () => {
@@ -227,6 +231,8 @@ describe('ImageGenContent · 图片/视频生成工具页', () => {
     expect(screen.getByText('2/1000')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: '清空提示词' }));
     expect(textarea).toHaveValue('');
+    // 清空按钮卸载后焦点归还输入框
+    expect(textarea).toHaveFocus();
   });
 
   it('空态画布显示灵感卡片，点击填入提示词', () => {
@@ -237,10 +243,11 @@ describe('ImageGenContent · 图片/视频生成工具页', () => {
         name: '月光下的静谧湖泊，倒映着满天繁星，雾气缭绕，超现实主义风格',
       })
     );
-    // 点击后整条示例提示词填入输入框（onExampleSelect 透传完整提示词）
+    // 点击后整条示例提示词填入输入框（onExampleSelect 透传完整提示词），焦点归输入框
     expect(screen.getByLabelText('提示词')).toHaveValue(
       '月光下的静谧湖泊，倒映着满天繁星，雾气缭绕，超现实主义风格'
     );
+    expect(screen.getByLabelText('提示词')).toHaveFocus();
   });
 
   it('画布 tab 可切换到历史（空历史显示空态）并切回结果', () => {

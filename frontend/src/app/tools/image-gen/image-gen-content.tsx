@@ -319,7 +319,7 @@ export default function ImageGenContent() {
                           }
                     }
                     className={cn(
-                      'absolute inset-y-1 w-[calc(50%-3px)] rounded-md bg-primary',
+                      'absolute inset-y-1 w-[calc(50%-7px)] rounded-md bg-primary',
                       kind === 'image' ? 'left-1' : 'left-[calc(50%+3px)]'
                     )}
                   />
@@ -374,7 +374,11 @@ export default function ImageGenContent() {
                   {prompt.length > 0 ? (
                     <button
                       type="button"
-                      onClick={() => setPrompt('')}
+                      onClick={() => {
+                        setPrompt('');
+                        // 清空后按钮卸载、焦点丢失 → 归还到提示词输入框
+                        document.getElementById('gen-prompt')?.focus();
+                      }}
                       aria-label="清空提示词"
                       className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:text-error focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
@@ -474,7 +478,7 @@ export default function ImageGenContent() {
                       : !prompt.trim()
                   }
                   aria-busy={state === 'submitting' || state === 'polling'}
-                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-tech-cyan to-tech-sky px-4 py-2.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-60"
+                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-tech-cyan to-tech-sky px-4 py-2.5 text-sm font-medium text-foreground transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-60"
                 >
                   {state === 'submitting' || state === 'polling' ? (
                     <>
@@ -535,7 +539,11 @@ export default function ImageGenContent() {
               history={history}
               hasResult={hasResult}
               examplePrompts={EXAMPLE_PROMPTS}
-              onExampleSelect={p => setPrompt(p)}
+              onExampleSelect={p => {
+                setPrompt(p);
+                // 填入示例后把焦点放回提示词输入框（避免焦点留在画布卡片上）
+                document.getElementById('gen-prompt')?.focus();
+              }}
               onRestore={handleRestore}
               onDelete={handleDeleteHistory}
               onClear={handleClearHistory}
