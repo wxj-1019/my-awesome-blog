@@ -1,28 +1,28 @@
-'use client'
+'use client';
 
-import dynamic from 'next/dynamic'
+import dynamic from 'next/dynamic';
 
-import HeroSection from '@/components/home/HeroSection'
-import FeaturedHighlights from '@/components/home/FeaturedHighlights'
-import StatsPanel from '@/components/home/StatsPanel'
-import TechStack from '@/components/home/TechStack'
-import Timeline from '@/components/home/Timeline'
-import ScrollProgress from '@/components/home/ScrollProgress'
-import MobileDrawer from '@/components/home/MobileDrawer'
-import WeatherCard from '@/components/home/WeatherCard'
-import CursorGlow from '@/components/home/decorations/CursorGlow'
+import HeroSection from '@/components/home/HeroSection';
+import FeaturedHighlights from '@/components/home/FeaturedHighlights';
+import StatsPanel from '@/components/home/StatsPanel';
+import TechStack from '@/components/home/TechStack';
+import Timeline from '@/components/home/Timeline';
+import ScrollProgress from '@/components/home/ScrollProgress';
+import MobileDrawer from '@/components/home/MobileDrawer';
+import WeatherCard from '@/components/home/WeatherCard';
+import CursorGlow from '@/components/home/decorations/CursorGlow';
 import {
   DiveTransition,
   HomeActSection,
   HOME_GLOW,
   ShoreBeacon,
-} from '@/components/home/narrative'
+} from '@/components/home/narrative';
 
 // 阅读统计（recharts 图表，~500KB）位于第三幕、首屏之外：拆独立 chunk 懒加载，
 // 避免图表库进入首屏关键路径（ssr:false 对首屏外组件无感知影响）
 const ReadingStats = dynamic(() => import('@/components/home/ReadingStats'), {
   ssr: false,
-})
+});
 
 /**
  * 首页 · 深海 × 电影
@@ -49,6 +49,7 @@ export default function Home() {
           description="从浪线之下开始，拾起值得停留的篇章"
           contained={false}
           depth="shallow"
+          className="mt-12 sm:mt-16"
         >
           <FeaturedHighlights />
         </HomeActSection>
@@ -59,7 +60,7 @@ export default function Home() {
           description="航行读数与舱内工具"
           contained={false}
           depth="cabin"
-          className="mt-10 sm:mt-14"
+          className="mt-12 sm:mt-16"
         >
           <StatsPanel />
           <TechStack />
@@ -71,7 +72,7 @@ export default function Home() {
           description="数据航迹与历程随潮汐展开"
           contained={false}
           depth="current"
-          className="mt-10 sm:mt-14"
+          className="mt-12 sm:mt-16"
         >
           {/* 原「航迹」幕并入：阅读统计收进洋流的深层水域 */}
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
@@ -92,5 +93,5 @@ export default function Home() {
         </HomeActSection>
       </div>
     </div>
-  )
+  );
 }
