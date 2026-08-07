@@ -101,6 +101,12 @@ export default function DiveTransition({ className }: { className?: string }) {
       className={cn('relative pointer-events-none -mt-6 sm:-mt-10 z-10', className)}
       aria-hidden
     >
+      {/* 浅色模式增强：色带在浅背景上需更高对比才可见（深色模式原值即可） */}
+      <style jsx>{`
+        :global(.light) [data-dive-band] {
+          opacity: 1.6;
+        }
+      `}</style>
       <div
         className={cn(
           'relative w-full overflow-hidden',
