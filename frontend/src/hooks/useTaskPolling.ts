@@ -17,6 +17,8 @@ interface UseTaskPollingOptions {
 
 export interface UseTaskPollingResult {
   status: TaskPollStatus;
+  /** 轮询阶段（pending 排队 / running 生成 / done 成功；进度步进条用） */
+  phase: 'idle' | 'pending' | 'running' | 'done';
   /** 最终成功结果（status=success 时非空） */
   result: GenTaskStatusResponse | null;
   /** 失败/超时/请求错误原因 */
@@ -37,6 +39,7 @@ export function useTaskPolling({
   maxRetries = 3,
 }: UseTaskPollingOptions = {}): UseTaskPollingResult {
   const [status, setStatus] = useState<TaskPollStatus>('idle');
+  const [phase, setPhase] = useState<'idle' | 'pending' | 'running' | 'done'>('idle');
   const [result, setResult] = useState<GenTaskStatusResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -60,6 +63,7 @@ export function useTaskPolling({
 
   const stop = useCallback(() => {
     clearTimer();
+    setPhase('idle');
     taskIdRef.current = null;
   }, [clearTimer]);
 
@@ -69,6 +73,7 @@ export function useTaskPolling({
   const start = useCallback(
     (taskId: string) => {
       clearTimer();
+      setPhase('pending');
       taskIdRef.current = taskId;
       setStatus('polling');
       setResult(null);
@@ -88,8 +93,12 @@ export function useTaskPolling({
           }
           retryCount = 0; // 成功即重置连续错误计数
 
+          if (data.status === 'running') {
+            setPhase('running');
+          }
           if (data.status === 'success') {
             setResult(data);
+            setPhase('done');
             setStatus('success');
             clearTimer();
             return;
@@ -136,5 +145,5 @@ export function useTaskPolling({
     [clearTimer]
   );
 
-  return { status, result, error, start, stop };
+  return { status, phase, result, error, start, stop };
 }

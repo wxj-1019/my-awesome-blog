@@ -92,6 +92,54 @@ describe('useTaskPolling · 生成任务轮询 hook', () => {
     expect(mockGetStatus).toHaveBeenCalledTimes(1);
   });
 
+  it('phase 跟随轮询阶段：pending → running → done', async () => {
+    mockGetStatus
+      .mockResolvedValueOnce(statusResp({ status: 'pending' })) // 第一次 pending
+      .mockResolvedValueOnce(statusResp({ status: 'running' })) // 第二次 running
+      .mockResolvedValueOnce(statusResp({ status: 'success', images: ['https://cdn/x.png'] }));
+    const { result } = renderHook(() => useTaskPolling({ intervalMs: 3000 }));
+
+    expect(result.current.phase).toBe('idle');
+
+    act(() => {
+      result.current.start('task-1');
+    });
+    expect(result.current.phase).toBe('pending');
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(result.current.phase).toBe('pending'); // 首查 pending
+
+    await act(async () => {
+      jest.advanceTimersByTime(3000);
+      await Promise.resolve();
+    });
+    expect(result.current.phase).toBe('running'); // 二查 running
+
+    await act(async () => {
+      jest.advanceTimersByTime(3000);
+      await Promise.resolve();
+    });
+    expect(result.current.phase).toBe('done'); // 三查 success
+    expect(result.current.status).toBe('success');
+  });
+
+  it('stop 后 phase 回到 idle', async () => {
+    mockGetStatus.mockResolvedValue(statusResp());
+    const { result } = renderHook(() => useTaskPolling({ intervalMs: 3000 }));
+
+    act(() => {
+      result.current.start('task-1');
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+    act(() => {
+      result.current.stop();
+    });
+    expect(result.current.phase).toBe('idle');
+  });
+
   it('超出总超时置 timeout', async () => {
     mockGetStatus.mockResolvedValue(statusResp());
     const { result } = renderHook(() =>
