@@ -389,15 +389,15 @@ export default function TarotContent() {
           <TarotStepper phase={phase} compact />
         </div>
 
-        {/* lg+ 双栏：左侧垂直进度侧轨 + 主流程（min-w-0 防扇形牌堆撑破网格列） */}
-        <div className="lg:grid lg:grid-cols-[170px_minmax(0,1fr)] lg:gap-6">
+        {/* lg+ 双栏：左侧垂直进度侧轨 + 主流程（整体居中） */}
+        <div className="lg:grid lg:grid-cols-[170px_minmax(0,1fr)] lg:gap-6 max-w-5xl mx-auto">
           <div className="hidden lg:block">
             <div className="lg:sticky lg:top-24">
               <TarotStepper phase={phase} />
             </div>
           </div>
 
-          <div className="min-w-0 max-w-3xl mx-auto">
+          <div className="min-w-0">
 
             {/* 问牌 */}
             {phase === 'ask' ? (
