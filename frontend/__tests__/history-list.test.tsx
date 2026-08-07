@@ -41,10 +41,55 @@ describe('HistoryList · 画布历史列表', () => {
     expect(screen.getByText('视频')).toBeInTheDocument();
   });
 
+  it('超长提示词截断为 30 字加省略号', () => {
+    // 31 字提示词 → 渲染为 30 字 + '…'（共 31 字符）
+    const longPrompt = '长'.repeat(31);
+    render(
+      <HistoryList
+        entries={[{ ...entry, id: 'e3', prompt: longPrompt }]}
+        onRestore={jest.fn()}
+        onDelete={jest.fn()}
+        onClear={jest.fn()}
+      />
+    );
+    const el = screen.getByText(`${'长'.repeat(30)}…`);
+    expect(el.textContent).toHaveLength(31);
+    expect(el.textContent?.endsWith('…')).toBe(true);
+  });
+
+  it('格式化为小时级相对时间', () => {
+    const hourEntry: GenHistoryEntry = { ...entry, id: 'e4', createdAt: Date.now() - 3_600_000 };
+    render(
+      <HistoryList entries={[hourEntry]} onRestore={jest.fn()} onDelete={jest.fn()} onClear={jest.fn()} />
+    );
+    expect(screen.getByText('1 小时前')).toBeInTheDocument();
+  });
+
+  it('图片无 URL 时显示占位图标且不渲染 img', () => {
+    const noImageEntry: GenHistoryEntry = { ...entry, id: 'e5', images: [] };
+    render(
+      <HistoryList
+        entries={[noImageEntry]}
+        onRestore={jest.fn()}
+        onDelete={jest.fn()}
+        onClear={jest.fn()}
+      />
+    );
+    expect(screen.getByText('月光下的静谧湖泊')).toBeInTheDocument();
+    expect(screen.queryByRole('img')).toBeNull();
+  });
+
   it('点击条目触发恢复回调', () => {
     const onRestore = jest.fn();
     render(<HistoryList entries={[entry]} onRestore={onRestore} onDelete={jest.fn()} onClear={jest.fn()} />);
     fireEvent.click(screen.getByRole('button', { name: /恢复记录/ }));
+    expect(onRestore).toHaveBeenCalledWith(entry);
+  });
+
+  it('点击提示词文本区（主命中区）同样触发恢复回调', () => {
+    const onRestore = jest.fn();
+    render(<HistoryList entries={[entry]} onRestore={onRestore} onDelete={jest.fn()} onClear={jest.fn()} />);
+    fireEvent.click(screen.getByText('月光下的静谧湖泊').closest('button')!);
     expect(onRestore).toHaveBeenCalledWith(entry);
   });
 
