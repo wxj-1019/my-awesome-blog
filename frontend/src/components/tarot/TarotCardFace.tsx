@@ -61,7 +61,7 @@ const TarotCardFace = memo(function TarotCardFace({ card, className }: TarotCard
         {topLabel(card)}
       </span>
 
-      <div className={cn('flex flex-1 items-center justify-center py-1', meta.text)}>
+      <div className={cn('flex min-h-0 flex-1 items-center justify-center py-1', meta.text)}>
         <CenterMotif card={card} />
       </div>
 
