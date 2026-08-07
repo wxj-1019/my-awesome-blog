@@ -72,7 +72,7 @@ async def create_task(request: ImageGenTaskRequest) -> ImageGenTaskResponse:
     payload: Dict[str, Any] = {"prompt": request.prompt.strip()}
     if request.workflow_inputs:
         payload.update(request.workflow_inputs)
-    if request.image_urls:
+    if request.type == "image" and request.image_urls:
         payload["imageUrls"] = request.image_urls
 
     try:

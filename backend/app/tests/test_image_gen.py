@@ -1,11 +1,17 @@
 """图片/视频生成（RunningHub OpenAPI v2 标准模型 API）测试：service 与 endpoint"""
 
 import httpx
+import pydantic
 import pytest
 
 from app.core.config import settings
 from app.schemas.image_gen import ImageGenTaskRequest
-from app.services.image_gen_service import create_task, get_account_info, get_task_status
+from app.services.image_gen_service import (
+    _image_endpoint_for,
+    create_task,
+    get_account_info,
+    get_task_status,
+)
 
 
 class FakeResponse:
@@ -69,10 +75,10 @@ class TestCreateTask:
         with pytest.raises(ValueError, match="未配置"):
             await create_task(make_request())
 
-    async def test_no_model_raises(self, monkeypatch):
-        setup_runninghub(monkeypatch)
-        with pytest.raises(ValueError, match="模型"):
-            await create_task(make_request(model=""))
+    async def test_no_model_raises(self):
+        # model 为空串不满足 pattern，schema 层直接拒绝（API 层转 422）
+        with pytest.raises(pydantic.ValidationError):
+            make_request(model="")
 
     async def test_success_returns_task_id(self, monkeypatch):
         setup_runninghub(monkeypatch)
@@ -93,6 +99,19 @@ class TestCreateTask:
 
         await create_task(make_request(type="video", prompt="海鸥飞过灯塔"))
         assert fake.request_url.endswith("/rhart-video-v3.1-fast/text-to-video")
+        assert fake.request_kwargs["json"] == {"prompt": "海鸥飞过灯塔"}
+
+        # 视频请求即使带了 image_urls/mode=image 也不得泄漏 imageUrls 进 payload
+        await create_task(
+            make_request(
+                type="video",
+                prompt="海鸥飞过灯塔",
+                image_urls=["https://cdn/x.png"],
+                mode="image",
+            )
+        )
+        assert fake.request_url.endswith("/rhart-video-v3.1-fast/text-to-video")
+        assert "imageUrls" not in fake.request_kwargs["json"]
         assert fake.request_kwargs["json"] == {"prompt": "海鸥飞过灯塔"}
 
     async def test_image_endpoint_by_model_and_mode(self, monkeypatch):
@@ -118,10 +137,10 @@ class TestCreateTask:
         assert fake.request_url.endswith("/rhart-image-g-2-official/image-to-image")
         assert fake.request_kwargs["json"]["imageUrls"] == ["https://cdn.example.com/a.png"]
 
-    async def test_empty_model_raises(self, monkeypatch):
-        setup_runninghub(monkeypatch)
+    async def test_empty_model_raises(self):
+        # service 层兜底：绕过 schema 直接调用时 model 为空仍抛 ValueError（防御保护）
         with pytest.raises(ValueError, match="模型"):
-            await create_task(make_request(model="  "))
+            _image_endpoint_for("  ", "text")
 
     async def test_workflow_extra_inputs_merged(self, monkeypatch):
         setup_runninghub(monkeypatch)
