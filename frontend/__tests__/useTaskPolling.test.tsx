@@ -140,6 +140,28 @@ describe('useTaskPolling · 生成任务轮询 hook', () => {
     expect(result.current.phase).toBe('idle');
   });
 
+  it('stop 后迟到的响应不会把 phase 改回 running', async () => {
+    let resolveA!: (v: { task_id: string; status: string; images: string[]; video_url: string | null; fail_reason: string | null }) => void;
+    mockGetStatus.mockReturnValueOnce(
+      new Promise((r) => {
+        resolveA = r;
+      })
+    );
+    const { result } = renderHook(() => useTaskPolling({ intervalMs: 3000 }));
+
+    act(() => {
+      result.current.start('task-1');
+    });
+    act(() => {
+      result.current.stop();
+    });
+    await act(async () => {
+      resolveA(statusResp());
+      await Promise.resolve();
+    });
+    expect(result.current.phase).toBe('idle');
+  });
+
   it('超出总超时置 timeout', async () => {
     mockGetStatus.mockResolvedValue(statusResp());
     const { result } = renderHook(() =>

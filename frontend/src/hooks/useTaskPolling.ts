@@ -6,6 +6,9 @@ import { getGenTaskStatus, type GenTaskStatusResponse } from '@/lib/api/imageGen
 /** 轮询生命周期状态 */
 export type TaskPollStatus = 'idle' | 'polling' | 'success' | 'fail' | 'timeout' | 'error';
 
+/** 轮询阶段（进度步进条用）：pending 排队 / running 生成 / done 成功 */
+export type TaskPollPhase = 'idle' | 'pending' | 'running' | 'done';
+
 interface UseTaskPollingOptions {
   /** 轮询间隔（ms），默认 3s */
   intervalMs?: number;
@@ -18,7 +21,7 @@ interface UseTaskPollingOptions {
 export interface UseTaskPollingResult {
   status: TaskPollStatus;
   /** 轮询阶段（pending 排队 / running 生成 / done 成功；进度步进条用） */
-  phase: 'idle' | 'pending' | 'running' | 'done';
+  phase: TaskPollPhase;
   /** 最终成功结果（status=success 时非空） */
   result: GenTaskStatusResponse | null;
   /** 失败/超时/请求错误原因 */
@@ -39,7 +42,7 @@ export function useTaskPolling({
   maxRetries = 3,
 }: UseTaskPollingOptions = {}): UseTaskPollingResult {
   const [status, setStatus] = useState<TaskPollStatus>('idle');
-  const [phase, setPhase] = useState<'idle' | 'pending' | 'running' | 'done'>('idle');
+  const [phase, setPhase] = useState<TaskPollPhase>('idle');
   const [result, setResult] = useState<GenTaskStatusResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
