@@ -91,7 +91,7 @@ export default function ReadingPanel({
     const controller = new AbortController();
     abortRef.current = controller;
     streamChat(
-      { messages: buildAiReadingMessages(question, spread, drawn), temperature: 0.7 },
+      { messages: buildAiReadingMessages(question, spread, drawn), temperature: 0.7, max_tokens: 300 },
       (chunk) => setAiText((prev) => prev + chunk),
       () => {
         abortRef.current = null;
