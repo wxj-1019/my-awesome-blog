@@ -103,16 +103,25 @@ export default function ImageGenContent() {
   // 轮询 hook：提交后 start(taskId)，success/fail/timeout/error 自动终止
   const polling = useTaskPolling({});
 
-  /** 刷新账户信息（打开抽屉/切账户/手动重试时调用） */
-  const refreshAccount = useCallback(async () => {
-    setAccountState({ status: 'loading' });
+  /** 刷新账户信息（silent=轮询静默刷新：已有成功数据时失败不打断展示） */
+  const refreshAccount = useCallback(async (opts?: { silent?: boolean }) => {
+    const silent = opts?.silent ?? false;
+    setAccountState(prev =>
+      silent && prev.status === 'success' ? prev : { status: 'loading' }
+    );
     try {
       const account = await getGenAccount();
       setAccountState({ status: 'success', account });
     } catch (err) {
       const msg =
         err instanceof Error ? err.message : '获取账户信息失败，请稍后重试';
-      setAccountState({ status: 'error', message: msg });
+      setAccountState(prev => {
+        // 静默刷新且已有成功数据：保留上次数据，不闪错误
+        if (silent && prev.status === 'success') {
+          return prev;
+        }
+        return { status: 'error', message: msg };
+      });
     }
   }, []);
 
@@ -123,7 +132,7 @@ export default function ImageGenContent() {
     }
     void refreshAccount();
     const timer = window.setInterval(() => {
-      void refreshAccount();
+      void refreshAccount({ silent: true });
     }, 30_000);
     return () => window.clearInterval(timer);
   }, [drawerOpen, refreshAccount]);

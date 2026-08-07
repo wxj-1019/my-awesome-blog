@@ -298,6 +298,26 @@ describe('ImageGenContent · 图片/视频生成工具页', () => {
     expect(mockGetAccount).toHaveBeenCalledTimes(4);
   });
 
+  it('账户轮询静默失败：保留上次成功数据，不闪错误态', async () => {
+    render(<ImageGenContent />);
+    fireEvent.click(screen.getByRole('button', { name: '打开生成记录' }));
+    fireEvent.click(screen.getByRole('button', { name: '账户' }));
+    // 首次加载成功（打开即加载，非静默）
+    expect(await screen.findByText('622')).toBeInTheDocument();
+    expect(mockGetAccount).toHaveBeenCalledTimes(1);
+
+    // 30s 轮询请求失败：静默刷新，保留上次成功数据、不出现错误 UI
+    mockGetAccount.mockRejectedValue(new Error('网络抖动'));
+    await act(async () => {
+      jest.advanceTimersByTime(30_000);
+      await Promise.resolve();
+    });
+    expect(mockGetAccount).toHaveBeenCalledTimes(2);
+    // 仍展示上次成功数据（未闪 loading 骨架、未切错误态）
+    expect(screen.getByText('622')).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
   it('成功生成后写入持久化历史，抽屉展示并可恢复（含 kind）', async () => {
     mockCreateTask.mockResolvedValue({ task_id: 'task-1' });
     mockGetStatus.mockResolvedValue({

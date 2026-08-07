@@ -4,8 +4,23 @@ import type { GenHistoryEntry } from '@/lib/image-gen-history';
 
 jest.mock('@/components/ui/Lightbox', () => ({
   __esModule: true,
-  default: ({ currentIndex }: { currentIndex: number }) => (
-    <div data-testid="lightbox" data-current-index={currentIndex} />
+  default: ({
+    currentIndex,
+    onNext,
+    onPrevious,
+  }: {
+    currentIndex: number;
+    onNext: () => void;
+    onPrevious: () => void;
+  }) => (
+    <div data-testid="lightbox" data-current-index={currentIndex}>
+      <button type="button" onClick={onNext}>
+        next
+      </button>
+      <button type="button" onClick={onPrevious}>
+        previous
+      </button>
+    </div>
   ),
 }));
 
@@ -201,5 +216,67 @@ describe('CanvasStage · 创作台画布', () => {
     fireEvent.click(screen.getByRole('tab', { name: '历史' }));
     fireEvent.click(screen.getByRole('button', { name: /恢复记录/ }));
     expect(onRestore).toHaveBeenCalledWith(entry);
+  });
+
+  it('Lightbox wrap 不越界：失败图占位不计入翻页长度', () => {
+    render(
+      <CanvasStage
+        {...baseProps}
+        state="done"
+        phase="done"
+        images={[
+          'https://cdn.example.com/a.png',
+          'https://cdn.example.com/b.png',
+        ]}
+        failedImages={new Set(['https://cdn.example.com/a.png'])}
+        hasResult
+      />
+    );
+    // a 失败渲染为占位，b 是唯一可预览图（过滤后索引 0）
+    fireEvent.click(screen.getByRole('button', { name: '查看生成图片 2' }));
+    expect(screen.getByTestId('lightbox')).toHaveAttribute(
+      'data-current-index',
+      '0'
+    );
+    // Next 到末尾后应 wrap 回 0，而不是跳到 ≥ lightboxImages.length 的越界索引
+    fireEvent.click(screen.getByRole('button', { name: 'next' }));
+    expect(screen.getByTestId('lightbox')).toHaveAttribute(
+      'data-current-index',
+      '0'
+    );
+    // Previous 从 0 wrap 同样回 0（不出现负索引越界）
+    fireEvent.click(screen.getByRole('button', { name: 'previous' }));
+    expect(screen.getByTestId('lightbox')).toHaveAttribute(
+      'data-current-index',
+      '0'
+    );
+  });
+
+  it('历史 tab 点击恢复：自动切回结果 tab（spec §2.3）', () => {
+    const onRestore = jest.fn();
+    const entry: GenHistoryEntry = {
+      id: 'e1',
+      createdAt: Date.now(),
+      kind: 'image',
+      prompt: '月光',
+      images: ['https://cdn.example.com/a.png'],
+      videoUrl: null,
+    };
+    render(
+      <CanvasStage {...baseProps} history={[entry]} onRestore={onRestore} />
+    );
+    fireEvent.click(screen.getByRole('tab', { name: '历史' }));
+    fireEvent.click(screen.getByRole('button', { name: /恢复记录/ }));
+    // 恢复回调照常触发
+    expect(onRestore).toHaveBeenCalledWith(entry);
+    // 恢复后自动切回结果 tab，画布展示结果面板
+    expect(screen.getByRole('tab', { name: '结果' })).toHaveAttribute(
+      'aria-selected',
+      'true'
+    );
+    expect(screen.getByRole('tabpanel')).toHaveAttribute(
+      'id',
+      'canvas-panel-result'
+    );
   });
 });

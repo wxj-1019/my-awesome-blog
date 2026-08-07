@@ -108,6 +108,12 @@ export default function CanvasStage({
     [images, prompt, failedImages]
   );
 
+  /** 恢复历史：先切回结果 tab 再回填（spec §2.3：恢复即切到结果 tab） */
+  const handleRestoreEntry = (entry: GenHistoryEntry) => {
+    setActiveTab('result');
+    onRestore(entry);
+  };
+
   /** 进度阶段映射：submitting=排队，polling+pending=排队，polling+running=生成，done=完成 */
   const progressIndex: 0 | 1 | 2 =
     state === 'done' || phase === 'done' ? 2 : phase === 'running' ? 1 : 0;
@@ -167,7 +173,7 @@ export default function CanvasStage({
         >
           <HistoryList
             entries={history}
-            onRestore={onRestore}
+            onRestore={handleRestoreEntry}
             onDelete={onDelete}
             onClear={onClear}
           />
@@ -210,12 +216,16 @@ export default function CanvasStage({
         currentIndex={lightboxIndex}
         isOpen={lightboxOpen}
         onClose={() => setLightboxOpen(false)}
+        // 以过滤失败图后的 lightboxImages 长度为模数：wrap 不会越界
+        // （此前误用全量 images.length，失败图存在时 Next 会跳到越界索引）
         onNext={() =>
-          setLightboxIndex(i => (i + 1) % Math.max(images.length, 1))
+          setLightboxIndex(i => (i + 1) % Math.max(lightboxImages.length, 1))
         }
         onPrevious={() =>
           setLightboxIndex(
-            i => (i - 1 + images.length) % Math.max(images.length, 1)
+            i =>
+              (i - 1 + lightboxImages.length) %
+              Math.max(lightboxImages.length, 1)
           )
         }
         enableZoom
