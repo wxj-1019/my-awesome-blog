@@ -63,6 +63,7 @@ describe('ImageGenContent · 图片/视频生成工具页', () => {
     mockCreateTask.mockReset();
     mockGetStatus.mockReset();
     mockGetAccount.mockReset();
+    mockUpload.mockReset();
     mockGetAccount.mockResolvedValue({
       remain_coins: '622',
       current_task_counts: '0',
@@ -532,12 +533,77 @@ describe('ImageGenContent · 图片/视频生成工具页', () => {
       'src',
       'https://cdn.example.com/uploaded.png'
     );
-    localStorage.removeItem('auth_token');
   });
 
   it('游客（无 token）不显示上传按钮', () => {
     localStorage.removeItem('auth_token');
     render(<ImageGenContent />);
     expect(screen.queryByLabelText('上传图片')).not.toBeInTheDocument();
+  });
+
+  it('seedream 模型：payload 不含 count/quality，model 生效', async () => {
+    mockCreateTask.mockResolvedValue({ task_id: 'task-1' });
+    mockGetStatus.mockResolvedValue({
+      task_id: 'task-1',
+      status: 'success',
+      images: ['https://cdn.example.com/a.png'],
+      video_url: null,
+      fail_reason: null,
+    });
+
+    render(<ImageGenContent />);
+    fireEvent.change(screen.getByLabelText('模型'), {
+      target: { value: 'seedream-v5-pro' },
+    });
+    fireEvent.change(screen.getByLabelText('提示词'), {
+      target: { value: '水彩风格' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '生成图片' }));
+    await flushPromises();
+    expect(mockCreateTask).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'image',
+        model: 'seedream-v5-pro',
+        mode: 'text',
+        // 嵌套对象精确匹配：seedream 档不传 quality/count
+        workflow_inputs: {
+          resolution: '2k',
+          aspect_ratio: '1:1',
+        },
+      })
+    );
+  });
+
+  it('参考图上传失败 → 展示错误提示', async () => {
+    localStorage.setItem('auth_token', 'test-token');
+    mockUpload.mockRejectedValue(new Error('fail'));
+
+    render(<ImageGenContent />);
+    fireEvent.change(screen.getByLabelText('上传图片'), {
+      target: {
+        files: [new File(['x'], 'ref.png', { type: 'image/png' })],
+      },
+    });
+    await flushPromises();
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      '参考图上传失败，请重试或直接粘贴图片 URL'
+    );
+  });
+
+  it('有参考图时模型锁定 rhart（值/禁用），张数可用', () => {
+    render(<ImageGenContent />);
+    fireEvent.change(screen.getByLabelText('模型'), {
+      target: { value: 'seedream-v5-pro' },
+    });
+    fireEvent.change(screen.getByLabelText('参考图 URL'), {
+      target: { value: 'https://cdn.example.com/ref.png' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '应用' }));
+    const select = screen.getByLabelText('模型');
+    expect(select).toBeDisabled();
+    // effectiveModel 覆盖：下拉显示 rhart 而非 seedream
+    expect(select).toHaveValue('rhart-image-g-2-official');
+    // rhart 档张数按钮恢复可用
+    expect(screen.getByRole('button', { name: '4' })).not.toBeDisabled();
   });
 });

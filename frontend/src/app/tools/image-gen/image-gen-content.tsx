@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
   ArrowLeft,
@@ -21,6 +21,7 @@ import CanvasStage from '@/components/tools/image-gen/CanvasStage';
 import { FadeIn } from '@/components/motion';
 import { createGenTask, getGenAccount, type GenType } from '@/lib/api/imageGen';
 import { uploadFile } from '@/lib/api/oss';
+import { TOKEN_KEY } from '@/lib/api-client';
 import { useTaskPolling } from '@/hooks/useTaskPolling';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import {
@@ -115,6 +116,8 @@ export default function ImageGenContent() {
   const [refInput, setRefInput] = useState('');
   /** 参考图上传失败提示 */
   const [refUploadError, setRefUploadError] = useState('');
+  /** 参考图上传序号：移除/切换类型后自增，作废在途上传结果，避免竞态回填 */
+  const refUploadSeq = useRef(0);
 
   /** 是否偏好减少动画（滑动指示器 spring 回退为瞬移） */
   const shouldReduceMotion = useReducedMotion();
@@ -180,6 +183,18 @@ export default function ImageGenContent() {
     saveHistory([]);
   }, []);
 
+  /** 登录态检测（隐私模式等 localStorage 不可用时按未登录处理） */
+  const hasAuthToken = (): boolean => {
+    if (typeof window === 'undefined') {
+      return false;
+    }
+    try {
+      return Boolean(localStorage.getItem(TOKEN_KEY));
+    } catch {
+      return false;
+    }
+  };
+
   /** 参考图上传：走 OSS（需登录），成功回填 URL；失败展示提示 */
   const handleRefUpload = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -188,9 +203,14 @@ export default function ImageGenContent() {
       if (!file) {
         return;
       }
+      const seq = ++refUploadSeq.current;
       setRefUploadError('');
       try {
         const res = await uploadFile(file);
+        // 上传期间参考图已被移除/类型已切换：丢弃本次结果
+        if (seq !== refUploadSeq.current) {
+          return;
+        }
         setRefImageUrl(res.file_url);
       } catch {
         setRefUploadError('参考图上传失败，请重试或直接粘贴图片 URL');
@@ -225,7 +245,7 @@ export default function ImageGenContent() {
         // 后端 schema 字段为 snake_case；内部键名依工作流而定（图片 snake_case / 视频 camelCase）
         model: kind === 'image' ? effectiveModel : undefined,
         mode: kind === 'image' && refImageUrl ? 'image' : 'text',
-        image_urls: refImageUrl ? [refImageUrl] : undefined,
+        image_urls: kind === 'image' && refImageUrl ? [refImageUrl] : undefined,
         workflow_inputs:
           kind === 'image'
             ? effectiveModel === I2I_MODEL
@@ -405,6 +425,8 @@ export default function ImageGenContent() {
                           setRefImageUrl(null);
                           setRefInput('');
                           setRefUploadError('');
+                          // 作废在途上传，防止迟到结果回填到新类型
+                          refUploadSeq.current += 1;
                         }
                       }}
                       aria-pressed={kind === k.value}
@@ -494,10 +516,10 @@ export default function ImageGenContent() {
                       </label>
                       <select
                         id="gen-model"
-                        value={model}
+                        // 展示有效模型：有参考图时锁定 rhart（禁用中，值由 effectiveModel 覆盖）
+                        value={effectiveModel}
                         onChange={e => setModel(e.target.value)}
                         disabled={Boolean(refImageUrl)}
-                        aria-label="模型"
                         className="min-w-0 flex-1 rounded-lg border border-input bg-background/60 px-2.5 py-1.5 text-xs text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60"
                       >
                         {IMAGE_MODELS.map(m => (
@@ -514,6 +536,9 @@ export default function ImageGenContent() {
                         <img
                           src={refImageUrl}
                           alt="参考图预览"
+                          onError={() =>
+                            setRefUploadError('参考图加载失败，请更换 URL')
+                          }
                           className="h-16 w-16 shrink-0 rounded-md border border-border object-cover"
                         />
                         <div className="min-w-0 flex-1">
@@ -530,6 +555,8 @@ export default function ImageGenContent() {
                             setRefImageUrl(null);
                             setRefInput('');
                             setRefUploadError('');
+                            // 作废在途上传，防止迟到结果重新回填参考图
+                            refUploadSeq.current += 1;
                           }}
                           aria-label="移除参考图"
                           className="rounded-md p-2 text-muted-foreground transition-colors hover:text-error focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -543,7 +570,11 @@ export default function ImageGenContent() {
                           <input
                             type="url"
                             value={refInput}
-                            onChange={e => setRefInput(e.target.value)}
+                            onChange={e => {
+                              setRefInput(e.target.value);
+                              // 重新输入时清掉上次的校验错误
+                              setRefUploadError('');
+                            }}
                             placeholder="粘贴图片 URL（公开可访问）"
                             aria-label="参考图 URL"
                             className="min-w-0 flex-1 rounded-lg border border-input bg-background/60 px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -553,28 +584,42 @@ export default function ImageGenContent() {
                             size="sm"
                             onClick={() => {
                               const u = refInput.trim();
-                              if (u) {
+                              if (!u) {
+                                return;
+                              }
+                              try {
+                                // 校验格式，阻止 javascript: 等伪协议
+                                new URL(u);
                                 setRefImageUrl(u);
                                 setRefInput('');
+                              } catch {
+                                setRefUploadError(
+                                  '图片 URL 格式无效，请检查后重试'
+                                );
                               }
                             }}
                           >
                             应用
                           </Button>
                         </div>
-                        {typeof window !== 'undefined' &&
-                        localStorage.getItem('auth_token') ? (
-                          <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                            <Upload className="h-3.5 w-3.5" aria-hidden />
-                            上传图片
+                        {hasAuthToken() ? (
+                          <>
                             <input
                               type="file"
                               accept="image/*"
+                              id="gen-ref-upload"
                               aria-label="上传图片"
-                              className="sr-only"
+                              className="sr-only peer"
                               onChange={handleRefUpload}
                             />
-                          </label>
+                            <label
+                              htmlFor="gen-ref-upload"
+                              className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring peer-focus-visible:ring-2 peer-focus-visible:ring-ring"
+                            >
+                              <Upload className="h-3.5 w-3.5" aria-hidden />
+                              上传图片
+                            </label>
+                          </>
                         ) : null}
                         {refUploadError ? (
                           <p role="alert" className="text-xs text-error">
