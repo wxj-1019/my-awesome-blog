@@ -28,27 +28,28 @@ const CUT_MS = 800;
 export default function TarotCutDeck({ onCut, disabled }: TarotCutDeckProps) {
   const reducedMotion = useReducedMotion();
   const [cutting, setCutting] = useState(false);
-  // 切牌 timer 句柄：卸载时清理，防止 stale callback 把流程推回 drawing
-  const timerRef = useRef<number | null>(null);
+  // 用 ref 存最新 onCut，避免 timer 闭包捕获旧引用
+  const onCutRef = useRef(onCut);
+  onCutRef.current = onCut;
 
   const handleCut = useCallback(() => {
     if (cutting) {return;}
     if (reducedMotion) {
-      onCut();
+      onCutRef.current();
       return;
     }
     setCutting(true);
-    timerRef.current = window.setTimeout(() => {
-      onCut();
-    }, CUT_MS);
-  }, [cutting, onCut, reducedMotion]);
+  }, [cutting, reducedMotion]);
 
-  // 卸载时清掉未触发的切牌 timer
-  useEffect(() => () => {
-    if (timerRef.current !== null) {
-      window.clearTimeout(timerRef.current);
-    }
-  }, []);
+  // 用 useEffect 管理 timer：cutting=true 时启动，unmount 或 cutting 变化时清理；
+  // 兼容 React Strict Mode 双重挂载（重新挂载时 effect 重建 timer）
+  useEffect(() => {
+    if (!cutting) {return;}
+    const timer = window.setTimeout(() => {
+      onCutRef.current();
+    }, CUT_MS);
+    return () => { window.clearTimeout(timer); };
+  }, [cutting]);
 
   return (
     <div className="flex flex-col items-center gap-8 py-4">
