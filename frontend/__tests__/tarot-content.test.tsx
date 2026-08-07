@@ -149,7 +149,7 @@ describe('TarotContent · 占卜流程状态机', () => {
 
     fireEvent.click(screen.getByText('翻牌0'));
     expect(screen.getByRole('button', { name: '分享牌阵' })).toBeInTheDocument();
-    expect(screen.getByText('历史面板')).toBeInTheDocument();
+    expect(screen.getAllByText('历史面板').length).toBeGreaterThanOrEqual(1);
   });
 
   it('三张牌阵：抽满 3 张后才进入揭示', () => {

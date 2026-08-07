@@ -389,8 +389,8 @@ export default function TarotContent() {
           <TarotStepper phase={phase} compact />
         </div>
 
-        {/* lg+ 双栏：左侧垂直进度侧轨 + 主流程（整体居中） */}
-        <div className="lg:grid lg:grid-cols-[170px_minmax(0,1fr)] lg:gap-6 max-w-5xl mx-auto">
+        {/* lg+ 三栏：左侧垂直进度侧轨 + 主流程 + 右侧历史栏 */}
+        <div className="lg:grid lg:grid-cols-[170px_minmax(0,1fr)_260px] xl:grid-cols-[170px_minmax(0,1fr)_280px] lg:gap-6 max-w-6xl xl:max-w-7xl mx-auto">
           <div className="hidden lg:block">
             <div className="lg:sticky lg:top-24">
               <TarotStepper phase={phase} />
@@ -659,12 +659,19 @@ export default function TarotContent() {
                 <TarotStatsBar stats={stats} />
               </div>
 
-              {/* 占卜历史 */}
-              <div className="w-full">
+              {/* 占卜历史（移动端显示，lg+移入右侧栏） */}
+              <div className="w-full lg:hidden">
                 <TarotHistory entries={history} onClear={clearHistory} />
               </div>
             </FadeIn>
           ) : null}
+          </div>
+
+          {/* 右侧历史栏（lg+显示，sticky；移动端隐藏，历史在 StatsBar 下方） */}
+          <div className="hidden lg:block">
+            <div className="sticky top-24">
+              <TarotHistory entries={history} onClear={clearHistory} />
+            </div>
           </div>
         </div>
       </div>
