@@ -18,6 +18,13 @@ jest.mock('@/components/ui/Lightbox', () => ({
   default: () => <div data-testid="lightbox" />,
 }));
 
+// OSS 上传 mock（登录态上传按钮测试用）
+jest.mock('@/lib/api/oss', () => ({
+  uploadFile: jest.fn(),
+}));
+import { uploadFile } from '@/lib/api/oss';
+const mockUpload = uploadFile as jest.Mock;
+
 const mockCreateTask = createGenTask as jest.Mock;
 const mockGetStatus = getGenTaskStatus as jest.Mock;
 const mockGetAccount = getGenAccount as jest.Mock;
@@ -126,6 +133,8 @@ describe('ImageGenContent · 图片/视频生成工具页', () => {
     expect(mockCreateTask).toHaveBeenCalledWith({
       type: 'image',
       prompt: '月光下的湖泊',
+      model: 'rhart-image-g-2-official',
+      mode: 'text',
       workflow_inputs: {
         resolution: '2k',
         quality: 'medium',
@@ -156,6 +165,7 @@ describe('ImageGenContent · 图片/视频生成工具页', () => {
     expect(mockCreateTask).toHaveBeenCalledWith({
       type: 'video',
       prompt: '海鸥飞过灯塔',
+      mode: 'text',
       workflow_inputs: {
         aspectRatio: '16:9',
         resolution: '1080p',
@@ -442,5 +452,92 @@ describe('ImageGenContent · 图片/视频生成工具页', () => {
     expect(screen.getByText('RH 币')).toBeInTheDocument();
     expect(screen.getByText('178.56 CNY')).toBeInTheDocument();
     expect(screen.getByText('SHARED')).toBeInTheDocument();
+  });
+
+  it('模型下拉默认 rhart，切 seedream 后张数禁用', () => {
+    render(<ImageGenContent />);
+    const select = screen.getByLabelText('模型');
+    expect(select).toHaveValue('rhart-image-g-2-official');
+    fireEvent.change(select, { target: { value: 'seedream-v5-pro' } });
+    expect(select).toHaveValue('seedream-v5-pro');
+    // seedream 档张数按钮禁用
+    const count4 = screen.getByRole('button', { name: '4' });
+    expect(count4).toBeDisabled();
+    // 切回 rhart 恢复
+    fireEvent.change(select, { target: { value: 'rhart-image-g-2-official' } });
+    expect(screen.getByRole('button', { name: '4' })).not.toBeDisabled();
+  });
+
+  it('参考图：应用 URL 显示预览，生成 payload 为图生图', async () => {
+    mockCreateTask.mockResolvedValue({ task_id: 'task-1' });
+    mockGetStatus.mockResolvedValue({
+      task_id: 'task-1',
+      status: 'success',
+      images: ['https://cdn.example.com/a.png'],
+      video_url: null,
+      fail_reason: null,
+    });
+
+    render(<ImageGenContent />);
+    fireEvent.change(screen.getByLabelText('提示词'), {
+      target: { value: '改成油画风格' },
+    });
+    fireEvent.change(screen.getByLabelText('参考图 URL'), {
+      target: { value: 'https://cdn.example.com/ref.png' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '应用' }));
+    expect(screen.getByAltText('参考图预览')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: '基于参考图生成' })
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: '基于参考图生成' }));
+    await flushPromises();
+    expect(mockCreateTask).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'image',
+        mode: 'image',
+        model: 'rhart-image-g-2-official',
+        image_urls: ['https://cdn.example.com/ref.png'],
+      })
+    );
+  });
+
+  it('移除参考图后回到文生图模式', () => {
+    render(<ImageGenContent />);
+    fireEvent.change(screen.getByLabelText('参考图 URL'), {
+      target: { value: 'https://cdn.example.com/ref.png' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '应用' }));
+    fireEvent.click(screen.getByRole('button', { name: '移除参考图' }));
+    expect(screen.queryByAltText('参考图预览')).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: '生成图片' })
+    ).toBeInTheDocument();
+  });
+
+  it('登录态显示上传按钮，上传成功回填参考图', async () => {
+    localStorage.setItem('auth_token', 'test-token');
+    mockUpload.mockResolvedValue({
+      file_url: 'https://cdn.example.com/uploaded.png',
+    });
+
+    render(<ImageGenContent />);
+    const fileInput = screen.getByLabelText('上传图片');
+    const file = new File(['x'], 'ref.png', { type: 'image/png' });
+    fireEvent.change(fileInput, { target: { files: [file] } });
+    await flushPromises();
+    expect(mockUpload).toHaveBeenCalledWith(file);
+    expect(screen.getByAltText('参考图预览')).toHaveAttribute(
+      'src',
+      'https://cdn.example.com/uploaded.png'
+    );
+    localStorage.removeItem('auth_token');
+  });
+
+  it('游客（无 token）不显示上传按钮', () => {
+    localStorage.removeItem('auth_token');
+    render(<ImageGenContent />);
+    expect(screen.queryByLabelText('上传图片')).not.toBeInTheDocument();
   });
 });

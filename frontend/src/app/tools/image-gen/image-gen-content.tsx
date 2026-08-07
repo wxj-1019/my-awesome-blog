@@ -8,6 +8,7 @@ import {
   ImageIcon,
   Loader2,
   RefreshCw,
+  Upload,
   Wand2,
   X,
 } from 'lucide-react';
@@ -19,6 +20,7 @@ import GenDrawer, { type AccountLoadState } from '@/components/ui/GenDrawer';
 import CanvasStage from '@/components/tools/image-gen/CanvasStage';
 import { FadeIn } from '@/components/motion';
 import { createGenTask, getGenAccount, type GenType } from '@/lib/api/imageGen';
+import { uploadFile } from '@/lib/api/oss';
 import { useTaskPolling } from '@/hooks/useTaskPolling';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import {
@@ -37,6 +39,15 @@ const SIZE_PRESETS = [
   { label: '3:4 竖图', value: '3:4' },
   { label: '4:3 横图', value: '4:3' },
 ] as const;
+
+/** 文生图模型选项（RunningHub 标准模型）：value 即端点模型标识 */
+const IMAGE_MODELS = [
+  { value: 'rhart-image-g-2-official', label: '全能图片 G-2（默认）' },
+  { value: 'seedream-v5-pro', label: 'Seedream V5 Pro（性价比）' },
+] as const;
+
+/** 图生图仅支持 rhart（seedream 图生图参数未验证，接入后放开） */
+const I2I_MODEL = IMAGE_MODELS[0].value;
 
 /** RunningHub 文生图工作流固定档位：清晰度 2k、质量 medium（档位支持见 rhart-image-g-2-official 模板） */
 const RUNNINGHUB_RESOLUTION = '2k';
@@ -96,6 +107,14 @@ export default function ImageGenContent() {
   const [accountState, setAccountState] = useState<AccountLoadState>({
     status: 'idle',
   });
+  /** 文生图模型（有参考图时强制 rhart） */
+  const [model, setModel] = useState<string>(IMAGE_MODELS[0].value);
+  /** 参考图 URL（图生图；null = 文生图模式） */
+  const [refImageUrl, setRefImageUrl] = useState<string | null>(null);
+  /** 参考图 URL 输入框文本 */
+  const [refInput, setRefInput] = useState('');
+  /** 参考图上传失败提示 */
+  const [refUploadError, setRefUploadError] = useState('');
 
   /** 是否偏好减少动画（滑动指示器 spring 回退为瞬移） */
   const shouldReduceMotion = useReducedMotion();
@@ -161,11 +180,33 @@ export default function ImageGenContent() {
     saveHistory([]);
   }, []);
 
+  /** 参考图上传：走 OSS（需登录），成功回填 URL；失败展示提示 */
+  const handleRefUpload = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      e.target.value = '';
+      if (!file) {
+        return;
+      }
+      setRefUploadError('');
+      try {
+        const res = await uploadFile(file);
+        setRefImageUrl(res.file_url);
+      } catch {
+        setRefUploadError('参考图上传失败，请重试或直接粘贴图片 URL');
+      }
+    },
+    []
+  );
+
   /** 取消当前生成（提交中不可取消——请求很短；轮询中调 stop 终止） */
   const handleCancel = useCallback(() => {
     polling.stop();
     setState('idle');
   }, [polling]);
+
+  /** 图生图模式仅 rhart；无参考图时可切换模型 */
+  const effectiveModel = refImageUrl ? I2I_MODEL : model;
 
   /** 提交生成：创建任务 → 轮询状态 → 展示结果（图片网格 / 视频播放器） */
   const handleGenerate = useCallback(async () => {
@@ -182,15 +223,24 @@ export default function ImageGenContent() {
         type: kind,
         prompt: text,
         // 后端 schema 字段为 snake_case；内部键名依工作流而定（图片 snake_case / 视频 camelCase）
+        model: kind === 'image' ? effectiveModel : undefined,
+        mode: kind === 'image' && refImageUrl ? 'image' : 'text',
+        image_urls: refImageUrl ? [refImageUrl] : undefined,
         workflow_inputs:
           kind === 'image'
-            ? {
-                // RunningHub 图片工作流参数：清晰度档 + 质量档 + 画幅比例 + 张数
-                resolution: RUNNINGHUB_RESOLUTION,
-                quality: RUNNINGHUB_QUALITY,
-                aspect_ratio: size,
-                count: String(count),
-              }
+            ? effectiveModel === I2I_MODEL
+              ? {
+                  // RunningHub 图片工作流参数：清晰度档 + 质量档 + 画幅比例 + 张数
+                  resolution: RUNNINGHUB_RESOLUTION,
+                  quality: RUNNINGHUB_QUALITY,
+                  aspect_ratio: size,
+                  count: String(count),
+                }
+              : {
+                  // seedream-v5-pro：仅 prompt 必填；传 resolution/aspect_ratio 可选档
+                  resolution: RUNNINGHUB_RESOLUTION,
+                  aspect_ratio: size,
+                }
             : {
                 // RunningHub 视频工作流必填参数：画幅 + 清晰度档 + 质量档（缺失会被工作流拒绝）
                 aspectRatio: RUNNINGHUB_VIDEO_ASPECT_RATIO,
@@ -210,7 +260,7 @@ export default function ImageGenContent() {
         status === 401 || status === 403 ? '登录状态已失效，请刷新后重试' : msg
       );
     }
-  }, [prompt, kind, size, count, state, polling]);
+  }, [prompt, kind, size, count, state, polling, effectiveModel, refImageUrl]);
 
   // 轮询状态变化时同步到页面状态机（success 回填结果入历史；失败/超时/错误展示错误）
   useEffect(() => {
@@ -235,6 +285,7 @@ export default function ImageGenContent() {
           prompt: prompt.trim(),
           size: kind === 'image' ? size : undefined,
           count: kind === 'image' ? count : undefined,
+          refImageUrl: kind === 'image' ? refImageUrl : null,
           images: result.images ?? [],
           videoUrl: result.video_url ?? null,
         };
@@ -251,7 +302,17 @@ export default function ImageGenContent() {
       setState('error');
       setErrorMsg(error ?? '生成失败，请稍后重试');
     }
-  }, [polling, state, kind, prompt, size, count, errorMsg, appendHistory]);
+  }, [
+    polling,
+    state,
+    kind,
+    prompt,
+    size,
+    count,
+    refImageUrl,
+    errorMsg,
+    appendHistory,
+  ]);
 
   /** 恢复历史条目：回填类型/提示词/尺寸/张数，并重新展示该组结果 */
   const handleRestore = useCallback(
@@ -265,6 +326,7 @@ export default function ImageGenContent() {
       if (entry.count) {
         setCount(entry.count);
       }
+      setRefImageUrl(entry.refImageUrl ?? null);
       setImages(entry.images);
       setVideoUrl(entry.videoUrl);
       setActiveEntryId(entry.id);
@@ -336,7 +398,15 @@ export default function ImageGenContent() {
                     <button
                       key={k.value}
                       type="button"
-                      onClick={() => setKind(k.value)}
+                      onClick={() => {
+                        // 切换生成类型时清空参考图，避免图生图状态残留到视频/新图片任务
+                        if (k.value !== kind) {
+                          setKind(k.value);
+                          setRefImageUrl(null);
+                          setRefInput('');
+                          setRefUploadError('');
+                        }
+                      }}
                       aria-pressed={kind === k.value}
                       className={cn(
                         'relative z-10 flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
@@ -413,60 +483,164 @@ export default function ImageGenContent() {
 
                 {/* 尺寸 + 张数（仅图片）：作为工作流额外输入传递，模板不支持时忽略 */}
                 {kind === 'image' ? (
-                  <div className="mb-4 flex flex-wrap items-center gap-4">
-                    <div
-                      role="group"
-                      aria-label="尺寸"
-                      className="flex gap-1.5"
-                    >
-                      {SIZE_PRESETS.map(s => (
-                        <button
-                          key={s.value}
-                          type="button"
-                          onClick={() => setSize(s.value)}
-                          aria-pressed={size === s.value}
-                          className={cn(
-                            'flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                            size === s.value
-                              ? 'border-primary/60 bg-primary/5 text-primary'
-                              : 'border-border text-muted-foreground hover:border-primary/30'
-                          )}
-                        >
-                          {/* 画幅图形示意：方/竖/横小矩形（1:1 由 style 定宽，3:4/4:3 由 aspect 类定宽） */}
-                          <span
-                            aria-hidden
-                            className={cn(
-                              'block h-3 rounded-[2px] border border-current',
-                              SIZE_SHAPE[s.value]
-                            )}
-                            style={
-                              s.value === '1:1' ? { width: 12 } : undefined
-                            }
-                          />
-                          {s.label}
-                        </button>
-                      ))}
-                    </div>
+                  <div className="mb-4 space-y-2">
+                    {/* 模型下拉（有参考图时锁定 rhart） */}
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground">
-                        张数
-                      </span>
-                      {[1, 2, 4].map(n => (
+                      <label
+                        htmlFor="gen-model"
+                        className="shrink-0 text-xs text-muted-foreground"
+                      >
+                        模型
+                      </label>
+                      <select
+                        id="gen-model"
+                        value={model}
+                        onChange={e => setModel(e.target.value)}
+                        disabled={Boolean(refImageUrl)}
+                        aria-label="模型"
+                        className="min-w-0 flex-1 rounded-lg border border-input bg-background/60 px-2.5 py-1.5 text-xs text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60"
+                      >
+                        {IMAGE_MODELS.map(m => (
+                          <option key={m.value} value={m.value}>
+                            {m.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* 参考图（可选，图生图） */}
+                    {refImageUrl ? (
+                      <div className="flex items-center gap-3 rounded-lg border border-border p-2">
+                        <img
+                          src={refImageUrl}
+                          alt="参考图预览"
+                          className="h-16 w-16 shrink-0 rounded-md border border-border object-cover"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-xs text-foreground">
+                            {refImageUrl}
+                          </p>
+                          <p className="mt-0.5 text-[11px] text-muted-foreground">
+                            将作为生成参考图（图生图模式）
+                          </p>
+                        </div>
                         <button
-                          key={n}
                           type="button"
-                          onClick={() => setCount(n)}
-                          aria-pressed={count === n}
-                          className={cn(
-                            'h-7 w-7 rounded-lg border text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                            count === n
-                              ? 'border-primary/60 bg-primary/5 text-primary'
-                              : 'border-border text-muted-foreground hover:border-primary/30'
-                          )}
+                          onClick={() => {
+                            setRefImageUrl(null);
+                            setRefInput('');
+                            setRefUploadError('');
+                          }}
+                          aria-label="移除参考图"
+                          className="rounded-md p-2 text-muted-foreground transition-colors hover:text-error focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                         >
-                          {n}
+                          <X className="h-4 w-4" aria-hidden />
                         </button>
-                      ))}
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="flex gap-2">
+                          <input
+                            type="url"
+                            value={refInput}
+                            onChange={e => setRefInput(e.target.value)}
+                            placeholder="粘贴图片 URL（公开可访问）"
+                            aria-label="参考图 URL"
+                            className="min-w-0 flex-1 rounded-lg border border-input bg-background/60 px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const u = refInput.trim();
+                              if (u) {
+                                setRefImageUrl(u);
+                                setRefInput('');
+                              }
+                            }}
+                          >
+                            应用
+                          </Button>
+                        </div>
+                        {typeof window !== 'undefined' &&
+                        localStorage.getItem('auth_token') ? (
+                          <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                            <Upload className="h-3.5 w-3.5" aria-hidden />
+                            上传图片
+                            <input
+                              type="file"
+                              accept="image/*"
+                              aria-label="上传图片"
+                              className="sr-only"
+                              onChange={handleRefUpload}
+                            />
+                          </label>
+                        ) : null}
+                        {refUploadError ? (
+                          <p role="alert" className="text-xs text-error">
+                            {refUploadError}
+                          </p>
+                        ) : null}
+                      </div>
+                    )}
+
+                    <div className="mb-4 flex flex-wrap items-center gap-4">
+                      <div
+                        role="group"
+                        aria-label="尺寸"
+                        className="flex gap-1.5"
+                      >
+                        {SIZE_PRESETS.map(s => (
+                          <button
+                            key={s.value}
+                            type="button"
+                            onClick={() => setSize(s.value)}
+                            aria-pressed={size === s.value}
+                            className={cn(
+                              'flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                              size === s.value
+                                ? 'border-primary/60 bg-primary/5 text-primary'
+                                : 'border-border text-muted-foreground hover:border-primary/30'
+                            )}
+                          >
+                            {/* 画幅图形示意：方/竖/横小矩形（1:1 由 style 定宽，3:4/4:3 由 aspect 类定宽） */}
+                            <span
+                              aria-hidden
+                              className={cn(
+                                'block h-3 rounded-[2px] border border-current',
+                                SIZE_SHAPE[s.value]
+                              )}
+                              style={
+                                s.value === '1:1' ? { width: 12 } : undefined
+                              }
+                            />
+                            {s.label}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground">
+                          张数
+                        </span>
+                        {[1, 2, 4].map(n => (
+                          <button
+                            key={n}
+                            type="button"
+                            onClick={() => setCount(n)}
+                            aria-pressed={count === n}
+                            disabled={effectiveModel !== I2I_MODEL}
+                            aria-disabled={effectiveModel !== I2I_MODEL}
+                            className={cn(
+                              'h-7 w-7 rounded-lg border text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-40',
+                              count === n
+                                ? 'border-primary/60 bg-primary/5 text-primary'
+                                : 'border-border text-muted-foreground hover:border-primary/30'
+                            )}
+                          >
+                            {n}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 ) : null}
@@ -497,7 +671,11 @@ export default function ImageGenContent() {
                   ) : (
                     <>
                       <Wand2 className="h-4 w-4" aria-hidden />
-                      {kind === 'video' ? '生成视频' : '生成图片'}
+                      {kind === 'video'
+                        ? '生成视频'
+                        : refImageUrl
+                          ? '基于参考图生成'
+                          : '生成图片'}
                     </>
                   )}
                 </button>
