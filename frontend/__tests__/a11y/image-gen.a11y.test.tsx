@@ -28,11 +28,11 @@ describe('图片/视频生成页无障碍', () => {
     mockGetStatus.mockReset();
   });
 
-  it('初始表单（类型切换/提示词/尺寸/张数/生成按钮）应无严重可访问性违规', async () => {
+  it('初始状态（类型切换/提示词/尺寸/张数/生成按钮/画布灵感卡）应无严重可访问性违规', async () => {
     await expectNoA11yViolations(<ImageGenContent />);
   }, 15000);
 
-  it('生成成功（2 张图）结果网格与会话历史应无严重可访问性违规', async () => {
+  it('生成成功（2 张图）结果网格与结果/历史 tab 应无严重可访问性违规', async () => {
     mockCreateTask.mockResolvedValue({ task_id: 'task-1' });
     mockGetStatus.mockResolvedValue({
       task_id: 'task-1',
@@ -46,7 +46,6 @@ describe('图片/视频生成页无障碍', () => {
     fireEvent.change(screen.getByLabelText('提示词'), { target: { value: '月光下的湖泊' } });
     fireEvent.click(screen.getByRole('button', { name: '生成图片' }));
     await flushPromises();
-    // 生成成功会同时挂载结果网格与本次会话历史，一并扫描
     await screen.findByText('生成结果');
 
     const results = await axe(container);
@@ -60,8 +59,16 @@ describe('图片/视频生成页无障碍', () => {
     fireEvent.change(screen.getByLabelText('提示词'), { target: { value: '失败场景' } });
     fireEvent.click(screen.getByRole('button', { name: '生成图片' }));
     await flushPromises();
-    await screen.findByRole('alert');
+    // 失败场景会渲染两处 role=alert（左列输入卡 + 画布错误态），需 findAllByRole
+    await screen.findAllByRole('alert');
 
+    const results = await axe(container);
+    expect(results).toHaveNoViolations();
+  }, 15000);
+
+  it('画布历史 tab 应无严重可访问性违规', async () => {
+    const { container } = render(<ImageGenContent />);
+    fireEvent.click(screen.getByRole('tab', { name: '历史' }));
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   }, 15000);
