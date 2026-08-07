@@ -588,7 +588,7 @@ export default function ImageGenContent() {
                                 return;
                               }
                               try {
-                                // 校验格式，阻止 javascript: 等伪协议
+                                // 校验 URL 格式（<img src> 不执行 javascript: 协议，RunningHub 亦拒绝伪协议）
                                 new URL(u);
                                 setRefImageUrl(u);
                                 setRefInput('');
