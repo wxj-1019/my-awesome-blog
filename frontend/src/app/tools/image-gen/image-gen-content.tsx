@@ -118,6 +118,8 @@ export default function ImageGenContent() {
   const [refUploadError, setRefUploadError] = useState('');
   /** 参考图上传序号：移除/切换类型后自增，作废在途上传结果，避免竞态回填 */
   const refUploadSeq = useRef(0);
+  /** 示例提示词是否全部展开（默认折叠为前 2 个，减少输入区高度） */
+  const [examplesExpanded, setExamplesExpanded] = useState(false);
 
   /** 是否偏好减少动画（滑动指示器 spring 回退为瞬移） */
   const shouldReduceMotion = useReducedMotion();
@@ -489,23 +491,40 @@ export default function ImageGenContent() {
                   ) : null}
                 </div>
 
-                {/* 示例提示词 */}
-                <div className="mb-4 flex flex-wrap gap-1.5">
-                  {EXAMPLE_PROMPTS.map(p => (
-                    <button
-                      key={p}
-                      type="button"
-                      onClick={() => setPrompt(p)}
-                      className="rounded-full border border-border px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    >
-                      {p.length > 16 ? `${p.slice(0, 16)}…` : p}
-                    </button>
-                  ))}
+                {/* 示例提示词（默认折叠为 2 个，减少输入区高度；展开可看全部） */}
+                <div className="mb-4">
+                  <div className="flex flex-wrap gap-1.5">
+                    {(examplesExpanded
+                      ? EXAMPLE_PROMPTS
+                      : EXAMPLE_PROMPTS.slice(0, 2)
+                    ).map(p => (
+                      <button
+                        key={p}
+                        type="button"
+                        onClick={() => setPrompt(p)}
+                        className="rounded-full border border-border px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        {p.length > 16 ? `${p.slice(0, 16)}…` : p}
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setExamplesExpanded(v => !v)}
+                    aria-expanded={examplesExpanded}
+                    className="mt-1.5 text-[11px] text-muted-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    {examplesExpanded
+                      ? '收起示例'
+                      : `展开更多示例（${EXAMPLE_PROMPTS.length} 个）`}
+                  </button>
                 </div>
 
-                {/* 尺寸 + 张数（仅图片）：作为工作流额外输入传递，模板不支持时忽略 */}
+                {/* 参数区（仅图片）：模型 / 参考图 / 尺寸 / 张数 */}
                 {kind === 'image' ? (
                   <div className="mb-4 space-y-2">
+                    {/* 内容区（提示词）与参数区的视觉分隔 */}
+                    <div role="separator" className="h-px bg-border" />
                     {/* 模型下拉（有参考图时锁定 rhart） */}
                     <div className="flex items-center gap-2">
                       <label
@@ -530,7 +549,10 @@ export default function ImageGenContent() {
                       </select>
                     </div>
 
-                    {/* 参考图（可选，图生图） */}
+                    {/* 参考图（可选，图生图）：上传或粘贴一张图，AI 将基于它重新绘制 */}
+                    <p className="text-xs font-medium text-muted-foreground">
+                      参考图（可选）：上传或粘贴一张图，AI 将基于它重新绘制
+                    </p>
                     {refImageUrl ? (
                       <div className="flex items-center gap-3 rounded-lg border border-border p-2">
                         <img
@@ -539,7 +561,7 @@ export default function ImageGenContent() {
                           onError={() =>
                             setRefUploadError('参考图加载失败，请更换 URL')
                           }
-                          className="h-16 w-16 shrink-0 rounded-md border border-border object-cover"
+                          className="h-20 w-20 shrink-0 rounded-md border border-border object-cover"
                         />
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-xs text-foreground">
@@ -652,11 +674,11 @@ export default function ImageGenContent() {
                             <span
                               aria-hidden
                               className={cn(
-                                'block h-3 rounded-[2px] border border-current',
+                                'block h-4 rounded-[2px] border border-current',
                                 SIZE_SHAPE[s.value]
                               )}
                               style={
-                                s.value === '1:1' ? { width: 12 } : undefined
+                                s.value === '1:1' ? { width: 16 } : undefined
                               }
                             />
                             {s.label}
@@ -685,6 +707,11 @@ export default function ImageGenContent() {
                             {n}
                           </button>
                         ))}
+                        {effectiveModel !== I2I_MODEL ? (
+                          <span className="text-[11px] text-muted-foreground/70">
+                            该模型仅支持单张
+                          </span>
+                        ) : null}
                       </div>
                     </div>
                   </div>
@@ -756,8 +783,8 @@ export default function ImageGenContent() {
             </FadeIn>
           </div>
 
-          {/* 右列：创作台画布（结果/历史双 tab，lg+ sticky 视口） */}
-          <div className="lg:sticky lg:top-24">
+          {/* 右列：创作台画布（结果/历史双 tab，lg+ sticky 视口 + 高度约束独立滚动） */}
+          <div className="lg:sticky lg:top-24 lg:max-h-[calc(100dvh-8rem)] lg:overflow-y-auto">
             <CanvasStage
               state={state}
               phase={polling.phase}
