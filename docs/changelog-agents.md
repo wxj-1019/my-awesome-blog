@@ -8,6 +8,7 @@
 
 | 日期 | 问题 | 状态 |
 |------|------|------|
+| 2026-08-09 | 塔罗/生图工具页 UI/UX 多轮迭代（spec: `docs/superpowers/specs/2026-08-09-tarot-image-gen-uiux-design.md`） | 已实施：①塔罗问牌首屏降噪（引导并入主卡、今日之牌压缩）；②进度条/抽牌/解读层级强化；③洗切阶段回显问题、牌阵迷你示意、历史窄栏两行布局；④生图「生成设置」折叠区（localStorage 记忆）、恢复历史聚焦提示词、结果 hover 放大角标；⑤生图画布空态/进度/错误状态层级；全量测试 303 通过、lint 0 error、build 通过 |
 | 2026-07-11 | README 中后端端口写为 8000，实际使用 8989 | 已修复（README.md / backend/README.md / QWEN.md） |
 | 2026-07-11 | README 写 Next.js 14，实际为 16.1.6 | 已修复（README.md / QWEN.md） |
 | 2026-07-11 | 根目录 package.json 与 frontend/package.json 有重复依赖 | 已修复（删除根目录 package.json，同步更新 QWEN.md） |
