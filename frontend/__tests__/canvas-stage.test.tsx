@@ -126,7 +126,7 @@ describe('CanvasStage · 创作台画布', () => {
     fireEvent.click(screen.getByRole('tab', { name: '历史' }));
     expect(screen.getByText('还没有生成记录')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('tab', { name: '结果' }));
-    expect(screen.getByText('生成结果')).toBeInTheDocument();
+    expect(screen.getByText('从一句灵感开始')).toBeInTheDocument();
   });
 
   it('视频加载失败：onError 隐藏加载指示并显示错误提示', () => {

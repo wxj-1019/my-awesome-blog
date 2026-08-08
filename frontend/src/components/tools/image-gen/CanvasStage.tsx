@@ -134,7 +134,7 @@ export default function CanvasStage({
 
   return (
     <GlassCard padding="md" className="flex min-h-[420px] flex-col">
-      {/* Tab：结果 / 历史 */}
+      {/* Tab：结果 / 历史（历史带条数徽标，明确它与结果的关系） */}
       <div
         role="tablist"
         aria-label="画布内容"
@@ -160,7 +160,22 @@ export default function CanvasStage({
           onClick={() => setActiveTab('history')}
           className={tabClass(activeTab === 'history')}
         >
-          历史
+          <span className="inline-flex items-center gap-1.5">
+            历史
+            {history.length > 0 ? (
+              <span
+                aria-hidden
+                className={cn(
+                  'rounded-full px-1.5 py-px text-[10px] tabular-nums',
+                  activeTab === 'history'
+                    ? 'bg-primary-foreground/20 text-primary-foreground'
+                    : 'bg-muted/70 text-muted-foreground'
+                )}
+              >
+                {history.length > 99 ? '99+' : history.length}
+              </span>
+            ) : null}
+          </span>
         </button>
       </div>
 
@@ -405,11 +420,18 @@ function ResultPanel({
   // idle 空态：灵感引导
   return (
     <FadeIn>
-      <div className="py-6">
-        <h2 className="mb-3 text-sm font-semibold text-foreground">生成结果</h2>
-        <p className="mb-4 text-sm text-muted-foreground">
-          还没有结果。输入提示词点击生成，或从灵感卡片开始：
-        </p>
+      <div className="py-4">
+        <div className="mb-5 flex flex-col items-center gap-2 text-center">
+          <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-primary/20 bg-primary/10">
+            <Sparkles className="h-5 w-5 text-tech-purple" aria-hidden />
+          </span>
+          <h2 className="text-base font-semibold text-foreground">
+            从一句灵感开始
+          </h2>
+          <p className="text-xs leading-relaxed text-muted-foreground">
+            在左侧输入提示词点击生成，或直接从灵感卡片开始：
+          </p>
+        </div>
         <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           {examplePrompts.map(p => (
             <li key={p}>
