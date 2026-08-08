@@ -8,23 +8,23 @@ import DepthAmbience from './DepthAmbience';
 import { HOME_TRANSITION, HOME_VIEWPORT, type HomeDepth } from './homeMotion';
 
 /**
- * 幕间色温桥接：按当前幕 depth 在顶部/底部渲染渐变过渡条，
- * 让相邻幕的环境色自然淡入淡出，消除边界色温断裂。
- * 浅色模式下用 .light 选择器增强（深色模式原值即可）。
+ * 幕间色温桥接：按当前幕 depth 在顶部渲染渐变过渡条，
+ * 让相邻幕的环境色自然淡入本幕，消除边界色温断裂。
+ * 透明度已为浅色背景调高（--tech-deepblue #075985 在浅底上需 40%+ 才可见）。
  */
 const DEPTH_BLEND_TOP: Record<HomeDepth, string> = {
   // 进入浅水展厅：从 Dive 的深水蓝淡入浅水（顶部承接入水装置）
   shallow:
-    'linear-gradient(to bottom, color-mix(in srgb, var(--tech-deepblue) 40%, transparent), transparent)',
+    'linear-gradient(to bottom, color-mix(in srgb, var(--tech-deepblue) 50%, transparent), transparent)',
   // 进入舱内：从浅水的亮天光淡入舱内暗调
   cabin:
-    'linear-gradient(to bottom, color-mix(in srgb, var(--primary) 18%, transparent), transparent)',
+    'linear-gradient(to bottom, color-mix(in srgb, var(--primary) 28%, transparent), transparent)',
   // 进入洋流深层：从舱内暗角淡入中轴水色
   current:
-    'linear-gradient(to bottom, color-mix(in srgb, var(--tech-deepblue) 32%, transparent), transparent)',
+    'linear-gradient(to bottom, color-mix(in srgb, var(--tech-deepblue) 42%, transparent), transparent)',
   // 进入靠岸：从深层水色淡入底部提亮
   shore:
-    'linear-gradient(to bottom, color-mix(in srgb, var(--tech-deepblue) 24%, transparent), transparent)',
+    'linear-gradient(to bottom, color-mix(in srgb, var(--tech-deepblue) 34%, transparent), transparent)',
 };
 
 export interface HomeActSectionProps {
@@ -148,19 +148,11 @@ export default function HomeActSection({
       {depth ? <DepthAmbience depth={depth} /> : null}
       {/* 幕间色温桥接：顶部渐变过渡条，消除环境色边界断裂（仅 depth 幕渲染） */}
       {depth ? (
-        <>
-          {/* 浅色模式增强：tech-deepblue 在浅背景上需更高对比才可见 */}
-          <style jsx>{`
-            :global(.light) .depth-blend-top {
-              opacity: 1.4;
-            }
-          `}</style>
-          <div
-            aria-hidden
-            className="depth-blend-top pointer-events-none absolute inset-x-0 top-0 z-[1] h-32 sm:h-48"
-            style={{ background: DEPTH_BLEND_TOP[depth] }}
-          />
-        </>
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 z-[1] h-32 sm:h-48"
+          style={{ background: DEPTH_BLEND_TOP[depth] }}
+        />
       ) : null}
       {thread}
       {contained ? (

@@ -101,12 +101,6 @@ export default function DiveTransition({ className }: { className?: string }) {
       className={cn('relative pointer-events-none -mt-6 sm:-mt-10 z-10', className)}
       aria-hidden
     >
-      {/* 浅色模式增强：色带在浅背景上需更高对比才可见（深色模式原值即可） */}
-      <style jsx>{`
-        :global(.light) [data-dive-band] {
-          opacity: 1.6;
-        }
-      `}</style>
       <div
         className={cn(
           'relative w-full overflow-hidden',
@@ -117,17 +111,17 @@ export default function DiveTransition({ className }: { className?: string }) {
         {/* 色带 · 上：水面折射（透明 → 淡主色） */}
         <div
           data-dive-band="surface"
-          className="absolute inset-x-0 top-0 h-2/5 bg-gradient-to-b from-transparent via-primary/[0.08] to-primary/[0.14]"
+          className="absolute inset-x-0 top-0 h-2/5 bg-gradient-to-b from-transparent via-primary/[0.18] to-primary/[0.28]"
         />
         {/* 色带 · 中：水体过渡（主色 → 深水蓝） */}
         <div
           data-dive-band="mid"
-          className="absolute inset-x-0 top-1/3 h-1/3 bg-gradient-to-b from-primary/[0.14] via-primary/[0.10] to-tech-deepblue/25"
+          className="absolute inset-x-0 top-1/3 h-1/3 bg-gradient-to-b from-primary/[0.28] via-primary/[0.20] to-tech-deepblue/45"
         />
         {/* 色带 · 下：水下定调（深水蓝收进背景；桌面由 GSAP 灌至全深） */}
         <div
           data-dive-band="deep"
-          className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-b from-tech-deepblue/25 via-tech-deepblue/15 to-background"
+          className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-b from-tech-deepblue/45 via-tech-deepblue/28 to-background"
         />
 
         {/* 主折光线：opacity 仅由 GSAP 写入（见 useGSAP）；hydration 前透明避免闪一下 */}
