@@ -12,11 +12,9 @@ export {
   HOME_VIEWPORT,
   HOME_TRANSITION,
   HOME_BUBBLE_COUNT,
-  HOME_BUBBLE_COUNT_UNDERWATER,
   HOME_GLOW,
   HOME_REEL,
   HOME_CURRENT,
-  HOME_DIVE,
   HOME_DEPTH,
 } from './homeMotion';
 export type { HomeDepth } from './homeMotion';

@@ -96,29 +96,6 @@ export const HOME_CURRENT = {
 } as const;
 
 /**
- * 四期 · 入水装置（DiveTransition）
- * 色带三层 + 折光线 + GSAP scrub 光柱；移动 / RM 全部静态终态。
- * 主折光与光柱的 opacity / autoAlpha / y 仅由 GSAP 写入（单一来源，勿再加 class opacity）。
- */
-export const HOME_DIVE = {
-  /** 装置高度（继续加厚，让「潜下去」的滚动区间更足） */
-  heightMobile: 'h-56',
-  heightDesktop: 'sm:h-80',
-  /** 主折光线：GSAP 目标 opacity（桌面 scrub 终点 / 移动·RM 终态） */
-  shimmerOpacity: 0.5,
-  /** 光柱：GSAP 目标 autoAlpha（渐变为 token 淡色；勿与 Tailwind opacity-* 叠乘） */
-  lightShaftOpacity: 0.65,
-} as const;
-
-/**
- * 四期 · 水下残影气泡（较 Hero 更稀，控制 DOM 与阅读干扰）
- */
-export const HOME_BUBBLE_COUNT_UNDERWATER = {
-  desktop: 4,
-  mobile: 2,
-} as const;
-
-/**
  * 四期 · 分幕环境深度（DepthAmbience）。
  * 数值为 color-mix 百分比预算；实际色彩走 CSS 变量 token，不写裸色值。
  * glow = 主光斑强度；tint = 整体水色基调；vignette = 边缘暗角。

@@ -1,29 +1,8 @@
 import { render } from '@testing-library/react';
 import DiveTransition from '@/components/home/narrative/DiveTransition';
 
-// 结构断言不需要真实 GSAP；useGSAP 置空即可
-jest.mock('@gsap/react', () => ({
-  useGSAP: jest.fn(),
-}));
-
-// 捕获 BubbleField 的 props，并避免其内部 IntersectionObserver 逻辑
-const bubbleFieldMock = jest.fn(
-  (_props: { count?: number; withHighlight?: boolean }) => (
-    <div data-testid="bubble-field" />
-  )
-);
-jest.mock('@/components/home/BubbleField', () => ({
-  __esModule: true,
-  default: (props: { count?: number; withHighlight?: boolean }) =>
-    bubbleFieldMock(props),
-}));
-
-describe('DiveTransition · 多层入水装置', () => {
-  beforeEach(() => {
-    bubbleFieldMock.mockClear();
-  });
-
-  it('renders three color bands, shimmer lines and light shaft', () => {
+describe('DiveTransition · 薄渐变色带过渡', () => {
+  it('渲染三层渐变色带（surface/mid/deep）', () => {
     const { container } = render(<DiveTransition />);
 
     const root = container.querySelector('[data-dive-root]');
@@ -33,24 +12,19 @@ describe('DiveTransition · 多层入水装置', () => {
     expect(container.querySelector('[data-dive-band="surface"]')).toBeInTheDocument();
     expect(container.querySelector('[data-dive-band="mid"]')).toBeInTheDocument();
     expect(container.querySelector('[data-dive-band="deep"]')).toBeInTheDocument();
-
-    expect(
-      container.querySelector('[data-dive-shimmer="primary"]')
-    ).toBeInTheDocument();
-    expect(
-      container.querySelector('[data-dive-shimmer="secondary"]')
-    ).toBeInTheDocument();
-
-    expect(container.querySelector('[data-dive-lightshaft]')).toBeInTheDocument();
   });
 
-  it('renders sparse underwater bubbles without highlights', () => {
-    render(<DiveTransition />);
+  it('不渲染折光线/光柱/气泡（已移除）', () => {
+    const { container } = render(<DiveTransition />);
 
-    expect(bubbleFieldMock).toHaveBeenCalled();
-    const props = bubbleFieldMock.mock.calls[0][0];
-    // jsdom matchMedia mock 恒为 false → 走移动端数量（HOME_BUBBLE_COUNT_UNDERWATER.mobile）
-    expect(props.count).toBe(2);
-    expect(props.withHighlight).toBe(false);
+    expect(container.querySelector('[data-dive-shimmer]')).not.toBeInTheDocument();
+    expect(container.querySelector('[data-dive-lightshaft]')).not.toBeInTheDocument();
+  });
+
+  it('高度为薄渐变条（h-24 / sm:h-32）', () => {
+    const { container } = render(<DiveTransition />);
+    const root = container.querySelector('[data-dive-root]');
+    expect(root?.className).toContain('h-24');
+    expect(root?.className).toContain('sm:h-32');
   });
 });
