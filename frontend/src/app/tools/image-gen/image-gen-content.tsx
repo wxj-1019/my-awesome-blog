@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
   ArrowLeft,
+  ChevronRight,
   Clapperboard,
   ImageIcon,
   Loader2,
@@ -520,9 +521,19 @@ export default function ImageGenContent() {
                   </button>
                 </div>
 
-                {/* 参数区（仅图片）：模型 / 参考图 / 尺寸 / 张数 */}
+                {/* 高级参数区（仅图片）：模型 / 参考图 / 尺寸 / 张数，收拢为「生成设置」折叠区 */}
                 {kind === 'image' ? (
-                  <div className="mb-4 space-y-2">
+                  <details open className="group/settings mb-4">
+                    <summary className="flex cursor-pointer list-none items-center gap-2 py-2 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden">
+                      <span className="flex h-4 w-4 items-center justify-center rounded border border-current transition-transform duration-200 group-open/settings:rotate-90">
+                        <ChevronRight className="h-3 w-3" aria-hidden />
+                      </span>
+                      生成设置
+                      <span className="text-[11px] font-normal text-muted-foreground/70">
+                        （模型 / 参考图 / 尺寸 / 张数）
+                      </span>
+                    </summary>
+                    <div className="mt-1 space-y-2.5">
                     {/* 内容区（提示词）与参数区的视觉分隔 */}
                     <div role="separator" className="h-px bg-border" />
                     {/* 模型下拉（有参考图时锁定 rhart） */}
@@ -651,7 +662,7 @@ export default function ImageGenContent() {
                       </div>
                     )}
 
-                    <div className="mb-4 flex flex-wrap items-center gap-4">
+                    <div className="flex flex-wrap items-center gap-4">
                       <div
                         role="group"
                         aria-label="尺寸"
@@ -714,7 +725,8 @@ export default function ImageGenContent() {
                         ) : null}
                       </div>
                     </div>
-                  </div>
+                    </div>
+                  </details>
                 ) : null}
 
                 <button
