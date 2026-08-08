@@ -67,6 +67,9 @@ const KIND_OPTIONS: Array<{ value: GenType; label: string }> = [
   { value: 'video', label: '视频' },
 ];
 
+/** 「生成设置」折叠状态 localStorage key（'1' 展开 / '0' 折叠；隐私模式静默降级） */
+const SETTINGS_OPEN_KEY = 'image_gen_settings_open';
+
 /** 示例提示词 */
 const EXAMPLE_PROMPTS = [
   '月光下的静谧湖泊，倒映着满天繁星，雾气缭绕，超现实主义风格',
@@ -121,9 +124,22 @@ export default function ImageGenContent() {
   const refUploadSeq = useRef(0);
   /** 示例提示词是否全部展开（默认折叠为前 2 个，减少输入区高度） */
   const [examplesExpanded, setExamplesExpanded] = useState(false);
+  /** 「生成设置」折叠区是否展开（localStorage 记忆；挂载后读取避免 hydration mismatch） */
+  const [settingsOpen, setSettingsOpen] = useState(true);
 
   /** 是否偏好减少动画（滑动指示器 spring 回退为瞬移） */
   const shouldReduceMotion = useReducedMotion();
+
+  // 挂载后读取生成设置的折叠记忆（默认展开；隐私模式等异常按展开处理）
+  useEffect(() => {
+    try {
+      if (window.localStorage.getItem(SETTINGS_OPEN_KEY) === '0') {
+        setSettingsOpen(false);
+      }
+    } catch {
+      // 隐私模式静默降级
+    }
+  }, []);
 
   // 轮询 hook：提交后 start(taskId)，success/fail/timeout/error 自动终止
   const polling = useTaskPolling({});
@@ -355,6 +371,10 @@ export default function ImageGenContent() {
       setActiveEntryId(entry.id);
       setState('done');
       setErrorMsg('');
+      // 恢复即继续创作：下一帧把焦点还给提示词输入框，方便直接修改后再次生成
+      window.requestAnimationFrame(() => {
+        document.getElementById('gen-prompt')?.focus();
+      });
     },
     [polling]
   );
@@ -523,7 +543,23 @@ export default function ImageGenContent() {
 
                 {/* 高级参数区（仅图片）：模型 / 参考图 / 尺寸 / 张数，收拢为「生成设置」折叠区 */}
                 {kind === 'image' ? (
-                  <details open className="group/settings mb-4">
+                  <details
+                    open={settingsOpen}
+                    onToggle={(e) => {
+                      // 折叠状态写入 localStorage（只影响展示层级，不改变任何生成参数）
+                      const next = (e.currentTarget as HTMLDetailsElement).open;
+                      setSettingsOpen(next);
+                      try {
+                        window.localStorage.setItem(
+                          SETTINGS_OPEN_KEY,
+                          next ? '1' : '0'
+                        );
+                      } catch {
+                        // 隐私模式静默降级
+                      }
+                    }}
+                    className="group/settings mb-4"
+                  >
                     <summary className="flex cursor-pointer list-none items-center gap-2 py-2 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden">
                       <span className="flex h-4 w-4 items-center justify-center rounded border border-current transition-transform duration-200 group-open/settings:rotate-90">
                         <ChevronRight className="h-3 w-3" aria-hidden />

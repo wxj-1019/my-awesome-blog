@@ -7,6 +7,7 @@ import {
   ImageIcon,
   ImageOff,
   Loader2,
+  Maximize2,
   RefreshCw,
   Sparkles,
 } from 'lucide-react';
@@ -407,6 +408,13 @@ function ResultPanel({
                       loading="lazy"
                       onError={() => onImageError(url)}
                     />
+                    {/* 放大角标：hover/键盘聚焦时提示可点击预览（纯装饰，图片可点即可达） */}
+                    <span
+                      aria-hidden
+                      className="absolute bottom-2 right-2 flex h-7 w-7 items-center justify-center rounded-full bg-background/75 text-foreground/85 opacity-0 shadow-sm backdrop-blur-sm transition-opacity duration-200 group-hover:opacity-100 group-focus-within:opacity-100"
+                    >
+                      <Maximize2 className="h-3.5 w-3.5" />
+                    </span>
                   </button>
                 )}
               </StaggerItem>
