@@ -4,14 +4,12 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from '@/lib/framer-motion';
 import TextType from './TextType';
 import { useTheme } from '../../context/theme-context';
-import WaveStack from '../ui/WaveStack';
-import BubbleField from './BubbleField';
 import ScrollIndicator from './ScrollIndicator';
 import logger from '@/utils/logger';
 import { useScrollProgress } from '@/hooks/useScrollProgress';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { cn } from '@/lib/utils';
-import { HOME_BUBBLE_COUNT, HOME_TRANSITION } from '@/components/home/narrative/homeMotion';
+import { HOME_TRANSITION } from '@/components/home/narrative/homeMotion';
 
 /** Phase 2 L3：默认开启；设 NEXT_PUBLIC_MOTION_L3=0 可回退静态 Hero */
 const MOTION_L3_ENABLED = process.env.NEXT_PUBLIC_MOTION_L3 !== '0';
@@ -301,34 +299,21 @@ export default function HeroSection() {
       </section>
 
       {/*
-        入水装置 · 波浪溢出层：
-        放在 hero section 外（避免 overflow:hidden 截断），
-        向下衔接 DiveTransition / 第一幕展厅。
+        出口渐变层：从 Hero 底部视频色调平滑淡出，
+        颜色衔接 DiveTransition 的 surface 色带（primary 色调），
+        避免从 background 跳回 primary 的色温断裂。
       */}
       <motion.div
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-30 h-[150px] overflow-visible"
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-30 h-20 sm:h-24"
         aria-hidden="true"
-        initial={reducedMotion ? false : { opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={reducedMotion ? false : { opacity: 0 }}
+        animate={{ opacity: 1 }}
         transition={HOME_TRANSITION.waveEnter}
-      >
-        <WaveStack className="wave-stack" waveCount={3} />
-        <div
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-[60px] bg-gradient-to-t from-transparent via-white/5 to-transparent blur-md"
-          aria-hidden
-        />
-      </motion.div>
-
-      {/* 气泡：仅 Hero 浪线附近稀疏点缀，内容区不挂 */}
-      <div
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-[280px]"
-        aria-hidden
-      >
-        <BubbleField
-          count={isDesktop ? HOME_BUBBLE_COUNT.desktop : HOME_BUBBLE_COUNT.mobile}
-          withHighlight={false}
-        />
-      </div>
+        style={{
+          background:
+            'linear-gradient(to bottom, transparent, color-mix(in srgb, var(--primary) 18%, transparent))',
+        }}
+      />
     </div>
   );
 }
