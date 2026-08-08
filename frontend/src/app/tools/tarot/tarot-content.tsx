@@ -397,15 +397,50 @@ export default function TarotContent() {
             </div>
           </div>
 
-          <div className="min-w-0">
+          <div className="mx-auto min-w-0 w-full max-w-3xl">
 
             {/* 问牌 */}
             {phase === 'ask' ? (
               <>
-              {/* 首次使用引导 */}
-              {showOnboard ? (
-                <FadeIn className="mb-4">
-                  <div className="flex items-center gap-2 rounded-lg border border-tech-purple/30 bg-tech-purple/5 px-4 py-2.5 text-sm text-foreground/85">
+              {/* 今日之牌：辅助入口（低于问牌主卡的视觉权重，移动端允许说明换行） */}
+              {dailyCard ? (
+                <FadeIn className="mb-5">
+                  <GlassCard
+                    padding="sm"
+                    className="flex items-center gap-3 rounded-xl sm:gap-4"
+                  >
+                    <div className="w-12 shrink-0 sm:w-14">
+                      <div className={cn('aspect-[2/3] w-full', dailyCard.isReversed && 'rotate-180')}>
+                        <TarotCardFace card={dailyCard.card} />
+                      </div>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[11px] font-medium tracking-wide text-tech-purple sm:text-xs">
+                        今日之牌
+                      </p>
+                      <h2 className="mt-0.5 truncate text-sm font-semibold text-foreground sm:text-base">
+                        {dailyCard.card.name} · {orientationLabel(dailyCard.isReversed)}
+                      </h2>
+                      <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+                        {dailyCard.isReversed ? dailyCard.card.reversed : dailyCard.card.upright}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={startWithDaily}
+                      className="shrink-0 rounded-lg border border-tech-purple/40 px-3 py-1.5 text-xs font-medium text-tech-purple transition-colors hover:bg-tech-purple/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      以此占卜
+                    </button>
+                  </GlassCard>
+                </FadeIn>
+              ) : null}
+
+              <FadeIn>
+                <GlassCard padding="lg">
+                {/* 首次使用引导：并入主卡顶部，不占用主流程视觉权重 */}
+                {showOnboard ? (
+                  <div className="mb-4 flex items-center gap-2 rounded-lg border border-tech-purple/30 bg-tech-purple/5 px-3.5 py-2.5 text-xs leading-relaxed text-foreground/85 sm:text-sm">
                     <Wand2 className="h-4 w-4 shrink-0 text-tech-purple" aria-hidden />
                     <span className="flex-1">
                       输入问题、选择牌阵后开始占卜。也可按
@@ -424,40 +459,8 @@ export default function TarotContent() {
                       <RotateCcw className="h-3.5 w-3.5 rotate-45" aria-hidden />
                     </button>
                   </div>
-                </FadeIn>
-              ) : null}
+                ) : null}
 
-              {/* 今日之牌 */}
-              {dailyCard ? (
-                <FadeIn className="mb-6">
-                  <GlassCard padding="md" className="flex items-center gap-4">
-                    <div className="w-14 shrink-0">
-                      <div className={cn('aspect-[2/3] w-full', dailyCard.isReversed && 'rotate-180')}>
-                        <TarotCardFace card={dailyCard.card} />
-                      </div>
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-medium text-tech-purple">今日之牌</p>
-                      <h2 className="mt-0.5 text-base font-semibold text-foreground">
-                        {dailyCard.card.name} · {orientationLabel(dailyCard.isReversed)}
-                      </h2>
-                      <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                        {dailyCard.isReversed ? dailyCard.card.reversed : dailyCard.card.upright}
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={startWithDaily}
-                      className="shrink-0 rounded-lg border border-tech-purple/40 px-3 py-1.5 min-h-11 text-xs font-medium text-tech-purple transition-colors hover:bg-tech-purple/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    >
-                      以此占卜
-                    </button>
-                  </GlassCard>
-                </FadeIn>
-              ) : null}
-
-              <FadeIn>
-                <GlassCard padding="lg">
                 <label
                   htmlFor="tarot-question"
                   className="mb-2 block text-sm font-medium text-foreground"
@@ -474,7 +477,12 @@ export default function TarotContent() {
                   className="mb-5 w-full resize-none rounded-lg border border-input bg-background/60 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 />
 
-                <p className="mb-2 text-sm font-medium text-foreground">选择牌阵</p>
+                <p className="mb-2 text-sm font-medium text-foreground">
+                  选择牌阵
+                  <span className="ml-1.5 text-xs font-normal text-muted-foreground">
+                    （{tarotSpreads.length} 种，选满后自动进入翻牌）
+                  </span>
+                </p>
                 <div className="mb-6 grid grid-cols-1 gap-3 xs:grid-cols-2">
                   {tarotSpreads.map((s) => (
                     <button
@@ -483,15 +491,26 @@ export default function TarotContent() {
                       onClick={() => setSpreadType(s.type)}
                       aria-pressed={spreadType === s.type}
                       className={cn(
-                        'rounded-xl border p-3.5 text-left transition-[border-color,background-color] duration-200',
+                        'group rounded-xl border p-3.5 text-left transition-[border-color,background-color] duration-200',
                         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                         spreadType === s.type
                           ? 'border-primary/60 bg-primary/5'
                           : 'border-border hover:border-primary/30'
                       )}
                     >
-                      <span className="mb-1 block text-sm font-semibold text-foreground">
+                      <span className="mb-1 flex items-center gap-1.5 text-sm font-semibold text-foreground">
                         {s.name}
+                        <span
+                          aria-hidden
+                          className={cn(
+                            'rounded-full px-1.5 py-px text-[10px] font-medium',
+                            spreadType === s.type
+                              ? 'bg-primary/15 text-primary'
+                              : 'bg-muted/60 text-muted-foreground'
+                          )}
+                        >
+                          {s.positions.length} 张
+                        </span>
                       </span>
                       <span className="block text-xs leading-relaxed text-muted-foreground">
                         {s.description}
