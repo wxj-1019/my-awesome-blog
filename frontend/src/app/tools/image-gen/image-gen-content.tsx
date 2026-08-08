@@ -122,8 +122,6 @@ export default function ImageGenContent() {
   const [refUploadError, setRefUploadError] = useState('');
   /** 参考图上传序号：移除/切换类型后自增，作废在途上传结果，避免竞态回填 */
   const refUploadSeq = useRef(0);
-  /** 示例提示词是否全部展开（默认折叠为前 2 个，减少输入区高度） */
-  const [examplesExpanded, setExamplesExpanded] = useState(false);
   /** 「生成设置」折叠区是否展开（localStorage 记忆；挂载后读取避免 hydration mismatch） */
   const [settingsOpen, setSettingsOpen] = useState(true);
 
@@ -512,34 +510,7 @@ export default function ImageGenContent() {
                   ) : null}
                 </div>
 
-                {/* 示例提示词（默认折叠为 2 个，减少输入区高度；展开可看全部） */}
-                <div className="mb-4">
-                  <div className="flex flex-wrap gap-1.5">
-                    {(examplesExpanded
-                      ? EXAMPLE_PROMPTS
-                      : EXAMPLE_PROMPTS.slice(0, 2)
-                    ).map(p => (
-                      <button
-                        key={p}
-                        type="button"
-                        onClick={() => setPrompt(p)}
-                        className="rounded-full border border-border px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                      >
-                        {p.length > 16 ? `${p.slice(0, 16)}…` : p}
-                      </button>
-                    ))}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setExamplesExpanded(v => !v)}
-                    aria-expanded={examplesExpanded}
-                    className="mt-1.5 text-[11px] text-muted-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    {examplesExpanded
-                      ? '收起示例'
-                      : `展开更多示例（${EXAMPLE_PROMPTS.length} 个）`}
-                  </button>
-                </div>
+                {/* 示例提示词已移至右侧画布空态（避免左右重复）；此处仅保留输入与清空 */}
 
                 {/* 高级参数区（仅图片）：模型 / 参考图 / 尺寸 / 张数，收拢为「生成设置」折叠区 */}
                 {kind === 'image' ? (
