@@ -11,6 +11,8 @@ interface TarotCutDeckProps {
   onCut: () => void;
   /** 切牌动画时长（ms），reduced-motion 时近似跳过 */
   disabled?: boolean;
+  /** 占卜问题（回显在提示行，仪式感上下文） */
+  question?: string;
 }
 
 /** 切牌动画时长（ms），reduced-motion 时近似跳过。
@@ -25,7 +27,7 @@ const CUT_MS = 800;
  * 点击后上下两叠分裂再合拢（一次性 transform 动画），动画结束后回调 onCut。
  * 上层叠的位移用 CSS transition（仅 transform），reduced-motion 时直接回调。
  */
-export default function TarotCutDeck({ onCut, disabled }: TarotCutDeckProps) {
+export default function TarotCutDeck({ onCut, disabled, question }: TarotCutDeckProps) {
   const reducedMotion = useReducedMotion();
   const [cutting, setCutting] = useState(false);
   // 用 ref 存最新 onCut，避免 timer 闭包捕获旧引用
@@ -102,7 +104,19 @@ export default function TarotCutDeck({ onCut, disabled }: TarotCutDeckProps) {
         <Scissors className="h-4 w-4" aria-hidden />
         {cutting ? '切牌中…' : '点击切牌'}
       </button>
-      <p className="text-sm text-muted-foreground">在心中默念你的问题，切开牌堆</p>
+      <p className="text-sm text-muted-foreground">
+        {question?.trim() ? (
+          <>
+            为
+            <span className="mx-1 font-medium text-foreground/80">
+              「{question.trim()}」
+            </span>
+            切牌，默念后切开牌堆
+          </>
+        ) : (
+          '在心中默念你的问题，切开牌堆'
+        )}
+      </p>
     </div>
   );
 }

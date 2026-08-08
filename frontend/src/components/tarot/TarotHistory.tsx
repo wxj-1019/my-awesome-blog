@@ -69,27 +69,32 @@ export default function TarotHistory({ entries, onClear }: TarotHistoryProps) {
                     type="button"
                     onClick={() => setExpandedId((cur) => (cur === entry.id ? null : entry.id))}
                     aria-expanded={expanded}
-                    className="flex w-full flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xl"
+                    className="flex w-full flex-col gap-1.5 px-4 py-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xl"
                   >
-                    <span className="text-xs text-muted-foreground">{formatTime(entry.createdAt)}</span>
-                    <span className="min-w-0 flex-1 truncate text-sm text-foreground">
-                      {entry.question.trim() || '综合占卜'}
+                    <span className="flex w-full items-center gap-2">
+                      <span className="min-w-0 flex-1 truncate text-sm text-foreground">
+                        {entry.question.trim() || '综合占卜'}
+                      </span>
+                      <ChevronDown
+                        className={cn('h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform duration-200', expanded && 'rotate-180')}
+                        aria-hidden
+                      />
                     </span>
-                    <span className="text-xs text-muted-foreground">{spread.name}</span>
-                    <span className="flex flex-wrap gap-1">
-                      {drawn.map((d) => (
-                        <span
-                          key={d.card.id}
-                          className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] text-primary"
-                        >
-                          {d.card.name}·{orientationLabel(d.isReversed)}
-                        </span>
-                      ))}
+                    <span className="flex w-full flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+                      <span className="tabular-nums">{formatTime(entry.createdAt)}</span>
+                      <span aria-hidden>·</span>
+                      <span>{spread.name}</span>
+                      <span className="ml-auto flex flex-wrap gap-1">
+                        {drawn.map((d) => (
+                          <span
+                            key={d.card.id}
+                            className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] text-primary"
+                          >
+                            {d.card.name}·{orientationLabel(d.isReversed)}
+                          </span>
+                        ))}
+                      </span>
                     </span>
-                    <ChevronDown
-                      className={cn('h-3.5 w-3.5 text-muted-foreground transition-transform duration-200', expanded && 'rotate-180')}
-                      aria-hidden
-                    />
                   </button>
 
                   {expanded ? (

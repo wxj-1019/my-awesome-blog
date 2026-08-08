@@ -499,6 +499,28 @@ export default function TarotContent() {
                       )}
                     >
                       <span className="mb-1 flex items-center gap-1.5 text-sm font-semibold text-foreground">
+                        {/* 迷你牌阵示意：1 张 / 3 张排布（装饰，不承载信息） */}
+                        <span
+                          aria-hidden
+                          className={cn(
+                            'flex shrink-0 items-end gap-0.5',
+                            spreadType === s.type
+                              ? 'text-primary/70'
+                              : 'text-muted-foreground/50'
+                          )}
+                        >
+                          {Array.from({ length: s.positions.length }).map((_, j) => (
+                            <span
+                              key={j}
+                              className={cn(
+                                'block w-2.5 rounded-[2px] border border-current',
+                                s.positions.length === 3 && j === 1
+                                  ? 'h-4 -translate-y-px'
+                                  : 'h-3'
+                              )}
+                            />
+                          ))}
+                        </span>
                         {s.name}
                         <span
                           aria-hidden
@@ -556,7 +578,19 @@ export default function TarotContent() {
                   </motion.div>
                 ))}
               </div>
-              <p className="text-sm text-muted-foreground">洗牌中，请默念你的问题…</p>
+              <p className="text-sm text-muted-foreground">
+                {question.trim() ? (
+                  <>
+                    正在为
+                    <span className="mx-1 font-medium text-foreground/80">
+                      「{question.trim()}」
+                    </span>
+                    洗牌，请默念你的问题…
+                  </>
+                ) : (
+                  '洗牌中，请默念你的问题…'
+                )}
+              </p>
               <button
                 type="button"
                 onClick={goToCutting}
@@ -570,7 +604,7 @@ export default function TarotContent() {
           {/* 切牌 */}
           {phase === 'cutting' ? (
             <FadeIn>
-              <TarotCutDeck onCut={handleCut} />
+              <TarotCutDeck onCut={handleCut} question={question} />
             </FadeIn>
           ) : null}
 
