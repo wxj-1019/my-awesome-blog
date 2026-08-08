@@ -577,12 +577,16 @@ export default function TarotContent() {
           {/* 抽牌 */}
           {phase === 'drawing' ? (
             <FadeIn className="flex flex-col items-center gap-5">
-              <p className="text-sm text-muted-foreground" aria-live="polite">
-                凭直觉点击牌背，选出 <span className="font-semibold text-primary">{needCount}</span> 张牌
-                <span className="ml-2 text-xs">
-                  （已选 {drawn.length} / {needCount}）
+              <div className="flex flex-col items-center gap-2 text-center">
+                <p className="text-sm text-muted-foreground" aria-live="polite">
+                  凭直觉点击牌背，选出
+                  <span className="font-semibold text-primary">{needCount}</span>
+                  张牌
+                </p>
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/5 px-2.5 py-1 text-xs tabular-nums text-primary" aria-live="polite">
+                  已选 {drawn.length} / {needCount}
                 </span>
-              </p>
+              </div>
               <TarotDeckFan
                 deck={deck}
                 pickedIds={pickedIds}
@@ -594,7 +598,7 @@ export default function TarotContent() {
                   type="button"
                   onClick={randomPickAll}
                   disabled={drawn.length >= needCount}
-                  className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-primary/40 px-4 py-2 text-sm text-primary transition-colors hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+                  className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
                 >
                   <Dices className="h-4 w-4" aria-hidden />
                   代我抽牌
@@ -660,6 +664,24 @@ export default function TarotContent() {
                 </div>
               ) : (
                 <div ref={readingRef} className="w-full scroll-mt-24">
+                  {/* 解读上下文：牌阵 + 问题（轻量标题，AI 解读前先给结果定位） */}
+                  <div className="mx-auto mb-4 w-full max-w-2xl">
+                    <p className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center text-xs text-muted-foreground">
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 font-medium text-primary">
+                        {spread.name} · {spread.positions.length} 张
+                      </span>
+                      {question.trim() ? (
+                        <span className="inline-flex max-w-full items-center gap-1 rounded-full border border-border/70 px-2.5 py-1">
+                          <Wand2 className="h-3 w-3 shrink-0 text-tech-purple" aria-hidden />
+                          <span className="truncate">{question.trim()}</span>
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center rounded-full border border-border/70 px-2.5 py-1">
+                          综合占卜
+                        </span>
+                      )}
+                    </p>
+                  </div>
                   <FadeIn className="w-full">
                     <ReadingPanel
                       question={question}
