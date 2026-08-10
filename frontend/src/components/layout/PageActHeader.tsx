@@ -13,7 +13,8 @@ export interface PageActHeaderProps {
   icon?: LucideIcon;
   align?: 'center' | 'left';
   className?: string;
-  /** kicker 艺术字体类（如 font-tarot / font-creative），不传则用默认 font-medium */
+  /** kicker 艺术字体类（如 font-tarot / font-creative），不传则用默认 font-medium。
+   *  含「 · 」时拆分中英：英文用艺术字体放大成主视觉，中文降为辅助小字。 */
   kickerFont?: string;
   /** 标题下方额外内容（徽章、统计等） */
   children?: ReactNode;
@@ -37,6 +38,10 @@ export default function PageActHeader({
 }: PageActHeaderProps) {
   const centered = align === 'center';
 
+  // kicker 含「 · 」且有艺术字体时：拆分中英，英文放大用艺术字体，中文降为辅助
+  const kickerParts = kicker && kickerFont ? kicker.split(' · ') : null;
+  const hasSplit = kickerParts && kickerParts.length === 2;
+
   return (
     <FadeIn
       className={cn(
@@ -46,15 +51,33 @@ export default function PageActHeader({
       )}
     >
       {kicker ? (
-        <p
-          data-act-kicker
-          className={cn(
-            'text-[11px] sm:text-xs tracking-[0.28em] text-white/80',
-            kickerFont ?? 'font-medium'
-          )}
-        >
-          {kicker}
-        </p>
+        hasSplit ? (
+          /* 拆分模式：英文用艺术字体放大 + 中文辅助小字（拉丁字体不渲染中文，需分离） */
+          <div className={cn('flex flex-col items-center gap-1', !centered && 'items-start')}>
+            <p
+              data-act-kicker
+              className={cn(
+                'text-sm sm:text-base tracking-[0.2em] text-white/85',
+                kickerFont
+              )}
+            >
+              {kickerParts![1]}
+            </p>
+            <p className="text-[10px] tracking-[0.15em] text-white/50 font-medium">
+              {kickerParts![0]}
+            </p>
+          </div>
+        ) : (
+          <p
+            data-act-kicker
+            className={cn(
+              'text-[11px] sm:text-xs tracking-[0.28em] text-white/80',
+              kickerFont ?? 'font-medium'
+            )}
+          >
+            {kicker}
+          </p>
+        )
       ) : null}
 
       <div
