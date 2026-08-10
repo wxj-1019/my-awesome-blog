@@ -120,6 +120,11 @@ export const streamChat = async (
           }
           try {
             const json = JSON.parse(data);
+            // 后端 SSE 错误块：{"error": true, "message": "..."}（如 LLM 未配置/限流等）
+            if (json.error) {
+              onError(new Error(json.message || 'AI 解读服务出错，请稍后重试'));
+              return;
+            }
             if (json.content) {
               onChunk(json.content);
             }
@@ -133,6 +138,8 @@ export const streamChat = async (
         }
       }
     }
+    // 流自然结束（未收到 [DONE]）：视作正常完成，避免状态卡在「解读中…」
+    onComplete();
   } catch (error) {
     onError(error instanceof Error ? error : new Error(String(error)));
   }
