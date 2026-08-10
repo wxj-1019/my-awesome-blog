@@ -75,6 +75,13 @@
     scroll-behavior: smooth;
   }
 
+  /* 全站主标题统一思源宋体：未显式指定字体类的 h1（如 admin、login 等）也走宋体，
+   * 与工具页页头（PageActHeader font-serif）保持一致的典雅氛围。
+   * 显式指定 font-display / font-brush 等类的标题不受影响（类优先级更高）。 */
+  h1 {
+    font-family: var(--font-noto-serif-sc), ui-serif, Georgia, serif;
+  }
+
   .prose {
     @apply max-w-none;
   }

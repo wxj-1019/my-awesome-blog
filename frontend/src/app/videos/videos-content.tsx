@@ -158,7 +158,7 @@ export default function VideosPageContent() {
             kicker="放映厅 · VIDEOS"
             title="我的视频"
             description="记录您的电影、剧集和动漫之旅"
-            kickerFont="font-cinema"
+            kickerFont="font-gothic"
           />
 
           <div className="relative overflow-hidden rounded-2xl bg-glass border border-glass-border shadow-[var(--glass-shadow)]">

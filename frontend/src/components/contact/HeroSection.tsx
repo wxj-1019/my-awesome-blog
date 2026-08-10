@@ -20,6 +20,7 @@ export default function HeroSection() {
           kicker="联络 · CONTACT"
           title="联系我"
           description="很高兴与你交流。无论是技术咨询、商务合作，还是单纯聊天，欢迎随时联系我。"
+          kickerFont="font-gothic"
         />
         <FadeIn delay={0.15} className="max-w-4xl mx-auto">
           <GlassCard padding="lg" className="text-center">
