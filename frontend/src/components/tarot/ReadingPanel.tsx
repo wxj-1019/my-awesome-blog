@@ -157,7 +157,8 @@ export default function ReadingPanel({
                 {/* 牌名标题：h2 与页头 h1 保持层级连续（axe heading-order 不允许跳级） */}
                 <h2 className="font-semibold text-foreground">
                   {d.card.name}
-                  <span className="ml-1.5 text-xs font-normal text-muted-foreground">
+                  {/* 英文牌名：UnifrakturMaguntia 哥特体，营造塔罗牌面铭文氛围 */}
+                  <span className="ml-1.5 font-gothic text-xs font-normal text-muted-foreground">
                     {d.card.nameEn}
                   </span>
                 </h2>

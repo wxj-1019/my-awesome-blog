@@ -251,8 +251,9 @@ export default function HeroSection() {
             <h1
               id="hero-title"
               className={cn(
-                'font-display text-3xl sm:text-4xl md:text-5xl',
-                'font-semibold tracking-wide leading-snug',
+                // 打字机标题：马善政楷书（毛笔书法氛围；仅 400 字重，不用 font-semibold 避免浏览器伪粗体）
+                'font-brush text-3xl sm:text-4xl md:text-5xl',
+                'tracking-wide leading-snug',
                 isDark
                   ? 'text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.5),0_0_28px_rgba(94,234,212,0.3),0_0_48px_rgba(56,189,248,0.14)]'
                   : 'text-white [text-shadow:0_2px_10px_rgba(15,23,42,0.55),0_0_24px_rgba(255,255,255,0.28)]'

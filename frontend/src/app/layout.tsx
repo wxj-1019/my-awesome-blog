@@ -9,6 +9,8 @@ import {
   DM_Serif_Display as DmSerifDisplay,
   Abril_Fatface as AbrilFatface,
   Noto_Serif_SC as NotoSerifSC,
+  Ma_Shan_Zheng as MaShanZheng,
+  UnifrakturMaguntia,
 } from 'next/font/google';
 import Navbar from '@/components/navigation/Navbar';
 import Footer from '@/components/navigation/Footer';
@@ -37,6 +39,18 @@ const notoSerifSC = NotoSerifSC({
   subsets: ['latin'],
   weight: ['400', '700'],
   variable: '--font-noto-serif-sc',
+});
+
+// 马善政楷书：首页打字机标题（毛笔书法氛围，单字重 400）
+const maShanZheng = MaShanZheng({
+  weight: '400',
+  variable: '--font-ma-shan-zheng',
+});
+
+// 哥特黑体：塔罗牌英文牌名（中世纪魔法书氛围，单字重 400）
+const unifraktur = UnifrakturMaguntia({
+  weight: '400',
+  variable: '--font-unifraktur',
 });
 
 export const metadata: Metadata = {
@@ -111,7 +125,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${inter.variable} ${syne.variable} ${manrope.variable} ${cinzel.variable} ${fraunces.variable} ${dmSerif.variable} ${abril.variable} ${notoSerifSC.variable} font-sans bg-background`}>
+      <body className={`${inter.variable} ${syne.variable} ${manrope.variable} ${cinzel.variable} ${fraunces.variable} ${dmSerif.variable} ${abril.variable} ${notoSerifSC.variable} ${maShanZheng.variable} ${unifraktur.variable} font-sans bg-background`}>
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[200]

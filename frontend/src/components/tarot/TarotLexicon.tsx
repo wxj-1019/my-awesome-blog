@@ -274,7 +274,8 @@ function LexiconEntryInner({
           <span className="min-w-0 flex-1">
             <span className="block text-sm font-semibold text-foreground">
               {card.name}
-              <span className="ml-1.5 text-xs font-normal text-muted-foreground">{card.nameEn}</span>
+              {/* 英文牌名：UnifrakturMaguntia 哥特体 */}
+              <span className="ml-1.5 font-gothic text-xs font-normal text-muted-foreground">{card.nameEn}</span>
             </span>
             <span className="mt-0.5 flex flex-wrap gap-1">
               {card.keywords.map((kw) => (

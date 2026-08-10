@@ -46,6 +46,10 @@ export default {
         creative: ['var(--font-fraunces)', 'var(--font-syne)', 'serif'],
         gallery: ['var(--font-dm-serif)', 'var(--font-syne)', 'serif'],
         cinema: ['var(--font-abril)', 'var(--font-syne)', 'serif'],
+        // brush：马善政楷书（毛笔书法，首页打字机标题）
+        brush: ['var(--font-ma-shan-zheng)', 'var(--font-noto-serif-sc)', 'serif'],
+        // gothic：UnifrakturMaguntia（哥特黑体，塔罗牌英文牌名）
+        gothic: ['var(--font-unifraktur)', 'serif'],
       },
       colors: {
         border: withAlpha('--border'),
