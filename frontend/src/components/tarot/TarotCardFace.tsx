@@ -1,20 +1,10 @@
 import { memo } from 'react';
 import type { TarotCard } from '@/types/tarot';
-import { toRomanNumeral } from '@/lib/tarot';
 import { cn } from '@/lib/utils';
 import TarotCardImage from './TarotCardImage';
 import TarotGlyph from './TarotGlyph';
 
-/** 花色配色：全部走 token 分类色板（双主题自适应），大阿尔克那用神秘紫 */
-const SUIT_META: Record<string, { text: string; tintVar: string }> = {
-  major: { text: 'text-tech-purple', tintVar: '--tech-purple' },
-  wands: { text: 'text-cat-4', tintVar: '--cat-4' },
-  cups: { text: 'text-cat-1', tintVar: '--cat-1' },
-  swords: { text: 'text-cat-5', tintVar: '--cat-5' },
-  pentacles: { text: 'text-cat-8', tintVar: '--cat-8' },
-};
-
-/** 宫廷牌徽标字 */
+/** 宫廷牌徽标字（SVG 回退场景用） */
 const COURT_BADGE: Record<string, string> = {
   page: '侍',
   knight: '骑',
@@ -22,34 +12,19 @@ const COURT_BADGE: Record<string, string> = {
   king: '王',
 };
 
-/** 牌面顶部编号：大牌罗马数字、数字牌阿拉伯数字、宫廷牌徽标字 */
-function topLabel(card: TarotCard): string {
-  if (card.arcana === 'major') {return toRomanNumeral(card.number);}
-  if (card.court) {return COURT_BADGE[card.court];}
-  return String(card.number);
-}
-
 interface TarotCardFaceProps {
   card: TarotCard;
   className?: string;
 }
 
-/**
- * SVG 符号化牌面：边框 + 顶部编号 + 中央符号 + 底部牌名。
- * 大阿尔克那单个大符号；数字牌花色符号 ×N；宫廷牌徽标 + 花色符号。
- */
+/** 牌面：AI 生成牌面图全幅展示（无编号/牌名文字，保持牌面纯净） */
 const TarotCardFace = memo(function TarotCardFace({ card, className }: TarotCardFaceProps) {
-  const meta = SUIT_META[card.arcana === 'major' ? 'major' : (card.suit ?? 'major')];
-
   return (
     <div
       className={cn(
-        'relative flex h-full w-full flex-col items-center justify-between overflow-hidden rounded-xl border border-border bg-card p-2',
+        'relative flex h-full w-full flex-col overflow-hidden rounded-xl border border-border bg-card p-1.5',
         className
       )}
-      style={{
-        background: `radial-gradient(circle at 50% 42%, color-mix(in srgb, var(${meta.tintVar}) 9%, transparent), transparent 72%)`,
-      }}
     >
       {/* 内框装饰线 */}
       <div
@@ -57,29 +32,17 @@ const TarotCardFace = memo(function TarotCardFace({ card, className }: TarotCard
         aria-hidden
       />
 
-      <span className="self-start pl-1 text-[10px] font-semibold tracking-widest text-muted-foreground">
-        {topLabel(card)}
-      </span>
-
-      <div className={cn('flex min-h-0 flex-1 items-center justify-center py-1', meta.text)}>
-        <CenterMotif card={card} />
+      {/* 中央图案：AI 生成图全幅（加载失败回退 SVG 符号） */}
+      <div className="flex min-h-0 flex-1 items-center justify-center">
+        <TarotCardImage card={card} className="h-full max-h-full w-full" fallback={<SvgMotif card={card} />} />
       </div>
-
-      <span className="text-[11px] font-medium leading-tight text-foreground/90">
-        {card.name}
-      </span>
     </div>
   );
 });
 
 export default TarotCardFace;
 
-/** 中央图案：AI 生成图优先（加载失败回退 SVG 符号） */
-function CenterMotif({ card }: { card: TarotCard }) {
-  return <TarotCardImage card={card} className="h-full max-h-full w-full" fallback={<SvgMotif card={card} />} />;
-}
-
-/** 原有 SVG 符号中央图案：按牌型分派 */
+/** 原有 SVG 符号中央图案：按牌型分派（AI 图缺失时的回退） */
 function SvgMotif({ card }: { card: TarotCard }) {
   if (card.arcana === 'major') {
     return <TarotGlyph glyph={card.glyph} className="h-14 w-14" />;
