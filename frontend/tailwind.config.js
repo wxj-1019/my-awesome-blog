@@ -35,7 +35,10 @@ export default {
     extend: {
       fontFamily: {
         sans: ['var(--font-manrope)', 'var(--font-inter)', 'ui-sans-serif', 'system-ui'],
-        display: ['var(--font-syne)', 'var(--font-inter)', 'ui-sans-serif', 'system-ui'],
+        // display：拉丁标题走 Syne，中文标题回退思源宋体（Noto Serif SC）
+        display: ['var(--font-syne)', 'var(--font-noto-serif-sc)', 'ui-serif', 'Georgia', 'serif'],
+        // serif：中文衬线（思源宋体），用于中文标题与文章正文
+        serif: ['var(--font-noto-serif-sc)', 'ui-serif', 'Georgia', 'serif'],
         'sf-pro-display': ['"SF Pro Display"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
         'sf-pro-text': ['"SF Pro Text"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
         // 分页面艺术字体（仅 kicker/装饰用，回退到 display 字体 Syne + serif）

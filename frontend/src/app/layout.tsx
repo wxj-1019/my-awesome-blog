@@ -8,6 +8,7 @@ import {
   Fraunces,
   DM_Serif_Display as DmSerifDisplay,
   Abril_Fatface as AbrilFatface,
+  Noto_Serif_SC as NotoSerifSC,
 } from 'next/font/google';
 import Navbar from '@/components/navigation/Navbar';
 import Footer from '@/components/navigation/Footer';
@@ -29,6 +30,14 @@ const cinzel = Cinzel({ subsets: ['latin'], weight: '400', variable: '--font-cin
 const fraunces = Fraunces({ subsets: ['latin'], weight: '400', variable: '--font-fraunces' });
 const dmSerif = DmSerifDisplay({ subsets: ['latin'], weight: '400', variable: '--font-dm-serif' });
 const abril = AbrilFatface({ subsets: ['latin'], weight: '400', variable: '--font-abril' });
+
+// 中文标题/正文衬线字体（思源宋体）：标题用 700，正文用 400，控制体积
+// next/font 对 CJK 仅 subsets:['latin'] 生效，中文字形由浏览器按需加载 woff2 分片
+const notoSerifSC = NotoSerifSC({
+  subsets: ['latin'],
+  weight: ['400', '700'],
+  variable: '--font-noto-serif-sc',
+});
 
 export const metadata: Metadata = {
   title: '我的优秀博客',
@@ -102,7 +111,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${inter.variable} ${syne.variable} ${manrope.variable} ${cinzel.variable} ${fraunces.variable} ${dmSerif.variable} ${abril.variable} font-sans bg-background`}>
+      <body className={`${inter.variable} ${syne.variable} ${manrope.variable} ${cinzel.variable} ${fraunces.variable} ${dmSerif.variable} ${abril.variable} ${notoSerifSC.variable} font-sans bg-background`}>
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[200]

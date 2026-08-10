@@ -306,7 +306,7 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
                   <div ref={contentRef}>
                     <ArticleBodyReveal enabled>
                       <div
-                        className={`prose prose-base md:prose-lg max-w-none dark:prose-invert leading-relaxed md:leading-[1.8] ${textClass}`}
+                        className={`prose prose-base md:prose-lg max-w-none dark:prose-invert font-serif leading-relaxed md:leading-[1.8] ${textClass}`}
                       >
                         <MarkdownRenderer content={article.content} />
                       </div>

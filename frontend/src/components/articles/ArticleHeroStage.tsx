@@ -105,7 +105,7 @@ export default function ArticleHeroStage({
           <motion.h1
             layoutId={`article-title-${article.id}`}
             className={cn(
-              'text-3xl md:text-4xl font-bold mb-4 font-display',
+              'text-3xl md:text-4xl font-bold mb-4 font-display tracking-wide',
               textClass
             )}
           >
