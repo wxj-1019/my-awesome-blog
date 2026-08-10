@@ -361,6 +361,7 @@ export default function TarotContent() {
         description="抽牌占卜，正逆位牌义与 AI 深度解读"
         icon={MoonStar}
         align="center"
+        kickerFont="font-tarot"
         className="[&_[data-act-kicker]]:text-primary [&_h1]:text-foreground [&_p]:text-muted-foreground"
       />
 
