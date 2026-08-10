@@ -38,6 +38,11 @@ export default {
         display: ['var(--font-syne)', 'var(--font-inter)', 'ui-sans-serif', 'system-ui'],
         'sf-pro-display': ['"SF Pro Display"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
         'sf-pro-text': ['"SF Pro Text"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
+        // 分页面艺术字体（仅 kicker/装饰用，回退到 display 字体 Syne + serif）
+        tarot: ['var(--font-cinzel)', 'var(--font-syne)', 'serif'],
+        creative: ['var(--font-fraunces)', 'var(--font-syne)', 'serif'],
+        gallery: ['var(--font-dm-serif)', 'var(--font-syne)', 'serif'],
+        cinema: ['var(--font-abril)', 'var(--font-syne)', 'serif'],
       },
       colors: {
         border: withAlpha('--border'),
