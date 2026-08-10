@@ -18,6 +18,10 @@ from .base import (
 )
 
 
+class EmptyStreamError(RuntimeError):
+    """上游返回 200 但流内容为空（中转站间歇性异常），用于触发重试。"""
+
+
 class DeepSeekProvider(LLMProvider):
     """
     DeepSeek LLM 提供商
@@ -76,6 +80,63 @@ class DeepSeekProvider(LLMProvider):
             app_logger.error(f"DeepSeek chat error: {e}")
             raise
 
+    @retry(
+        stop=stop_after_attempt(settings.LLM_MAX_RETRIES),
+        wait=wait_exponential(multiplier=1, min=2, max=10),
+        retry=retry_if_exception_type(
+            (httpx.HTTPStatusError, httpx.RequestError, EmptyStreamError)
+        ),
+    )
+    async def _stream_once(
+        self,
+        request: ChatCompletionRequest,
+        model_name: str,
+        headers: dict,
+    ) -> list:
+        """单次流式请求：完整读取并返回 chunk 列表。
+
+        抽成独立 async 函数以便 tenacity 重试生效（async generator 无法被
+        @retry 重试——异常发生在迭代时而非调用时）。551/5xx/网络错误会在
+        读取阶段抛出，由装饰器按指数退避重试整个请求。
+
+        另处理上游「200 但空流」的间歇性异常（中转站常见）：读完流后若
+        未收到任何内容 chunk，抛 EmptyStreamError 触发重试。
+        """
+        payload = build_openai_payload(request, model_name, stream=True)
+        chunks: list = []
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
+            async with client.stream(
+                'POST',
+                f'{self.base_url}/chat/completions',
+                headers=headers,
+                json=payload
+            ) as response:
+                # Check status before iterating
+                if response.status_code >= 400:
+                    error_content = await response.aread()
+                    error_text = error_content.decode('utf-8', errors='replace')
+                    app_logger.error(f"DeepSeek stream API error: {response.status_code} - {error_text}")
+                    response.raise_for_status()
+
+                async for line in response.aiter_lines():
+                    if line.startswith('data: '):
+                        data_str = line[6:]
+                        if data_str == '[DONE]':
+                            break
+                        try:
+                            import json
+                            data = json.loads(data_str)
+                            chunk = self._parse_stream_chunk(data)
+                            # 只累积有实际内容的块（content 为空如 role 块不计数）
+                            if chunk and chunk.content:
+                                chunks.append(chunk)
+                        except json.JSONDecodeError:
+                            continue
+        if not chunks:
+            app_logger.warning("DeepSeek stream returned empty content, will retry")
+            raise EmptyStreamError("DeepSeek stream returned empty content")
+        return chunks
+
     async def stream_chat(
         self,
         request: ChatCompletionRequest
@@ -103,36 +164,10 @@ class DeepSeekProvider(LLMProvider):
 
         app_logger.info(f"DeepSeek stream - Final model_name: {model_name}")
 
-        payload = build_openai_payload(request, model_name, stream=True)
-
         try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                async with client.stream(
-                    'POST',
-                    f'{self.base_url}/chat/completions',
-                    headers=headers,
-                    json=payload
-                ) as response:
-                    # Check status before iterating
-                    if response.status_code >= 400:
-                        error_content = await response.aread()
-                        error_text = error_content.decode('utf-8', errors='replace')
-                        app_logger.error(f"DeepSeek stream API error: {response.status_code} - {error_text}")
-                        response.raise_for_status()
-
-                    async for line in response.aiter_lines():
-                        if line.startswith('data: '):
-                            data_str = line[6:]
-                            if data_str == '[DONE]':
-                                break
-                            try:
-                                import json
-                                data = json.loads(data_str)
-                                chunk = self._parse_stream_chunk(data)
-                                if chunk:
-                                    yield chunk
-                            except json.JSONDecodeError:
-                                continue
+            chunks = await self._stream_once(request, model_name, headers)
+            for chunk in chunks:
+                yield chunk
 
         except httpx.HTTPStatusError as e:
             app_logger.error(f"DeepSeek stream API error: {e.response.status_code}")

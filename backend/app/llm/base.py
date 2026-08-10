@@ -164,14 +164,21 @@ def tools_to_openai_definitions(tools: List[ToolDefinition]) -> List[Dict[str, A
 
 
 def build_openai_payload(request: ChatCompletionRequest, model_name: str, stream: bool) -> Dict[str, Any]:
-    """构建 OpenAI 兼容的 chat/completions 请求体（各 provider 共用）。"""
+    """构建 OpenAI 兼容的 chat/completions 请求体（各 provider 共用）。
+
+    注意：temperature/top_p 仅在调用方显式传入时写入——OpenAI 兼容 API
+    不接受 null 值，若字段为 None 而写入 "top_p": null 会被部分上游
+    （如中转站）拒绝或返回空流。
+    """
     payload: Dict[str, Any] = {
         "model": model_name,
         "messages": [message_to_openai_dict(m) for m in request.messages],
-        "temperature": request.temperature,
-        "top_p": request.top_p,
         "stream": stream,
     }
+    if request.temperature is not None:
+        payload["temperature"] = request.temperature
+    if request.top_p is not None:
+        payload["top_p"] = request.top_p
     if request.max_tokens:
         payload["max_tokens"] = request.max_tokens
     if request.tools:
