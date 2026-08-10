@@ -13,6 +13,8 @@ export interface PageActHeaderProps {
   icon?: LucideIcon;
   align?: 'center' | 'left';
   className?: string;
+  /** kicker 艺术字体类（如 font-tarot / font-creative），不传则用默认 font-medium */
+  kickerFont?: string;
   /** 标题下方额外内容（徽章、统计等） */
   children?: ReactNode;
 }
@@ -30,6 +32,7 @@ export default function PageActHeader({
   icon: Icon,
   align = 'center',
   className,
+  kickerFont,
   children,
 }: PageActHeaderProps) {
   const centered = align === 'center';
@@ -45,7 +48,10 @@ export default function PageActHeader({
       {kicker ? (
         <p
           data-act-kicker
-          className="text-[11px] sm:text-xs font-medium tracking-[0.28em] text-white/80"
+          className={cn(
+            'text-[11px] sm:text-xs tracking-[0.28em] text-white/80',
+            kickerFont ?? 'font-medium'
+          )}
         >
           {kicker}
         </p>
