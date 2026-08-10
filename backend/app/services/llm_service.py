@@ -13,6 +13,7 @@ from app.llm import (
     ChatStreamChunk,
     ChatMessage
 )
+from app.llm.deepseek_provider import EmptyStreamError
 from app.schemas.llm import (
     LLMChatRequest,
     LLMChatResponse,
@@ -128,6 +129,10 @@ class LLMService:
         except ValueError as e:
             app_logger.error(f"LLM stream service error: {e}")
             yield f"data: {self._format_sse_error(str(e))}\n\n"
+        except EmptyStreamError as e:
+            # 上游空流/重试耗尽：给出用户可读的提示，而非技术性错误
+            app_logger.error(f"LLM stream empty upstream: {e}")
+            yield f"data: {self._format_sse_error('AI 解读服务暂时繁忙，请稍后重试')}\n\n"
         except Exception as e:
             app_logger.error(f"LLM stream chat error: {e}")
             yield f"data: {self._format_sse_error('Failed to process stream chat request')}\n\n"

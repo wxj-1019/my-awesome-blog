@@ -99,7 +99,7 @@ class Settings(BaseSettings):
     # LLM Configuration
     LLM_DEFAULT_MODEL: str = Field(default="deepseek-v4-flash", description="默认使用的LLM模型")
     LLM_TIMEOUT: int = Field(default=120, description="LLM API请求超时时间（秒）")
-    LLM_MAX_RETRIES: int = Field(default=3, description="LLM API请求最大重试次数")
+    LLM_MAX_RETRIES: int = Field(default=5, description="LLM API请求最大重试次数")
     LLM_STREAM_ENABLED: bool = Field(default=True, description="是否启用流式响应")
 
     # DeepSeek Configuration

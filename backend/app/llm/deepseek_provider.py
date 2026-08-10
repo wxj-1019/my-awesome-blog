@@ -5,7 +5,7 @@ DeepSeek API 兼容 OpenAI 格式
 
 import httpx
 from typing import AsyncIterator
-from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type, RetryError
 from app.core.config import settings
 from app.utils.logger import app_logger
 from .base import (
@@ -169,6 +169,10 @@ class DeepSeekProvider(LLMProvider):
             for chunk in chunks:
                 yield chunk
 
+        except RetryError as e:
+            # 重试耗尽（上游持续空流/5xx）：转成 EmptyStreamError 供上层给出友好提示
+            app_logger.error(f"DeepSeek stream retry exhausted: {e}")
+            raise EmptyStreamError("上游 AI 服务持续无响应，请稍后重试") from e
         except httpx.HTTPStatusError as e:
             app_logger.error(f"DeepSeek stream API error: {e.response.status_code}")
             raise
