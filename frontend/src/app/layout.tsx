@@ -1,6 +1,6 @@
 import '../styles/globals.css';
 import type { Metadata } from 'next';
-import { Inter, Syne, Manrope } from 'next/font/google';
+import { Inter, Syne, Manrope, Cinzel, Fraunces, DM_Serif_Display, Abril_Fatface } from 'next/font/google';
 import Navbar from '@/components/navigation/Navbar';
 import Footer from '@/components/navigation/Footer';
 import ThemeWrapper from '@/components/theme-wrapper';
@@ -15,6 +15,12 @@ import { env } from '@/lib/env';
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const syne = Syne({ subsets: ['latin'], variable: '--font-syne' });
 const manrope = Manrope({ subsets: ['latin'], variable: '--font-manrope' });
+
+// 分页面艺术字体（仅 kicker/装饰用；单字重 400，next/font 自动子集化）
+const cinzel = Cinzel({ subsets: ['latin'], weight: '400', variable: '--font-cinzel' });
+const fraunces = Fraunces({ subsets: ['latin'], weight: '400', variable: '--font-fraunces' });
+const dmSerif = DM_Serif_Display({ subsets: ['latin'], weight: '400', variable: '--font-dm-serif' });
+const abril = Abril_Fatface({ subsets: ['latin'], weight: '400', variable: '--font-abril' });
 
 export const metadata: Metadata = {
   title: '我的优秀博客',
@@ -88,7 +94,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${inter.variable} ${syne.variable} ${manrope.variable} font-sans bg-background`}>
+      <body className={`${inter.variable} ${syne.variable} ${manrope.variable} ${cinzel.variable} ${fraunces.variable} ${dmSerif.variable} ${abril.variable} font-sans bg-background`}>
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[200]
