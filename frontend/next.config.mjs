@@ -30,6 +30,16 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'via.placeholder.com',
       },
+      // Pexels 素材站（admin 封面选择器常用来源）
+      {
+        protocol: 'https',
+        hostname: 'images.pexels.com',
+      },
+      // MinIO 对象存储对外域名（nginx 反代）
+      {
+        protocol: 'http',
+        hostname: '49.234.190.85',
+      },
     ],
     formats: ['image/webp', 'image/avif'],
     dangerouslyAllowSVG: true,
