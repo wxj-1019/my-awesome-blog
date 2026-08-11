@@ -30,6 +30,8 @@ interface ArticleHeroStageProps {
   textClass: string;
   /** 可选顶部媒体区（封面/视频） */
   mediaSlot?: React.ReactNode;
+  /** 标题/元信息区最大宽度（与正文中心列对齐） */
+  contentClassName?: string;
 }
 
 /**
@@ -44,6 +46,7 @@ export default function ArticleHeroStage({
   formatDate,
   textClass,
   mediaSlot,
+  contentClassName,
 }: ArticleHeroStageProps) {
   const mediaRef = useRef<HTMLDivElement>(null);
   const reduced = useReducedMotion();
@@ -72,7 +75,7 @@ export default function ArticleHeroStage({
       {mediaSlot ? (
         <div
           ref={mediaRef}
-          className="h-[22vh] md:h-[26vh] overflow-hidden relative z-10 mb-8 rounded-none md:rounded-xl opacity-95"
+          className="h-[13rem] sm:h-[15rem] lg:h-[19rem] overflow-hidden relative z-10 mb-8 md:rounded-xl opacity-95"
         >
           <div
             className="h-full w-full will-change-transform"
@@ -85,7 +88,7 @@ export default function ArticleHeroStage({
         </div>
       ) : null}
 
-      <div className="px-4 md:px-0">
+      <div className={cn('mx-auto w-full', contentClassName)}>
         <FadeIn className="flex flex-wrap items-center gap-4 mb-4">
           {article.category && (
             <Badge

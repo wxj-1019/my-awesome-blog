@@ -289,6 +289,7 @@ export default function ArticleDetailPageContent({
               onBookmark={handleBookmark}
               formatDate={formatDate}
               textClass={textClass}
+              contentClassName="max-w-[50rem] px-4 md:px-6"
               mediaSlot={
                 /* 封面图 + Ken Burns 缓推，替代原视频（视频比例与容器冲突占不满） */
                 <ArticleHeroCover
