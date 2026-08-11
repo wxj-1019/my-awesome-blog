@@ -250,7 +250,7 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
         accentActiveClass="bg-primary/20 text-primary font-medium"
         idleLinkClass="text-muted-foreground hover:text-primary"
       />
-      <div className="max-w-7xl mx-auto pb-8">
+      <div className="max-w-[1400px] mx-auto pb-8">
         {loading ? (
           <div className="px-4 pt-12 space-y-6">
             <Skeleton className="h-12 w-3/4" />
@@ -282,8 +282,8 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
               窄 lg：TOC 浮层不占主宽；xl+：三栏（左 TOC | 正文 | 右相关）
             */}
             <div className="relative flex flex-col xl:flex-row gap-6 xl:gap-8 px-4 md:px-6">
-              {/* 左轨 TOC：lg–xl 固定窄轨，xl+ 进文档流 */}
-              <aside className="hidden lg:block lg:fixed lg:left-4 lg:top-28 lg:z-30 lg:w-48 xl:static xl:w-52 xl:shrink-0 xl:left-auto xl:top-auto order-1">
+              {/* 左轨 TOC：lg–xl 固定窄轨，xl+ sticky 跟随滚动 */}
+              <aside className="hidden lg:block lg:fixed lg:left-4 lg:top-28 lg:z-30 lg:w-48 xl:sticky xl:top-24 xl:w-52 xl:shrink-0 xl:left-auto xl:top-auto order-1 self-start">
                 <ArticleTocRail
                   variant="rail"
                   headings={toc}
@@ -464,8 +464,8 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
                   </div>
                 </GlassCard>
               </div>
-              {/* 右轨：相关文章 — 窄屏在正文下，xl+ 侧栏 */}
-              <aside className="w-full xl:w-56 2xl:w-64 space-y-6 order-3 shrink-0">
+              {/* 右轨：相关文章 — 窄屏在正文下，xl+ sticky 侧栏 */}
+              <aside className="w-full xl:w-56 2xl:w-64 space-y-6 order-3 shrink-0 self-start">
                 {relatedArticles.length > 0 && (
                   <GlassCard
                     padding="none"
