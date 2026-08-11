@@ -77,16 +77,16 @@ export default function ArticleReadingMetaBar({
             className="flex items-center gap-2"
             aria-label={`${label}：${article[valueKey]}`}
           >
-            <Icon
-              className="h-4 w-4 text-muted-foreground"
-              aria-hidden="true"
-            />
-            <div>
-              <dt className="text-xs text-muted-foreground">{label}</dt>
-              <dd className="text-lg font-semibold text-foreground">
+            <dt className="sr-only">{label}</dt>
+            <dd className="flex items-center gap-2">
+              <Icon
+                className="h-4 w-4 text-muted-foreground"
+                aria-hidden="true"
+              />
+              <span className="text-lg font-semibold text-foreground">
                 {article[valueKey]}
-              </dd>
-            </div>
+              </span>
+            </dd>
           </div>
         ))}
       </dl>

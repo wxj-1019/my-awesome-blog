@@ -205,7 +205,7 @@ export default function MarkdownRenderer({
         const languageLabel = LANGUAGE_LABEL_MAP[language] || language;
 
         return (
-          <div className="relative my-3 rounded-lg overflow-hidden border border-border/60">
+          <div className="relative my-3 rounded-lg overflow-hidden border border-border/60 code-enhanced">
             <div className="flex items-center justify-between px-4 py-2 bg-muted/60 border-b border-border/60">
               <span className="text-xs font-mono text-muted-foreground/60">
                 {language}
