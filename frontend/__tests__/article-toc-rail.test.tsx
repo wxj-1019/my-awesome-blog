@@ -2,13 +2,11 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import ArticleTocRail from '@/components/articles/ArticleTocRail';
 import type { TocHeading } from '@/hooks/useActiveHeading';
 
+const originalScrollIntoViewDescriptor = Object.getOwnPropertyDescriptor(
+  Element.prototype,
+  'scrollIntoView'
+);
 const scrollIntoView = jest.fn();
-
-Object.defineProperty(Element.prototype, 'scrollIntoView', {
-  value: scrollIntoView,
-  writable: true,
-  configurable: true,
-});
 
 interface TocRailFixtureProps {
   headings: TocHeading[];
@@ -35,35 +33,58 @@ const props: TocRailFixtureProps = {
   idleLinkClass: 'text-muted-foreground',
 };
 
+beforeAll(() => {
+  Object.defineProperty(Element.prototype, 'scrollIntoView', {
+    value: scrollIntoView,
+    writable: true,
+    configurable: true,
+  });
+});
+
 beforeEach(() => {
   scrollIntoView.mockClear();
 });
 
+afterAll(() => {
+  if (originalScrollIntoViewDescriptor) {
+    Object.defineProperty(
+      Element.prototype,
+      'scrollIntoView',
+      originalScrollIntoViewDescriptor
+    );
+    return;
+  }
+
+  Reflect.deleteProperty(Element.prototype, 'scrollIntoView');
+});
+
 describe('ArticleTocRail', () => {
-  it('rail 展示当前章节和阅读进度，不自行携带 sticky class', () => {
-    const { container } = render(<ArticleTocRail {...props} variant="rail" />);
-    const root = container.firstElementChild;
+  it('rail 展示当前章节和阅读进度', () => {
+    render(<ArticleTocRail {...props} variant="rail" />);
 
     expect(screen.getByText('37%')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '第一章' })).toHaveAttribute(
       'aria-current',
       'location'
     );
-    expect(root).not.toBeNull();
-    expect(
-      root?.className
-        .split(/\s+/)
-        .some(className => className.includes('sticky'))
-    ).toBe(false);
+  });
+
+  it('rail 不在内部元素携带 sticky 定位职责', () => {
+    const { container } = render(<ArticleTocRail {...props} variant="rail" />);
+    const stickyTokens = Array.from(container.querySelectorAll('[class]'))
+      .flatMap(element => (element.getAttribute('class') ?? '').split(/\s+/))
+      .filter(className => /(^|:)sticky$/.test(className));
+
+    expect(stickyTokens).toEqual([]);
   });
 
   it('drawer 打开后可跳转章节并关闭', () => {
-    const heading = document.createElement('h2');
-    heading.id = 'first';
-    heading.textContent = '第一章';
-    document.body.appendChild(heading);
-
-    render(<ArticleTocRail {...props} variant="drawer" />);
+    render(
+      <>
+        <h2 id="first">第一章</h2>
+        <ArticleTocRail {...props} variant="drawer" />
+      </>
+    );
     fireEvent.click(screen.getByRole('button', { name: '打开文章目录' }));
     fireEvent.click(screen.getByRole('button', { name: '第一章' }));
 
