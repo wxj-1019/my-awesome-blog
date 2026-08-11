@@ -5,18 +5,8 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import GlassCard from '@/components/ui/GlassCard';
-import { Badge } from '@/components/ui/Badge';
+
 import { Skeleton } from '@/components/ui/Skeleton';
-import {
-  Tag,
-  Eye,
-  Share2,
-  ThumbsUp,
-  MessageSquare,
-  TrendingUp,
-  Award,
-  Users,
-} from 'lucide-react';
 import { useThemedClasses } from '@/hooks/useThemedClasses';
 import { useCodeBlockEnhancement } from '@/hooks/useCodeBlockEnhancement';
 import { getArticleById, getRelatedArticles } from '@/services/articleService';
@@ -31,13 +21,15 @@ import ArticleHeroStage from '@/components/articles/ArticleHeroStage';
 import ArticleHeroCover from '@/components/articles/ArticleHeroCover';
 import ArticleTocRail from '@/components/articles/ArticleTocRail';
 import RelatedArticleRail from '@/components/articles/RelatedArticleRail';
+import ArticleReadingMetaBar from '@/components/articles/ArticleReadingMetaBar';
+import ArticleAuthorPanel from '@/components/articles/ArticleAuthorPanel';
 import ArticleBodyReveal from '@/components/articles/ArticleBodyReveal';
 import CommentTree from '@/components/articles/CommentTree';
 import MarkdownRenderer from '@/components/ui/MarkdownRenderer';
 import { extractMarkdownHeadings } from '@/utils/markdown-headings';
 import { useReadingProgress } from '@/hooks/useReadingProgress';
 import { useActiveHeading } from '@/hooks/useActiveHeading';
-import { HoverLift } from '@/components/motion';
+
 import { Comment } from '@/types';
 /**
  * 将新评论插入到评论树的指定父评论下
@@ -339,115 +331,13 @@ export default function ArticleDetailPageContent({
                     </ArticleBodyReveal>
                   </div>
                 </GlassCard>
-                <div className="mb-8">
-                  <h3 className="text-lg font-semibold mb-3 text-white">
-                    标签
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {article.tags.map(tag => (
-                      <Badge
-                        key={tag.id}
-                        variant="outline"
-                        className="border-white/30 text-white/80"
-                      >
-                        <Tag className="h-3 w-3 mr-1" />
-                        {tag.name}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                  {[
-                    {
-                      icon: ThumbsUp,
-                      label: '点赞数',
-                      value: article.likes_count,
-                    },
-                    {
-                      icon: MessageSquare,
-                      label: '评论数',
-                      value: article.comments_count,
-                    },
-                    {
-                      icon: Share2,
-                      label: '分享数',
-                      value: article.shares_count,
-                    },
-                    { icon: Eye, label: '阅读量', value: article.view_count },
-                  ].map(({ icon: Icon, label, value }) => (
-                    <HoverLift key={label}>
-                      <GlassCard
-                        padding="none"
-                        className={`p-4 text-center ${cardBgClass}`}
-                      >
-                        <div className="flex items-center justify-center">
-                          <Icon className="h-6 w-6 mr-2 text-tech-cyan" />
-                          <span className="text-2xl font-bold">{value}</span>
-                        </div>
-                        <p className={`text-sm ${mutedTextClass}`}>{label}</p>
-                      </GlassCard>
-                    </HoverLift>
-                  ))}
-                </div>
-                <GlassCard padding="none" className={`mb-8 p-6 ${cardBgClass}`}>
-                  <div className="flex flex-col md:flex-row items-start">
-                    <div className="mr-4 mb-4 md:mb-0">
-                      {article.author.avatar ? (
-                        /* 作者头像来源可控性不一，保留 <img> 并给首字母兜底 */
-                        <img
-                          src={article.author.avatar}
-                          alt={`${article.author.username} 的头像`}
-                          className="w-16 h-16 rounded-xl object-cover"
-                        />
-                      ) : (
-                        /* 无头像时用首字母占位，token 化避免深色下亮灰补丁 */
-                        <div className="w-16 h-16 rounded-xl bg-primary/15 text-primary flex items-center justify-center text-2xl font-bold">
-                          {article.author.username.charAt(0).toUpperCase()}
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex flex-wrap items-center justify-between">
-                        <h3 className={`text-lg font-semibold ${textClass}`}>
-                          {article.author.username}
-                        </h3>
-                        <Button
-                          variant={isFollowingAuthor ? 'default' : 'outline'}
-                          size="sm"
-                          onClick={handleFollowAuthor}
-                          className={
-                            isFollowingAuthor
-                              ? 'bg-primary hover:bg-primary/90 text-primary-foreground'
-                              : 'border-border hover:bg-muted/40 text-foreground'
-                          }
-                        >
-                          {isFollowingAuthor ? '已关注' : '关注'}
-                        </Button>
-                      </div>
-                      <p className={mutedTextClass}>
-                        {article.author.bio || '暂无个人简介'}
-                      </p>
-                      <div className="flex flex-wrap gap-4 mt-4">
-                        <div className="flex items-center">
-                          <Award className="h-4 w-4 mr-2 text-tech-cyan" />
-                          <span className="text-sm">
-                            {article.author.reputation} 声誉
-                          </span>
-                        </div>
-                        <div className="flex items-center">
-                          <Users className="h-4 w-4 mr-2 text-tech-cyan" />
-                          <span className="text-sm">
-                            {article.author.followers_count} 关注者
-                          </span>
-                        </div>
-                        <div className="flex items-center">
-                          <TrendingUp className="h-4 w-4 mr-2 text-tech-cyan" />
-                          <span className="text-sm">活跃作者</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </GlassCard>
+                <ArticleReadingMetaBar article={article} className="mb-8" />
+                <ArticleAuthorPanel
+                  author={article.author}
+                  isFollowing={isFollowingAuthor}
+                  onFollow={handleFollowAuthor}
+                  className="mb-8"
+                />
                 {/* 移动副本与桌面右轨通过 xl display 类互斥，任一断点只暴露一份内容。 */}
                 <RelatedArticleRail
                   articles={relatedArticles}
