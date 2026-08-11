@@ -57,13 +57,20 @@ class Settings(BaseSettings):
     REDIS_SSL: bool = Field(default=False, description="是否使用SSL连接Redis")
     REDIS_POOL_SIZE: int = Field(default=20, description="Redis连接池大小")
 
-    # Aliyun OSS Configuration
+    # Aliyun OSS Configuration（保留兼容，实际存储已切换 MinIO）
     ALIBABA_CLOUD_ACCESS_KEY_ID: str = Field(default="", description="阿里云访问密钥ID")
     ALIBABA_CLOUD_ACCESS_KEY_SECRET: str = Field(default="", description="阿里云访问密钥")
     ALIBABA_CLOUD_OSS_ENDPOINT: str = Field(default="https://oss-cn-hangzhou.aliyuncs.com", description="OSS端点")
     ALIBABA_CLOUD_OSS_BUCKET_NAME: str = Field(default="my-awesome-blog", description="OSS桶名称")
     ALIBABA_CLOUD_OSS_REGION: str = Field(default="oss-cn-hangzhou", description="OSS区域")
     ALIBABA_CLOUD_OSS_CDN_DOMAIN: str = Field(default="", description="OSS CDN域名")
+
+    # MinIO Configuration（对象存储：替代阿里云 OSS）
+    MINIO_ENDPOINT: str = Field(default="http://minio:9000", description="MinIO 服务端点（容器内为 http://minio:9000，本地为 http://localhost:9000）")
+    MINIO_ACCESS_KEY: str = Field(default="", description="MinIO 访问密钥")
+    MINIO_SECRET_KEY: str = Field(default="", description="MinIO 访问密钥密码")
+    MINIO_BUCKET_NAME: str = Field(default="my-awesome-blog", description="MinIO 桶名称")
+    MINIO_PUBLIC_BASE_URL: str = Field(default="http://localhost", description="MinIO 文件对外访问基础 URL（经 nginx /minio/ 反代，如 http://49.234.190.85）")
 
     # CORS - 生产环境应该限制更严格
     BACKEND_CORS_ORIGINS: List[str] = Field(
@@ -289,9 +296,9 @@ class Settings(BaseSettings):
             if self.EMAIL_ENABLED:
                 print("WARNING: SMTP credentials are not set. Email functionality will be disabled.")
 
-        if not self.ALIBABA_CLOUD_ACCESS_KEY_ID or not self.ALIBABA_CLOUD_ACCESS_KEY_SECRET:
+        if not self.MINIO_ACCESS_KEY or not self.MINIO_SECRET_KEY:
             if self.DEBUG:
-                print("WARNING: Alibaba Cloud credentials are not set. OSS functionality will be disabled.")
+                print("WARNING: MinIO credentials are not set. Object storage will be disabled.")
 
 
 settings = Settings()

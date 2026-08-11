@@ -100,9 +100,32 @@ services:
     networks:
       - app-network
 
+  # MinIO 对象存储：替代阿里云 OSS。仅容器内网 API（nginx /minio/ 反代对外），
+  # 控制台 9001 仅绑定本机回环，不暴露公网。
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:?MINIO_ACCESS_KEY must be set}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:?MINIO_SECRET_KEY must be set}
+    ports:
+      - "127.0.0.1:9001:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - app-network
+
 volumes:
   postgres_data:
   redis_data:
+  minio_data:
 
 networks:
   app-network:

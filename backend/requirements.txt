@@ -47,8 +47,10 @@ aiofiles==23.2.1
 # Redis support
 redis==5.0.1
 
-# Alibaba Cloud OSS support
+# Alibaba Cloud OSS support（保留兼容，实际存储已切换 MinIO）
 oss2==2.18.3
+# MinIO object storage (S3-compatible)
+minio==7.2.8
 requests==2.31.0
 
 # LLM Support / LangChain

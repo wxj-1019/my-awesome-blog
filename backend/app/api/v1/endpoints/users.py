@@ -7,9 +7,8 @@ from app import crud
 from app.crud.user import get_user_stats
 from app.schemas.user import User, UserCreate, UserUpdate, UserStats, AvatarResponse, PasswordUpdate
 from app.models.user import User as UserModel
-# Temporarily commented out due to missing oss2 module
-# from app.services.oss_service import oss_service
-oss_service = None
+# 对象存储服务（MinIO，替代阿里云 OSS）
+from app.services.oss_service import oss_service
 from app.utils.file_validation import (
     save_upload_file_temp, 
     cleanup_temp_file, 
