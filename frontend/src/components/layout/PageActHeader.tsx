@@ -58,7 +58,7 @@ export default function PageActHeader({
               data-act-kicker
               className={cn(
                 'text-sm sm:text-base tracking-[0.2em] text-white/85',
-                kickerFont ?? 'font-gothic'
+                kickerFont
               )}
             >
               {kickerParts![1]}

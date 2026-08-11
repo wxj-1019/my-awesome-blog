@@ -258,7 +258,7 @@ const AlbumsPageContent = () => {
                 kicker="相册 · ALBUMS"
                 title="我的相册"
                 description="探索生活中的美好瞬间 · 用镜头记录难忘时刻"
-                kickerFont="font-gothic"
+                kickerFont="font-gallery"
                 className="mb-8"
               />
               {/* 统计信息 - 内联到标题框中 */}

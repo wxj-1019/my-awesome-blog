@@ -403,7 +403,7 @@ export default function ImageGenContent() {
         description="输入提示词，AI 帮你生成图片或视频"
         icon={kind === 'video' ? Clapperboard : ImageIcon}
         align="center"
-        kickerFont="font-gothic"
+        kickerFont="font-creative"
         className="[&_[data-act-kicker]]:text-primary [&_h1]:text-foreground [&_p]:text-muted-foreground"
       />
 

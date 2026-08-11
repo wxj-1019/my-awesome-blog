@@ -404,7 +404,6 @@ export default function MessagesPageContent() {
           kicker="弹幕广场 · MESSAGES"
           title="留言板"
           description="发送你的弹幕，和大家一起互动"
-          kickerFont="font-gothic"
           className="mb-8"
         />
 

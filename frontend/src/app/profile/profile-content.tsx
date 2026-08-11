@@ -185,7 +185,6 @@ export default function ProfilePageContent() {
             kicker="账户 · PROFILE"
             title="个人中心"
             description="管理您的个人资料、设置和活动"
-            kickerFont="font-gothic"
           />
           <FadeIn delay={0.1}>
             <TabNavigation activeTab={activeTab} setActiveTab={(tab: string) => setActiveTab(tab as 'profile' | 'settings' | 'activity')} />
