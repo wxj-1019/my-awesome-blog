@@ -26,12 +26,28 @@ hljs.registerLanguage('python', python);
 hljs.registerLanguage('typescript', typescript);
 hljs.registerLanguage('ts', typescript);
 
+/** 代码语言标签映射，用于 aria-label 和显示 */
+const LANGUAGE_LABEL_MAP: Record<string, string> = {
+  ts: 'TypeScript',
+  typescript: 'TypeScript',
+  js: 'JavaScript',
+  javascript: 'JavaScript',
+  py: 'Python',
+  python: 'Python',
+  bash: 'bash',
+  shell: 'bash',
+  css: 'CSS',
+  html: 'HTML',
+  json: 'JSON',
+};
+
 interface MarkdownRendererProps {
   content: string;
   className?: string;
   maxHeight?: string | number;
   showFull?: boolean;
   allowedElements?: string[];
+  context?: 'default' | 'article';
 }
 
 export default function MarkdownRenderer({
@@ -40,20 +56,52 @@ export default function MarkdownRenderer({
   maxHeight,
   showFull = false,
   allowedElements = [
-    'p', 'br', 'strong', 'em', 'code', 'pre', 'blockquote',
-    'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-    'ul', 'ol', 'li',
-    'a', 'img',
-    'table', 'thead', 'tbody', 'tr', 'th', 'td',
-    'hr', 'del', 'ins', 'sub', 'sup'
-  ]
+    'p',
+    'br',
+    'strong',
+    'em',
+    'code',
+    'pre',
+    'blockquote',
+    'h1',
+    'h2',
+    'h3',
+    'h4',
+    'h5',
+    'h6',
+    'ul',
+    'ol',
+    'li',
+    'a',
+    'img',
+    'table',
+    'thead',
+    'tbody',
+    'tr',
+    'th',
+    'td',
+    'hr',
+    'del',
+    'ins',
+    'sub',
+    'sup',
+  ],
+  context = 'default',
 }: MarkdownRendererProps) {
   const headings = useMemo(() => extractMarkdownHeadings(content), [content]);
+
+  const isArticle = context === 'article';
 
   // 处理空内容
   if (!content || content.trim() === '') {
     return (
-      <div className={cn("text-white/40 text-sm italic", className)}>
+      <div
+        className={cn(
+          isArticle ? 'text-muted-foreground' : 'text-muted-foreground/60',
+          'text-sm italic',
+          className
+        )}
+      >
         暂无内容
       </div>
     );
@@ -86,29 +134,61 @@ export default function MarkdownRenderer({
 
   const components = {
     // 标题 ID 与目录解析共享同一规则，确保锚点稳定且重复标题不冲突
+    // 文章阅读模式下 h1 降级为 h2，保持页面唯一 h1
     h1({ _node, children, ...props }: ComponentProps) {
       const heading = headings[headingIndex++];
-      return <h1 id={heading?.id} className="scroll-mt-24" {...props}>{children}</h1>;
+      if (isArticle) {
+        return (
+          <h2 id={heading?.id} className="scroll-mt-24" {...props}>
+            {children}
+          </h2>
+        );
+      }
+      return (
+        <h1 id={heading?.id} className="scroll-mt-24" {...props}>
+          {children}
+        </h1>
+      );
     },
     h2({ _node, children, ...props }: ComponentProps) {
       const heading = headings[headingIndex++];
-      return <h2 id={heading?.id} className="scroll-mt-24" {...props}>{children}</h2>;
+      return (
+        <h2 id={heading?.id} className="scroll-mt-24" {...props}>
+          {children}
+        </h2>
+      );
     },
     h3({ _node, children, ...props }: ComponentProps) {
       const heading = headings[headingIndex++];
-      return <h3 id={heading?.id} className="scroll-mt-24" {...props}>{children}</h3>;
+      return (
+        <h3 id={heading?.id} className="scroll-mt-24" {...props}>
+          {children}
+        </h3>
+      );
     },
     h4({ _node, children, ...props }: ComponentProps) {
       const heading = headings[headingIndex++];
-      return <h4 id={heading?.id} className="scroll-mt-24" {...props}>{children}</h4>;
+      return (
+        <h4 id={heading?.id} className="scroll-mt-24" {...props}>
+          {children}
+        </h4>
+      );
     },
     h5({ _node, children, ...props }: ComponentProps) {
       const heading = headings[headingIndex++];
-      return <h5 id={heading?.id} className="scroll-mt-24" {...props}>{children}</h5>;
+      return (
+        <h5 id={heading?.id} className="scroll-mt-24" {...props}>
+          {children}
+        </h5>
+      );
     },
     h6({ _node, children, ...props }: ComponentProps) {
       const heading = headings[headingIndex++];
-      return <h6 id={heading?.id} className="scroll-mt-24" {...props}>{children}</h6>;
+      return (
+        <h6 id={heading?.id} className="scroll-mt-24" {...props}>
+          {children}
+        </h6>
+      );
     },
 
     // 代码块
@@ -122,18 +202,26 @@ export default function MarkdownRenderer({
           ? hljs.highlight(codeContent, { language }).value
           : hljs.highlightAuto(codeContent).value;
 
+        const languageLabel = LANGUAGE_LABEL_MAP[language] || language;
+
         return (
-          <div className="relative my-3 rounded-lg overflow-hidden border border-white/10">
-            <div className="flex items-center justify-between px-4 py-2 bg-slate-800/50 border-b border-white/10">
-              <span className="text-xs font-mono text-white/60">{language}</span>
+          <div className="relative my-3 rounded-lg overflow-hidden border border-border/60">
+            <div className="flex items-center justify-between px-4 py-2 bg-muted/60 border-b border-border/60">
+              <span className="text-xs font-mono text-muted-foreground/60">
+                {language}
+              </span>
               <button
-                className="text-xs text-tech-cyan hover:text-tech-lightcyan transition-colors"
+                type="button"
+                aria-label={
+                  languageLabel ? `复制 ${languageLabel} 代码` : '复制代码'
+                }
+                className="text-xs text-primary hover:text-primary/80 transition-colors"
                 onClick={() => navigator.clipboard.writeText(codeContent)}
               >
                 复制
               </button>
             </div>
-            <pre className="hljs m-0 p-4 overflow-x-auto bg-slate-900/50 font-mono text-sm">
+            <pre className="hljs m-0 p-4 overflow-x-auto bg-muted/40 font-mono text-sm">
               <code
                 className={`language-${language}`}
                 dangerouslySetInnerHTML={{ __html: highlighted }}
@@ -146,7 +234,7 @@ export default function MarkdownRenderer({
       return (
         <code
           className={cn(
-            "px-1.5 py-0.5 rounded bg-slate-800/50 text-tech-cyan font-mono text-sm",
+            'px-1.5 py-0.5 rounded bg-muted/60 text-primary font-mono text-sm',
             className
           )}
           {...props}
@@ -163,15 +251,13 @@ export default function MarkdownRenderer({
         <a
           href={href}
           title={title}
-          target={isExternal ? "_blank" : undefined}
-          rel={isExternal ? "noopener noreferrer" : undefined}
-          className="text-tech-cyan hover:text-tech-lightcyan underline transition-colors"
+          target={isExternal ? '_blank' : undefined}
+          rel={isExternal ? 'noopener noreferrer' : undefined}
+          className="text-primary hover:text-primary/80 underline transition-colors"
           {...props}
         >
           {children}
-          {isExternal && (
-            <span className="ml-1 text-xs opacity-60">↗</span>
-          )}
+          {isExternal && <span className="ml-1 text-xs opacity-60">↗</span>}
         </a>
       );
     },
@@ -184,8 +270,8 @@ export default function MarkdownRenderer({
           alt={alt || '图片'}
           title={title}
           loading="lazy"
-          className="max-w-full h-auto rounded-lg my-3 border border-white/10"
-          onError={(e) => {
+          className="max-w-full h-auto rounded-lg my-3 border border-border/60"
+          onError={e => {
             e.currentTarget.src = '/placeholder-image.svg';
             e.currentTarget.alt = '图片加载失败';
           }}
@@ -198,7 +284,10 @@ export default function MarkdownRenderer({
     blockquote({ _node, children, ...props }: ComponentProps) {
       return (
         <blockquote
-          className="border-l-4 border-tech-cyan/50 pl-4 py-2 my-3 bg-tech-cyan/5 rounded-r-lg italic"
+          className={cn(
+            'border-l-4 border-primary/50 pl-4 py-2 my-3 bg-primary/5 rounded-r-lg',
+            isArticle && 'article-reading-quote'
+          )}
           {...props}
         >
           {children}
@@ -211,7 +300,10 @@ export default function MarkdownRenderer({
       return (
         <div className="overflow-x-auto my-4">
           <table
-            className="min-w-full divide-y divide-white/10 border border-white/10 rounded-lg"
+            className={cn(
+              'min-w-full divide-y divide-border/60 border border-border/60 rounded-lg',
+              isArticle && 'article-reading-table'
+            )}
             {...props}
           >
             {children}
@@ -223,7 +315,7 @@ export default function MarkdownRenderer({
     th({ _node, children, ...props }: ComponentProps) {
       return (
         <th
-          className="px-4 py-3 text-left text-sm font-semibold text-white/90 bg-slate-800/50"
+          className="px-4 py-3 text-left text-sm font-semibold text-foreground bg-muted/60"
           {...props}
         >
           {children}
@@ -234,7 +326,7 @@ export default function MarkdownRenderer({
     td({ _node, children, ...props }: ComponentProps) {
       return (
         <td
-          className="px-4 py-3 text-sm text-white/70 border-t border-white/10"
+          className="px-4 py-3 text-sm text-muted-foreground border-t border-border/60"
           {...props}
         >
           {children}
@@ -244,38 +336,38 @@ export default function MarkdownRenderer({
 
     // 水平线
     hr({ _node, ...props }: ComponentProps) {
-      return (
-        <hr
-          className="my-6 border-white/10"
-          {...props}
-        />
-      );
-    }
+      return <hr className="my-6 border-border/60" {...props} />;
+    },
   };
 
   return (
     <div
       className={cn(
-        "markdown-content prose prose-invert max-w-none",
-        "prose-headings:text-white/90 prose-headings:font-syne",
-        "prose-p:text-white/80 prose-p:leading-relaxed",
-        "prose-strong:text-white/90 prose-strong:font-bold",
-        "prose-em:text-white/80 prose-em:italic",
-        "prose-code:text-tech-cyan prose-code:font-mono",
-        "prose-pre:bg-slate-900/50 prose-pre:border prose-pre:border-white/10",
-        "prose-blockquote:border-tech-cyan/50 prose-blockquote:text-white/70",
-        "prose-ul:marker:text-white/40 prose-ol:marker:text-white/40",
-        "prose-a:text-tech-cyan prose-a:no-underline hover:prose-a:text-tech-lightcyan",
-        "prose-table:divide-white/10 prose-th:bg-slate-800/50",
-        "prose-img:rounded-lg prose-img:border prose-img:border-white/10",
-        "dark:prose-invert",
+        'markdown-content prose prose-invert max-w-none',
+        'prose-headings:text-foreground prose-headings:font-syne',
+        'prose-p:text-foreground/85 prose-p:leading-relaxed',
+        'prose-strong:text-foreground prose-strong:font-bold',
+        'prose-em:text-foreground/80 prose-em:italic',
+        'prose-code:text-primary prose-code:font-mono',
+        'prose-pre:bg-muted/40 prose-pre:border prose-pre:border-border/60',
+        'prose-blockquote:border-primary/50 prose-blockquote:text-muted-foreground',
+        'prose-ul:marker:text-muted-foreground prose-ol:marker:text-muted-foreground',
+        'prose-a:text-primary prose-a:no-underline hover:prose-a:text-primary/80',
+        'prose-table:divide-border/60 prose-th:bg-muted/60',
+        'prose-img:rounded-lg prose-img:border prose-img:border-border/60',
+        'dark:prose-invert',
+        isArticle && 'article-markdown',
         className
       )}
-      style={maxHeight && !showFull ? {
-        maxHeight,
-        overflow: 'hidden',
-        position: 'relative'
-      } : undefined}
+      style={
+        maxHeight && !showFull
+          ? {
+              maxHeight,
+              overflow: 'hidden',
+              position: 'relative',
+            }
+          : undefined
+      }
     >
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
@@ -289,8 +381,8 @@ export default function MarkdownRenderer({
 
       {/* 如果内容被截断，显示查看更多按钮 */}
       {maxHeight && !showFull && (
-        <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-slate-900 to-transparent flex items-end justify-center pb-2">
-          <button className="text-xs text-tech-cyan hover:text-tech-lightcyan transition-colors font-mono">
+        <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-background to-transparent flex items-end justify-center pb-2">
+          <button className="text-xs text-primary hover:text-primary/80 transition-colors font-mono">
             查看完整内容
           </button>
         </div>

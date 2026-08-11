@@ -139,10 +139,7 @@ afterAll(() => {
 });
 
 function renderArticleMarkdown() {
-  return render(
-    // @ts-expect-error -- context 会在 Task 3 加入，保留红测试但不阻塞前序 type-check。
-    <MarkdownRenderer content={markdown} context="article" />
-  );
+  return render(<MarkdownRenderer content={markdown} context="article" />);
 }
 
 describe('MarkdownRenderer · 文章阅读语义', () => {

@@ -329,12 +329,12 @@ export default function ArticleDetailPageContent({
                   padding="none"
                   className={`mb-8 p-6 md:p-8 ${cardBgClass}`}
                 >
-                  <div ref={contentRef}>
+                  <div ref={contentRef} className="article-reading-surface">
                     <ArticleBodyReveal enabled>
                       <div
                         className={`prose prose-base md:prose-lg max-w-none dark:prose-invert font-serif leading-relaxed md:leading-[1.8] ${textClass}`}
                       >
-                        <MarkdownRenderer content={article.content} />
+                        <MarkdownRenderer content={article.content} context="article" />
                       </div>
                     </ArticleBodyReveal>
                   </div>

@@ -34,8 +34,9 @@
   summary,
   [role='button'],
   .theme-transition {
-    transition-property: background-color, border-color, color, fill, stroke,
-      opacity, box-shadow, transform;
+    transition-property:
+      background-color, border-color, color, fill, stroke, opacity, box-shadow,
+      transform;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     transition-duration: 220ms;
   }
@@ -105,7 +106,10 @@
     color: var(--primary);
   }
 
-  .prose :where(h1, h2, h3, h4):not(:where([class~='not-prose'], [class~='not-prose'] *)) {
+  .prose
+    :where(h1, h2, h3, h4):not(
+      :where([class~='not-prose'], [class~='not-prose'] *)
+    ) {
     @apply font-bold tracking-tight;
     line-height: 1.35;
     margin-top: 1.6em;
@@ -135,6 +139,72 @@
   ::view-transition-new(root) {
     animation: none;
     mix-blend-mode: normal;
+  }
+
+  /* 文章阅读专用排版令牌 */
+  .article-reading-surface {
+    max-width: 72ch;
+    margin-inline: auto;
+    font-size: 1rem;
+    line-height: 1.82;
+    letter-spacing: 0.012em;
+  }
+
+  @media (min-width: 768px) {
+    .article-reading-surface {
+      font-size: 1.075rem;
+    }
+  }
+
+  .article-reading-surface .article-markdown > p:first-of-type::first-letter {
+    float: left;
+    margin: 0.05em 0.08em 0 0;
+    color: var(--primary);
+    font-size: 3.05em;
+    font-weight: 700;
+    line-height: 0.88;
+  }
+
+  @media (max-width: 767px) {
+    .article-reading-surface .article-markdown > p:first-of-type::first-letter {
+      font-size: unset;
+      float: none;
+      font-weight: unset;
+      margin: unset;
+      color: unset;
+    }
+  }
+
+  .article-markdown :where(p) {
+    margin-block: 0.95em;
+  }
+
+  .article-markdown :where(h2) {
+    margin-top: 2.2em;
+    margin-bottom: 0.7em;
+    padding-bottom: 0.35em;
+    border-bottom: 1px solid var(--border);
+    line-height: 1.35;
+  }
+
+  .article-markdown :where(h3) {
+    margin-top: 1.7em;
+    margin-bottom: 0.55em;
+    line-height: 1.4;
+  }
+
+  .article-reading-quote {
+    margin-block: 1.4em;
+    border-left: 2px solid var(--primary);
+    background: color-mix(in srgb, var(--primary) 6%, transparent);
+    color: var(--muted-foreground);
+    font-style: normal;
+    padding: 0.75em 1em;
+    border-radius: 0 0.5rem 0.5rem 0;
+  }
+
+  .article-reading-table {
+    border-color: var(--border);
   }
 }
 
