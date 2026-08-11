@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import * as Dialog from '@radix-ui/react-dialog';
 import { ArrowLeft, List } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
-import { Button } from '@/components/ui/Button';
+import { Button, buttonVariants } from '@/components/ui/Button';
 import { Progress } from '@/components/ui/progress';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { cn } from '@/lib/utils';
@@ -55,6 +55,39 @@ export default function ArticleTocRail({
   const reduced = useReducedMotion();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
+  useEffect(() => {
+    if (variant !== 'drawer') {
+      return;
+    }
+
+    const desktopQuery = window.matchMedia('(min-width: 1280px)');
+    const closeAtDesktop = (event: MediaQueryListEvent) => {
+      if (event.matches) {
+        setDrawerOpen(false);
+      }
+    };
+
+    if (desktopQuery.matches) {
+      setDrawerOpen(false);
+    }
+    desktopQuery.addEventListener('change', closeAtDesktop);
+    return () => desktopQuery.removeEventListener('change', closeAtDesktop);
+  }, [variant]);
+
+  const returnLink = (
+    <Link
+      href="/articles"
+      prefetch={false}
+      className={cn(
+        buttonVariants({ variant: 'ghost', size: 'sm' }),
+        'min-h-11 w-full justify-start'
+      )}
+    >
+      <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" />
+      返回列表
+    </Link>
+  );
+
   const body = (
     <>
       <div className="flex items-center justify-between mb-4 gap-2">
@@ -94,12 +127,7 @@ export default function ArticleTocRail({
         </nav>
       )}
       <div className="mt-6 pt-4 border-t border-dashed border-opacity-30">
-        <Link href="/articles" prefetch={false}>
-          <Button variant="ghost" size="sm" className="w-full justify-start">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            返回列表
-          </Button>
-        </Link>
+        {returnLink}
       </div>
     </>
   );
@@ -149,12 +177,7 @@ export default function ArticleTocRail({
           className
         )}
       >
-        <Link href="/articles" prefetch={false}>
-          <Button variant="ghost" size="sm" className="w-full justify-start">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            返回列表
-          </Button>
-        </Link>
+        {returnLink}
       </GlassCard>
     );
   }

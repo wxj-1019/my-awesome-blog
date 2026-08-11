@@ -451,6 +451,7 @@ export default function ArticleDetailPageContent({
                 {/* 移动副本与桌面右轨通过 xl display 类互斥，任一断点只暴露一份内容。 */}
                 <RelatedArticleRail
                   articles={relatedArticles}
+                  heading="继续阅读"
                   className={cn('mb-8 xl:hidden', cardBgClass)}
                 />
                 <GlassCard padding="none" className={`p-6 ${cardBgClass}`}>

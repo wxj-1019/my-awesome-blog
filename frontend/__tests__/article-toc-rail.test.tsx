@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import ArticleTocRail from '@/components/articles/ArticleTocRail';
 import type { TocHeading } from '@/hooks/useActiveHeading';
@@ -85,6 +85,19 @@ describe('ArticleTocRail', () => {
     expect(stickyTokens).toEqual([]);
   });
 
+  it.each([
+    ['有目录', props.headings],
+    ['无目录', []],
+  ])('%s rail 使用单一返回列表链接', (_, headings) => {
+    render(<ArticleTocRail {...props} headings={headings} variant="rail" />);
+
+    const returnLink = screen.getByRole('link', { name: '返回列表' });
+
+    expect(returnLink).toHaveAttribute('href', '/articles');
+    expect(returnLink).toHaveClass('min-h-11', 'w-full', 'justify-start');
+    expect(within(returnLink).queryByRole('button')).not.toBeInTheDocument();
+  });
+
   it('drawer 是带名称的对话框', async () => {
     const user = userEvent.setup();
     render(<ArticleTocRail {...props} variant="drawer" />);
@@ -149,5 +162,71 @@ describe('ArticleTocRail', () => {
     ).not.toBeInTheDocument();
     await waitFor(() => expect(trigger).toHaveFocus());
     await settleInteraction();
+  });
+
+  it('切换到 xl 桌面断点时关闭 drawer 并恢复 trigger 焦点', async () => {
+    const user = userEvent.setup();
+    const originalMatchMediaDescriptor = Object.getOwnPropertyDescriptor(
+      window,
+      'matchMedia'
+    );
+    let desktopListener: ((event: MediaQueryListEvent) => void) | undefined;
+    const matchMedia = jest.fn((query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addEventListener: (
+        type: string,
+        listener: (event: MediaQueryListEvent) => void
+      ) => {
+        if (query === '(min-width: 1280px)' && type === 'change') {
+          desktopListener = listener;
+        }
+      },
+      removeEventListener: jest.fn(),
+      addListener: jest.fn(),
+      removeListener: jest.fn(),
+      dispatchEvent: jest.fn(() => true),
+    }));
+
+    Object.defineProperty(window, 'matchMedia', {
+      ...originalMatchMediaDescriptor,
+      value: matchMedia,
+    });
+
+    try {
+      const { unmount } = render(
+        <ArticleTocRail {...props} variant="drawer" />
+      );
+      const trigger = screen.getByRole('button', { name: '打开文章目录' });
+
+      await act(async () => {
+        await user.click(trigger);
+      });
+      expect(
+        screen.getByRole('dialog', { name: '文章目录' })
+      ).toBeInTheDocument();
+
+      await act(async () => {
+        desktopListener?.({ matches: true } as MediaQueryListEvent);
+      });
+
+      expect(
+        screen.queryByRole('dialog', { name: '文章目录' })
+      ).not.toBeInTheDocument();
+      await waitFor(() => expect(trigger).toHaveFocus());
+      await settleInteraction();
+      unmount();
+    } finally {
+      if (originalMatchMediaDescriptor) {
+        Object.defineProperty(
+          window,
+          'matchMedia',
+          originalMatchMediaDescriptor
+        );
+      } else {
+        Reflect.deleteProperty(window, 'matchMedia');
+      }
+    }
   });
 });
