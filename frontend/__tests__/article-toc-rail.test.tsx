@@ -1,4 +1,5 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import ArticleTocRail from '@/components/articles/ArticleTocRail';
 import type { TocHeading } from '@/hooks/useActiveHeading';
 
@@ -32,6 +33,12 @@ const props: TocRailFixtureProps = {
   accentActiveClass: 'text-primary',
   idleLinkClass: 'text-muted-foreground',
 };
+
+async function settleInteraction() {
+  await act(async () => {
+    await new Promise(resolve => setTimeout(resolve, 650));
+  });
+}
 
 beforeAll(() => {
   Object.defineProperty(Element.prototype, 'scrollIntoView', {
@@ -78,22 +85,69 @@ describe('ArticleTocRail', () => {
     expect(stickyTokens).toEqual([]);
   });
 
-  it('drawer 打开后可跳转章节并关闭', () => {
+  it('drawer 是带名称的对话框', async () => {
+    const user = userEvent.setup();
+    render(<ArticleTocRail {...props} variant="drawer" />);
+    const trigger = screen.getByRole('button', { name: '打开文章目录' });
+
+    await act(async () => {
+      await user.click(trigger);
+    });
+
+    expect(
+      screen.getByRole('dialog', { name: '文章目录' })
+    ).toBeInTheDocument();
+    expect(trigger).toHaveAttribute('aria-label', '关闭文章目录');
+    await settleInteraction();
+  });
+
+  it('drawer 打开后可跳转章节并关闭', async () => {
+    const user = userEvent.setup();
     render(
       <>
         <h2 id="first">第一章</h2>
         <ArticleTocRail {...props} variant="drawer" />
       </>
     );
-    fireEvent.click(screen.getByRole('button', { name: '打开文章目录' }));
-    fireEvent.click(screen.getByRole('button', { name: '第一章' }));
+    await act(async () => {
+      await user.click(screen.getByRole('button', { name: '打开文章目录' }));
+    });
+    await act(async () => {
+      await user.click(screen.getByRole('button', { name: '第一章' }));
+    });
 
     expect(scrollIntoView).toHaveBeenCalledWith({
       behavior: 'smooth',
       block: 'start',
     });
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('dialog', { name: '文章目录' })
+      ).not.toBeInTheDocument()
+    );
+    await settleInteraction();
+  });
+
+  it('Escape 关闭 drawer 并将焦点还给 trigger', async () => {
+    const user = userEvent.setup();
+    render(<ArticleTocRail {...props} variant="drawer" />);
+    const trigger = screen.getByRole('button', { name: '打开文章目录' });
+
+    await act(async () => {
+      await user.click(trigger);
+    });
     expect(
-      screen.queryByRole('button', { name: '关闭目录' })
+      screen.getByRole('dialog', { name: '文章目录' })
+    ).toBeInTheDocument();
+
+    await act(async () => {
+      await user.keyboard('{Escape}');
+    });
+
+    expect(
+      screen.queryByRole('dialog', { name: '文章目录' })
     ).not.toBeInTheDocument();
+    await waitFor(() => expect(trigger).toHaveFocus());
+    await settleInteraction();
   });
 });

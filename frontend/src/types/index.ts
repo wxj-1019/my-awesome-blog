@@ -315,7 +315,7 @@ export interface RelatedArticle {
   published_at: string;
   category: {
     name: string;
-  };
+  } | null;
   view_count: number;
 }
 

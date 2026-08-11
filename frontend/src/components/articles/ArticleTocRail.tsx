@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import * as Dialog from '@radix-ui/react-dialog';
 import { ArrowLeft, List } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
 import { Button } from '@/components/ui/Button';
@@ -105,38 +106,36 @@ export default function ArticleTocRail({
 
   if (variant === 'drawer') {
     return (
-      <div className={cn('xl:hidden', className)}>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="fixed bottom-[calc(1.5rem+env(safe-area-inset-bottom,0px))] right-4 z-40 min-h-11 shadow-lg"
-          onClick={() => setDrawerOpen(v => !v)}
-          aria-expanded={drawerOpen}
-          aria-label="打开文章目录"
-        >
-          <List className="h-4 w-4 mr-2" />
-          目录
-        </Button>
-        {drawerOpen && (
-          <>
-            <button
+      <Dialog.Root open={drawerOpen} onOpenChange={setDrawerOpen}>
+        <div className={cn('xl:hidden', className)}>
+          <Dialog.Trigger asChild>
+            <Button
               type="button"
-              className="fixed inset-0 z-40 bg-black/40"
-              aria-label="关闭目录"
-              onClick={() => setDrawerOpen(false)}
-            />
-            <GlassCard
-              className={cn(
-                'fixed bottom-[calc(5rem+env(safe-area-inset-bottom,0px))] right-4 left-4 z-50 p-5 max-h-[70vh] overflow-auto',
-                cardBgClass
-              )}
+              variant="outline"
+              size="sm"
+              className="fixed bottom-[calc(1.5rem+env(safe-area-inset-bottom,0px))] right-4 z-40 min-h-11 shadow-lg"
+              aria-label={drawerOpen ? '关闭文章目录' : '打开文章目录'}
             >
-              {body}
-            </GlassCard>
-          </>
-        )}
-      </div>
+              <List className="h-4 w-4 mr-2" />
+              目录
+            </Button>
+          </Dialog.Trigger>
+          <Dialog.Portal>
+            <Dialog.Overlay className="fixed inset-0 z-40 bg-black/40" />
+            <Dialog.Content asChild aria-describedby={undefined}>
+              <GlassCard
+                className={cn(
+                  'fixed bottom-[calc(5rem+env(safe-area-inset-bottom,0px))] right-4 left-4 z-50 p-5 max-h-[70vh] overflow-auto',
+                  cardBgClass
+                )}
+              >
+                <Dialog.Title className="sr-only">文章目录</Dialog.Title>
+                {body}
+              </GlassCard>
+            </Dialog.Content>
+          </Dialog.Portal>
+        </div>
+      </Dialog.Root>
     );
   }
 

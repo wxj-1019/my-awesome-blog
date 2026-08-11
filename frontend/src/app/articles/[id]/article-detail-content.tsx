@@ -307,7 +307,10 @@ export default function ArticleDetailPageContent({
             />
             {/* xl+ 三栏阅读布局：左目录 | 正文 | 相关文章 */}
             <div className="relative grid grid-cols-1 gap-6 px-4 md:px-6 xl:grid-cols-[13rem_minmax(0,1fr)_14rem] 2xl:grid-cols-[14rem_minmax(0,50rem)_16rem] 2xl:gap-8 xl:items-start xl:justify-center">
-              <aside className="hidden xl:block xl:sticky xl:top-24 xl:self-start">
+              <aside
+                className="hidden xl:block xl:sticky xl:top-24 xl:self-start"
+                aria-label="文章目录"
+              >
                 <ArticleTocRail
                   variant="rail"
                   headings={toc}
@@ -445,6 +448,7 @@ export default function ArticleDetailPageContent({
                     </div>
                   </div>
                 </GlassCard>
+                {/* 移动副本与桌面右轨通过 xl display 类互斥，任一断点只暴露一份内容。 */}
                 <RelatedArticleRail
                   articles={relatedArticles}
                   className={cn('mb-8 xl:hidden', cardBgClass)}
@@ -516,7 +520,10 @@ export default function ArticleDetailPageContent({
                   </div>
                 </GlassCard>
               </div>
-              <aside className="hidden xl:block xl:sticky xl:top-24 xl:self-start">
+              <aside
+                className="hidden xl:block xl:sticky xl:top-24 xl:self-start"
+                aria-label="相关文章"
+              >
                 <RelatedArticleRail
                   articles={relatedArticles}
                   className={cardBgClass}
