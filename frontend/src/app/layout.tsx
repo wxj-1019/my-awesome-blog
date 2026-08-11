@@ -11,6 +11,7 @@ import {
   Noto_Serif_SC as NotoSerifSC,
   Ma_Shan_Zheng as MaShanZheng,
   UnifrakturMaguntia,
+  Zen_Maru_Gothic as ZenMaruGothic,
 } from 'next/font/google';
 import Navbar from '@/components/navigation/Navbar';
 import Footer from '@/components/navigation/Footer';
@@ -51,6 +52,12 @@ const maShanZheng = MaShanZheng({
 const unifraktur = UnifrakturMaguntia({
   weight: '400',
   variable: '--font-unifraktur',
+});
+
+// Zen Maru Gothic：顶部导航栏（日系圆体，圆润现代；400/500/700 控制体积）
+const zenMaruGothic = ZenMaruGothic({
+  weight: ['400', '500', '700'],
+  variable: '--font-zen-maru-gothic',
 });
 
 export const metadata: Metadata = {
@@ -125,7 +132,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${inter.variable} ${syne.variable} ${manrope.variable} ${cinzel.variable} ${fraunces.variable} ${dmSerif.variable} ${abril.variable} ${notoSerifSC.variable} ${maShanZheng.variable} ${unifraktur.variable} font-sans bg-background`}>
+      <body className={`${inter.variable} ${syne.variable} ${manrope.variable} ${cinzel.variable} ${fraunces.variable} ${dmSerif.variable} ${abril.variable} ${notoSerifSC.variable} ${maShanZheng.variable} ${unifraktur.variable} ${zenMaruGothic.variable} font-sans bg-background`}>
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[200]

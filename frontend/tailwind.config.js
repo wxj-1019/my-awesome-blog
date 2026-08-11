@@ -50,6 +50,8 @@ export default {
         brush: ['var(--font-ma-shan-zheng)', 'var(--font-noto-serif-sc)', 'serif'],
         // gothic：UnifrakturMaguntia（哥特黑体，塔罗牌英文牌名）
         gothic: ['var(--font-unifraktur)', 'serif'],
+        // navi：Zen Maru Gothic（日系圆体，顶部导航栏；简体缺字回退宋体）
+        navi: ['var(--font-zen-maru-gothic)', 'var(--font-noto-serif-sc)', 'sans-serif'],
       },
       colors: {
         border: withAlpha('--border'),
