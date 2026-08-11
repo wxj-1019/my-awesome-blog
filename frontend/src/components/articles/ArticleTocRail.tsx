@@ -68,8 +68,11 @@ export default function ArticleTocRail({
       {headings.length === 0 ? (
         <p className={cn('text-sm', mutedTextClass)}>本文暂无目录</p>
       ) : (
-        <nav className="space-y-1 max-h-[50vh] overflow-y-auto pr-1" aria-label="文章目录">
-          {headings.map((item) => (
+        <nav
+          className="space-y-1 max-h-[50vh] overflow-y-auto pr-1"
+          aria-label="文章目录"
+        >
+          {headings.map(item => (
             <button
               key={item.id}
               type="button"
@@ -77,6 +80,7 @@ export default function ArticleTocRail({
                 scrollToHeading(item.id, reduced);
                 setDrawerOpen(false);
               }}
+              aria-current={activeId === item.id ? 'location' : undefined}
               className={cn(
                 'block w-full text-left py-1.5 px-3 rounded-md text-sm transition-colors',
                 activeId === item.id ? accentActiveClass : idleLinkClass
@@ -101,14 +105,15 @@ export default function ArticleTocRail({
 
   if (variant === 'drawer') {
     return (
-      <div className={cn('lg:hidden', className)}>
+      <div className={cn('xl:hidden', className)}>
         <Button
           type="button"
           variant="outline"
           size="sm"
-          className="fixed bottom-6 right-4 z-40 shadow-lg"
-          onClick={() => setDrawerOpen((v) => !v)}
+          className="fixed bottom-[calc(1.5rem+env(safe-area-inset-bottom,0px))] right-4 z-40 min-h-11 shadow-lg"
+          onClick={() => setDrawerOpen(v => !v)}
           aria-expanded={drawerOpen}
+          aria-label="打开文章目录"
         >
           <List className="h-4 w-4 mr-2" />
           目录
@@ -123,7 +128,7 @@ export default function ArticleTocRail({
             />
             <GlassCard
               className={cn(
-                'fixed bottom-20 right-4 left-4 z-50 p-5 max-h-[70vh] overflow-auto',
+                'fixed bottom-[calc(5rem+env(safe-area-inset-bottom,0px))] right-4 left-4 z-50 p-5 max-h-[70vh] overflow-auto',
                 cardBgClass
               )}
             >
@@ -140,7 +145,7 @@ export default function ArticleTocRail({
       <GlassCard
         padding="none"
         className={cn(
-          'p-5 xl:p-6 xl:sticky xl:top-24 shadow-xl xl:shadow-lg',
+          'p-5 xl:p-6 shadow-xl xl:shadow-lg',
           cardBgClass,
           className
         )}
@@ -159,8 +164,7 @@ export default function ArticleTocRail({
     <GlassCard
       padding="none"
       className={cn(
-        // xl+ 文档流内 sticky；lg 由父级 fixed 定位
-        'p-5 xl:p-6 xl:sticky xl:top-24 max-h-[calc(100vh-7rem)] overflow-y-auto shadow-xl xl:shadow-lg',
+        'p-5 xl:p-6 max-h-[calc(100vh-7rem)] overflow-y-auto shadow-xl xl:shadow-lg',
         cardBgClass,
         className
       )}

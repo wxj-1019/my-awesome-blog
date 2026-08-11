@@ -7,12 +7,22 @@ import { Button } from '@/components/ui/Button';
 import GlassCard from '@/components/ui/GlassCard';
 import { Badge } from '@/components/ui/Badge';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { Tag, Eye, Share2, ThumbsUp, MessageSquare, TrendingUp, Award, Users } from 'lucide-react';
+import {
+  Tag,
+  Eye,
+  Share2,
+  ThumbsUp,
+  MessageSquare,
+  TrendingUp,
+  Award,
+  Users,
+} from 'lucide-react';
 import { useThemedClasses } from '@/hooks/useThemedClasses';
 import { useCodeBlockEnhancement } from '@/hooks/useCodeBlockEnhancement';
 import { getArticleById, getRelatedArticles } from '@/services/articleService';
 import { getCommentTree, createComment } from '@/services/commentService';
 import { TOKEN_KEY } from '@/lib/api-client';
+import { cn } from '@/lib/utils';
 import logger from '@/utils/logger';
 import type { RelatedArticle, Article } from '@/types';
 import { useLoading } from '@/context/loading-context';
@@ -20,6 +30,7 @@ import ReadingProgressBar from '@/components/articles/ReadingProgressBar';
 import ArticleHeroStage from '@/components/articles/ArticleHeroStage';
 import ArticleHeroCover from '@/components/articles/ArticleHeroCover';
 import ArticleTocRail from '@/components/articles/ArticleTocRail';
+import RelatedArticleRail from '@/components/articles/RelatedArticleRail';
 import ArticleBodyReveal from '@/components/articles/ArticleBodyReveal';
 import CommentTree from '@/components/articles/CommentTree';
 import MarkdownRenderer from '@/components/ui/MarkdownRenderer';
@@ -31,12 +42,16 @@ import { Comment } from '@/types';
 /**
  * 将新评论插入到评论树的指定父评论下
  */
-function addReplyToTree(comments: Comment[], parentId: string | null, newComment: Comment): Comment[] {
+function addReplyToTree(
+  comments: Comment[],
+  parentId: string | null,
+  newComment: Comment
+): Comment[] {
   if (!parentId) {
     return [newComment, ...comments];
   }
 
-  return comments.map((comment) => {
+  return comments.map(comment => {
     if (comment.id === parentId) {
       return {
         ...comment,
@@ -58,16 +73,22 @@ interface ArticleDetailPageContentProps {
   prefetchedArticle?: Article | null;
 }
 
-export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleDetailPageContentProps) {
+export default function ArticleDetailPageContent({
+  prefetchedArticle,
+}: ArticleDetailPageContentProps) {
   const params = useParams<{ id: string }>();
-  const [article, setArticle] = useState<Article | null>(prefetchedArticle ?? null);
+  const [article, setArticle] = useState<Article | null>(
+    prefetchedArticle ?? null
+  );
   const [relatedArticles, setRelatedArticles] = useState<RelatedArticle[]>([]);
   const [loading, setLoading] = useState(!prefetchedArticle);
   const [error, setError] = useState<string | null>(null);
   const [isLiked, setIsLiked] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [isFollowingAuthor, setIsFollowingAuthor] = useState(false);
-  const [toc, setToc] = useState<{ id: string; text: string; level: number }[]>([]);
+  const [toc, setToc] = useState<{ id: string; text: string; level: number }[]>(
+    []
+  );
   const [comments, setComments] = useState<Comment[]>([]);
   const [commentsLoading, setCommentsLoading] = useState(false);
   const [commentsError, setCommentsError] = useState<string | null>(null);
@@ -93,7 +114,9 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
     if (prefetchedArticle) {
       generateTableOfContents(prefetchedArticle.content);
       // 并行加载相关文章
-      getRelatedArticles(params.id).then(setRelatedArticles).catch(() => {});
+      getRelatedArticles(params.id)
+        .then(setRelatedArticles)
+        .catch(() => {});
       return;
     }
 
@@ -121,7 +144,7 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
     if (params.id) {
       fetchArticleData();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id]);
 
   // 加载文章评论
@@ -185,11 +208,13 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
         // 游客带上昵称；登录用户由后端按账号身份处理
         ...(!isLoggedIn ? { nickname: guestNickname.trim() } : {}),
       });
-      setComments((prev) => [newComment, ...prev]);
+      setComments(prev => [newComment, ...prev]);
       setNewCommentContent('');
     } catch (err) {
       logger.error('发表评论失败:', err);
-      alert(err instanceof Error ? err.message : '发表评论失败，请检查是否已登录');
+      alert(
+        err instanceof Error ? err.message : '发表评论失败，请检查是否已登录'
+      );
     } finally {
       setIsSubmittingComment(false);
     }
@@ -209,10 +234,12 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
         // 游客带上昵称；登录用户由后端按账号身份处理
         ...(!isLoggedIn ? { nickname: guestNickname.trim() } : {}),
       });
-      setComments((prev) => addReplyToTree(prev, parentId, newReply));
+      setComments(prev => addReplyToTree(prev, parentId, newReply));
     } catch (err) {
       logger.error('回复评论失败:', err);
-      alert(err instanceof Error ? err.message : '回复评论失败，请检查是否已登录');
+      alert(
+        err instanceof Error ? err.message : '回复评论失败，请检查是否已登录'
+      );
     } finally {
       setIsSubmittingComment(false);
     }
@@ -247,10 +274,10 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
         cardBgClass={cardBgClass}
         textClass={textClass}
         mutedTextClass={mutedTextClass}
-        accentActiveClass="bg-primary/20 text-primary font-medium"
+        accentActiveClass="border-l-2 border-primary bg-primary/5 text-primary font-medium"
         idleLinkClass="text-muted-foreground hover:text-primary"
       />
-      <div className="max-w-[1400px] mx-auto pb-8">
+      <div className="max-w-[1440px] mx-auto pb-8">
         {loading ? (
           <div className="px-4 pt-12 space-y-6">
             <Skeleton className="h-12 w-3/4" />
@@ -278,12 +305,9 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
                 />
               }
             />
-            {/*
-              窄 lg：TOC 浮层不占主宽；xl+：三栏（左 TOC | 正文 | 右相关）
-            */}
-            <div className="relative flex flex-col xl:flex-row gap-6 xl:gap-8 px-4 md:px-6">
-              {/* 左轨 TOC：lg–xl 固定窄轨，xl+ sticky 跟随滚动 */}
-              <aside className="hidden lg:block lg:fixed lg:left-4 lg:top-28 lg:z-30 lg:w-48 xl:sticky xl:top-24 xl:w-52 xl:shrink-0 xl:left-auto xl:top-auto order-1 self-start">
+            {/* xl+ 三栏阅读布局：左目录 | 正文 | 相关文章 */}
+            <div className="relative grid grid-cols-1 gap-6 px-4 md:px-6 xl:grid-cols-[13rem_minmax(0,1fr)_14rem] 2xl:grid-cols-[14rem_minmax(0,50rem)_16rem] 2xl:gap-8 xl:items-start xl:justify-center">
+              <aside className="hidden xl:block xl:sticky xl:top-24 xl:self-start">
                 <ArticleTocRail
                   variant="rail"
                   headings={toc}
@@ -292,12 +316,11 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
                   cardBgClass={cardBgClass}
                   textClass={textClass}
                   mutedTextClass={mutedTextClass}
-                  accentActiveClass="bg-primary/20 text-primary font-medium"
+                  accentActiveClass="border-l-2 border-primary bg-primary/5 text-primary font-medium"
                   idleLinkClass="text-muted-foreground hover:text-primary"
                 />
               </aside>
-              {/* 主内容：lg 为全宽（TOC 浮层），xl 与侧栏并排 */}
-              <div className="flex-1 min-w-0 order-2 max-w-3xl mx-auto xl:mx-0 w-full">
+              <div className="min-w-0 w-full max-w-[50rem] justify-self-center">
                 {/* padding=none 避免与默认 md 内边距叠加；ref 绑在正文根 */}
                 <GlassCard
                   padding="none"
@@ -314,9 +337,11 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
                   </div>
                 </GlassCard>
                 <div className="mb-8">
-                  <h3 className="text-lg font-semibold mb-3 text-white">标签</h3>
+                  <h3 className="text-lg font-semibold mb-3 text-white">
+                    标签
+                  </h3>
                   <div className="flex flex-wrap gap-2">
-                    {article.tags.map((tag) => (
+                    {article.tags.map(tag => (
                       <Badge
                         key={tag.id}
                         variant="outline"
@@ -330,13 +355,28 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                   {[
-                    { icon: ThumbsUp, label: '点赞数', value: article.likes_count },
-                    { icon: MessageSquare, label: '评论数', value: article.comments_count },
-                    { icon: Share2, label: '分享数', value: article.shares_count },
+                    {
+                      icon: ThumbsUp,
+                      label: '点赞数',
+                      value: article.likes_count,
+                    },
+                    {
+                      icon: MessageSquare,
+                      label: '评论数',
+                      value: article.comments_count,
+                    },
+                    {
+                      icon: Share2,
+                      label: '分享数',
+                      value: article.shares_count,
+                    },
                     { icon: Eye, label: '阅读量', value: article.view_count },
                   ].map(({ icon: Icon, label, value }) => (
                     <HoverLift key={label}>
-                      <GlassCard padding="none" className={`p-4 text-center ${cardBgClass}`}>
+                      <GlassCard
+                        padding="none"
+                        className={`p-4 text-center ${cardBgClass}`}
+                      >
                         <div className="flex items-center justify-center">
                           <Icon className="h-6 w-6 mr-2 text-tech-cyan" />
                           <span className="text-2xl font-bold">{value}</span>
@@ -387,7 +427,9 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
                       <div className="flex flex-wrap gap-4 mt-4">
                         <div className="flex items-center">
                           <Award className="h-4 w-4 mr-2 text-tech-cyan" />
-                          <span className="text-sm">{article.author.reputation} 声誉</span>
+                          <span className="text-sm">
+                            {article.author.reputation} 声誉
+                          </span>
                         </div>
                         <div className="flex items-center">
                           <Users className="h-4 w-4 mr-2 text-tech-cyan" />
@@ -403,6 +445,10 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
                     </div>
                   </div>
                 </GlassCard>
+                <RelatedArticleRail
+                  articles={relatedArticles}
+                  className={cn('mb-8 xl:hidden', cardBgClass)}
+                />
                 <GlassCard padding="none" className={`p-6 ${cardBgClass}`}>
                   <div className="flex items-center justify-between mb-6">
                     <h3 className={`text-xl font-semibold ${textClass}`}>
@@ -412,11 +458,15 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
                   {commentsLoading ? (
                     <div className="text-center py-8">
                       <div className="inline-block h-8 w-8 border-4 border-tech-cyan border-t-transparent rounded-full animate-spin" />
-                      <p className={`text-sm mt-2 ${mutedTextClass}`}>加载评论中...</p>
+                      <p className={`text-sm mt-2 ${mutedTextClass}`}>
+                        加载评论中...
+                      </p>
                     </div>
                   ) : commentsError ? (
                     <div className="text-center py-8">
-                      <p className="text-sm text-destructive">{commentsError}</p>
+                      <p className="text-sm text-destructive">
+                        {commentsError}
+                      </p>
                     </div>
                   ) : (
                     <CommentTree
@@ -438,7 +488,7 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
                           id="guest-comment-nickname"
                           type="text"
                           value={guestNickname}
-                          onChange={(e) => setGuestNickname(e.target.value)}
+                          onChange={e => setGuestNickname(e.target.value)}
                           maxLength={50}
                           placeholder="你的昵称..."
                           className="w-full px-4 py-2.5 rounded-lg border bg-muted/40 border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
@@ -449,14 +499,16 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
                       rows={4}
                       placeholder="写下你的评论..."
                       value={newCommentContent}
-                      onChange={(e) => setNewCommentContent(e.target.value)}
+                      onChange={e => setNewCommentContent(e.target.value)}
                       disabled={isSubmittingComment}
                       className="w-full px-4 py-3 rounded-lg border bg-muted/40 border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
                     />
                     <div className="mt-4 flex justify-end">
                       <Button
                         onClick={handleSubmitComment}
-                        disabled={!newCommentContent.trim() || isSubmittingComment}
+                        disabled={
+                          !newCommentContent.trim() || isSubmittingComment
+                        }
                       >
                         {isSubmittingComment ? '发表中...' : '发表评论'}
                       </Button>
@@ -464,42 +516,11 @@ export default function ArticleDetailPageContent({ prefetchedArticle }: ArticleD
                   </div>
                 </GlassCard>
               </div>
-              {/* 右轨：相关文章 — 窄屏在正文下，xl+ sticky 侧栏 */}
-              <aside className="w-full xl:w-56 2xl:w-64 space-y-6 order-3 shrink-0 self-start">
-                {relatedArticles.length > 0 && (
-                  <GlassCard
-                    padding="none"
-                    className={`p-6 sticky top-24 ${cardBgClass}`}
-                  >
-                    <h3 className={`text-lg font-semibold mb-4 ${textClass}`}>
-                      相关文章
-                    </h3>
-                    <div className="space-y-3">
-                      {relatedArticles.map((relatedArticle) => (
-                        <HoverLift key={relatedArticle.id}>
-                          <Link href={`/articles/${relatedArticle.id}`}>
-                            <div
-                              className="p-3 rounded-lg transition-colors bg-muted/40 hover:bg-muted"
-                            >
-                              <h4
-                                className={`font-medium line-clamp-2 ${textClass}`}
-                              >
-                                {relatedArticle.title}
-                              </h4>
-                              <div className="flex items-center text-xs mt-2 text-muted-foreground gap-2">
-                                {relatedArticle.category?.name ? (
-                                  <span>{relatedArticle.category.name}</span>
-                                ) : null}
-                                <Eye className="h-3 w-3" />
-                                <span>{relatedArticle.view_count} 阅读</span>
-                              </div>
-                            </div>
-                          </Link>
-                        </HoverLift>
-                      ))}
-                    </div>
-                  </GlassCard>
-                )}
+              <aside className="hidden xl:block xl:sticky xl:top-24 xl:self-start">
+                <RelatedArticleRail
+                  articles={relatedArticles}
+                  className={cardBgClass}
+                />
               </aside>
             </div>
           </>
