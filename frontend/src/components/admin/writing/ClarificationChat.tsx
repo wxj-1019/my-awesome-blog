@@ -13,6 +13,14 @@ import { Send, Square, Sparkles, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { WritingMessage } from '@/types/writing-session';
 
+/** 澄清冷启动模板：点击填入输入框（可修改后再发送） */
+const TEMPLATES = [
+  '写一篇技术教程',
+  '写一篇产品评测',
+  '写一篇生活随笔',
+  '写一篇读书笔记',
+];
+
 export interface ClarificationChatProps {
   /** 持久化的对话消息（来自会话）。 */
   messages: WritingMessage[];
@@ -79,12 +87,27 @@ export default function ClarificationChat({
         className="flex-1 min-h-0 overflow-y-auto space-y-3 pr-1"
       >
         {messages.length === 0 && !streaming && (
-          <div className="h-full flex flex-col items-center justify-center text-center text-foreground/50 gap-2 py-10">
+          <div className="h-full flex flex-col items-center justify-center text-center text-foreground/50 gap-3 py-8">
             <div className="p-2.5 rounded-full bg-primary/10">
               <Sparkles className="w-5 h-5 text-primary" />
             </div>
             <p className="text-sm">和 AI 聊聊你想写什么</p>
-            <p className="text-xs text-foreground/40">描述主题、受众、风格、篇幅…AI 会先帮你理清需求</p>
+            <p className="text-xs text-foreground/40 max-w-sm">
+              描述主题、受众、风格、篇幅…AI 会先帮你理清需求。也可以直接描述你的想法，AI 会逐步确认
+            </p>
+            {/* 模板快捷填充：点击填入输入框（可修改后再发送），降低冷启动成本 */}
+            <div className="flex flex-wrap items-center justify-center gap-1.5 max-w-sm">
+              {TEMPLATES.map(t => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setInput(t)}
+                  className="px-2.5 py-1 rounded-full border border-border/50 text-[11px] text-foreground/60 hover:text-primary hover:border-primary/40 hover:bg-primary/5 transition-colors"
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
           </div>
         )}
         {renderMessages.map(msg => (

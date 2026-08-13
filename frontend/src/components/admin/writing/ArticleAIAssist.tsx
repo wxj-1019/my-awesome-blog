@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { adminApi } from '@/lib/admin-api-client';
 import { contentHash } from '@/lib/content-hash';
+import { contentHashSync } from '@/components/admin/article-editor/shared';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/components/admin/Toast';
 import type {
@@ -46,7 +47,9 @@ export interface ArticleAIAssistProps {
   selection: EditorSelection;
   session: WritingSession;
   onSessionChange: (session: WritingSession) => void;
-  onApplyRevision: (revision: WritingRevision) => void;
+  /** 应用修订：selection 来源用 revision 的切片信息替换；
+   *  suggestion 来源（全文建议）后端不存 replacement_text，由 replacement 参数携带。 */
+  onApplyRevision: (revision: WritingRevision, replacement?: string) => void;
   /** 外部繁忙态（其它面板进行中时禁用本面板）。 */
   busy?: boolean;
 }
@@ -318,13 +321,3 @@ export default function ArticleAIAssist({
   );
 }
 
-/**
- * 同步哈希用于渲染期冲突判断（真正落库前会再用 contentHash 算一次发往后端）。
- * 仅做 UI 提示，不要求密码学强度。
- */
-function contentHashSync(content: string): string {
-  if (content.length === 0) {return '0';}
-  const head = content.slice(0, 32);
-  const tail = content.slice(-32);
-  return `${content.length}:${head}:${tail}`;
-}

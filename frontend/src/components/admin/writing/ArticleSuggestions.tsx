@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { adminApi } from '@/lib/admin-api-client';
 import { contentHash } from '@/lib/content-hash';
+import { contentHashSync } from '@/components/admin/article-editor/shared';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/components/admin/Toast';
 import type {
@@ -35,7 +36,8 @@ export interface ArticleSuggestionsProps {
   content: string;
   sessionId: string;
   onSessionChange: (session: WritingSession) => void;
-  onApplyRevision: (revision: WritingRevision) => void;
+  /** 应用修订：全文建议（suggestion 来源）的替换文本由 replacement 参数携带。 */
+  onApplyRevision: (revision: WritingRevision, replacement?: string) => void;
 }
 
 /** 类型 → 中文标签 + 配色。 */
@@ -178,12 +180,13 @@ export default function ArticleSuggestions({
         preview.revisionId,
         currentHash
       );
-      // 把应用到的修订回传父级（取最新 applied 的一项）
+      // 把应用到的修订回传父级（取最新 applied 的一项）；
+      // 全文建议的替换文本只在本地 preview 中，随参数带出供父级写回正文
       const applied = session.revisions.find(
         (r) => r.id === preview.revisionId
       );
       if (applied) {
-        onApplyRevision(applied);
+        onApplyRevision(applied, preview.replacement);
       }
       onSessionChange(session);
       setPreview(null);
@@ -335,17 +338,4 @@ export default function ArticleSuggestions({
       )}
     </div>
   );
-}
-
-/**
- * 同步哈希用于渲染期冲突判断（仅作 UI 提示，真正落库前会再算一次）。
- *
- * 这里不能用 async 的 contentHash（在条件渲染里），所以做一个轻量同步指纹。
- * 仅需要判断「内容是否变了」，不要求密码学强度；用长度 + 头尾采样即可。
- */
-function contentHashSync(content: string): string {
-  if (content.length === 0) {return '0';}
-  const head = content.slice(0, 32);
-  const tail = content.slice(-32);
-  return `${content.length}:${head}:${tail}`;
 }

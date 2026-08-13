@@ -39,8 +39,15 @@ import {
   generateExcerpt,
   MIN_TITLE_LENGTH,
   MIN_CONTENT_LENGTH,
+  countWords,
+  estimateReadingMinutes,
   type EditorMode,
+  type MarkdownTool,
 } from '@/components/admin/article-editor/shared';
+import {
+  ArticleAttachmentsEditor,
+  type AttachmentDraft,
+} from '@/components/admin/article-editor/ArticleAttachmentsEditor';
 import type { WritingSession, WritingRevision } from '@/types/writing-session';
 interface Category {
   id: string;
@@ -81,12 +88,15 @@ export default function NewArticlePage() {
     cover_image: '',
     is_published: false,
     category_id: '',
-    tags: [] as string[]
+    tags: [] as string[],
+    attachments: [] as AttachmentDraft[]
   });
+  // 已落库的文章 id：首次保存 create 后记录，后续保存/发布走 update（防重复创建）
+  const articleIdRef = useRef<string | null>(null);
   const stats = {
     charCount: formData.content.length,
-    wordCount: formData.content.trim() ? formData.content.trim().split(/\s+/).length : 0,
-    readingTime: Math.max(1, Math.ceil(formData.content.trim().split(/\s+/).length / 200)),
+    wordCount: countWords(formData.content).total,
+    readingTime: estimateReadingMinutes(formData.content),
     titleLength: formData.title.length
   };
   const formProgress = {
@@ -278,32 +288,68 @@ export default function NewArticlePage() {
 
   // 卸载时中止进行中的润色流
   useEffect(() => () => aiPolishRef.current?.(), []);
-  const insertMarkdown = (text: string) => {
+  const insertMarkdown = (tool: MarkdownTool) => {
     const textarea = contentTextareaRef.current;
     if (!textarea) {return;}
-    
+
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
-    const newContent = formData.content.substring(0, start) + text + formData.content.substring(end);
+    const selected = formData.content.substring(start, end);
 
+    let text: string;
+    let selectStart: number | null = null;
+    let selectEnd: number | null = null;
+    if (selected && tool.link) {
+      // 选中文本作链接文字，光标选中 url 占位便于直接输入
+      text = `[${selected}](url)`;
+      selectStart = start + text.length - 4;
+      selectEnd = start + text.length - 1;
+    } else if (selected && tool.wrap) {
+      // 包裹/前缀选中文本（**粗体**、# 标题、> 引用…）
+      text = tool.wrapMode === 'around'
+        ? tool.wrap + selected + tool.wrap
+        : tool.wrap + selected;
+      selectStart = start + text.length;
+      selectEnd = start + text.length;
+    } else {
+      // 无选区：插入模板，光标落到 cursorOffset 指定位置
+      text = tool.insert;
+      const cursorPos = start + (tool.cursorOffset ?? tool.insert.length);
+      selectStart = cursorPos;
+      selectEnd = cursorPos;
+    }
+
+    const newContent = formData.content.substring(0, start) + text + formData.content.substring(end);
     setHasUnsavedChanges(true);
     setFormData(prev => ({ ...prev, content: newContent }));
-    
+
     setTimeout(() => {
       textarea.focus();
-      const cursorPos = text.includes('[](url)') ? start + 1 : start + text.length;
-      textarea.setSelectionRange(cursorPos, cursorPos);
+      if (selectStart !== null && selectEnd !== null) {
+        textarea.setSelectionRange(selectStart, selectEnd);
+      }
     }, 0);
   };
-  const handleSaveDraft = useCallback(async () => {
+  /**
+   * 保存草稿（create/update 统一入口）。
+   * silent=true 供自动保存使用：条件不满足静默跳过、长度不足不报错；
+   * silent=false 为手动保存：长度校验报错 + toast 提示。
+   */
+  const persistDraft = useCallback(async (opts: { silent?: boolean } = {}) => {
+    const { silent = false } = opts;
     if (isSubmitting) {return;}
-    if (!formData.title.trim()) {
-      error('请输入文章标题');
-      return;
-    }
-    if (!formData.content.trim()) {
-      error('请输入文章内容');
-      return;
+    // 自动保存的前置条件：标题/别名/内容均非空（slug 由标题自动生成）
+    if (!formData.title.trim() || !formData.content.trim() || !formData.slug.trim()) {return;}
+    if (!silent) {
+      // 与发布校验一致：此前只查非空，会绕过长度要求
+      if (formData.title.trim().length < MIN_TITLE_LENGTH) {
+        error(`标题至少需要 ${MIN_TITLE_LENGTH} 个字符`);
+        return;
+      }
+      if (formData.content.trim().length < MIN_CONTENT_LENGTH) {
+        error(`内容至少需要 ${MIN_CONTENT_LENGTH} 个字符`);
+        return;
+      }
     }
     try {
       setIsSubmitting(true);
@@ -315,13 +361,23 @@ export default function NewArticlePage() {
         cover_image: formData.cover_image || undefined,
         is_published: false,
         category_id: formData.category_id || undefined,
-        tags: formData.tags.length > 0 ? formData.tags : undefined
+        tags: formData.tags.length > 0 ? formData.tags : undefined,
+        attachments: formData.attachments.length > 0 ? formData.attachments : undefined
       };
-      const result = await adminApi.articles.create(submitData) as { id: string };
+      let resultId: string;
+      if (articleIdRef.current) {
+        // 已创建过 → 更新，避免重复创建草稿
+        await adminApi.articles.update(articleIdRef.current, submitData);
+        resultId = articleIdRef.current;
+      } else {
+        const result = await adminApi.articles.create(submitData) as { id: string };
+        articleIdRef.current = result.id;
+        resultId = result.id;
+      }
       // 把写作会话关联到刚落库的文章（仅首次保存且尚未关联时）
       if (writingSession && !writingSession.article_id) {
         try {
-          const linked = await adminApi.writingSessions.linkArticle(writingSession.id, result.id);
+          const linked = await adminApi.writingSessions.linkArticle(writingSession.id, resultId);
           setWritingSession(linked);
         } catch (linkErr) {
           // 关联失败不阻塞保存流程，仅记录日志
@@ -330,15 +386,31 @@ export default function NewArticlePage() {
       }
       setLastSaved(new Date());
       setHasUnsavedChanges(false);
-      success('草稿已保存');
+      if (!silent) {
+        success('草稿已保存');
+      }
     } catch (err: unknown) {
       console.error('Failed to save draft:', err);
       const errorMessage = err instanceof Error ? err.message : '保存草稿失败';
-      error(errorMessage);
+      error(silent ? `自动保存失败：${errorMessage}` : errorMessage);
     } finally {
       setIsSubmitting(false);
     }
   }, [formData, writingSession, isSubmitting, success, error]);
+
+  const handleSaveDraft = useCallback(async () => {
+    await persistDraft();
+  }, [persistDraft]);
+
+  // ── 自动保存：内容变化后 debounce 2.5s 静默保存草稿 ─────────────
+  useEffect(() => {
+    if (phase !== 'editing') {return;}
+    if (!hasUnsavedChanges) {return;}
+    const timer = setTimeout(() => {
+      void persistDraft({ silent: true });
+    }, 2500);
+    return () => clearTimeout(timer);
+  }, [formData, hasUnsavedChanges, phase, persistDraft]);
   const handlePublish = useCallback(async () => {
     if (isSubmitting) {return;}
     if (!formData.title.trim()) {
@@ -374,9 +446,18 @@ export default function NewArticlePage() {
         cover_image: formData.cover_image || undefined,
         is_published: true,
         category_id: formData.category_id || undefined,
-        tags: formData.tags.length > 0 ? formData.tags : undefined
+        tags: formData.tags.length > 0 ? formData.tags : undefined,
+        attachments: formData.attachments.length > 0 ? formData.attachments : undefined
       };
-      const result = await adminApi.articles.create(submitData) as { id: string };
+      // 已保存过草稿 → 发布走 update，避免重复创建文章
+      const result = articleIdRef.current
+        ? { id: articleIdRef.current } as { id: string }
+        : await adminApi.articles.create(submitData) as { id: string };
+      if (!articleIdRef.current) {
+        articleIdRef.current = result.id;
+      } else {
+        await adminApi.articles.update(articleIdRef.current, submitData);
+      }
       // 发布成功：关联会话并标记完成（非阻塞）
       if (writingSession) {
         if (!writingSession.article_id) {
@@ -458,7 +539,15 @@ export default function NewArticlePage() {
         className="flex items-center justify-between flex-wrap gap-4"
       >
         <div className="flex items-center gap-4">
-          <Link href="/admin/articles">
+          <Link
+            href="/admin/articles"
+            onClick={(e) => {
+              // SPA 导航不触发 beforeunload，未保存更改会被静默丢弃，先确认
+              if (hasUnsavedChanges && !window.confirm('有未保存的更改，确定离开吗？')) {
+                e.preventDefault();
+              }
+            }}
+          >
             <Button variant="ghost" size="sm" className="group">
               <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
               返回列表
@@ -511,6 +600,24 @@ export default function NewArticlePage() {
       ) : (
         <>
           {/* Phase 2：完整编辑器（顶部 AI 面板已移除，AI 协助改到右侧栏 ArticleAIAssist）*/}
+          {/* 图循环回退：编辑阶段发现方向不对，可回到 AI 写作开启新会话（旧内容保留在编辑器） */}
+          {writingSession && writingSession.stage !== 'completed' && (
+            <div className="mb-4">
+              <button
+                type="button"
+                onClick={() => {
+                  if (hasUnsavedChanges && !window.confirm('有未保存的更改，确定回到 AI 写作吗？')) {
+                    return;
+                  }
+                  setPhase('chat');
+                }}
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-foreground/5 text-foreground/70 hover:bg-foreground/10 text-xs font-medium transition-colors"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                回到 AI 写作（开启新会话）
+              </button>
+            </div>
+          )}
           <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
         <div className="xl:col-span-3 space-y-6">
           <GlassCardAdmin className="p-6">
@@ -767,7 +874,10 @@ export default function NewArticlePage() {
                 {/* AI 自动找封面：读正文生成搜索词 → Unsplash 候选 → 点选填入 */}
                 <CoverPicker
                   content={formData.content}
-                  onPick={url => setFormData(prev => ({ ...prev, cover_image: url }))}
+                  onPick={url => {
+                    setFormData(prev => ({ ...prev, cover_image: url }));
+                    setHasUnsavedChanges(true);
+                  }}
                   busy={isAiBusy}
                 />
                 {formData.cover_image && (
@@ -788,6 +898,13 @@ export default function NewArticlePage() {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" />
                   </motion.div>
                 )}
+              </div>
+              {/* 文章资料：图片/视频/音频/文档，可标记「仅作者参考」 */}
+              <div className="md:col-span-2 mt-4">
+                <ArticleAttachmentsEditor
+                  value={formData.attachments}
+                  onChange={(attachments) => setFormData(prev => ({ ...prev, attachments }))}
+                />
               </div>
             </div>
           </GlassCardAdmin>
@@ -868,7 +985,7 @@ export default function NewArticlePage() {
               selection={editorSelection}
               session={writingSession}
               onSessionChange={setWritingSession}
-              onApplyRevision={(revision: WritingRevision) => {
+              onApplyRevision={(revision: WritingRevision, replacement?: string) => {
                 if (revision.source === 'selection') {
                   setFormData(prev => ({
                     ...prev,
@@ -877,8 +994,14 @@ export default function NewArticlePage() {
                       revision.replacement_text +
                       prev.content.slice(revision.selection_end),
                   }));
-                  setTouchedFields(prev => new Set(prev).add('content'));
+                } else if (revision.source === 'suggestion' && replacement) {
+                  // 全文建议：后端 revision 不存 replacement_text，用本地预览全文整篇替换
+                  setFormData(prev => ({ ...prev, content: replacement }));
+                } else {
+                  return;
                 }
+                setTouchedFields(prev => new Set(prev).add('content'));
+                setHasUnsavedChanges(true);
               }}
               busy={isAiBusy}
             />

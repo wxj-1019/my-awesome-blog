@@ -246,6 +246,7 @@ test('apply calls applyRevision with current content hash and refreshes session'
       expect.any(String)
     );
   });
-  expect(onApplyRevision).toHaveBeenCalledWith(appliedRevision);
+  // 第二个参数为本地预览全文（suggestion 来源的 replacement，供父级整篇写回正文）
+  expect(onApplyRevision).toHaveBeenCalledWith(appliedRevision, '替换文本');
   expect(onSessionChange).toHaveBeenCalledWith(refreshed);
 });
