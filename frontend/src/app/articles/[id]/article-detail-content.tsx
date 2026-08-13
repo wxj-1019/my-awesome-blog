@@ -251,6 +251,10 @@ export default function ArticleDetailPageContent({
   const textClass = themedClasses.textClass;
   const accentClass = 'text-primary';
   const mutedTextClass = themedClasses.mutedTextClass;
+  // 侧轨显隐：目录仅有文章主标题（无小节）时无导航价值，隐藏左轨；
+  // 无相关文章时隐藏右轨——空侧轨会挤占左侧空间使正文显得靠左
+  const showTocRail = toc.length > 1;
+  const showRelatedRail = relatedArticles.length > 0;
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -308,24 +312,33 @@ export default function ArticleDetailPageContent({
                 />
               }
             />
-            {/* xl+ 三栏阅读布局：左目录 | 正文 | 相关文章 */}
-            <div className="relative grid grid-cols-1 gap-6 px-4 md:px-6 xl:grid-cols-[13rem_minmax(0,1fr)_14rem] 2xl:grid-cols-[14rem_minmax(0,50rem)_16rem] 2xl:gap-8 xl:items-start xl:justify-center">
-              <aside
-                className="hidden xl:block xl:sticky xl:top-24 xl:self-start"
-                aria-label="文章目录"
-              >
-                <ArticleTocRail
-                  variant="rail"
-                  headings={toc}
-                  activeId={activeHeading}
-                  progress={readingProgress}
-                  cardBgClass={cardBgClass}
-                  textClass={textClass}
-                  mutedTextClass={mutedTextClass}
-                  accentActiveClass="border-l-2 border-primary bg-primary/5 text-primary font-medium"
-                  idleLinkClass="text-muted-foreground hover:text-primary"
-                />
-              </aside>
+            {/* xl+ 三栏阅读布局：左目录 | 正文 | 相关文章。
+                目录只有文章主标题（无二级小节）或没有相关文章时隐藏对应侧轨，
+                动态列数让正文在页面居中，避免空侧轨挤占左侧空间使正文显得靠左 */}
+            <div className={cn(
+              'relative grid grid-cols-1 gap-6 px-4 md:px-6 xl:items-start xl:justify-center 2xl:gap-8',
+              showTocRail && showRelatedRail && 'xl:grid-cols-[13rem_minmax(0,1fr)_14rem] 2xl:grid-cols-[14rem_minmax(0,50rem)_16rem]',
+              showTocRail && !showRelatedRail && 'xl:grid-cols-[13rem_minmax(0,1fr)] 2xl:grid-cols-[14rem_minmax(0,50rem)]',
+              !showTocRail && showRelatedRail && 'xl:grid-cols-[minmax(0,1fr)_14rem] 2xl:grid-cols-[minmax(0,50rem)_16rem]'
+            )}>
+              {showTocRail && (
+                <aside
+                  className="hidden xl:block xl:sticky xl:top-24 xl:self-start"
+                  aria-label="文章目录"
+                >
+                  <ArticleTocRail
+                    variant="rail"
+                    headings={toc}
+                    activeId={activeHeading}
+                    progress={readingProgress}
+                    cardBgClass={cardBgClass}
+                    textClass={textClass}
+                    mutedTextClass={mutedTextClass}
+                    accentActiveClass="border-l-2 border-primary bg-primary/5 text-primary font-medium"
+                    idleLinkClass="text-muted-foreground hover:text-primary"
+                  />
+                </aside>
+              )}
               <div className="min-w-0 w-full max-w-[50rem] justify-self-center">
                 {/* padding=none 避免与默认 md 内边距叠加；ref 绑在正文根 */}
                 <GlassCard
@@ -351,11 +364,13 @@ export default function ArticleDetailPageContent({
                   className="mb-8"
                 />
                 {/* 移动副本与桌面右轨通过 xl display 类互斥，任一断点只暴露一份内容。 */}
-                <RelatedArticleRail
-                  articles={relatedArticles}
-                  heading="继续阅读"
-                  className={cn('mb-8 xl:hidden', cardBgClass)}
-                />
+                {relatedArticles.length > 0 && (
+                  <RelatedArticleRail
+                    articles={relatedArticles}
+                    heading="继续阅读"
+                    className={cn('mb-8 xl:hidden', cardBgClass)}
+                  />
+                )}
                 {/* 文章资料：读者可见的附件（is_reference=false），按类型渲染播放器/图片/下载链接 */}
                 {article.attachments && article.attachments.filter((att) => !att.is_reference).length > 0 && (
                   <GlassCard padding="none" className={`mb-8 p-6 md:p-8 ${cardBgClass}`}>
@@ -422,7 +437,6 @@ export default function ArticleDetailPageContent({
                     </div>
                   </GlassCard>
                 )}
-1 (feat: 文章资料附件功能（article_attachments）)
                 <GlassCard padding="none" className={`p-6 ${cardBgClass}`}>
                   <div className="flex items-center justify-between mb-6">
                     <h3 className={`text-xl font-semibold ${textClass}`}>
@@ -490,15 +504,17 @@ export default function ArticleDetailPageContent({
                   </div>
                 </GlassCard>
               </div>
-              <aside
-                className="hidden xl:block xl:sticky xl:top-24 xl:self-start"
-                aria-label="相关文章"
-              >
-                <RelatedArticleRail
-                  articles={relatedArticles}
-                  className={cardBgClass}
-                />
-              </aside>
+              {showRelatedRail && (
+                <aside
+                  className="hidden xl:block xl:sticky xl:top-24 xl:self-start"
+                  aria-label="相关文章"
+                >
+                  <RelatedArticleRail
+                    articles={relatedArticles}
+                    className={cardBgClass}
+                  />
+                </aside>
+              )}
             </div>
           </>
         ) : null}
