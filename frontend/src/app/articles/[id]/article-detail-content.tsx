@@ -25,11 +25,22 @@ import RelatedArticleRail from '@/components/articles/RelatedArticleRail';
 import ArticleReadingMetaBar from '@/components/articles/ArticleReadingMetaBar';
 import ArticleAuthorPanel from '@/components/articles/ArticleAuthorPanel';
 import ArticleBodyReveal from '@/components/articles/ArticleBodyReveal';
+import ReadingSettingsPanel, {
+  FONT_SIZE_CSS,
+  LINE_HEIGHT_CSS,
+  LETTER_SPACING_CSS,
+} from '@/components/articles/ReadingSettingsPanel';
 import CommentTree from '@/components/articles/CommentTree';
 import MarkdownRenderer from '@/components/ui/MarkdownRenderer';
 import { extractMarkdownHeadings } from '@/utils/markdown-headings';
 import { useReadingProgress } from '@/hooks/useReadingProgress';
 import { useActiveHeading } from '@/hooks/useActiveHeading';
+import {
+  DEFAULT_READING_SETTINGS,
+  loadReadingSettings,
+  saveReadingSettings,
+  type ReadingSettings,
+} from '@/lib/reading-settings';
 
 import { Comment } from '@/types';
 /** 附件大小格式化（详情页渲染用） */
@@ -99,6 +110,8 @@ export default function ArticleDetailPageContent({
   // 游客评论：按本地 token 判断登录态，未登录时展示昵称输入框
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [guestNickname, setGuestNickname] = useState('');
+  // 阅读设置：默认值与现网一致，挂载后读 localStorage（避免 SSR hydration 不一致）
+  const [readingSettings, setReadingSettings] = useState<ReadingSettings>(DEFAULT_READING_SETTINGS);
   const contentRef = useRef<HTMLDivElement>(null);
   const { themedClasses } = useThemedClasses();
   const { showLoading, hideLoading } = useLoading();
@@ -110,6 +123,16 @@ export default function ArticleDetailPageContent({
   useEffect(() => {
     setIsLoggedIn(!!localStorage.getItem(TOKEN_KEY));
   }, []);
+
+  // 挂载后恢复用户保存的阅读设置
+  useEffect(() => {
+    setReadingSettings(loadReadingSettings());
+  }, []);
+
+  const handleReadingSettingsChange = (next: ReadingSettings) => {
+    setReadingSettings(next);
+    saveReadingSettings(next);
+  };
 
   // 服务端已预取文章时，仅需加载相关文章和评论
   useEffect(() => {
@@ -255,6 +278,13 @@ export default function ArticleDetailPageContent({
   // 无相关文章时隐藏右轨——空侧轨会挤占左侧空间使正文显得靠左
   const showTocRail = toc.length > 1;
   const showRelatedRail = relatedArticles.length > 0;
+  // 阅读设置面板挂载位置：优先左轨（目录下方），其次右轨（相关文章下方），
+  // 两侧都无时放正文顶部
+  const settingsPanelAt: 'left' | 'right' | 'top' = showTocRail
+    ? 'left'
+    : showRelatedRail
+      ? 'right'
+      : 'top';
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -326,29 +356,72 @@ export default function ArticleDetailPageContent({
                   className="hidden xl:block xl:sticky xl:top-24 xl:self-start"
                   aria-label="文章目录"
                 >
-                  <ArticleTocRail
-                    variant="rail"
-                    headings={toc}
-                    activeId={activeHeading}
-                    progress={readingProgress}
-                    cardBgClass={cardBgClass}
-                    textClass={textClass}
-                    mutedTextClass={mutedTextClass}
-                    accentActiveClass="border-l-2 border-primary bg-primary/5 text-primary font-medium"
-                    idleLinkClass="text-muted-foreground hover:text-primary"
-                  />
+                  <div className="flex flex-col gap-6">
+                    <ArticleTocRail
+                      variant="rail"
+                      headings={toc}
+                      activeId={activeHeading}
+                      progress={readingProgress}
+                      cardBgClass={cardBgClass}
+                      textClass={textClass}
+                      mutedTextClass={mutedTextClass}
+                      accentActiveClass="border-l-2 border-primary bg-primary/5 text-primary font-medium"
+                      idleLinkClass="text-muted-foreground hover:text-primary"
+                    />
+                    {settingsPanelAt === 'left' && (
+                      <ReadingSettingsPanel
+                        settings={readingSettings}
+                        onChange={handleReadingSettingsChange}
+                        cardBgClass={cardBgClass}
+                        textClass={textClass}
+                        mutedTextClass={mutedTextClass}
+                      />
+                    )}
+                  </div>
                 </aside>
               )}
               <div className="min-w-0 w-full max-w-[50rem] justify-self-center">
-                {/* padding=none 避免与默认 md 内边距叠加；ref 绑在正文根 */}
+                {/* 阅读设置：两侧都无侧栏时放正文顶部（全断点）；
+                    有侧栏时（left/right）移动端侧栏隐藏，正文顶部加副本入口 */}
+                {settingsPanelAt === 'top' && (
+                  <ReadingSettingsPanel
+                    settings={readingSettings}
+                    onChange={handleReadingSettingsChange}
+                    cardBgClass={cardBgClass}
+                    textClass={textClass}
+                    mutedTextClass={mutedTextClass}
+                    className="mb-8"
+                  />
+                )}
+                {settingsPanelAt !== 'top' && (
+                  <ReadingSettingsPanel
+                    settings={readingSettings}
+                    onChange={handleReadingSettingsChange}
+                    cardBgClass={cardBgClass}
+                    textClass={textClass}
+                    mutedTextClass={mutedTextClass}
+                    className="mb-8 xl:hidden"
+                  />
+                )}
+                {/* padding=none 避免与默认 md 内边距叠加；ref 绑在正文根。
+                    阅读设置以 inline style 覆盖 .article-reading-surface 的
+                    硬编码字号/行高/字距（inline 优先级最高） */}
                 <GlassCard
                   padding="none"
                   className={`mb-8 p-6 md:p-8 ${cardBgClass}`}
                 >
-                  <div ref={contentRef} className="article-reading-surface">
+                  <div
+                    ref={contentRef}
+                    className="article-reading-surface"
+                    style={{
+                      fontSize: FONT_SIZE_CSS[readingSettings.fontSize],
+                      lineHeight: LINE_HEIGHT_CSS[readingSettings.lineHeight],
+                      letterSpacing: LETTER_SPACING_CSS[readingSettings.letterSpacing],
+                    }}
+                  >
                     <ArticleBodyReveal enabled>
                       <div
-                        className={`prose prose-base md:prose-lg max-w-none dark:prose-invert font-serif leading-relaxed md:leading-[1.8] ${textClass}`}
+                        className={`prose prose-base md:prose-lg max-w-none dark:prose-invert leading-relaxed md:leading-[1.8] ${readingSettings.fontFamily === 'serif' ? 'font-serif' : 'font-sans'} ${textClass}`}
                       >
                         <MarkdownRenderer content={article.content} context="article" />
                       </div>
@@ -509,10 +582,21 @@ export default function ArticleDetailPageContent({
                   className="hidden xl:block xl:sticky xl:top-24 xl:self-start"
                   aria-label="相关文章"
                 >
-                  <RelatedArticleRail
-                    articles={relatedArticles}
-                    className={cardBgClass}
-                  />
+                  <div className="flex flex-col gap-6">
+                    <RelatedArticleRail
+                      articles={relatedArticles}
+                      className={cardBgClass}
+                    />
+                    {settingsPanelAt === 'right' && (
+                      <ReadingSettingsPanel
+                        settings={readingSettings}
+                        onChange={handleReadingSettingsChange}
+                        cardBgClass={cardBgClass}
+                        textClass={textClass}
+                        mutedTextClass={mutedTextClass}
+                      />
+                    )}
+                  </div>
                 </aside>
               )}
             </div>
