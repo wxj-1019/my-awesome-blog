@@ -10,7 +10,7 @@
 import { useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Send, Loader2, FileText } from 'lucide-react';
+import { Send, Loader2, FileText, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { WritingMessage } from '@/types/writing-session';
 
@@ -27,6 +27,8 @@ export interface OutlineReviewProps {
   onAdjust: (message: string) => void;
   /** 确认大纲，进入初稿生成。 */
   onConfirm: () => void;
+  /** 回退到需求澄清阶段（图循环回退边）。 */
+  onRegress?: () => void;
 }
 
 export default function OutlineReview({
@@ -36,6 +38,7 @@ export default function OutlineReview({
   streamContent = '',
   onAdjust,
   onConfirm,
+  onRegress,
 }: OutlineReviewProps) {
   const [input, setInput] = useState('');
   const convRef = useRef<HTMLDivElement>(null);
@@ -174,6 +177,19 @@ export default function OutlineReview({
         <Send className="w-4 h-4" />
         确认大纲并生成初稿
       </button>
+      {/* 回退边：大纲不满意时回到需求澄清重新确认 */}
+      {onRegress && (
+        <button
+          type="button"
+          onClick={onRegress}
+          disabled={streaming}
+          aria-label="返回需求澄清"
+          className="w-full inline-flex items-center justify-center gap-1.5 py-2 px-4 rounded-lg bg-transparent text-muted-foreground hover:text-foreground hover:bg-foreground/5 disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-xs font-medium"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          需求还需修改？返回上一步（需求澄清）
+        </button>
+      )}
     </div>
   );
 }

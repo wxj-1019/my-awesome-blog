@@ -9,7 +9,7 @@
 import { useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Send, Loader2, FileText } from 'lucide-react';
+import { Send, Loader2, FileText, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { WritingMessage } from '@/types/writing-session';
 
@@ -26,6 +26,8 @@ export interface DraftReviewProps {
   onAdjust: (message: string) => void;
   /** 确认初稿，进入编辑器。 */
   onConfirm: () => void;
+  /** 回退到大纲调整阶段（图循环回退边）。 */
+  onRegress?: () => void;
 }
 
 export default function DraftReview({
@@ -35,6 +37,7 @@ export default function DraftReview({
   streamContent = '',
   onAdjust,
   onConfirm,
+  onRegress,
 }: DraftReviewProps) {
   const [input, setInput] = useState('');
   const convRef = useRef<HTMLDivElement>(null);
@@ -172,6 +175,19 @@ export default function DraftReview({
         <Send className="w-4 h-4" />
         确认初稿，进入编辑器
       </button>
+      {/* 回退边：初稿不满意时回到大纲重拟 */}
+      {onRegress && (
+        <button
+          type="button"
+          onClick={onRegress}
+          disabled={streaming}
+          aria-label="返回大纲调整"
+          className="w-full inline-flex items-center justify-center gap-1.5 py-2 px-4 rounded-lg bg-transparent text-muted-foreground hover:text-foreground hover:bg-foreground/5 disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-xs font-medium"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          初稿偏离方向？返回上一步（调整大纲）
+        </button>
+      )}
     </div>
   );
 }

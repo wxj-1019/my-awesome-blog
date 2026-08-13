@@ -25,6 +25,7 @@ from app.schemas.writing_session import (
     WritingSelectionRevisionRequest,
     WritingSessionCreate,
     WritingSessionRead,
+    WritingSessionRegressRequest,
     WritingSuggestionRevisionRequest,
 )
 from app.services.writing_session_service import WritingSessionService
@@ -98,6 +99,24 @@ def abandon_session(
     if not session:
         raise NotFoundException(resource="WritingSession", identifier=str(session_id))
     return abandon_writing_session(db, session)
+
+
+@router.post("/{session_id}/regress", response_model=WritingSessionRead)
+def regress_session(
+    session_id: UUID,
+    payload: WritingSessionRegressRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    """阶段回退（图循环的回退边）：初稿不满意回大纲、大纲不满意回需求澄清。
+
+    仅允许 REGRESSIONS 声明的合法回退，非法目标抛 ConflictException（409）；
+    回退保留下游数据与消息历史（重生成时覆盖），上下文连续。
+    """
+    session = get_writing_session_for_user(db, session_id, current_user.id)
+    if not session:
+        raise NotFoundException(resource="WritingSession", identifier=str(session_id))
+    return writing_session_service.regress_stage(db, session, payload.target_stage)
 
 
 @router.post("/{session_id}/message/stream")

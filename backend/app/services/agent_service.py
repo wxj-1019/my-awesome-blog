@@ -4,11 +4,12 @@
 """
 
 import json
-from typing import AsyncIterator, Optional
+from typing import AsyncIterator, Dict, Optional
 
 from sqlalchemy.orm import Session
 
 from app.agent.loop import AgentLoop
+from app.agent.graph import GraphLoop
 from app.agent.tools.builtin import register_builtin_tools
 from app.agent.tools.registry import ToolRegistry
 from app.llm.base import ChatCompletionRequest, ChatMessage, LLMProvider
@@ -104,6 +105,27 @@ COVER_QUERY_PROMPT = """根据下面的文章正文，提取 1-3 个**英文**�
 {content}"""
 
 
+# ── 迭代检索（LazyGraphRAG 风格）─────────────────────────────────
+# 检索 → 评估充分性 → 不充分则改写查询再检索（图循环，最多 N 轮）。
+# 零依赖版：检索走 ilike（SQLite 兼容），评估/改写由 LLM 完成；
+# 后续可把 retrieve 节点换成 pgvector 语义检索而不改图结构。
+
+RETRIEVAL_EVAL_PROMPT = """你是检索充分性评估器。判断当前已检索到的站内文章是否足够支撑「{topic}」的写作参考。
+只输出 JSON：{{"sufficient": true/false, "refined_query": "下一轮检索关键词"}}
+判定标准：已找到与主题直接相关的文章，或已到检索轮数上限，则 sufficient=true；
+否则给出一个更聚焦的中文关键词（单个词或短语）用于下一轮检索。
+当前轮次：{round}/{max_rounds}
+已检索结果：
+{results}"""
+
+
+RETRIEVAL_OVERVIEW_PROMPT = """你是中文博客写作助手。根据以下站内相关文章，用 3-5 行概述写作参考
+（标题 + 一句话要点），帮助后续写作保持风格一致、避免与已发布内容重复。只概述，不要写成正文。
+主题：{topic}
+站内文章：
+{results}"""
+
+
 class AgentService:
     """Agent 服务：chat 走工具循环，polish 走 Writer-Critic 循环。"""
 
@@ -179,25 +201,57 @@ class AgentService:
         )
 
     async def polish(self, request: AgentPolishRequest) -> AgentPolishResponse:
-        """Writer-Critic 循环润色：评审 → 修改 → 再评审，直到 PASS 或达到轮数上限。
-        达到 max_rounds 后最后一轮改写不再送评审，直接返回。"""
+        """Writer-Critic 图循环润色：critique → write → critique 环，
+        评审 PASS 或达到 max_rounds（最后一轮改写不再送评审）即结束。
+
+        用 GraphLoop 显式表达反思环（graph loop 理念的循环边），
+        节点为「评审」「改写」，条件边由评审结果动态决定下一步。
+        """
         provider = self._get_provider_or_raise(None)
-        draft = request.content
-        critiques: list[str] = []
         requirements_block = f"\n【附加要求】{request.requirements}\n" if request.requirements else ""
 
-        for round_idx in range(request.max_rounds):
+        async def critique_node(state: dict) -> tuple:
+            """评审当前草稿：PASS 结束；否则带意见进改写节点。"""
             critique = await self._ask(
-                provider, CRITIC_PROMPT.format(draft=draft, requirements_block=requirements_block),
+                provider,
+                CRITIC_PROMPT.format(draft=state["draft"], requirements_block=state["requirements_block"]),
                 temperature=0.3,
             )
             if critique.strip().upper().rstrip("。").rstrip(".") == "PASS":
-                app_logger.info(f"Agent polish 第 {round_idx + 1} 轮评审通过（PASS）")
-                break
-            critiques.append(critique)
-            draft = await self._ask(provider, WRITER_PROMPT.format(draft=draft, critique=critique))
+                app_logger.info(f"Agent polish 第 {state['round'] + 1} 轮评审通过（PASS）")
+                return None, {}
+            return "write", {"critiques": [critique]}
 
-        return AgentPolishResponse(polished=draft, rounds=len(critiques), critiques=critiques)
+        async def write_node(state: dict) -> tuple:
+            """按评审意见改写；最后一轮改写后直接结束（不再送评审）。"""
+            draft = await self._ask(
+                provider,
+                WRITER_PROMPT.format(draft=state["draft"], critique=state["critiques"][-1]),
+            )
+            next_round = state["round"] + 1
+            if next_round >= request.max_rounds:
+                return None, {"draft": draft, "round": next_round}
+            return "critique", {"draft": draft, "round": next_round}
+
+        loop = GraphLoop(
+            "polish",
+            max_steps=2 * request.max_rounds,  # 每轮最多两步（评审+改写）
+            append_keys={"critiques"},
+        )
+        loop.add_node("critique", critique_node)
+        loop.add_node("write", write_node)
+        state = await loop.run(
+            {
+                "draft": request.content,
+                "critiques": [],
+                "round": 0,
+                "requirements_block": requirements_block,
+            },
+            entry="critique",
+        )
+        return AgentPolishResponse(
+            polished=state["draft"], rounds=len(state["critiques"]), critiques=state["critiques"]
+        )
 
     @staticmethod
     async def _ask(provider: LLMProvider, prompt: str, temperature: float = 0.7) -> str:
@@ -250,14 +304,92 @@ class AgentService:
         yield "data: [DONE]\n\n"
 
     # ── AI 导向写作：生成 / 改稿 / 元信息 ──────────────────────────
+    async def _iterative_retrieval(
+        self,
+        provider: LLMProvider,
+        db: Session,
+        topic: str,
+        model: Optional[str] = None,
+        max_rounds: int = 3,
+    ) -> list[str]:
+        """LazyGraphRAG 风格迭代检索（图循环）：检索 → 评估 → 改写查询 → 再检索。
+
+        图结构（GraphLoop 表达）：retrieve → evaluate 环，条件边由 LLM 评估结果
+        动态决定（充分 → 结束；不充分 → 改写 query 回 retrieve）。按 slug 去重累计。
+        """
+        from app.crud import article as article_crud
+
+        state: Dict = {
+            "query": topic,
+            "round": 0,
+            "found": [],
+            "seen_slugs": set(),
+            "sufficient": False,
+        }
+
+        async def retrieve_node(s: Dict):
+            """当前 query ilike 检索站内文章，按 slug 去重累计。"""
+            articles = article_crud.get_articles(
+                db, skip=0, limit=5, published_only=True,
+                search=s["query"], with_relationships=False,
+            )
+            new_lines = []
+            for a in articles:
+                if a.slug in s["seen_slugs"]:
+                    continue
+                s["seen_slugs"].add(a.slug)
+                line = f"- 《{a.title}》(slug: {a.slug})"
+                if a.excerpt:
+                    line += f"：{a.excerpt}"
+                new_lines.append(line)
+            s["found"].extend(new_lines)
+            app_logger.info(
+                f"迭代检索 第 {s['round'] + 1} 轮 query='{s['query']}' 新增 {len(new_lines)} 篇"
+            )
+            return "evaluate", {"round": s["round"] + 1}
+
+        async def evaluate_node(s: Dict):
+            """LLM 评估充分性：充分或达上限结束，否则改写查询回 retrieve。"""
+            raw = await self._ask(
+                provider,
+                RETRIEVAL_EVAL_PROMPT.format(
+                    topic=topic,
+                    round=s["round"],
+                    max_rounds=max_rounds,
+                    results="\n".join(s["found"]) or "（尚未检索到相关文章）",
+                ),
+                temperature=0.2,
+            )
+            try:
+                data = json.loads(extract_first_json_object(raw.strip()))
+            except (ValueError, json.JSONDecodeError):
+                # 评估输出不可解析：保守结束，用已有结果
+                return None, {"sufficient": True}
+            if data.get("sufficient") or s["round"] >= max_rounds:
+                return None, {"sufficient": True}
+            refined = str(data.get("refined_query", "")).strip()
+            if not refined:
+                return None, {"sufficient": True}
+            return "retrieve", {"query": refined}
+
+        loop = GraphLoop(
+            "iterative_retrieval",
+            max_steps=2 * max_rounds + 1,
+            append_keys={"found"},
+        )
+        loop.add_node("retrieve", retrieve_node)
+        loop.add_node("evaluate", evaluate_node)
+        await loop.run(state, entry="retrieve")
+        return state["found"]
+
     async def generate_stream(
         self, db: Session, request: AgentGenerateRequest
     ) -> AsyncIterator[str]:
         """按主题流式生成文章。
 
         两阶段（贴合现有架构，低风险）：
-        1. 若 context_mode=auto，跑非流式 AgentLoop 查站内相关文章，把摘要注入 prompt；
-           每次工具调用先发一个 tool 事件，让前端显示「正在检索站内文章…」。
+        1. 若 context_mode=auto，跑迭代检索图循环（检索→评估→改写查询，最多 3 轮）
+           查站内相关文章，把概述注入 prompt；检索事件发 tool 事件供前端展示。
         2. 用 provider.stream_chat 流式吐 Markdown 正文，逐 chunk 发 content 事件。
         """
         # provider 解析在函数体首行：未配置时第一行就 yield error，endpoint 无需 catch
@@ -270,33 +402,26 @@ class AgentService:
 
         context_block = ""
         if request.context_mode == "auto":
-            registry = register_builtin_tools(ToolRegistry())
-            loop = AgentLoop(provider, registry, max_iterations=request.max_iterations)
-            # 让 agent 先检索站内相关文章，只取它的回复作上下文（reply 本身可能就是摘要/大纲）
+            # 迭代检索环：检索→评估→改写查询→再检索（graph loop 循环边）
             try:
-                result = await loop.run(
-                    db,
-                    [
-                        ChatMessage(role="system", content=AGENT_SYSTEM_PROMPT),
-                        ChatMessage(
-                            role="user",
-                            content=(
-                                f"我想写一篇关于「{request.topic}」的文章。"
-                                "请先用工具检索站内是否已有相关或风格相近的文章，"
-                                "然后用 3-5 行概述你找到的参考（标题 + 一句话要点），"
-                                "便于我在写作时保持风格一致、避免重复。只概述，不要写成正文。"
-                            ),
-                        ),
-                    ],
-                    model=request.model,
-                )
-                for trace in result.tool_trace:
-                    yield self.event({"tool": trace.get("name"), "arguments": trace.get("arguments")})
-                if result.reply.strip():
-                    context_block = f"\n【站内相关参考】（写作时保持风格一致、避免与已发布内容重复）\n{result.reply.strip()}\n"
+                yield self.event({"tool": "iterative_retrieval", "arguments": {"topic": request.topic}})
+                found = await self._iterative_retrieval(provider, db, request.topic, model=request.model)
+                if found:
+                    # 单次概述：把检索结果压缩为写作参考（保持风格一致、避免重复）
+                    overview = await self._ask(
+                        provider,
+                        RETRIEVAL_OVERVIEW_PROMPT.format(topic=request.topic, results="\n".join(found)),
+                        temperature=0.3,
+                    )
+                    if overview.strip():
+                        context_block = f"\n【站内相关参考】（写作时保持风格一致、避免与已发布内容重复）\n{overview.strip()}\n"
+                    else:
+                        context_block = "\n【站内相关参考】\n" + "\n".join(found) + "\n"
+                else:
+                    context_block = ""
             except Exception as e:
                 # 检索失败不阻塞生成，降级为无上下文
-                app_logger.warning(f"Agent 站内检索失败，降级为无上下文生成：{e}")
+                app_logger.warning(f"迭代检索失败，降级为无上下文生成：{e}")
                 yield self.event({"tool": "error", "arguments": {"message": str(e)}})
 
         requirements_block = (

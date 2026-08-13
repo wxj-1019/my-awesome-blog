@@ -37,7 +37,7 @@ export interface SseHandlers {
  *   data: {"error": true, "message": "..."}  错误（格式对齐 llm_service）
  *   data: [DONE]                结束
  *
- * 复用 streamChatRaw 的 getReader + TextDecoder + 行缓冲模式。
+ * SSE 解析采用 getReader + TextDecoder + 行缓冲模式。
  */
 async function consumeAgentSse(
   response: Response,
@@ -604,6 +604,11 @@ export const adminApi = {
     /** 放弃会话。 */
     abandon: (id: string): Promise<WritingSession> =>
       AdminApiClient.post<WritingSession>(`/agent/writing-sessions/${id}/abandon`, {}),
+    /** 阶段回退（图循环回退边）：初稿不满意回大纲、大纲不满意回澄清。 */
+    regress: (id: string, targetStage: 'clarifying' | 'outline_review'): Promise<WritingSession> =>
+      AdminApiClient.post<WritingSession>(`/agent/writing-sessions/${id}/regress`, {
+        target_stage: targetStage,
+      }),
     /** 澄清阶段：发送用户消息，流式返回助手回复。返回 cancel 函数。 */
     messageStream: (id: string, message: string, handlers: SseHandlers): (() => void) =>
       postSse(`/agent/writing-sessions/${id}/message/stream`, { message }, handlers),
@@ -665,7 +670,7 @@ export const adminApi = {
 
   // ── AI 导向写作（生成 / 改稿 / 元信息）──────────────────────────
   // generate-stream / revise-stream 走 SSE 流式；meta 走普通 POST。
-  // SSE 消费复用 streamChatRaw 的 getReader + TextDecoder 模式。
+  // SSE 消费采用 getReader + TextDecoder + 行缓冲模式。
   agent: {
     /**
      * 按主题流式生成文章。

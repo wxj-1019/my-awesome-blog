@@ -32,6 +32,15 @@ TRANSITIONS = {
     "confirm_draft": {"draft_review"},
 }
 
+# 回退边（graph loop 理念的循环边）：允许从当前 stage 回退到的目标 stage 集合。
+# 语义：下游产出不满意时回到上游重做，而不是 abandon 重建会话。
+# 回退保留下游数据与消息历史（重生成时覆盖），保证上下文连续。
+REGRESSIONS = {
+    "draft_review": {"outline_review"},   # 初稿不满意 → 回大纲重拟
+    "outline_review": {"clarifying"},     # 大纲不满意 → 回需求澄清
+    "drafting": {"outline_review"},       # 流中断恢复：放弃本次生成回大纲
+}
+
 
 CLARIFICATION_PROMPT = """你是中文博客写作教练。根据已确认需求和最近对话，每次只问一个最关键的澄清问题。
 必须逐步确认：目标读者、文章目标、语气风格、篇幅/深度、必须包含的内容。
@@ -266,16 +275,22 @@ class WritingSessionService:
 
         约定：阶段校验必须在 endpoint 构造 StreamingResponse 之前完成，
         此方法第一行即抛 ConflictException（由全局处理器映射为 409）。
+
+        修复：也允许从 drafting 进入——流中断后留在 drafting（draft 为空），
+        此前该状态无法重试（begin_drafting 的前置是 outline_review），现允许
+        drafting 直接重试生成（不再重复 begin_drafting）。
         """
-        if session.stage != "outline_review":
+        if session.stage not in {"outline_review", "drafting"}:
             raise ConflictException(
-                message=f"当前阶段'{session.stage}'不允许生成初稿，仅 outline_review 阶段可用"
+                message=f"当前阶段'{session.stage}'不允许生成初稿，仅 outline_review 或 drafting 阶段可用"
             )
         if not session.outline.strip():
             raise ValueError("大纲为空，无法生成初稿")
 
-        # 先转入 drafting（与 streaming 解耦：即使流中断，draft 也保持空）
-        self.begin_drafting(db, session)
+        # 先转入 drafting（与 streaming 解耦：即使流中断，draft 也保持空）；
+        # 已是 drafting（上次中断重试）时跳过，保持单一入口语义
+        if session.stage != "drafting":
+            self.begin_drafting(db, session)
 
         provider = self.agent.get_provider(provider_name)
         prompt = DRAFT_PROMPT.format(
@@ -355,6 +370,26 @@ class WritingSessionService:
         字段，前端可同时拿到阶段和初稿正文，无需额外的嵌套响应结构。
         """
         return self.confirm_draft(db, session)
+
+    def regress_stage(
+        self, db: Session, session: WritingSession, target_stage: str
+    ) -> WritingSession:
+        """回退到上游阶段（图循环的回退边）。
+
+        仅允许 REGRESSIONS 声明的合法回退边，非法目标抛 ConflictException（409）。
+        回退保留下游数据与消息历史不删除——重新生成时覆盖旧值，上下文连续。
+        """
+        allowed = REGRESSIONS.get(session.stage or "", set())
+        if target_stage not in allowed:
+            raise ConflictException(
+                message=(
+                    f"非法阶段回退：当前 stage='{session.stage}'，"
+                    f"只允许回退到：{sorted(allowed) or '无'}"
+                ),
+            )
+        session.stage = target_stage
+        save_writing_session(db, session)
+        return session
 
     # ── Phase 2：全文分析与非破坏性修订 ────────────────────────────
     # 设计要点：

@@ -39,12 +39,17 @@ export default function WritingSessionShell({ onDraftConfirmed }: WritingSession
   const [streamContent, setStreamContent] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false); // 非流式按钮的进行中态（生成大纲 / 确认初稿）
+  const [copied, setCopied] = useState(false); // 「复制已生成部分」的瞬时反馈
 
   const cancelRef = useRef<(() => void) | null>(null);
   const streamingRef = useRef(false);
-  // 流式当前作用于哪个区域：clarify 对话 / outline 文档或对话 / draft 对话
+  // startStream 内部的收尾函数，暴露给 handleStop 手动重置状态
+  // （postSse 对 AbortError 静默返回，不触发 onError/onComplete，不手动重置会卡死）
+  const finishStreamRef = useRef<(() => void) | null>(null);
+  // 流式当前作用于哪个区域：clarify 对话 / outline 文档或对话 / draft 对话 /
+  // outline-doc-interrupted（初稿生成中断，保留部分内容）
   const [streamTarget, setStreamTarget] = useState<
-    'clarify' | 'outline-doc' | 'outline-chat' | 'draft-chat' | null
+    'clarify' | 'outline-doc' | 'outline-doc-interrupted' | 'outline-chat' | 'draft-chat' | null
   >(null);
 
   // ── 初始化：拉取活动会话 ──────────────────────────────────────
@@ -134,7 +139,9 @@ export default function WritingSessionShell({ onDraftConfirmed }: WritingSession
       streamingRef.current = false;
       setStreaming(false);
       cancelRef.current = null;
+      finishStreamRef.current = null;
     };
+    finishStreamRef.current = finishStream;
     const onComplete = async () => {
       finishStream();
       // 刷新整条 session 拿持久化后的权威状态
@@ -156,8 +163,13 @@ export default function WritingSessionShell({ onDraftConfirmed }: WritingSession
       finishStream();
       setError(msg);
       streamBufferRef.current = '';
-      setStreamContent('');
-      setStreamTarget(null);
+      // 初稿生成失败：保留已流出的部分内容，供重试/复制（不从头再来）
+      if (target === 'outline-doc') {
+        setStreamTarget('outline-doc-interrupted');
+      } else {
+        setStreamContent('');
+        setStreamTarget(null);
+      }
     };
 
     cancelRef.current = run({ onChunk, onComplete, onError });
@@ -240,9 +252,34 @@ export default function WritingSessionShell({ onDraftConfirmed }: WritingSession
     }
   }, [session, busy, onDraftConfirmed]);
 
+  // ── 阶段回退（图循环回退边）────────────────────────────────
+  // 初稿不满意回大纲、大纲不满意回澄清；成功后刷新 session 重新渲染对应阶段。
+  const handleRegress = useCallback(async (targetStage: 'clarifying' | 'outline_review') => {
+    if (!session || busy || streamingRef.current) {return;}
+    setBusy(true);
+    setError(null);
+    try {
+      const fresh = await adminApi.writingSessions.regress(session.id, targetStage);
+      setSession(fresh);
+      if (targetStage === 'clarifying') {
+        setReadyForOutline(false);
+      }
+    } catch (err) {
+      setError(getErrorMessage(err, '阶段回退失败'));
+    } finally {
+      setBusy(false);
+    }
+  }, [session, busy]);
+
   // ── 中止当前流 ─────────────────────────────────────────────
+  // abort 后 postSse 对 AbortError 静默返回（不触发 onError/onComplete），
+  // 必须手动调用 finishStream 重置 streaming/streamingRef，否则 UI 永久卡死
+  // 且后续动作（确认大纲/初稿/回退）全部被 streamingRef 守卫挡住。
   const handleStop = useCallback(() => {
     cancelRef.current?.();
+    const finish = finishStreamRef.current;
+    finishStreamRef.current = null;
+    finish?.();
   }, []);
 
   // ── 新建会话（在 resume-choice 中点「开始新文章」）─────────
@@ -341,11 +378,27 @@ export default function WritingSessionShell({ onDraftConfirmed }: WritingSession
 
   // session 视图
   const stage: WritingStage = session.stage;
-  const draftPreview = streaming && streamTarget === 'outline-doc' ? streamContent : '';
+  // 初稿生成中的 live preview（含中断后保留的部分内容）
+  const draftPreview =
+    streamTarget === 'outline-doc' || streamTarget === 'outline-doc-interrupted'
+      ? streamContent
+      : '';
+
+  /** 复制已生成的部分初稿（中断后避免从头再来）。普通函数：位于条件返回之后，不可用 hook。 */
+  const handleCopyPartial = () => {
+    const text = draftPreview || session.draft || '';
+    if (!text.trim()) {return;}
+    navigator.clipboard.writeText(text).catch(() => {});
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
-      <WritingProgress stage={stage} />
+      <WritingProgress
+        stage={stage}
+        onStepClick={(target) => { void handleRegress(target); }}
+      />
 
       {error && (
         <div className="mb-3 flex items-center gap-2 px-3 py-2 rounded-lg bg-destructive/10 text-destructive text-xs">
@@ -381,32 +434,86 @@ export default function WritingSessionShell({ onDraftConfirmed }: WritingSession
           streaming={streaming || busy}
           onAdjust={handleOutlineAdjust}
           onConfirm={handleConfirmOutline}
+          onRegress={() => handleRegress('clarifying')}
         />
       )}
 
-      {(stage === 'drafting' || (stage === 'outline_review' && streaming && streamTarget === 'outline-doc')) && (
+      {(stage === 'drafting' || (stage === 'outline_review' && streaming && streamTarget === 'outline-doc') || streamTarget === 'outline-doc-interrupted') && (
         <div className="flex flex-col flex-1 min-h-0 items-center justify-center gap-4 text-center">
-          <div className="p-3 rounded-2xl bg-primary/10">
-            <Loader2 className="w-6 h-6 animate-spin text-primary" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-foreground">正在生成初稿…</p>
-            <p className="text-xs text-foreground/50 mt-1">AI 正在根据大纲撰写正文，请稍候</p>
-          </div>
-          {draftPreview && (
-            <div className="w-full max-w-2xl max-h-[40vh] overflow-y-auto rounded-xl border border-border/50 bg-background/40 p-4 text-left">
-              <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap break-words">
-                <DraftPlainText text={draftPreview} />
+          {streaming ? (
+            <>
+              {/* 流进行中：转圈 + 实时预览 + 停止 */}
+              <div className="p-3 rounded-2xl bg-primary/10">
+                <Loader2 className="w-6 h-6 animate-spin text-primary" />
               </div>
-            </div>
+              <div>
+                <p className="text-sm font-medium text-foreground">正在生成初稿…</p>
+                <p className="text-xs text-foreground/50 mt-1">AI 正在根据大纲撰写正文，请稍候</p>
+              </div>
+              {draftPreview && (
+                <div className="w-full max-w-2xl max-h-[40vh] overflow-y-auto rounded-xl border border-border/50 bg-background/40 p-4 text-left">
+                  <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap break-words">
+                    <DraftPlainText text={draftPreview} />
+                  </div>
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={handleStop}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors text-xs"
+              >
+                停止生成
+              </button>
+            </>
+          ) : (
+            <>
+              {/* 无流进行（刷新恢复 drafting / 生成中断）：恢复视图，避免死胡同 */}
+              <div className="p-3 rounded-2xl bg-warning/10">
+                <AlertCircle className="w-6 h-6 text-warning" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-foreground">初稿生成已中断</p>
+                <p className="text-xs text-foreground/50 mt-1">
+                  {draftPreview ? '已生成的内容已保留，可复制后继续，或重新生成' : '可重新生成初稿，或返回大纲调整'}
+                </p>
+              </div>
+              {draftPreview && (
+                <div className="w-full max-w-2xl max-h-[40vh] overflow-y-auto rounded-xl border border-border/50 bg-background/40 p-4 text-left">
+                  <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap break-words">
+                    <DraftPlainText text={draftPreview} />
+                  </div>
+                </div>
+              )}
+              <div className="flex flex-wrap items-center justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleConfirmOutline}
+                  disabled={busy}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors text-xs font-medium"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  重新生成初稿
+                </button>
+                {draftPreview && (
+                  <button
+                    type="button"
+                    onClick={handleCopyPartial}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-foreground/10 text-foreground hover:bg-foreground/15 transition-colors text-xs font-medium"
+                  >
+                    {copied ? '已复制' : '复制已生成部分'}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => handleRegress('outline_review')}
+                  disabled={busy}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-foreground/5 text-muted-foreground hover:text-foreground hover:bg-foreground/10 disabled:opacity-50 transition-colors text-xs font-medium"
+                >
+                  返回大纲
+                </button>
+              </div>
+            </>
           )}
-          <button
-            type="button"
-            onClick={handleStop}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors text-xs"
-          >
-            停止生成
-          </button>
         </div>
       )}
 
@@ -418,6 +525,7 @@ export default function WritingSessionShell({ onDraftConfirmed }: WritingSession
           streamContent={streamTarget === 'draft-chat' ? streamContent : ''}
           onAdjust={handleDraftAdjust}
           onConfirm={handleConfirmDraft}
+          onRegress={() => handleRegress('outline_review')}
         />
       )}
 

@@ -5,6 +5,8 @@ from uuid import UUID
 from pydantic import BaseModel, Field, field_serializer
 
 WritingStage = Literal["clarifying", "outline_review", "drafting", "draft_review", "editing", "completed"]
+# 允许回退到的目标 stage（REGRESSIONS 回退边的目标集合）
+WritingRegressTarget = Literal["clarifying", "outline_review"]
 WritingStatus = Literal["active", "completed", "abandoned"]
 
 
@@ -93,3 +95,9 @@ class WritingRevisionDiscardRequest(BaseModel):
 
 class WritingArticleLinkRequest(BaseModel):
     article_id: UUID
+
+
+class WritingSessionRegressRequest(BaseModel):
+    """阶段回退请求：仅允许回退到 clarifying / outline_review。"""
+
+    target_stage: WritingRegressTarget
