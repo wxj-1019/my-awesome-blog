@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import type { Route } from 'next';
-import { Cpu, MessageSquare, ArrowRight, Wrench, Sparkles, MoonStar, ImageIcon } from 'lucide-react';
+import { Cpu, ArrowRight, Wrench, Sparkles, MoonStar, ImageIcon } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
 import PageShell from '@/components/layout/PageShell';
 import PageHeader from '@/components/layout/PageHeader';
@@ -12,14 +12,8 @@ const items: {
   href: Route;
   title: string;
   description: string;
-  icon: typeof MessageSquare;
+  icon: typeof Cpu;
 }[] = [
-  {
-    href: '/chat',
-    title: '模型对话',
-    description: '多会话 AI 聊天，提示词与历史记录',
-    icon: MessageSquare,
-  },
   {
     href: '/online-tools' as Route,
     title: '在线工具',
@@ -52,7 +46,7 @@ export default function ToolsHubContent() {
     <PageShell density="narrow">
       <PageHeader
         title="百宝箱"
-        description="模型对话与在线工具入口"
+        description="在线工具与 AI 工具入口"
         icon={Wrench}
         align="center"
       />

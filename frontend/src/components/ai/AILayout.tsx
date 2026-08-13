@@ -3,7 +3,7 @@
 import { ReactNode } from 'react';
 import { motion } from '@/lib/framer-motion';
 import Link from 'next/link';
-import { MessageSquare, Sparkles, Database, Settings } from 'lucide-react';
+import { Sparkles, Database, Settings } from 'lucide-react';
 
 interface AILayoutProps {
   children: ReactNode;
@@ -12,7 +12,6 @@ interface AILayoutProps {
 }
 
 const navItems = [
-  { name: '对话', href: '/ai/chat', icon: MessageSquare },
   { name: '提示词', href: '/ai/prompts', icon: Sparkles },
   { name: '记忆', href: '/ai/memories', icon: Database },
   { name: '设置', href: '/ai/settings', icon: Settings },

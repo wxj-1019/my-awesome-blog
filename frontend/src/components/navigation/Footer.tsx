@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import type { Route } from 'next';
-import { usePathname } from 'next/navigation';
 import { Github, Mail, Rss } from 'lucide-react';
 import { FadeIn } from '@/components/motion';
 
@@ -38,11 +37,6 @@ const SOCIAL_LINKS: {
  */
 export default function Footer() {
   const currentYear = new Date().getFullYear();
-  const pathname = usePathname();
-  /** 对话页是应用式全屏布局，不渲染 Footer（占地过大且无意义） */
-  if (pathname?.startsWith('/chat') || pathname?.startsWith('/ai/chat')) {
-    return null;
-  }
 
   return (
     <footer className="relative z-10 bg-glass/30 backdrop-blur-xl border-t border-glass-border">
