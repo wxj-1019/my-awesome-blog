@@ -2,6 +2,7 @@ from app.core.database import Base
 from app.models.logs.audit_log import AuditLog
 from app.models.user import User
 from app.models.article import Article
+from app.models.article_attachment import ArticleAttachment
 from app.models.comment import Comment
 from app.models.logs.request_log import RequestLog
 from app.models.category import Category

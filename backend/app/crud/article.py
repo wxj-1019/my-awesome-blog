@@ -49,6 +49,7 @@ async def get_article_async(db: Session, article_id: UUID) -> Optional[Article]:
         .options(joinedload(Article.author))
         .options(joinedload(Article.categories))
         .options(joinedload(Article.tags))
+        .options(joinedload(Article.attachments))
         .filter(Article.id == article_id)
         .first()
     )
@@ -70,6 +71,7 @@ def get_article_with_relationships(db: Session, article_id: UUID) -> Optional[Ar
         .options(joinedload(Article.author))
         .options(joinedload(Article.categories))
         .options(joinedload(Article.tags))
+        .options(joinedload(Article.attachments))
         .filter(Article.id == article_id)
         .first()
     )
@@ -86,6 +88,7 @@ def get_article_by_slug_with_relationships(db: Session, slug: str) -> Optional[A
         .options(joinedload(Article.author))
         .options(joinedload(Article.categories))
         .options(joinedload(Article.tags))
+        .options(joinedload(Article.attachments))
         .filter(Article.slug == slug)
         .first()
     )
@@ -108,6 +111,7 @@ async def get_article_by_slug_with_relationships_async(db: Session, slug: str) -
         .options(joinedload(Article.author))
         .options(joinedload(Article.categories))
         .options(joinedload(Article.tags))
+        .options(joinedload(Article.attachments))
         .filter(Article.slug == slug)
         .first()
     )
@@ -147,7 +151,8 @@ def get_articles(
         query = db.query(Article).options(
             joinedload(Article.author),
             joinedload(Article.categories),
-            joinedload(Article.tags)
+            joinedload(Article.tags),
+            joinedload(Article.attachments)
         )
     else:
         query = db.query(Article)
@@ -190,9 +195,10 @@ def create_article(db: Session, article: ArticleCreate, author_id: UUID) -> Arti
     from app.models.category import Category
     from app.models.article_tag import ArticleTag
     from app.models.article_category import ArticleCategory
+    from app.models.article_attachment import ArticleAttachment
 
     db_article = Article(
-        **article.model_dump(exclude={'tags', 'category_id'}),
+        **article.model_dump(exclude={'tags', 'category_id', 'attachments'}),
         author_id=author_id,
     )
 
@@ -222,12 +228,28 @@ def create_article(db: Session, article: ArticleCreate, author_id: UUID) -> Arti
                 article_tag = ArticleTag(article_id=db_article.id, tag_id=tag.id)
                 db.add(article_tag)
 
+    # Create attachments
+    if article.attachments:
+        for att in article.attachments:
+            db.add(ArticleAttachment(
+                article_id=db_article.id,
+                name=att.name,
+                url=att.url,
+                media_type=att.media_type,
+                mime_type=att.mime_type,
+                file_size=att.file_size,
+                is_reference=att.is_reference,
+                sort_order=att.sort_order,
+            ))
+
     db.commit()
     db.refresh(db_article)
     return db_article
 
 
 async def update_article(db: Session, article_id: UUID, article_update: ArticleUpdate) -> Optional[Article]:
+    from app.models.article_attachment import ArticleAttachment
+
     db_article = get_article(db, article_id)
     if not db_article:
         return None
@@ -241,6 +263,29 @@ async def update_article(db: Session, article_id: UUID, article_update: ArticleU
             update_data["published_at"] = datetime.now(timezone.utc)
         elif not is_published and db_article.is_published:  # type: ignore
             update_data["published_at"] = None
+
+    # attachments 全量替换：先删旧再建新（与 tags/categories 的编辑语义一致）
+    if "attachments" in update_data:
+        from app.schemas.article_attachment import ArticleAttachmentCreate
+        attachments_in = update_data.pop("attachments")
+        if attachments_in is None:
+            attachments_in = []
+        db.query(ArticleAttachment).filter(
+            ArticleAttachment.article_id == db_article.id
+        ).delete()
+        for att_raw in attachments_in:
+            # model_dump(exclude_unset=True) 后元素是 dict，统一转回 schema 再取值
+            att = ArticleAttachmentCreate.model_validate(att_raw)
+            db.add(ArticleAttachment(
+                article_id=db_article.id,
+                name=att.name,
+                url=att.url,
+                media_type=att.media_type,
+                mime_type=att.mime_type,
+                file_size=att.file_size,
+                is_reference=att.is_reference,
+                sort_order=att.sort_order,
+            ))
 
     for field, value in update_data.items():
         setattr(db_article, field, value)
@@ -287,6 +332,7 @@ async def increment_view_count(db: Session, article_id: UUID) -> Optional[Articl
         .options(joinedload(Article.author))
         .options(joinedload(Article.categories))
         .options(joinedload(Article.tags))
+        .options(joinedload(Article.attachments))
         .filter(Article.id == article_id)
         .first()
     )
@@ -304,6 +350,7 @@ async def increment_view_count(db: Session, article_id: UUID) -> Optional[Articl
         .options(joinedload(Article.author))
         .options(joinedload(Article.categories))
         .options(joinedload(Article.tags))
+        .options(joinedload(Article.attachments))
         .filter(Article.id == article_id)
         .first()
     )
@@ -320,12 +367,13 @@ def get_featured_articles(db: Session, limit: int = 10):
     """Get featured articles based on view count and publication date"""
     from sqlalchemy.orm import joinedload
 
-    # 预加载作者/分类/标签，避免 ArticleWithAuthor 序列化时 N+1
+    # 预加载作者/分类/标签/附件，避免 ArticleWithAuthor 序列化时 N+1
     return (
         db.query(Article)
         .options(joinedload(Article.author))
         .options(joinedload(Article.categories))
         .options(joinedload(Article.tags))
+        .options(joinedload(Article.attachments))
         .filter(Article.is_published == True)
         .order_by(Article.view_count.desc(), Article.created_at.desc())
         .limit(limit)
@@ -358,6 +406,7 @@ def get_related_articles(db: Session, article_id: UUID, limit: int = 5):
             .options(joinedload(Article.author))  # 预加载作者，避免 N+1
             .options(joinedload(Article.categories))
             .options(joinedload(Article.tags))
+            .options(joinedload(Article.attachments))
             .join(ArticleCategory)
             .filter(
                 Article.id != article_id,
@@ -380,6 +429,7 @@ def get_related_articles(db: Session, article_id: UUID, limit: int = 5):
             .options(joinedload(Article.author))  # 预加载作者，避免 N+1
             .options(joinedload(Article.categories))
             .options(joinedload(Article.tags))
+            .options(joinedload(Article.attachments))
             .filter(
                 Article.is_published == True,
                 ~Article.id.in_(existing_ids)

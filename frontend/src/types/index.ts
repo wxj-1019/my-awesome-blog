@@ -274,6 +274,23 @@ export interface Article {
     name: string;
     slug: string;
   }>;
+  /** 文章附件/资料（图片/视频/音频/文档） */
+  attachments?: ArticleAttachment[];
+}
+
+// 文章附件类型
+export interface ArticleAttachment {
+  id: string;
+  name: string;
+  url: string;
+  /** image / video / audio / file */
+  media_type: string;
+  mime_type?: string | null;
+  file_size?: number | null;
+  /** true=仅作者写作参考（详情页不渲染），false=读者可见 */
+  is_reference: boolean;
+  sort_order: number;
+  created_at?: string;
 }
 
 // 分类类型
@@ -491,46 +508,6 @@ export interface MemorySearchRequest {
   limit?: number;
   threshold?: number;
   memory_type?: 'short_term' | 'long_term' | 'all';
-}
-
-// Conversation 相关类型
-export interface Conversation {
-  id: string;
-  tenant_id: string;
-  user_id: string;
-  title: string;
-  status: 'active' | 'archived' | 'deleted';
-  prompt_id?: string;
-  model: string;
-  total_messages: number;
-  total_tokens: number;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface ConversationCreate {
-  title: string;
-  model?: string;
-  prompt_id?: string;
-}
-
-export interface ConversationUpdate {
-  title?: string;
-  status?: 'active' | 'archived' | 'deleted';
-}
-
-export interface ConversationMessage {
-  id: string;
-  conversation_id: string;
-  role: 'user' | 'assistant' | 'system';
-  content: string;
-  tokens?: number;
-  model?: string;
-  created_at: string;
-}
-
-export interface ConversationWithMessages extends Conversation {
-  messages: ConversationMessage[];
 }
 
 // Tenant 相关类型

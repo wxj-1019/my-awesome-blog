@@ -7,13 +7,13 @@ export interface OSSUploadResponse {
   upload_time: string;
 }
 
-export const uploadFile = async (file: File): Promise<OSSUploadResponse> => {
+export const uploadFile = async (file: File, folder = 'general'): Promise<OSSUploadResponse> => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
   const formData = new FormData();
   formData.append('file', file);
 
-  const response = await apiFetch(`/oss/upload`, {
+  const response = await apiFetch(`/oss/upload?folder=${encodeURIComponent(folder)}`, {
     method: 'POST',
     headers: {
       ...(token && { 'Authorization': `Bearer ${token}` }),

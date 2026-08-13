@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import GlassCard from '@/components/ui/GlassCard';
 
 import { Skeleton } from '@/components/ui/Skeleton';
+import { Download, FileVideo, FileAudio, FileImage, FileText } from 'lucide-react';1 (feat: 文章资料附件功能（article_attachments）)
 import { useThemedClasses } from '@/hooks/useThemedClasses';
 import { useCodeBlockEnhancement } from '@/hooks/useCodeBlockEnhancement';
 import { getArticleById, getRelatedArticles } from '@/services/articleService';
@@ -31,6 +32,15 @@ import { useReadingProgress } from '@/hooks/useReadingProgress';
 import { useActiveHeading } from '@/hooks/useActiveHeading';
 
 import { Comment } from '@/types';
+/** 附件大小格式化（详情页渲染用） */
+function formatFileSize(bytes: number): string {
+  if (bytes <= 0) {return '0 Bytes';}
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
+
 /**
  * 将新评论插入到评论树的指定父评论下
  */
@@ -332,6 +342,7 @@ export default function ArticleDetailPageContent({
                     </ArticleBodyReveal>
                   </div>
                 </GlassCard>
+
                 <ArticleReadingMetaBar article={article} className="mb-8" />
                 <ArticleAuthorPanel
                   author={article.author}
@@ -345,6 +356,73 @@ export default function ArticleDetailPageContent({
                   heading="继续阅读"
                   className={cn('mb-8 xl:hidden', cardBgClass)}
                 />
+                {/* 文章资料：读者可见的附件（is_reference=false），按类型渲染播放器/图片/下载链接 */}
+                {article.attachments && article.attachments.filter((att) => !att.is_reference).length > 0 && (
+                  <GlassCard padding="none" className={`mb-8 p-6 md:p-8 ${cardBgClass}`}>
+                    <h3 className="text-lg font-semibold mb-4 text-white">文章资料</h3>
+                    <div className="space-y-4">
+                      {article.attachments
+                        .filter((att) => !att.is_reference)
+                        .sort((a, b) => a.sort_order - b.sort_order)
+                        .map((att) => {
+                          const Icon =
+                            att.media_type === 'video' ? FileVideo
+                            : att.media_type === 'audio' ? FileAudio
+                            : att.media_type === 'image' ? FileImage
+                            : FileText;
+                          return (
+                            <div key={att.id} className="space-y-1.5">
+                              {att.media_type === 'video' ? (
+                                <video
+                                  src={att.url}
+                                  controls
+                                  preload="metadata"
+                                  className="w-full rounded-xl border border-white/10 bg-black"
+                                />
+                              ) : att.media_type === 'audio' ? (
+                                <audio
+                                  src={att.url}
+                                  controls
+                                  preload="metadata"
+                                  className="w-full"
+                                />
+                              ) : att.media_type === 'image' ? (
+                                // 附件图片 URL 由作者上传/填写，域名不可控，保留 <img>
+                                <img
+                                  src={att.url}
+                                  alt={att.name}
+                                  loading="lazy"
+                                  className="w-full rounded-xl border border-white/10"
+                                  onError={(e) => {
+                                    (e.target as HTMLImageElement).style.display = 'none';
+                                  }}
+                                />
+                              ) : (
+                                <a
+                                  href={att.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-3 p-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-colors"
+                                >
+                                  <Icon className="h-5 w-5 text-tech-cyan shrink-0" />
+                                  <span className="flex-1 min-w-0">
+                                    <span className="block text-sm font-medium text-white truncate">{att.name}</span>
+                                    {att.file_size ? (
+                                      <span className="block text-xs text-muted-foreground">
+                                        {formatFileSize(att.file_size)}
+                                      </span>
+                                    ) : null}
+                                  </span>
+                                  <Download className="h-4 w-4 text-muted-foreground shrink-0" />
+                                </a>
+                              )}
+                            </div>
+                          );
+                        })}
+                    </div>
+                  </GlassCard>
+                )}
+1 (feat: 文章资料附件功能（article_attachments）)
                 <GlassCard padding="none" className={`p-6 ${cardBgClass}`}>
                   <div className="flex items-center justify-between mb-6">
                     <h3 className={`text-xl font-semibold ${textClass}`}>

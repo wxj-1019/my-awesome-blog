@@ -22,6 +22,7 @@ from app.utils.file_validation import (
     BatchUploadLimitError,
     validate_batch_upload,
     ALLOWED_IMAGE_EXTENSIONS_NO_DOT,
+    ALLOWED_ATTACHMENT_MIME_TYPES,
 )
 
 router = APIRouter()
@@ -46,8 +47,8 @@ async def upload_file_to_oss(
     temp_file_path = None
     
     try:
-        # 使用安全的文件验证保存
-        temp_file_path = await save_upload_file_temp(file)
+        # 使用安全的文件验证保存（通用端点：图片/视频/音频/文档均可）
+        temp_file_path = await save_upload_file_temp(file, ALLOWED_ATTACHMENT_MIME_TYPES)
         app_logger.info(f"File saved temporarily: {temp_file_path}")
         
         # 对于图片，使用ImageService进行验证
@@ -136,8 +137,8 @@ async def batch_upload_files_to_oss(
     temp_files = []
     
     try:
-        # 使用安全的批量文件处理
-        processed_files = await process_batch_upload(files)
+        # 使用安全的批量文件处理（通用端点：图片/视频/音频/文档均可）
+        processed_files = await process_batch_upload(files, ALLOWED_ATTACHMENT_MIME_TYPES)
         temp_files = [path for path, _, _ in processed_files]
         
         # 对于图片，使用ImageService进行验证

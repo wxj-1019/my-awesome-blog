@@ -190,7 +190,9 @@ class Settings(BaseSettings):
 
     # Upload Security
     UPLOAD_ALLOWED_EXTENSIONS: List[str] = Field(default=[".jpg", ".jpeg", ".png", ".gif", ".webp"], description="允许的上传文件扩展名")
-    UPLOAD_MAX_FILE_SIZE: int = Field(default=10 * 1024 * 1024, description="单个文件最大大小（字节）")
+    UPLOAD_MAX_FILE_SIZE: int = Field(default=10 * 1024 * 1024, description="单个文件最大大小（字节，图片等常规文件）")
+    UPLOAD_MAX_VIDEO_FILE_SIZE: int = Field(default=200 * 1024 * 1024, description="视频文件最大大小（字节）")
+    UPLOAD_MAX_AUDIO_FILE_SIZE: int = Field(default=100 * 1024 * 1024, description="音频文件最大大小（字节）")
     UPLOAD_MAX_BATCH_SIZE: int = Field(default=50 * 1024 * 1024, description="批量上传总大小限制（字节）")
     UPLOAD_MAX_FILES_PER_BATCH: int = Field(default=10, description="批量上传最大文件数")
 

@@ -10,7 +10,7 @@ try:
 except ImportError:
     PUREMAGIC_AVAILABLE = False
 from pathlib import Path
-from typing import List, Tuple, Set
+from typing import List, Optional, Tuple, Set
 from fastapi import HTTPException, UploadFile, status
 import aiofiles
 import hashlib
@@ -27,10 +27,29 @@ ALLOWED_MIME_TYPES = {
     'image/webp': ['.webp'],
 }
 
+# 文章附件允许的类型：图片 + 视频 + 音频 + 文档（在图片白名单之上扩展，
+# 供 /oss/upload 等通用上传端点使用；图片专用端点 /images/、头像仍用上面的集合）
+ALLOWED_ATTACHMENT_MIME_TYPES = {
+    **ALLOWED_MIME_TYPES,
+    'video/mp4': ['.mp4'],
+    'video/webm': ['.webm'],
+    'video/quicktime': ['.mov'],
+    'audio/mpeg': ['.mp3'],
+    'audio/wav': ['.wav'],
+    'audio/mp4': ['.m4a'],
+    'application/pdf': ['.pdf'],
+    'application/zip': ['.zip'],
+}
+
 # 允许的所有扩展名（含点，如 '.jpg'），由 MIME 映射派生，保持单一事实来源
 ALLOWED_EXTENSIONS: Set[str] = set()
 for exts in ALLOWED_MIME_TYPES.values():
     ALLOWED_EXTENSIONS.update(exts)
+
+# 附件允许的所有扩展名（含点），由附件 MIME 映射派生
+ALLOWED_ATTACHMENT_EXTENSIONS: Set[str] = set()
+for exts in ALLOWED_ATTACHMENT_MIME_TYPES.values():
+    ALLOWED_ATTACHMENT_EXTENSIONS.update(exts)
 
 # 位图扩展名（带点），供位图专用端点（/images/、头像）复用，避免各处硬编码
 ALLOWED_IMAGE_EXTENSIONS: List[str] = sorted(ALLOWED_EXTENSIONS)
@@ -56,26 +75,31 @@ class BatchUploadLimitError(HTTPException):
         )
 
 
-def validate_file_extension(filename: str) -> bool:
+def validate_file_extension(filename: str, allowed_mime_types: dict = ALLOWED_MIME_TYPES) -> bool:
     """
     验证文件扩展名是否在允许列表中
-    
+
     Args:
         filename: 原始文件名
-        
+        allowed_mime_types: 允许的 MIME->扩展名 映射（默认图片白名单，附件端点传附件白名单）
+
     Returns:
         bool: 是否允许
     """
     ext = Path(filename).suffix.lower()
-    return ext in ALLOWED_EXTENSIONS
+    allowed_exts = set()
+    for exts in allowed_mime_types.values():
+        allowed_exts.update(exts)
+    return ext in allowed_exts
 
 
-def validate_mime_type(file_path: str) -> Tuple[bool, str]:
+def validate_mime_type(file_path: str, allowed_mime_types: dict = ALLOWED_MIME_TYPES) -> Tuple[bool, str]:
     """
     验证文件的MIME类型
 
     Args:
         file_path: 文件路径
+        allowed_mime_types: 允许的 MIME->扩展名 映射
 
     Returns:
         Tuple[bool, str]: (是否有效, MIME类型或错误信息)
@@ -83,52 +107,69 @@ def validate_mime_type(file_path: str) -> Tuple[bool, str]:
     if not PUREMAGIC_AVAILABLE:
         # 如果puremagic不可用，仅根据扩展名验证
         ext = Path(file_path).suffix.lower()
-        for mime_type, extensions in ALLOWED_MIME_TYPES.items():
+        for mime_type, extensions in allowed_mime_types.items():
             if ext in extensions:
                 return True, mime_type
         return False, f"不支持的文件类型: {ext}"
 
     try:
         mime_type = puremagic.from_file(file_path, mime=True)
-        if mime_type not in ALLOWED_MIME_TYPES:
+        if mime_type not in allowed_mime_types:
             return False, f"不支持的文件类型: {mime_type}"
         return True, mime_type
     except Exception as e:
         return False, f"无法检测文件类型: {str(e)}"
 
 
-def validate_file_size(file_size: int) -> bool:
+def get_size_limit_by_mime(mime_type: str) -> int:
+    """
+    按 MIME 类别返回大小上限（字节）：
+    - 视频走 UPLOAD_MAX_VIDEO_FILE_SIZE（较大）
+    - 音频走 UPLOAD_MAX_AUDIO_FILE_SIZE
+    - 其余（图片/文档）走 UPLOAD_MAX_FILE_SIZE
+    """
+    if mime_type.startswith('video/'):
+        return settings.UPLOAD_MAX_VIDEO_FILE_SIZE
+    if mime_type.startswith('audio/'):
+        return settings.UPLOAD_MAX_AUDIO_FILE_SIZE
+    return settings.UPLOAD_MAX_FILE_SIZE
+
+
+def validate_file_size(file_size: int, mime_type: Optional[str] = None) -> bool:
     """
     验证单个文件大小
-    
+
     Args:
         file_size: 文件大小（字节）
-        
+        mime_type: 文件 MIME 类型（决定分类上限；None 时按常规上限）
+
     Returns:
         bool: 是否在限制范围内
     """
-    return file_size <= settings.UPLOAD_MAX_FILE_SIZE
+    limit = get_size_limit_by_mime(mime_type) if mime_type else settings.UPLOAD_MAX_FILE_SIZE
+    return file_size <= limit
 
 
-def validate_extension_matches_mime(file_path: str, original_filename: str) -> Tuple[bool, str]:
+def validate_extension_matches_mime(file_path: str, original_filename: str, allowed_mime_types: dict = ALLOWED_MIME_TYPES) -> Tuple[bool, str]:
     """
     验证文件扩展名与MIME类型匹配
     
     Args:
         file_path: 文件路径
         original_filename: 原始文件名
+        allowed_mime_types: 允许的 MIME->扩展名 映射
         
     Returns:
         Tuple[bool, str]: (是否匹配, 错误信息)
     """
     ext = Path(original_filename).suffix.lower()
     
-    valid, result = validate_mime_type(file_path)
+    valid, result = validate_mime_type(file_path, allowed_mime_types)
     if not valid:
         return False, result
     
     mime_type = result
-    allowed_exts = ALLOWED_MIME_TYPES.get(mime_type, [])
+    allowed_exts = allowed_mime_types.get(mime_type, [])
     
     if ext not in allowed_exts:
         return False, f"文件扩展名与MIME类型不匹配: 扩展名 {ext} 不匹配 MIME类型 {mime_type}"
@@ -136,13 +177,14 @@ def validate_extension_matches_mime(file_path: str, original_filename: str) -> T
     return True, ""
 
 
-async def save_upload_file_temp(upload_file: UploadFile) -> str:
+async def save_upload_file_temp(upload_file: UploadFile, allowed_mime_types: dict = ALLOWED_MIME_TYPES) -> str:
     """
     安全地保存上传文件到临时目录
-    
+
     Args:
         upload_file: FastAPI UploadFile对象
-        
+        allowed_mime_types: 允许的 MIME->扩展名 映射（默认图片白名单，附件端点传附件白名单）
+
     Returns:
         str: 临时文件路径
         
@@ -150,9 +192,12 @@ async def save_upload_file_temp(upload_file: UploadFile) -> str:
         FileValidationError: 验证失败
     """
     # 验证文件扩展名
-    if not validate_file_extension(upload_file.filename):
+    if not validate_file_extension(upload_file.filename, allowed_mime_types):
+        allowed_exts = set()
+        for exts in allowed_mime_types.values():
+            allowed_exts.update(exts)
         raise FileValidationError(
-            f"不支持的文件类型。允许的类型: {', '.join(ALLOWED_EXTENSIONS)}"
+            f"不支持的文件类型。允许的类型: {', '.join(sorted(allowed_exts))}"
         )
     
     # 创建安全的临时文件
@@ -166,20 +211,22 @@ async def save_upload_file_temp(upload_file: UploadFile) -> str:
             content = await upload_file.read()
             await f.write(content)
         
-        # 验证文件大小
-        file_size = os.path.getsize(temp_path)
-        if not validate_file_size(file_size):
-            os.remove(temp_path)
-            raise FileValidationError(
-                f"文件大小超过限制。最大允许: {settings.UPLOAD_MAX_FILE_SIZE / 1024 / 1024:.1f}MB, "
-                f"当前: {file_size / 1024 / 1024:.1f}MB"
-            )
-        
-        # 验证MIME类型和扩展名匹配
-        valid, error = validate_extension_matches_mime(temp_path, upload_file.filename)
+        # 验证MIME类型和扩展名匹配（同时得到 MIME，供大小分类限制使用）
+        valid, error = validate_extension_matches_mime(temp_path, upload_file.filename, allowed_mime_types)
         if not valid:
             os.remove(temp_path)
             raise FileValidationError(error)
+        mime_type = error
+        
+        # 验证文件大小（按 MIME 类别区分上限：视频/音频可更大）
+        file_size = os.path.getsize(temp_path)
+        if not validate_file_size(file_size, mime_type):
+            os.remove(temp_path)
+            size_limit = get_size_limit_by_mime(mime_type)
+            raise FileValidationError(
+                f"文件大小超过限制。最大允许: {size_limit / 1024 / 1024:.1f}MB, "
+                f"当前: {file_size / 1024 / 1024:.1f}MB"
+            )
         
         return temp_path
         
@@ -225,13 +272,15 @@ def validate_batch_upload(files: List[UploadFile]) -> None:
 
 
 async def process_batch_upload(
-    files: List[UploadFile]
+    files: List[UploadFile],
+    allowed_mime_types: dict = ALLOWED_MIME_TYPES,
 ) -> List[Tuple[str, str, str]]:
     """
     处理批量文件上传
     
     Args:
         files: 上传文件列表
+        allowed_mime_types: 允许的 MIME->扩展名 映射（默认图片白名单，附件端点传附件白名单）
         
     Returns:
         List[Tuple[str, str, str]]: [(临时路径, 原始文件名, 内容类型), ...]
@@ -248,7 +297,7 @@ async def process_batch_upload(
     
     for upload_file in files:
         try:
-            temp_path = await save_upload_file_temp(upload_file)
+            temp_path = await save_upload_file_temp(upload_file, allowed_mime_types)
             file_size = os.path.getsize(temp_path)
             total_size += file_size
             

@@ -3,6 +3,8 @@ from typing import Optional, List
 from uuid import UUID
 from pydantic import BaseModel, field_serializer, computed_field
 
+from app.schemas.article_attachment import ArticleAttachmentCreate
+
 
 # Base schemas
 class ArticleBase(BaseModel):
@@ -18,6 +20,7 @@ class ArticleBase(BaseModel):
 class ArticleCreate(ArticleBase):
     category_id: Optional[UUID] = None
     tags: Optional[List[UUID]] = []
+    attachments: Optional[List[ArticleAttachmentCreate]] = None
 
 
 class ArticleCreateWithAuthor(ArticleCreate):
@@ -32,6 +35,7 @@ class ArticleUpdate(BaseModel):
     excerpt: Optional[str] = None
     cover_image: Optional[str] = None
     is_published: Optional[bool] = None
+    attachments: Optional[List[ArticleAttachmentCreate]] = None
 
 
 # Response schemas
@@ -62,6 +66,7 @@ class ArticleWithAuthor(Article):
     author: Optional["User"] = None
     categories: Optional[List["Category"]] = []
     tags: Optional[List["Tag"]] = []
+    attachments: Optional[List["ArticleAttachment"]] = []
     
     @computed_field
     def category(self) -> Optional["Category"]:
@@ -73,5 +78,6 @@ class ArticleWithAuthor(Article):
 from app.schemas.user import User
 from app.schemas.category import Category
 from app.schemas.tag import Tag
+from app.schemas.article_attachment import ArticleAttachment
 ArticleWithAuthor.model_rebuild()
 ArticleWithAuthor.update_forward_refs()

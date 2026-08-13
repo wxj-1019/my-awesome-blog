@@ -26,6 +26,8 @@ def optimize_article_query(db: Session, include_author: bool = True, include_cat
         options.append(joinedload(Article.tags))
     if include_comments:
         options.append(selectinload(Article.comments))
+    # 附件：ArticleWithAuthor 响应会序列化 attachments，缺预加载会触发懒加载 N+1
+    options.append(joinedload(Article.attachments))
     
     for option in options:
         query = query.options(option)
@@ -88,7 +90,8 @@ def get_popular_articles_optimized(db: Session, limit: int = 5, days: int = 30):
                 .options(
                     joinedload(Article.author),
                     joinedload(Article.categories),
-                    joinedload(Article.tags)
+                    joinedload(Article.tags),
+                    joinedload(Article.attachments)
                 )
                 .filter(Article.id.in_(article_ids))
                 .all()
