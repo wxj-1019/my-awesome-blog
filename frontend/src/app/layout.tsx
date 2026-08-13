@@ -92,8 +92,12 @@ const ClientLayout = ({ children }: { children: React.ReactNode }) => {
     <LoadingProvider>
       <ThemeWrapper>
         <AuthCookieSync />
-        {/* overflow-x-hidden 防止 AmbientBackground 溢出产生横向滚动条；不设 overflow-y 以保证 sticky 生效 */}
-        <div className="flex flex-col min-h-screen overflow-x-hidden">
+        {/* overflow-x-clip 防止 AmbientBackground 溢出产生横向滚动条。
+            注意不能用 overflow-x-hidden：CSS 规范中 overflow-x 非 visible 时
+            overflow-y 会被强制计算为 auto，使本容器成为滚动容器——
+            页面内 position:sticky（文章详情页两侧卡片）会相对这个
+            永不滚动的容器吸附而完全失效。clip 只裁剪、不创建滚动容器。 */}
+        <div className="flex flex-col min-h-screen overflow-x-clip">
           <Navbar />
           <main id="main-content" className="flex-1" tabIndex={-1}>
             <LoadingHandler>{children}</LoadingHandler>
