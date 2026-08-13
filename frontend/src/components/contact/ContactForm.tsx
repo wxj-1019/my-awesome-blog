@@ -109,7 +109,7 @@ export default function ContactForm() {
     const showError = isTouched && error;
     return (
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-foreground/90 font-sf-pro-text">
+        <label className="block text-sm font-medium text-foreground/90">
           {label}
         </label>
         <div className="relative group">
@@ -135,7 +135,6 @@ export default function ContactForm() {
                   : 'border-foreground/10 hover:border-foreground/20 focus:border-tech-cyan focus:ring-4 focus:ring-tech-cyan/10'
                 }
                 focus:outline-none focus:bg-background
-                font-sf-pro-text
               `}
               placeholder={`请输入${label}...`}
             />
@@ -157,7 +156,6 @@ export default function ContactForm() {
                   : 'border-foreground/10 hover:border-foreground/20 focus:border-tech-cyan focus:ring-4 focus:ring-tech-cyan/10'
                 }
                 focus:outline-none focus:bg-background
-                font-sf-pro-text
               `}
               placeholder={`请输入${label}...`}
             />
@@ -185,10 +183,10 @@ export default function ContactForm() {
         <div className="max-w-3xl mx-auto">
           {/* 标题区域（FadeIn 自带 reduced-motion 回退） */}
           <FadeIn className="mb-10 text-center">
-            <h2 className="font-sf-pro-display text-3xl md:text-4xl font-bold text-foreground mb-3">
+            <h2 className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-3">
               发送消息
             </h2>
-            <p className="font-sf-pro-text text-foreground/70 max-w-xl mx-auto">
+            <p className="text-foreground/70 max-w-xl mx-auto">
               填写下面的表单，我会尽快回复你。通常在 24 小时内回复。
             </p>
             {/* 分区揭示线：scaleX 由外层 ScrollNarrative 的 GSAP 写入 */}
@@ -208,7 +206,7 @@ export default function ContactForm() {
                 whileHover={{ scale: status === 'submitting' ? 1 : 1.02, y: status === 'submitting' ? 0 : -2 }}
                 whileTap={{ scale: status === 'submitting' ? 1 : 0.98 }}
                 className={`
-                  w-full py-4 rounded-2xl font-semibold font-sf-pro-text
+                  w-full py-4 rounded-2xl font-semibold
                   transition-shadow duration-300
                   flex items-center justify-center gap-3
                   shadow-lg
@@ -245,7 +243,7 @@ export default function ContactForm() {
                 >
                   <div className="flex items-center gap-3 text-success">
                     <CheckCircle className="w-5 h-5 flex-shrink-0" />
-                    <p className="font-sf-pro-text">消息发送成功！我会尽快回复你。</p>
+                    <p >消息发送成功！我会尽快回复你。</p>
                   </div>
                 </motion.div>
               )}
@@ -258,7 +256,7 @@ export default function ContactForm() {
                 >
                   <div className="flex items-center gap-3 text-destructive">
                     <XCircle className="w-5 h-5 flex-shrink-0" />
-                    <p className="font-sf-pro-text">发送失败，请稍后重试。</p>
+                    <p >发送失败，请稍后重试。</p>
                   </div>
                 </motion.div>
               )}

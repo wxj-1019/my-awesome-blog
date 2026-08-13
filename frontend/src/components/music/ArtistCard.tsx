@@ -90,7 +90,7 @@ export default function ArtistCard({ artist, size = 'medium', onClick, index = 0
         animate={{ opacity: 1 }}
         transition={{ delay: index * 0.06 + 0.1 }}
       >
-        <h3 className="text-sm font-display font-semibold text-foreground truncate group-hover:text-primary transition-colors duration-300">
+        <h3 className="text-sm font-sans font-semibold text-foreground truncate group-hover:text-primary transition-colors duration-300">
           {artist.name}
         </h3>
         {artist.fans && (

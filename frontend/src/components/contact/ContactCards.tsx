@@ -80,10 +80,10 @@ export default function ContactCards() {
       <div className="container mx-auto px-4 sm:px-6">
         <div className="max-w-6xl mx-auto">
           <div className="mb-8 text-center">
-            <h2 className="font-sf-pro-display text-3xl font-bold text-foreground mb-2">
+            <h2 className="font-serif text-3xl font-bold text-foreground mb-2">
               其他联系方式
             </h2>
-            <p className="font-sf-pro-text text-foreground/70 max-w-2xl mx-auto">
+            <p className="text-foreground/70 max-w-2xl mx-auto">
               除了邮件，你也可以通过以下渠道联系我
             </p>
             {/* 分区揭示线：scaleX 由外层 ScrollNarrative 的 GSAP 写入 */}
@@ -143,10 +143,10 @@ export default function ContactCards() {
                           }}
                         />
                       </div>
-                      <h3 className="font-sf-pro-display text-lg font-semibold text-foreground mb-1.5">
+                      <h3 className="font-serif text-lg font-semibold text-foreground mb-1.5">
                         {card.title}
                       </h3>
-                      <p className="font-sf-pro-text text-foreground/60 text-sm mb-4 flex-grow leading-relaxed">
+                      <p className="text-foreground/60 text-sm mb-4 flex-grow leading-relaxed">
                         {card.description}
                       </p>
                       {card.link && (
@@ -156,7 +156,7 @@ export default function ContactCards() {
                           rel={card.link?.startsWith('http') ? 'noopener noreferrer' : undefined}
                           whileHover={{ x: 3 }}
                           whileTap={{ scale: 0.98 }}
-                          className="inline-flex items-center gap-1.5 text-sm font-medium font-sf-pro-text transition-colors"
+                          className="inline-flex items-center gap-1.5 text-sm font-medium transition-colors"
                           style={{ color: card.color }}
                         >
                           {card.linkText}

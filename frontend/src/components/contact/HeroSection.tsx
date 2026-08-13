@@ -98,7 +98,7 @@ export default function HeroSection() {
             </div>
           </GlassCard>
           <FadeIn delay={0.3} className="mt-8 text-center">
-            <p className="text-foreground/60 max-w-xl mx-auto font-sf-pro-text">
+            <p className="text-foreground/60 max-w-xl mx-auto">
               我通常在工作日的 <span className="text-tech-cyan font-semibold">24小时内</span> 回复邮件，紧急事项请通过社交媒体联系我。
             </p>
           </FadeIn>

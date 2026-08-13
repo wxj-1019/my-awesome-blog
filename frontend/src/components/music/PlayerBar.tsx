@@ -131,7 +131,7 @@ export default function PlayerBar({
                   )}
                 </motion.div>
                 <div className="flex-1 min-w-0 flex flex-col justify-center">
-                  <h3 className="text-sm font-display font-semibold text-foreground truncate leading-tight mb-0.5">
+                  <h3 className="text-sm font-sans font-semibold text-foreground truncate leading-tight mb-0.5">
                     {currentSong.name}
                   </h3>
                   <p className="text-xs text-muted-foreground truncate">

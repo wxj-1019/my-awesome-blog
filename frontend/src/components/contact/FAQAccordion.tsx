@@ -60,10 +60,10 @@ export default function FAQAccordion() {
       <div className="container mx-auto px-4 sm:px-6">
         <div className="max-w-4xl mx-auto">
           <div className="mb-8 text-center">
-            <h2 className="font-sf-pro-display text-3xl font-bold text-foreground mb-2">
+            <h2 className="font-serif text-3xl font-bold text-foreground mb-2">
               常见问题
             </h2>
-            <p className="font-sf-pro-text text-foreground/70">
+            <p className="text-foreground/70">
               你可能想了解的事情
             </p>
             {/* 分区揭示线：scaleX 由外层 ScrollNarrative 的 GSAP 写入 */}
@@ -87,7 +87,7 @@ export default function FAQAccordion() {
                       </div>
                       <div className="flex-grow min-w-0">
                         <div className="flex items-center justify-between gap-4">
-                          <h3 className="font-sf-pro-display font-semibold text-foreground text-lg">
+                          <h3 className="font-serif font-semibold text-foreground text-lg">
                             {item.question}
                           </h3>
                           <motion.div
@@ -114,7 +114,7 @@ export default function FAQAccordion() {
                             isOpen ? 'opacity-100' : 'opacity-0'
                           )}
                         >
-                          <p className="font-sf-pro-text text-foreground/70 leading-relaxed">
+                          <p className="text-foreground/70 leading-relaxed">
                             {item.answer}
                           </p>
                         </div>
@@ -126,7 +126,7 @@ export default function FAQAccordion() {
             })}
           </Stagger>
           <FadeIn delay={0.4} className="mt-8 text-center">
-            <p className="font-sf-pro-text text-foreground/60">
+            <p className="text-foreground/60">
               没有找到你的问题？<a href="mailto:contact@example.com" className="text-tech-cyan hover:underline">直接发邮件给我</a>
             </p>
           </FadeIn>

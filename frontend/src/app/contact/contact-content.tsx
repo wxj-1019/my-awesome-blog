@@ -50,7 +50,7 @@ export default function ContactPageContent() {
         className="relative py-12 border-t border-foreground/10"
       >
         <div className="container mx-auto px-4 sm:px-6 text-center">
-          <p className="font-sf-pro-text text-white/50 text-sm">
+          <p className="text-white/50 text-sm">
             期待与你的交流
           </p>
         </div>
