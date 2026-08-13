@@ -46,7 +46,7 @@ function SidebarTagCloud({
     <GlassCard>
       <div className="flex items-center gap-2 mb-4">
         <Tag className="h-5 w-5 text-tech-cyan" />
-        <h3 className="text-lg font-bold">热门标签</h3>
+        <h3 className="text-lg font-serif font-bold">热门标签</h3>
       </div>
       <div className="flex flex-wrap gap-2">
         {/* 显示全部标签按钮 */}

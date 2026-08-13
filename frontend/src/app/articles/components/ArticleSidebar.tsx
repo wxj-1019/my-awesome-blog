@@ -93,7 +93,7 @@ function ArticleSidebar({
       {friendLinks && friendLinks.length > 0 && (
         <div className="space-y-4">
           <div className="flex items-center gap-2">
-            <h3 className="text-lg font-bold text-foreground">友情链接</h3>
+            <h3 className="text-lg font-serif font-bold text-foreground">友情链接</h3>
           </div>
           <FriendLinks links={friendLinks} />
         </div>

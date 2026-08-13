@@ -187,7 +187,7 @@ export default function PlaylistCard({
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: index * 0.08 + 0.15, duration: 0.4 }}
       >
-        <h3 className="font-bold text-foreground text-base truncate mb-1.5 group-hover:text-primary transition-colors duration-300">
+        <h3 className="font-display font-bold text-foreground text-base truncate mb-1.5 group-hover:text-primary transition-colors duration-300">
           {playlist.name}
         </h3>
         {playlist.creator && (

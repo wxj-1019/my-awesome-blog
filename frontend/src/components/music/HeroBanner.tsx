@@ -104,7 +104,7 @@ export default function HeroBanner({
           transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
           key={`text-${currentIndex}`}
         >
-          <h1 className="text-3xl lg:text-4xl font-bold mb-4 text-white leading-tight">
+          <h1 className="text-3xl lg:text-4xl font-display font-bold mb-4 text-white leading-tight">
             {currentBanner.title}
           </h1>
           <p className="text-base lg:text-lg text-white/80 mb-2">

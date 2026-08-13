@@ -39,7 +39,8 @@ export default function PageHeader({
       ) : null}
       <h1
         className={cn(
-          'font-bold text-foreground mb-3',
+          // 主标题统一思源宋体，与 PageActHeader 的全站标题体系一致
+          'font-serif font-bold text-foreground mb-3',
           size === 'default' && 'text-2xl md:text-3xl',
           size === 'lg' && 'text-3xl md:text-5xl'
         )}

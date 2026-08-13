@@ -14,7 +14,7 @@ export default function GameGrid({ title, games, onGameClick }: GameGridProps) {
   return (
     <section className="mb-10">
       <div className="flex items-center justify-between mb-6 px-1">
-        <h2 className="text-xl font-bold text-white/90">{title}</h2>
+        <h2 className="text-xl font-display font-bold text-white/90">{title}</h2>
         <span className="text-sm text-white/50 font-medium">
           {games.length} 款游戏
         </span>

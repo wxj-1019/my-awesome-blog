@@ -402,6 +402,7 @@ export default function MessagesPageContent() {
       <div className="relative z-20 flex flex-col items-center justify-center min-h-screen px-4 py-20">
         <PageActHeader
           kicker="弹幕广场 · MESSAGES"
+          kickerFont="font-cinema"
           title="留言板"
           description="发送你的弹幕，和大家一起互动"
           className="mb-8"

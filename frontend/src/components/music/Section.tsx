@@ -17,7 +17,7 @@ export default function Section({ title, titleClassName, children, moreLink, mor
     <div className="py-6">
       <div className="flex items-center justify-between mb-6">
         <h2 className={cn(
-          'text-xl font-bold text-foreground tracking-tight',
+          'text-xl font-display font-bold text-foreground tracking-tight',
           titleClassName
         )}>
           {title}

@@ -18,6 +18,7 @@ export default function HeroSection() {
         {/* 幕标式页头（自带 FadeIn 与 reduced-motion 回退） */}
         <PageActHeader
           kicker="联络 · CONTACT"
+          kickerFont="font-sf-pro-display"
           title="联系我"
           description="很高兴与你交流。无论是技术咨询、商务合作，还是单纯聊天，欢迎随时联系我。"
         />

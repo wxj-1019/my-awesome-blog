@@ -31,7 +31,7 @@ function HotArticles({ articles }: HotArticlesProps) {
     <GlassCard>
       <div className="flex items-center gap-2 mb-4">
         <TrendingUp className="h-5 w-5 text-tech-cyan" />
-        <h3 className="text-lg font-bold">热门文章</h3>
+        <h3 className="text-lg font-serif font-bold">热门文章</h3>
       </div>
       <div className="space-y-3">
         {hotArticles.map((article, index) => (

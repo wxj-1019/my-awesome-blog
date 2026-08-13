@@ -42,7 +42,7 @@ export default function HeroSection({ game, onPlayClick, onInfoClick }: HeroSect
             </span>
           </div>
           
-          <h1 className="text-4xl md:text-6xl font-bold text-white mb-4 tracking-tight leading-tight">
+          <h1 className="text-4xl md:text-6xl font-display font-bold text-white mb-4 tracking-tight leading-tight">
             {game.title}
           </h1>
           

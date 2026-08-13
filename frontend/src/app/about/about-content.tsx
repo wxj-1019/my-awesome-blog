@@ -91,7 +91,7 @@ export default function AboutPageContent() {
         <ScrollNarrative>
           <FadeIn delay={0.1}>
             <GlassCard padding="lg">
-              <h2 className="text-xl md:text-2xl font-bold text-foreground mb-4">
+              <h2 className="text-xl md:text-2xl font-serif font-bold text-foreground mb-4">
                 在这里你会发现
               </h2>
               <ScrollRevealLine className="mb-4" />
@@ -107,7 +107,7 @@ export default function AboutPageContent() {
                   >
                     <IconComponent className="w-6 h-6 text-primary flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform duration-200" />
                     <div>
-                      <h3 className="font-semibold text-foreground mb-1 group-hover:text-primary transition-colors">
+                      <h3 className="font-serif font-semibold text-foreground mb-1 group-hover:text-primary transition-colors">
                         {feature.title}
                       </h3>
                       <p className="text-sm text-muted-foreground">{feature.description}</p>
@@ -123,7 +123,7 @@ export default function AboutPageContent() {
         <ScrollNarrative>
           <FadeIn delay={0.15}>
             <GlassCard padding="lg">
-              <h2 className="text-xl md:text-2xl font-bold text-foreground mb-3">联系方式</h2>
+              <h2 className="text-xl md:text-2xl font-serif font-bold text-foreground mb-3">联系方式</h2>
               <ScrollRevealLine className="mb-3" />
               <p className="text-muted-foreground leading-relaxed">
                 有问题或想要联系？欢迎通过
@@ -143,7 +143,7 @@ export default function AboutPageContent() {
           <ScrollNarrative>
             <FadeIn delay={0.2}>
               <GlassCard padding="lg">
-                <h2 className="text-xl md:text-2xl font-bold text-foreground mb-6">友情链接</h2>
+                <h2 className="text-xl md:text-2xl font-serif font-bold text-foreground mb-6">友情链接</h2>
                 <ScrollRevealLine className="mb-6 -mt-4" />
               {loadingLinks ? (
                 <div className="flex justify-center items-center py-8">
@@ -170,7 +170,7 @@ export default function AboutPageContent() {
                           </>
                         ) : null}
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-foreground mb-1 truncate group-hover:text-primary transition-colors">
+                          <h3 className="font-serif font-semibold text-foreground mb-1 truncate group-hover:text-primary transition-colors">
                             {link.name}
                           </h3>
                           {link.description ? (

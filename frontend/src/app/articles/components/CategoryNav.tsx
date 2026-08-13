@@ -26,7 +26,7 @@ function CategoryNav({ categories, selectedCategory, onCategorySelect }: Categor
     <GlassCard className="overflow-hidden">
       <div className="flex items-center gap-2 mb-4">
         <Folder className="h-5 w-5 text-tech-cyan" />
-        <h3 className="text-lg font-bold">分类导航</h3>
+        <h3 className="text-lg font-serif font-bold">分类导航</h3>
       </div>
       <div className="space-y-1">
         <button

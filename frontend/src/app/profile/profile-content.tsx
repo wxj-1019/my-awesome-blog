@@ -183,6 +183,7 @@ export default function ProfilePageContent() {
           )}
           <PageActHeader
             kicker="账户 · PROFILE"
+            kickerFont="font-sf-pro-display"
             title="个人中心"
             description="管理您的个人资料、设置和活动"
           />

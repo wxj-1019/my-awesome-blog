@@ -32,7 +32,7 @@ export default function GameCard({ game, onClick }: GameCardProps) {
 
       {/* Content */}
       <div className="absolute inset-x-0 bottom-0 p-4 translate-y-4 group-hover:translate-y-0 transition-transform duration-300 opacity-0 group-hover:opacity-100">
-        <h3 className="text-card-foreground font-bold text-lg leading-tight mb-1">{game.title}</h3>
+        <h3 className="text-card-foreground font-display font-bold text-lg leading-tight mb-1">{game.title}</h3>
         <p className="text-muted-foreground text-xs mb-3">{game.developer}</p>
         
         <div className="flex items-center gap-3 text-card-foreground text-xs font-medium">

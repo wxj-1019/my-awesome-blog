@@ -4,7 +4,6 @@ import {
   Inter,
   Syne,
   Manrope,
-  Cinzel,
   Fraunces,
   DM_Serif_Display as DmSerifDisplay,
   Abril_Fatface as AbrilFatface,
@@ -29,7 +28,6 @@ const syne = Syne({ subsets: ['latin'], variable: '--font-syne' });
 const manrope = Manrope({ subsets: ['latin'], variable: '--font-manrope' });
 
 // 分页面艺术字体（仅 kicker/装饰用；单字重 400，next/font 自动子集化）
-const cinzel = Cinzel({ subsets: ['latin'], weight: '400', variable: '--font-cinzel' });
 const fraunces = Fraunces({ subsets: ['latin'], weight: '400', variable: '--font-fraunces' });
 const dmSerif = DmSerifDisplay({ subsets: ['latin'], weight: '400', variable: '--font-dm-serif' });
 const abril = AbrilFatface({ subsets: ['latin'], weight: '400', variable: '--font-abril' });
@@ -132,7 +130,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${inter.variable} ${syne.variable} ${manrope.variable} ${cinzel.variable} ${fraunces.variable} ${dmSerif.variable} ${abril.variable} ${notoSerifSC.variable} ${maShanZheng.variable} ${unifraktur.variable} ${zenMaruGothic.variable} font-sans bg-background`}>
+      <body className={`${inter.variable} ${syne.variable} ${manrope.variable} ${fraunces.variable} ${dmSerif.variable} ${abril.variable} ${notoSerifSC.variable} ${maShanZheng.variable} ${unifraktur.variable} ${zenMaruGothic.variable} font-sans bg-background`}>
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[200]

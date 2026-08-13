@@ -13,7 +13,7 @@ export interface PageActHeaderProps {
   icon?: LucideIcon;
   align?: 'center' | 'left';
   className?: string;
-  /** kicker 艺术字体类（如 font-tarot / font-creative），不传则用默认 font-medium。
+  /** kicker 艺术字体类（如 font-gothic / font-creative），不传则用默认 font-medium。
    *  含「 · 」时拆分中英：英文用艺术字体放大成主视觉，中文降为辅助小字。 */
   kickerFont?: string;
   /** 标题下方额外内容（徽章、统计等） */

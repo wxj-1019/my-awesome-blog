@@ -41,17 +41,18 @@ export default {
         serif: ['var(--font-noto-serif-sc)', 'ui-serif', 'Georgia', 'serif'],
         'sf-pro-display': ['"SF Pro Display"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
         'sf-pro-text': ['"SF Pro Text"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
-        // 分页面艺术字体（仅 kicker/装饰用，回退到 display 字体 Syne + serif）
-        tarot: ['var(--font-cinzel)', 'var(--font-syne)', 'serif'],
-        creative: ['var(--font-fraunces)', 'var(--font-syne)', 'serif'],
-        gallery: ['var(--font-dm-serif)', 'var(--font-syne)', 'serif'],
-        cinema: ['var(--font-abril)', 'var(--font-syne)', 'serif'],
+        // 分页面艺术字体（仅 kicker/装饰用；拉丁字体缺中文，中文回退思源宋体保持一致）
+        creative: ['var(--font-fraunces)', 'var(--font-syne)', 'var(--font-noto-serif-sc)', 'serif'],
+        gallery: ['var(--font-dm-serif)', 'var(--font-syne)', 'var(--font-noto-serif-sc)', 'serif'],
+        cinema: ['var(--font-abril)', 'var(--font-syne)', 'var(--font-noto-serif-sc)', 'serif'],
         // brush：马善政楷书（毛笔书法，首页打字机标题）
         brush: ['var(--font-ma-shan-zheng)', 'var(--font-noto-serif-sc)', 'serif'],
-        // gothic：UnifrakturMaguntia（哥特黑体，塔罗牌英文牌名）
-        gothic: ['var(--font-unifraktur)', 'serif'],
-        // navi：Zen Maru Gothic（日系圆体，顶部导航栏；简体缺字回退宋体）
-        navi: ['var(--font-zen-maru-gothic)', 'var(--font-noto-serif-sc)', 'sans-serif'],
+        // gothic：UnifrakturMaguntia（哥特黑体，塔罗牌英文牌名；意外混入中文时回退宋体）
+        gothic: ['var(--font-unifraktur)', 'var(--font-noto-serif-sc)', 'serif'],
+        // navi：Zen Maru Gothic（日系圆体，顶部导航栏；日文字集缺简体字形，
+        // 如「页/乐/馆/视/频/图/戏/册/宝/线/罗/联」，缺字回退系统无衬线黑体而非宋体，
+        // 避免导航条目圆体/宋体混排）
+        navi: ['var(--font-zen-maru-gothic)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
       colors: {
         border: withAlpha('--border'),

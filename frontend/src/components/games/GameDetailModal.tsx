@@ -63,7 +63,7 @@ export default function GameDetailModal({ game, onClose }: GameDetailModalProps)
                 ))}
               </div>
 
-              <h2 className="text-3xl font-bold text-card-foreground mb-4">{game.title}</h2>
+              <h2 className="text-3xl font-display font-bold text-card-foreground mb-4">{game.title}</h2>
               
               <div className="flex flex-wrap gap-4 mb-6 text-sm text-muted-foreground">
                 <div className="flex items-center gap-1.5">
