@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/Button';
 import GlassCard from '@/components/ui/GlassCard';
 
 import { Skeleton } from '@/components/ui/Skeleton';
-import { Download, FileVideo, FileAudio, FileImage, FileText } from 'lucide-react';1 (feat: 文章资料附件功能（article_attachments）)
+import { Download, FileVideo, FileAudio, FileImage, FileText } from 'lucide-react';
 import { useThemedClasses } from '@/hooks/useThemedClasses';
 import { useCodeBlockEnhancement } from '@/hooks/useCodeBlockEnhancement';
 import { getArticleById, getRelatedArticles } from '@/services/articleService';
