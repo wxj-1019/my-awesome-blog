@@ -11,6 +11,7 @@ import {
   Ma_Shan_Zheng as MaShanZheng,
   UnifrakturMaguntia,
   Zen_Maru_Gothic as ZenMaruGothic,
+  ZCOOL_KuaiLe as ZcoolKuaiLe,
 } from 'next/font/google';
 import Navbar from '@/components/navigation/Navbar';
 import Footer from '@/components/navigation/Footer';
@@ -56,6 +57,13 @@ const unifraktur = UnifrakturMaguntia({
 const zenMaruGothic = ZenMaruGothic({
   weight: ['400', '500', '700'],
   variable: '--font-zen-maru-gothic',
+});
+
+// 站酷快乐体：简体全覆盖的圆润字体，作 Zen Maru Gothic 的缺字回退
+// （日文字集缺「页/乐/馆/视/频/图/戏/册/宝/线/罗/联」等简体字形）
+const zcoolKuaiLe = ZcoolKuaiLe({
+  weight: '400',
+  variable: '--font-zcool-kuaile',
 });
 
 export const metadata: Metadata = {
@@ -130,7 +138,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${inter.variable} ${syne.variable} ${manrope.variable} ${fraunces.variable} ${dmSerif.variable} ${abril.variable} ${notoSerifSC.variable} ${maShanZheng.variable} ${unifraktur.variable} ${zenMaruGothic.variable} font-sans bg-background`}>
+      <body className={`${inter.variable} ${syne.variable} ${manrope.variable} ${fraunces.variable} ${dmSerif.variable} ${abril.variable} ${notoSerifSC.variable} ${maShanZheng.variable} ${unifraktur.variable} ${zenMaruGothic.variable} ${zcoolKuaiLe.variable} font-sans bg-background`}>
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[200]

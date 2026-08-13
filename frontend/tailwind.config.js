@@ -50,9 +50,9 @@ export default {
         // gothic：UnifrakturMaguntia（哥特黑体，塔罗牌英文牌名；意外混入中文时回退宋体）
         gothic: ['var(--font-unifraktur)', 'var(--font-noto-serif-sc)', 'serif'],
         // navi：Zen Maru Gothic（日系圆体，顶部导航栏；日文字集缺简体字形，
-        // 如「页/乐/馆/视/频/图/戏/册/宝/线/罗/联」，缺字回退系统无衬线黑体而非宋体，
-        // 避免导航条目圆体/宋体混排）
-        navi: ['var(--font-zen-maru-gothic)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        // 如「页/乐/馆/视/频/图/戏/册/宝/线/罗/联」，缺字回退站酷快乐体
+        // （简体全覆盖的圆润字体，风格接近圆体），最后再落系统无衬线）
+        navi: ['var(--font-zen-maru-gothic)', 'var(--font-zcool-kuaile)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
       colors: {
         border: withAlpha('--border'),
