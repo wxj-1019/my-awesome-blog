@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from app.models.article import Article
 from app.models.user import User
 from app.models.comment import Comment
-from app.models.audit_log import AuditLog  # Assuming we have audit log model
+from app.models.logs.audit_log import AuditLog
 
 
 def get_article_growth_stats(db: Session, days: int = 30) -> Dict:

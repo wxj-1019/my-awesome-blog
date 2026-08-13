@@ -7,6 +7,9 @@ from app.crud.user import (
 
 from app.crud.article import (
     get_article, get_article_async, get_article_by_slug, get_articles,
+    get_article_with_relationships,
+    get_article_by_slug_with_relationships,
+    get_article_by_slug_with_relationships_async,
     create_article, update_article, delete_article,
     increment_view_count, get_featured_articles, get_related_articles,
     get_articles_with_categories_and_tags, get_popular_articles,
@@ -34,7 +37,16 @@ from app.crud.tag import (
 
 from app.crud.friend_link import (
     get_friend_link, get_friend_links, create_friend_link,
-    update_friend_link, delete_friend_link
+    update_friend_link, delete_friend_link, increment_click_count
+)
+
+from app.crud.analytics import (
+    get_article_growth_stats,
+    get_user_engagement_stats,
+    get_top_authors_by_articles,
+    get_top_authors_by_views,
+    get_monthly_statistics,
+    get_content_insights,
 )
 
 from app.crud.portfolio import (
