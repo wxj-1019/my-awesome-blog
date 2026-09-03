@@ -15,10 +15,12 @@ pydantic-settings==2.12.0
 email-validator==2.1.2
 
 # Authentication and security
-python-jose[cryptography]==3.3.0
+# python-jose >= 3.4.0 修复 CVE-2024-33663 / CVE-2024-33664（算法混淆 / JWE DoS）
+python-jose[cryptography]==3.5.0
 passlib==1.7.4
 bcrypt==3.2.0
-python-multipart==0.0.6
+# python-multipart >= 0.0.18 修复 CVE-2024-24762（ReDoS）/ CVE-2024-53981
+python-multipart==0.0.20
 
 # Logging
 loguru==0.7.2
@@ -38,7 +40,8 @@ gputil==1.4.0
 # For development only - production should use PostgreSQL
 
 # Image processing
-Pillow==10.0.1
+# Pillow >= 10.2.0 修复 CVE-2023-50447（ImageMath.eval RCE）、>= 10.3.0 修复 CVE-2024-28219
+Pillow==10.4.0
 
 # File validation and async file operations
 puremagic==1.28
