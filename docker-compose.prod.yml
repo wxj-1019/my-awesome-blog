@@ -3,6 +3,7 @@ version: '3.8'
 services:
   nginx:
     image: nginx:alpine
+    mem_limit: 128m
     ports:
       - "80:80"
       - "443:443"
@@ -30,6 +31,7 @@ services:
         NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:?NEXT_PUBLIC_SITE_URL must be set}
         NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:?NEXT_PUBLIC_API_BASE_URL must be set}
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-${NEXT_PUBLIC_API_BASE_URL}}
+    mem_limit: 512m
     environment:
       NODE_ENV: production
       NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:?NEXT_PUBLIC_API_BASE_URL must be set}
@@ -53,6 +55,7 @@ services:
         HTTPS_PROXY: ""
         http_proxy: ""
         https_proxy: ""
+    mem_limit: 1g
     # CORS/LLM/OSS 等含 JSON 引号的值经 environment 插值易被剥引号；env_file 原样注入
     env_file:
       - .env.production
@@ -74,6 +77,7 @@ services:
 
   postgres:
     image: postgres:15-alpine
+    mem_limit: 512m
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -91,6 +95,7 @@ services:
 
   redis:
     image: redis:7-alpine
+    mem_limit: 192m
     volumes:
       - redis_data:/data
     healthcheck:
@@ -106,6 +111,7 @@ services:
   # 控制台 9001 仅绑定本机回环，不暴露公网。
   minio:
     image: minio/minio:latest
+    mem_limit: 512m
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:?MINIO_ACCESS_KEY must be set}
