@@ -20,9 +20,11 @@ import {
 
 // 阅读统计（recharts 图表，~500KB）位于第三幕、首屏之外：拆独立 chunk 懒加载，
 // 避免图表库进入首屏关键路径（ssr:false 对首屏外组件无感知影响）
-const ReadingStats = dynamic(() => import('@/components/home/ReadingStats'), {
-  ssr: false,
-});
+// 经 charts-bundle 共享 recharts 依赖，避免与 StatsCharts 各复制一份图表库
+const ReadingStats = dynamic(
+  () => import('@/components/home/stats/charts-bundle').then((m) => m.ReadingStats),
+  { ssr: false }
+);
 
 /**
  * 首页 · 深海 × 电影
