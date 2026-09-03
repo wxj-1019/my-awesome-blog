@@ -35,6 +35,8 @@ services:
       NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:?NEXT_PUBLIC_API_BASE_URL must be set}
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-${NEXT_PUBLIC_API_BASE_URL}}
       NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:?NEXT_PUBLIC_SITE_URL must be set}
+      # MinIO 图片域名白名单（next/image remotePatterns 经 env 注入，见 next.config.mjs）
+      MINIO_PUBLIC_BASE_URL: ${MINIO_PUBLIC_BASE_URL:-}
       # RSC/SSR 在容器内直连 backend，避免走公网 IP 自回环失败
       INTERNAL_API_URL: http://backend:8989/api/v1
     depends_on:
