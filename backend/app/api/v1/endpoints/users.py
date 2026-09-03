@@ -51,14 +51,6 @@ def get_admin_user(
     }
 
 
-@router.get("/public-info")
-def get_public_info():
-    """
-    Test public endpoint - no authentication required
-    """
-    return {"message": "This is a public endpoint", "status": "success"}
-
-
 @router.get("/", response_model=List[User])
 def read_users(
     skip: int = 0,

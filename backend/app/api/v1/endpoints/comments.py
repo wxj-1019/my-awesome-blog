@@ -21,7 +21,7 @@ router = APIRouter()
 @router.get("/", response_model=List[CommentWithAuthor])
 def read_comments(
     skip: int = 0,
-    limit: int = 100,
+    limit: int = Query(100, ge=1, le=100, description="Maximum 100 items per request"),
     article_id: Optional[str] = Query(None, description="Filter by article ID"),
     author_id: Optional[str] = Query(None, description="Filter by author ID"),
     approved: Optional[bool] = Query(None, description="Filter by approval status (true=approved, false=pending, null=all for admin)"),
@@ -95,7 +95,7 @@ def read_comment_by_id(
 def read_comment_replies(
     comment_id: str,
     skip: int = 0,
-    limit: int = 100,
+    limit: int = Query(100, ge=1, le=100, description="Maximum 100 items per request"),
     db: Session = Depends(get_db)
 ) -> Any:
     """
