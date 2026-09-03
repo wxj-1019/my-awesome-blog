@@ -40,8 +40,9 @@ export default function HeroSection() {
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [videoError, setVideoError] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
-  // 首屏直接加载视频（资源已 faststart + H.264）
-  const shouldLoadVideo = true;
+  // 视频仅桌面 + L3 开启 + 非 reduced motion 时加载；其余场景只显示首帧静态 poster
+  // （移动端首屏拉 2.7-5.3MB 视频是明确的 LCP/流量负担，poster 仅 ~200KB 且与视频首帧同图）
+  const shouldLoadVideo = isDesktop && MOTION_L3_ENABLED && !reducedMotion;
   const videoRef = useRef<HTMLVideoElement>(null);
   const heroRef = useRef<HTMLElement>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
@@ -147,6 +148,16 @@ export default function HeroSection() {
           </div>
         )}
 
+        {/* 降级层：移动端 / reduced motion / L3 关闭时显示视频首帧静态图，
+            与 video 的 poster 同图，桌面端 hydrate 后切换无视觉跳变 */}
+        {!shouldLoadVideo && (
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: `url(${posterImage})` }}
+            aria-hidden="true"
+          />
+        )}
+
         {shouldLoadVideo && !videoError && (
           <video
             ref={videoRef}
@@ -174,7 +185,8 @@ export default function HeroSection() {
             onWaiting={() => {
               logger.log('视频缓冲中...');
             }}
-            key={`${backgroundVideo}-${retryCount}`}
+            // 不设 key：主题换源时仅变更 src，浏览器按规范触发 media load 算法重载，
+            // 避免 React 重挂载节点丢失缓冲；重试场景由上方 videoError 条件渲染卸载/重挂
             aria-hidden="true"
           />
         )}
