@@ -534,7 +534,7 @@ export default function NewArticlePage() {
       </motion.div>
       {/* Phase 1：纯 AI 对话；Phase 2：完整编辑器 */}
       {phase === 'chat' ? (
-        <div className="max-w-3xl mx-auto">
+        <div className="max-w-3xl mx-auto glass-card rounded-2xl p-6 md:p-8">
           <WritingSessionShell onDraftConfirmed={handleDraftConfirmed} />
         </div>
       ) : (
