@@ -9,6 +9,7 @@ import { useThemedClasses } from '@/hooks/useThemedClasses';
 import { useCodeBlockEnhancement } from '@/hooks/useCodeBlockEnhancement';
 import { getRelatedArticles } from '@/services/articleService';
 import { getCommentTree, createComment } from '@/services/commentService';
+import interactionService from '@/services/interactionService';
 import { TOKEN_KEY } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
 import logger from '@/utils/logger';
@@ -120,9 +121,61 @@ export default function ArticleDetailPageContent({
     setReadingSettings(loadReadingSettings());
   }, []);
 
+  // 登录用户回显点赞/收藏/关注状态（匿名接口返回 false）
+  useEffect(() => {
+    if (!isLoggedIn || !article) {
+      return;
+    }
+    interactionService.getLikeStatus(article.id).then(setIsLiked).catch(() => {});
+    interactionService.getBookmarkStatus(article.id).then(setIsBookmarked).catch(() => {});
+    if (article.author?.id) {
+      interactionService.getFollowStatus(article.author.id).then(setIsFollowingAuthor).catch(() => {});
+    }
+  }, [isLoggedIn, article]);
+
   const handleReadingSettingsChange = (next: ReadingSettings) => {
     setReadingSettings(next);
     saveReadingSettings(next);
+  };
+
+  /** 未登录时引导去登录页（带回跳） */
+  const requireLogin = (): boolean => {
+    if (isLoggedIn) {
+      return true;
+    }
+    window.location.href = `/login?message=${encodeURIComponent('登录后即可互动')}&redirect=${encodeURIComponent(window.location.pathname)}`;
+    return false;
+  };
+
+  // 点赞/收藏/关注：真实接口（toggle），失败保持原状态
+  const handleLike = async () => {
+    if (!requireLogin() || !article) {
+      return;
+    }
+    const next = await interactionService.toggleLike(article.id).catch(() => null);
+    if (next !== null) {
+      setIsLiked(next);
+    }
+  };
+
+  const handleBookmark = async () => {
+    if (!requireLogin() || !article) {
+      return;
+    }
+    const next = await interactionService.toggleBookmark(article.id).catch(() => null);
+    if (next !== null) {
+      setIsBookmarked(next);
+    }
+  };
+
+  const handleFollowAuthor = async () => {
+    if (!requireLogin() || !article?.author?.id) {
+      return;
+    }
+    const next = await interactionService.toggleFollow(article.author.id).catch(() => null);
+    if (next !== null) {
+      setIsFollowingAuthor(next);
+    }
   };
 
   // 文章由 RSC 预取，客户端仅需加载相关文章
@@ -168,18 +221,6 @@ export default function ArticleDetailPageContent({
       month: 'long',
       day: 'numeric',
     });
-  };
-  // 处理点赞
-  const handleLike = () => {
-    setIsLiked(!isLiked);
-  };
-  // 处理收藏
-  const handleBookmark = () => {
-    setIsBookmarked(!isBookmarked);
-  };
-  // 处理关注作者
-  const handleFollowAuthor = () => {
-    setIsFollowingAuthor(!isFollowingAuthor);
   };
   // 处理发表评论
   const handleSubmitComment = async () => {

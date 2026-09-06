@@ -74,7 +74,8 @@ interface ArticleResponse {
   excerpt?: string;
   cover_image?: string;
   is_published?: boolean;
-  category_id?: string;
+  category_ids: string[];
+  categories?: { id: string; name: string }[];
   tags?: { id: string }[];
   attachments?: ArticleAttachment[];
 }
@@ -103,7 +104,7 @@ export default function EditArticlePage() {
     excerpt: '',
     cover_image: '',
     is_published: false,
-    category_id: '',
+    category_ids: [] as string[],
     tags: [] as string[],
     attachments: [] as AttachmentDraft[]
   });
@@ -121,7 +122,7 @@ export default function EditArticlePage() {
   const formProgress = {
     title: formData.title.length >= MIN_TITLE_LENGTH,
     content: formData.content.length >= MIN_CONTENT_LENGTH,
-    category: !!formData.category_id,
+    category: formData.category_ids.length > 0,
     tags: formData.tags.length > 0,
     excerpt: formData.excerpt.length > 0
   };
@@ -144,7 +145,7 @@ export default function EditArticlePage() {
         excerpt: article.excerpt || '',
         cover_image: article.cover_image || '',
         is_published: article.is_published || false,
-        category_id: article.category_id || '',
+        category_ids: article.categories?.map((c) => c.id) || [],
         tags: article.tags?.map((t) => t.id) || [],
         attachments: (article.attachments || []).map((att) => ({
           id: att.id,
@@ -236,13 +237,6 @@ export default function EditArticlePage() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setTouchedFields(prev => new Set(prev).add(name));
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -350,7 +344,8 @@ export default function EditArticlePage() {
         excerpt: formData.excerpt || undefined,
         cover_image: formData.cover_image || undefined,
         is_published: formData.is_published,
-        category_id: formData.category_id || undefined,
+        category_ids: formData.category_ids.length > 0 ? formData.category_ids : undefined,
+        tag_ids: formData.tags.length > 0 ? formData.tags : undefined,
         tags: formData.tags.length > 0 ? formData.tags : undefined,
         attachments: formData.attachments.length > 0 ? formData.attachments : undefined
       };
@@ -415,7 +410,8 @@ export default function EditArticlePage() {
         excerpt: formData.excerpt || undefined,
         cover_image: formData.cover_image || undefined,
         is_published: true,
-        category_id: formData.category_id || undefined,
+        category_ids: formData.category_ids.length > 0 ? formData.category_ids : undefined,
+        tag_ids: formData.tags.length > 0 ? formData.tags : undefined,
         tags: formData.tags.length > 0 ? formData.tags : undefined,
         attachments: formData.attachments.length > 0 ? formData.attachments : undefined
       };
@@ -914,25 +910,37 @@ export default function EditArticlePage() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-foreground/70">文章分类</label>
-                <div className="relative">
-                  <select
-                    name="category_id"
-                    value={formData.category_id}
-                    onChange={handleSelectChange}
-                    className="w-full px-4 py-2.5 rounded-xl bg-background/50 border border-border/50 text-foreground focus:outline-none focus:ring-2 focus:ring-tech-cyan/20 focus:border-tech-cyan/50 transition-colors appearance-none cursor-pointer pr-10"
-                  >
-                    <option value="" className="bg-card text-foreground">选择分类...</option>
-                    {categories.map(category => (
-                      <option key={category.id} value={category.id} className="bg-card text-foreground">
-                        {category.name}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                    <svg className="w-4 h-4 text-foreground/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
+                
+                <div className="flex flex-wrap gap-2">
+                  {categories.length === 0 ? (
+                    <p className="text-xs text-foreground/40">暂无可选分类</p>
+                  ) : (
+                    categories.map(category => {
+                      const checked = formData.category_ids.includes(category.id);
+                      return (
+                        <button
+                          key={category.id}
+                          type="button"
+                          onClick={() =>
+                            setFormData(prev => ({
+                              ...prev,
+                              category_ids: checked
+                                ? prev.category_ids.filter(id => id !== category.id)
+                                : [...prev.category_ids, category.id],
+                            }))
+                          }
+                          aria-pressed={checked}
+                          className={`px-3 py-1.5 rounded-full text-xs border transition-colors ${
+                            checked
+                              ? 'bg-primary/15 border-primary/40 text-primary'
+                              : 'bg-background/50 border-border/50 text-foreground/70 hover:border-primary/30'
+                          }`}
+                        >
+                          {category.name}
+                        </button>
+                      );
+                    })
+                  )}
                 </div>
               </div>
               <div className="space-y-2">
