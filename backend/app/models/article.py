@@ -35,9 +35,6 @@ class Article(Base):
     is_pinned = Column(Boolean, default=False, index=True)  # 添加索引以加快过滤
     meta_title = Column(String(200))
     meta_description = Column(Text, index=True)  # 添加索引以加快搜索
-    # 软删除（与 messages/conversations/memories 对齐）；索引由迁移 017 创建，此处 index=True 对齐
-    is_deleted = Column(Boolean, default=False, index=True)
-    deleted_at = Column(DateTime(timezone=True), nullable=True, index=True)
 
     # Foreign keys
     author_id = Column(UUIDType, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)  # 添加索引以加快JOIN操作

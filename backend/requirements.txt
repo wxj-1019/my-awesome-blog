@@ -22,6 +22,9 @@ bcrypt==3.2.0
 # python-multipart >= 0.0.18 修复 CVE-2024-24762（ReDoS）/ CVE-2024-53981
 python-multipart==0.0.20
 
+# 中文分词（文章全文搜索的应用层 tokenization，配合 PG tsvector simple 配置）
+jieba==0.42.1
+
 # Logging
 loguru==0.7.2
 
