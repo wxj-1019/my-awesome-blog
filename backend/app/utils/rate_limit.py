@@ -69,6 +69,7 @@ def get_rate_limit_for_endpoint(endpoint_name: str) -> str:
         "contact": "10 per hour",  # 联系我们接口限制
         "comment": "10 per hour",  # 评论接口限制
         "article_create": "20 per hour",  # 文章创建接口限制
+        "interaction": "60 per minute",  # 点赞/收藏/关注开关（防刷）
         "default": "100 per hour"  # 默认限制
     }
     
@@ -81,6 +82,7 @@ register_rate_limit = limiter.limit(get_rate_limit_for_endpoint("register"))
 article_read_rate_limit = limiter.limit(get_rate_limit_for_endpoint("default"))
 article_create_rate_limit = limiter.limit(get_rate_limit_for_endpoint("article_create"))
 comment_rate_limit = limiter.limit(get_rate_limit_for_endpoint("comment"))
+interaction_rate_limit = limiter.limit(get_rate_limit_for_endpoint("interaction"))
 
 # 新增限流装饰器
 forgot_password_rate_limit = limiter.limit(get_rate_limit_for_endpoint("forgot_password"))

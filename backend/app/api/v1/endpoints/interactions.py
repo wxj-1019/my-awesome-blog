@@ -8,13 +8,16 @@ import asyncio
 from typing import Any
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_active_user, get_current_user_optional
 from app.crud import interaction as interaction_crud
 from app.models.user import User
+from app.services.cache_service import cache_service
+from app.utils.cache_keys import CacheKeys
+from app.utils.rate_limit import interaction_rate_limit
 
 router = APIRouter()
 
@@ -44,8 +47,10 @@ def get_like_status(
     return {"liked": liked}
 
 
+@interaction_rate_limit
 @router.post("/articles/{article_id}/like")
 async def toggle_like(
+    request: Request,
     article_id: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
@@ -57,9 +62,15 @@ async def toggle_like(
 
     liked = await asyncio.to_thread(interaction_crud.toggle_article_like, db, aid, current_user.id)
 
-    # likes_count 为 Article 的 column_property，查询实体时自动带出
+    # likes_count 为 Article 的 column_property，查询实体时自动带出；
+    # 计数已烘焙进详情缓存（TTL 30 分钟），toggle 后必须失效，否则前端
+    # 会持续读到旧计数，且期间的文章编辑会把旧计数重新写回缓存
     from app.models.article import Article
     article = await asyncio.to_thread(lambda: db.query(Article).filter(Article.id == aid).first())
+    if article:
+        await cache_service.delete(CacheKeys.article(aid))
+        if article.slug:
+            await cache_service.delete(CacheKeys.article_by_slug(article.slug))
     return {"liked": liked, "likes_count": article.likes_count if article else 0}
 
 
@@ -77,8 +88,10 @@ def get_bookmark_status(
     return {"bookmarked": bookmarked}
 
 
+@interaction_rate_limit
 @router.post("/articles/{article_id}/bookmark")
 async def toggle_bookmark(
+    request: Request,
     article_id: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
@@ -104,15 +117,19 @@ def get_follow_status(
     return {"following": following}
 
 
+@interaction_rate_limit
 @router.post("/users/{user_id}/follow")
 async def toggle_follow(
+    request: Request,
     user_id: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ) -> Any:
-    """关注 / 取消关注目标用户；不能关注自己"""
+    """关注 / 取消关注目标用户；不能关注自己，目标不存在返回 404"""
     target_id = _uuid(user_id, "User")
     if target_id == current_user.id:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="不能关注自己")
+    if not interaction_crud.user_exists(db, target_id):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     following = await asyncio.to_thread(interaction_crud.toggle_follow, db, current_user.id, target_id)
     return {"following": following}

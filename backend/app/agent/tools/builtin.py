@@ -6,6 +6,7 @@
 - 返回给模型的文本要做长度截断，防止撑爆上下文。
 """
 
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.agent.tools.registry import AgentTool, ToolRegistry
@@ -54,7 +55,7 @@ def get_article_detail(db: Session, slug: str) -> str:
 
 def get_site_stats(db: Session) -> str:
     """获取站点内容统计（已发布文章数、评论数、留言数、友链数）。"""
-    articles = db.query(Article).filter(Article.is_published == True).count()  # noqa: E712
+    articles = db.query(func.count(Article.id)).filter(Article.is_published == True).scalar() or 0  # noqa: E712
     comments = db.query(Comment).count()
     messages = db.query(Message).count()
     friend_links = db.query(FriendLink).count()

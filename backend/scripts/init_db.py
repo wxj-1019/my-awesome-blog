@@ -74,8 +74,12 @@ class DatabaseInitializer:
                     app_logger.info("管理员用户已存在，跳过创建")
                     return admin_users[0].id
 
-                # 创建默认管理员用户
-                hashed_password = await get_password_hash("admin123")
+                # 创建默认管理员用户：密码从 INITIAL_ADMIN_PASSWORD 读取；
+                # 未配置时生成随机密码（仅打印一次，避免新部署遗留固定弱口令）
+                import os as _os
+                import secrets as _secrets
+                admin_password = _os.getenv("INITIAL_ADMIN_PASSWORD") or _secrets.token_urlsafe(12)
+                hashed_password = await get_password_hash(admin_password)
                 
                 admin_user = User(
                     email="admin@example.com",
@@ -93,7 +97,7 @@ class DatabaseInitializer:
                 print("\n" + "="*50)
                 print("管理员用户创建成功:")
                 print(f"  用户名: admin")
-                print(f"  密码: admin123")
+                print(f"  密码: {admin_password}")
                 print(f"  邮箱: admin@example.com")
                 print(f"  ID: {admin_user.id}")
                 print("="*50 + "\n")
