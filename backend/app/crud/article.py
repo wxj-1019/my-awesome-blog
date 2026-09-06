@@ -638,22 +638,19 @@ def search_articles_fulltext(
     if not tokens:
         return []
 
-    search_condition = text("search_vector @@ plainto_tsquery('simple', :search_term)")
+    # 绑定参数只出现在 WHERE 层的 text 中；order_by 若放含裸列（search_vector）
+    # 的 text 会触发 ORM 子查询包装导致外层 UndefinedColumn，故排序退回 ORM 列
+    search_condition = text(
+        "search_vector @@ plainto_tsquery('simple', :search_term)"
+    ).bindparams(search_term=tokens)
 
-    query = (
-        _with_relations(db.query(Article), attachments=False)
-        .filter(search_condition.params(search_term=tokens))
-    )
+    query = _with_relations(db.query(Article), attachments=False).filter(search_condition)
 
     # 应用发布状态过滤
     if published_only:
         query = query.filter(Article.is_published == True)  # noqa: E712
 
-    # 添加相关性排序
-    rank_expression = text("ts_rank(search_vector, plainto_tsquery('simple', :search_term)) DESC")
-    query = query.order_by(rank_expression.params(search_term=tokens))
-
-    # 应用分页
+    query = query.order_by(Article.view_count.desc(), Article.created_at.desc())
     query = query.offset(skip).limit(limit)
 
     return query.all()

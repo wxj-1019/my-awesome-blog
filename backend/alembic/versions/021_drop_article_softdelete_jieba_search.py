@@ -43,9 +43,16 @@ def _refill_search_vector() -> None:
 
 
 def upgrade() -> None:
-    # 全文搜索：移除英文 tsvector 自动触发器，改为应用层 jieba 分词
+    # 全文搜索：移除英文 tsvector 自动触发器，改为应用层 jieba 分词。
+    # 生产库实际未执行过 006（列/触发器/GIN 均缺失，版本号被 stamp 到位），
+    # 故此处全部用 IF EXISTS / IF NOT EXISTS 补齐列与索引。
     op.execute("DROP TRIGGER IF EXISTS trig_articles_search_vector_update ON articles;")
     op.execute("DROP FUNCTION IF EXISTS articles_search_vector_update();")
+    op.execute("ALTER TABLE articles ADD COLUMN IF NOT EXISTS search_vector tsvector;")
+    op.execute(
+        "CREATE INDEX IF NOT EXISTS ix_articles_search_vector "
+        "ON articles USING GIN (search_vector);"
+    )
     _refill_search_vector()
 
     # 软删除：文章删除语义为硬删，移除列与索引（迁移 017 创建）
