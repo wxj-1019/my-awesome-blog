@@ -1,9 +1,9 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, ForeignKey, BigInteger, Index
-from sqlalchemy.sql import func
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, ForeignKey, BigInteger, Index, func, select
+from sqlalchemy.orm import column_property, relationship
 import uuid
 from app.core.database import Base
 from app.core.types import UUIDType
+from app.models.comment import Comment
 
 
 class Article(Base):
@@ -18,6 +18,16 @@ class Article(Base):
     )
 
     id = Column(UUIDType, primary_key=True, index=True, default=uuid.uuid4)
+    # 真实评论计数（排除软删除评论）：相关子查询走 ix_comments_article_id 索引，
+    # 替代 schema 中恒为 0 的幽灵字段；序列化 ArticleWithAuthor 时自动带出。
+    # correlate_except(Comment)：子查询自身 FROM comments，绝不能被相关掉——
+    # 否则以 comments 为主表的查询会因 FROM 全部被相关而报 auto-correlation 错误
+    comments_count = column_property(
+        select(func.count(1))
+        .where(Comment.article_id == id, Comment.is_deleted == False)  # noqa: E712
+        .correlate_except(Comment)
+        .scalar_subquery()
+    )
     title = Column(String(200), nullable=False, index=True)  # 添加索引以加快搜索
     slug = Column(String(200), unique=True, index=True, nullable=False)
     content = Column(Text, nullable=False)
