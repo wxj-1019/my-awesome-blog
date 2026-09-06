@@ -1,21 +1,88 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 from uuid import UUID
-from sqlalchemy.orm import Session
-from sqlalchemy import or_, and_, func
+from sqlalchemy import and_, distinct, func, or_, select, text
+from sqlalchemy.orm import Session, joinedload
+
 from app.models.article import Article
 from app.schemas.article import ArticleCreate, ArticleUpdate, ArticleWithAuthor
-from app.services.cache_service import cache_service, cache_get_or_set
+from app.services.cache_service import cache_service
 from app.utils.pagination import CursorPaginationParams, CursorPaginationResult
 from app.utils.cache_keys import CacheKeys, CacheTTL
-from sqlalchemy import text
+from app.utils.logger import app_logger
 
 
-def get_article(db: Session, article_id: UUID, include_deleted: bool = False) -> Optional[Article]:
-    query = db.query(Article).filter(Article.id == article_id)
-    if not include_deleted:
-        query = query.filter(Article.is_deleted == False)
-    return query.first()
+# ---------------------------------------------------------------------------
+# 统一查询构件：此前 joinedload 组合重复 13 处、搜索过滤 4 处、分类/标签过滤
+# 3 处，全部收敛到以下 helper，任何新查询不得再手写 joinedload 组合。
+# ---------------------------------------------------------------------------
+
+def _with_relations(query, *, attachments: bool = True):
+    """预加载 author/categories/tags（可选 attachments），序列化 ArticleWithAuthor 时防 N+1"""
+    opts = [
+        joinedload(Article.author),
+        joinedload(Article.categories),
+        joinedload(Article.tags),
+    ]
+    if attachments:
+        opts.append(joinedload(Article.attachments))
+    return query.options(*opts)
+
+
+def _filter_by_category(query, category_ids: list[UUID]):
+    """按分类过滤：半连接（id IN 子查询），避免 join 关联表造成行膨胀"""
+    from app.models.article_category import ArticleCategory
+    subq = select(ArticleCategory.article_id).where(ArticleCategory.category_id.in_(category_ids))
+    return query.filter(Article.id.in_(subq))
+
+
+def _filter_by_tag(query, tag_ids: list[UUID]):
+    from app.models.article_tag import ArticleTag
+    subq = select(ArticleTag.article_id).where(ArticleTag.tag_id.in_(tag_ids))
+    return query.filter(Article.id.in_(subq))
+
+
+def _apply_filters(
+    query,
+    *,
+    published_only: bool = False,
+    author_ids: Optional[list[UUID]] = None,
+    search: Optional[str] = None,
+    category_ids: Optional[list[UUID]] = None,
+    tag_ids: Optional[list[UUID]] = None,
+):
+    """列表类查询的统一过滤入口（搜索/作者/发布/分类/标签）"""
+    if published_only:
+        query = query.filter(Article.is_published == True)  # noqa: E712
+    if author_ids:
+        query = query.filter(Article.author_id.in_(author_ids))
+    if search:
+        pattern = f"%{search.strip()}%"
+        query = query.filter(or_(
+            Article.title.ilike(pattern),
+            Article.content.ilike(pattern),
+            Article.excerpt.ilike(pattern),
+        ))
+    if category_ids:
+        query = _filter_by_category(query, category_ids)
+    if tag_ids:
+        query = _filter_by_tag(query, tag_ids)
+    return query
+
+
+def _as_uuid_list(value) -> Optional[list[UUID]]:
+    """单值/列表统一转 UUID 列表，None 原样返回"""
+    if value is None:
+        return None
+    return value if isinstance(value, (list, tuple)) else [value]
+
+
+# ---------------------------------------------------------------------------
+# 详情查询
+# ---------------------------------------------------------------------------
+
+def get_article(db: Session, article_id: UUID) -> Optional[Article]:
+    return db.query(Article).filter(Article.id == article_id).first()
 
 
 def _article_to_cache(article: Article) -> dict:
@@ -43,16 +110,7 @@ async def get_article_async(db: Session, article_id: UUID) -> Optional[Article]:
             return None
         return _article_from_cache(cached_article)
 
-    from sqlalchemy.orm import joinedload
-    article = (
-        db.query(Article)
-        .options(joinedload(Article.author))
-        .options(joinedload(Article.categories))
-        .options(joinedload(Article.tags))
-        .options(joinedload(Article.attachments))
-        .filter(Article.id == article_id)
-        .first()
-    )
+    article = _with_relations(db.query(Article)).filter(Article.id == article_id).first()
 
     if article:
         # 缓存真实数据（序列化为 dict，不缓存 ORM 实例）
@@ -64,34 +122,12 @@ async def get_article_async(db: Session, article_id: UUID) -> Optional[Article]:
     return article
 
 
-def get_article_with_relationships(db: Session, article_id: UUID) -> Optional[Article]:
-    from sqlalchemy.orm import joinedload
-    return (
-        db.query(Article)
-        .options(joinedload(Article.author))
-        .options(joinedload(Article.categories))
-        .options(joinedload(Article.tags))
-        .options(joinedload(Article.attachments))
-        .filter(Article.id == article_id)
-        .first()
-    )
-
-
 def get_article_by_slug(db: Session, slug: str) -> Optional[Article]:
     return db.query(Article).filter(Article.slug == slug).first()
 
 
 def get_article_by_slug_with_relationships(db: Session, slug: str) -> Optional[Article]:
-    from sqlalchemy.orm import joinedload
-    return (
-        db.query(Article)
-        .options(joinedload(Article.author))
-        .options(joinedload(Article.categories))
-        .options(joinedload(Article.tags))
-        .options(joinedload(Article.attachments))
-        .filter(Article.slug == slug)
-        .first()
-    )
+    return _with_relations(db.query(Article)).filter(Article.slug == slug).first()
 
 
 async def get_article_by_slug_with_relationships_async(db: Session, slug: str) -> Optional[Article]:
@@ -105,16 +141,7 @@ async def get_article_by_slug_with_relationships_async(db: Session, slug: str) -
             return None
         return _article_from_cache(cached_article)
 
-    from sqlalchemy.orm import joinedload
-    article = (
-        db.query(Article)
-        .options(joinedload(Article.author))
-        .options(joinedload(Article.categories))
-        .options(joinedload(Article.tags))
-        .options(joinedload(Article.attachments))
-        .filter(Article.slug == slug)
-        .first()
-    )
+    article = _with_relations(db.query(Article)).filter(Article.slug == slug).first()
 
     if article:
         await cache_service.set(cache_key, _article_to_cache(article), expire=CacheTTL.ARTICLE)
@@ -125,70 +152,9 @@ async def get_article_by_slug_with_relationships_async(db: Session, slug: str) -
     return article
 
 
-def get_articles(
-    db: Session,
-    skip: int = 0,
-    limit: int = 100,
-    published_only: bool = True,
-    author_id: Optional[UUID] = None,
-    search: Optional[str] = None,
-    order_by_views: bool = False,
-    category_id: Optional[UUID] = None,
-    tag_id: Optional[UUID] = None,
-    with_relationships: bool = True,  # 默认预加载关联数据，防止 N+1 查询
-):
-    """
-    获取文章列表
-    
-    Args:
-        with_relationships: 是否预加载关联数据（作者、分类、标签），
-                           默认为 True 以防止 N+1 查询问题
-    """
-    from sqlalchemy.orm import joinedload
-    
-    # 使用 joinedload 预加载关联数据，避免 N+1 查询
-    if with_relationships:
-        query = db.query(Article).options(
-            joinedload(Article.author),
-            joinedload(Article.categories),
-            joinedload(Article.tags),
-            joinedload(Article.attachments)
-        )
-    else:
-        query = db.query(Article)
-    
-    if published_only:
-        query = query.filter(Article.is_published == True)
-    
-    if author_id is not None:
-        query = query.filter(Article.author_id == author_id)
-    
-    if search:
-        search_filter = or_(
-            Article.title.ilike(f"%{search}%"),
-            Article.content.ilike(f"%{search}%"),
-            Article.excerpt.ilike(f"%{search}%"),
-        )
-        query = query.filter(search_filter)
-    
-    # Filter by category if provided
-    if category_id is not None:
-        from app.models.article_category import ArticleCategory
-        query = query.join(ArticleCategory).filter(ArticleCategory.category_id == category_id)
-    
-    # Filter by tag if provided
-    if tag_id is not None:
-        from app.models.article_tag import ArticleTag
-        query = query.join(ArticleTag).filter(ArticleTag.tag_id == tag_id)
-    
-    # Order by views or by creation date
-    if order_by_views:
-        query = query.order_by(Article.view_count.desc(), Article.created_at.desc())
-    else:
-        query = query.order_by(Article.created_at.desc())
-    
-    return query.offset(skip).limit(limit).all()
-
+# ---------------------------------------------------------------------------
+# 写操作
+# ---------------------------------------------------------------------------
 
 def create_article(db: Session, article: ArticleCreate, author_id: UUID) -> Article:
     from app.models.tag import Tag
@@ -198,7 +164,7 @@ def create_article(db: Session, article: ArticleCreate, author_id: UUID) -> Arti
     from app.models.article_attachment import ArticleAttachment
 
     db_article = Article(
-        **article.model_dump(exclude={'tags', 'category_id', 'attachments'}),
+        **article.model_dump(exclude={'tags', 'category_id', 'category_ids', 'attachments'}),
         author_id=author_id,
     )
 
@@ -209,16 +175,18 @@ def create_article(db: Session, article: ArticleCreate, author_id: UUID) -> Arti
     db.add(db_article)
     db.flush()  # Get the ID without committing
 
-    # Associate category
-    if article.category_id:
-        category = db.query(Category).filter(Category.id == article.category_id).first()
+    # Associate categories：优先 category_ids（多选），兼容旧单值字段 category_id
+    category_id_list: list = list(article.category_ids or [])
+    if article.category_id and article.category_id not in category_id_list:
+        category_id_list.append(article.category_id)
+    for idx, cid in enumerate(category_id_list):
+        category = db.query(Category).filter(Category.id == cid).first()
         if category:
-            article_category = ArticleCategory(
+            db.add(ArticleCategory(
                 article_id=db_article.id,
                 category_id=category.id,
-                is_primary=True
-            )
-            db.add(article_category)
+                is_primary=(idx == 0),
+            ))
 
     # Associate tags
     if article.tags:
@@ -244,6 +212,7 @@ def create_article(db: Session, article: ArticleCreate, author_id: UUID) -> Arti
 
     db.commit()
     db.refresh(db_article)
+    _refresh_search_vector(db, db_article.id, db_article.title, db_article.excerpt, db_article.content)  # type: ignore
     return db_article
 
 
@@ -287,11 +256,35 @@ async def update_article(db: Session, article_id: UUID, article_update: ArticleU
                 sort_order=att.sort_order,
             ))
 
+    # 分类/标签全量替换（编辑语义与 attachments 一致：先删旧再建新）
+    if "category_ids" in update_data:
+        from app.models.article_category import ArticleCategory
+        new_category_ids = update_data.pop("category_ids") or []
+        db.query(ArticleCategory).filter(
+            ArticleCategory.article_id == db_article.id
+        ).delete()
+        for idx, cid in enumerate(new_category_ids):
+            db.add(ArticleCategory(
+                article_id=db_article.id,
+                category_id=cid,
+                is_primary=(idx == 0),
+            ))
+
+    if "tag_ids" in update_data:
+        from app.models.article_tag import ArticleTag
+        new_tag_ids = update_data.pop("tag_ids") or []
+        db.query(ArticleTag).filter(
+            ArticleTag.article_id == db_article.id
+        ).delete()
+        for tid in new_tag_ids:
+            db.add(ArticleTag(article_id=db_article.id, tag_id=tid))
+
     for field, value in update_data.items():
         setattr(db_article, field, value)
 
     db.commit()
     db.refresh(db_article)
+    _refresh_search_vector(db, db_article.id, db_article.title, db_article.excerpt, db_article.content)  # type: ignore
 
     # 使用统一的缓存键更新缓存（序列化为 dict，不缓存 ORM 实例）
     cache_key = CacheKeys.article(article_id)
@@ -325,17 +318,7 @@ async def delete_article(db: Session, article_id: UUID) -> bool:
 
 
 async def increment_view_count(db: Session, article_id: UUID) -> Optional[Article]:
-    from sqlalchemy.orm import joinedload
-
-    db_article = (
-        db.query(Article)
-        .options(joinedload(Article.author))
-        .options(joinedload(Article.categories))
-        .options(joinedload(Article.tags))
-        .options(joinedload(Article.attachments))
-        .filter(Article.id == article_id)
-        .first()
-    )
+    db_article = _with_relations(db.query(Article)).filter(Article.id == article_id).first()
     if not db_article:
         return None
 
@@ -345,15 +328,7 @@ async def increment_view_count(db: Session, article_id: UUID) -> Optional[Articl
     db.commit()
 
     # 重新加载文章以返回最新数据
-    db_article = (
-        db.query(Article)
-        .options(joinedload(Article.author))
-        .options(joinedload(Article.categories))
-        .options(joinedload(Article.tags))
-        .options(joinedload(Article.attachments))
-        .filter(Article.id == article_id)
-        .first()
-    )
+    db_article = _with_relations(db.query(Article)).filter(Article.id == article_id).first()
 
     # 使用统一的缓存键更新缓存（序列化为 dict，不缓存 ORM 实例）
     if db_article:
@@ -363,18 +338,48 @@ async def increment_view_count(db: Session, article_id: UUID) -> Optional[Articl
     return db_article
 
 
+# ---------------------------------------------------------------------------
+# 列表查询
+# ---------------------------------------------------------------------------
+
+def get_articles(
+    db: Session,
+    skip: int = 0,
+    limit: int = 100,
+    published_only: bool = True,
+    author_id: Optional[UUID] = None,
+    search: Optional[str] = None,
+    order_by_views: bool = False,
+    category_id: Optional[UUID] = None,
+    tag_id: Optional[UUID] = None,
+    with_relationships: bool = True,  # 默认预加载关联数据，防止 N+1 查询
+):
+    """获取文章列表（get_articles_with_categories_and_tags 已并入此函数）"""
+    query = db.query(Article) if not with_relationships else _with_relations(db.query(Article))
+
+    query = _apply_filters(
+        query,
+        published_only=published_only,
+        author_ids=_as_uuid_list(author_id),
+        search=search,
+        category_ids=_as_uuid_list(category_id),
+        tag_ids=_as_uuid_list(tag_id),
+    )
+
+    # Order by views or by creation date
+    if order_by_views:
+        query = query.order_by(Article.view_count.desc(), Article.created_at.desc())
+    else:
+        query = query.order_by(Article.created_at.desc())
+
+    return query.offset(skip).limit(limit).all()
+
+
 def get_featured_articles(db: Session, limit: int = 10):
     """Get featured articles based on view count and publication date"""
-    from sqlalchemy.orm import joinedload
-
-    # 预加载作者/分类/标签/附件，避免 ArticleWithAuthor 序列化时 N+1
     return (
-        db.query(Article)
-        .options(joinedload(Article.author))
-        .options(joinedload(Article.categories))
-        .options(joinedload(Article.tags))
-        .options(joinedload(Article.attachments))
-        .filter(Article.is_published == True)
+        _with_relations(db.query(Article))
+        .filter(Article.is_published == True)  # noqa: E712
         .order_by(Article.view_count.desc(), Article.created_at.desc())
         .limit(limit)
         .all()
@@ -383,11 +388,9 @@ def get_featured_articles(db: Session, limit: int = 10):
 
 def get_related_articles(db: Session, article_id: UUID, limit: int = 5):
     """Get articles related to a specific article based on category or tags"""
-    from sqlalchemy.orm import joinedload
     from app.models.article_category import ArticleCategory
-    from app.models.article_tag import ArticleTag
-    
-    # Get the original article (预加载关联数据)
+
+    # Get the original article（仅关联表映射，避免加载全量集合）
     original_article = (
         db.query(Article)
         .options(joinedload(Article.article_categories))
@@ -396,125 +399,36 @@ def get_related_articles(db: Session, article_id: UUID, limit: int = 5):
     )
     if not original_article:
         return []
-    
-    # Find articles in the same category (预加载作者信息)
-    related_by_category = []
-    if original_article.article_categories and len(original_article.article_categories) > 0:
+
+    related: list[Article] = []
+    if original_article.article_categories:
         category_id = original_article.article_categories[0].category_id
-        related_by_category = (
-            db.query(Article)
-            .options(joinedload(Article.author))  # 预加载作者，避免 N+1
-            .options(joinedload(Article.categories))
-            .options(joinedload(Article.tags))
-            .options(joinedload(Article.attachments))
-            .join(ArticleCategory)
-            .filter(
-                Article.id != article_id,
-                Article.is_published == True,
-                ArticleCategory.category_id == category_id
+        related = (
+            _apply_filters(
+                _with_relations(db.query(Article)),
+                published_only=True,
+                category_ids=[category_id],
             )
+            .filter(Article.id != article_id)
             .order_by(Article.view_count.desc())
             .limit(limit)
             .all()
         )
-    
+
     # If we don't have enough articles from the same category, get popular articles
-    if len(related_by_category) < limit:
-        remaining = limit - len(related_by_category)
-        existing_ids = [a.id for a in related_by_category]
-        existing_ids.append(article_id)
-        
+    if len(related) < limit:
+        remaining = limit - len(related)
+        existing_ids = [a.id for a in related] + [article_id]
         popular_articles = (
-            db.query(Article)
-            .options(joinedload(Article.author))  # 预加载作者，避免 N+1
-            .options(joinedload(Article.categories))
-            .options(joinedload(Article.tags))
-            .options(joinedload(Article.attachments))
-            .filter(
-                Article.is_published == True,
-                ~Article.id.in_(existing_ids)
-            )
+            _apply_filters(_with_relations(db.query(Article)), published_only=True)
+            .filter(~Article.id.in_(existing_ids))
             .order_by(Article.view_count.desc(), Article.created_at.desc())
             .limit(remaining)
             .all()
         )
-        related_by_category.extend(popular_articles)
-    
-    return related_by_category
+        related.extend(popular_articles)
 
-
-def get_articles_with_categories_and_tags(db: Session, skip: int = 0, limit: int = 100, published_only: bool = True, category_id: UUID = None, tag_id: UUID = None, author_id: UUID = None, search: str = None):
-    """Get articles with optimized query including joined relationships for categories and tags"""
-    from sqlalchemy.orm import joinedload
-    from app.models.article_category import ArticleCategory
-    from app.models.article_tag import ArticleTag
-    from app.models.category import Category
-    from app.models.tag import Tag
-    from sqlalchemy import or_
-
-    query = db.query(Article).options(
-        joinedload(Article.author),
-        joinedload(Article.categories),
-        joinedload(Article.tags)
-    )
-
-    if published_only:
-        query = query.filter(Article.is_published == True)
-
-    if author_id is not None:
-        query = query.filter(Article.author_id == author_id)
-
-    if category_id is not None:
-        query = query.join(ArticleCategory).filter(ArticleCategory.category_id == category_id)
-
-    if tag_id is not None:
-        query = query.join(ArticleTag).filter(ArticleTag.tag_id == tag_id)
-
-    if search:
-        search_filter = or_(
-            Article.title.ilike(f"%{search}%"),
-            Article.content.ilike(f"%{search}%"),
-            Article.excerpt.ilike(f"%{search}%"),
-        )
-        query = query.filter(search_filter)
-
-    return query.offset(skip).limit(limit).all()
-
-
-def get_popular_articles(db: Session, limit: int = 5, days: int = 30):
-    """
-    获取热门文章（基于浏览量和评论数）
-    """
-    from sqlalchemy import func, and_
-    from sqlalchemy.orm import joinedload
-    from datetime import datetime, timedelta
-    from app.models.comment import Comment
-
-    # 计算日期范围
-    since_date = datetime.now(timezone.utc) - timedelta(days=days)
-
-    # 查询热门文章（考虑浏览量和评论数）
-    # 使用 joinedload 预加载作者/分类/标签，避免序列化时 N+1 查询
-    popular_articles = (
-        db.query(Article)
-        .options(
-            joinedload(Article.author),  # 预加载作者
-            joinedload(Article.categories),  # 预加载分类
-            joinedload(Article.tags),  # 预加载标签
-        )
-        .join(Comment, Comment.article_id == Article.id, isouter=True)  # 左连接评论表
-        .filter(and_(Article.is_published == True, Article.published_at >= since_date))
-        .group_by(Article.id)  # 按文章分组
-        .order_by(
-            Article.view_count.desc(),  # 首先按浏览量降序
-            func.count(Comment.id).desc(),  # 然后按评论数降序
-            Article.published_at.desc()  # 最后按发布时间降序
-        )
-        .limit(limit)
-        .all()
-    )
-
-    return popular_articles
+    return related
 
 
 async def get_articles_with_cursor_pagination(
@@ -530,41 +444,16 @@ async def get_articles_with_cursor_pagination(
     使用游标分页获取文章（按 created_at 降序、id 降序）
     """
     from sqlalchemy import desc
-    from sqlalchemy.orm import joinedload
     from app.utils.pagination import encode_cursor, decode_cursor
 
-
-    # 构建基础查询
-    query = db.query(Article).options(
-        joinedload(Article.author),
-        joinedload(Article.categories),
-        joinedload(Article.tags)
+    query = _apply_filters(
+        _with_relations(db.query(Article), attachments=False),
+        published_only=published_only,
+        author_ids=_as_uuid_list(author_id),
+        search=search,
+        category_ids=_as_uuid_list(category_id),
+        tag_ids=_as_uuid_list(tag_id),
     )
-
-    # 应用过滤条件
-    if published_only:
-        query = query.filter(Article.is_published == True)
-
-    if author_id is not None:
-        query = query.filter(Article.author_id == author_id)
-
-    if search:
-        search_filter = or_(
-            Article.title.ilike(f"%{search}%"),
-            Article.content.ilike(f"%{search}%"),
-            Article.excerpt.ilike(f"%{search}%"),
-        )
-        query = query.filter(search_filter)
-
-    # Filter by category if provided
-    if category_id is not None:
-        from app.models.article_category import ArticleCategory
-        query = query.join(ArticleCategory).filter(ArticleCategory.category_id == category_id)
-
-    # Filter by tag if provided
-    if tag_id is not None:
-        from app.models.article_tag import ArticleTag
-        query = query.join(ArticleTag).filter(ArticleTag.tag_id == tag_id)
 
     # 应用游标条件（必须在 limit 之前）
     if cursor_params.cursor:
@@ -573,7 +462,6 @@ async def get_articles_with_cursor_pagination(
         id_val = cursor_data.get("id")
         if created_at_val and id_val:
             from app.core.config import settings
-            from sqlalchemy import func
 
             created_at_dt = datetime.fromisoformat(created_at_val.replace("Z", "+00:00"))
             cursor_id = str(UUID(id_val))
@@ -618,6 +506,123 @@ async def get_articles_with_cursor_pagination(
     return CursorPaginationResult(items=results, next_cursor=next_cursor, has_more=has_more)
 
 
+# ---------------------------------------------------------------------------
+# 搜索 / 热门（原 utils/db_utils.py 的文章查询已迁入，db_utils 不再承载文章逻辑）
+# ---------------------------------------------------------------------------
+
+def get_articles_by_multiple_filters(
+    db: Session,
+    author_ids: Optional[list[str]] = None,
+    category_ids: Optional[list[str]] = None,
+    tag_ids: Optional[list[str]] = None,
+    search: Optional[str] = None,
+    published_only: bool = True,
+    limit: int = 100,
+    offset: int = 0,
+):
+    """使用多个过滤条件高效查询文章（供列表分页信封的 items 使用）"""
+    query = _apply_filters(
+        _with_relations(db.query(Article)),
+        published_only=published_only,
+        author_ids=[UUID(i) for i in author_ids] if author_ids else None,
+        search=search,
+        category_ids=[UUID(i) for i in category_ids] if category_ids else None,
+        tag_ids=[UUID(i) for i in tag_ids] if tag_ids else None,
+    )
+    return (
+        query.order_by(Article.created_at.desc())
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
+
+
+def count_articles_by_multiple_filters(
+    db: Session,
+    author_ids: Optional[list[str]] = None,
+    category_ids: Optional[list[str]] = None,
+    tag_ids: Optional[list[str]] = None,
+    search: Optional[str] = None,
+    published_only: bool = True,
+) -> int:
+    """统计符合同一组过滤条件的文章总数（供分页信封的 total 使用）。
+
+    计数查询不套 joinedload —— 预加载对 COUNT 无意义，只会拖慢。
+    """
+    query = _apply_filters(
+        db.query(func.count(distinct(Article.id))) if (category_ids or tag_ids)
+        else db.query(func.count(Article.id)),
+        published_only=published_only,
+        author_ids=[UUID(i) for i in author_ids] if author_ids else None,
+        search=search,
+        category_ids=[UUID(i) for i in category_ids] if category_ids else None,
+        tag_ids=[UUID(i) for i in tag_ids] if tag_ids else None,
+    )
+    return query.scalar() or 0
+
+
+def get_popular_articles_optimized(db: Session, limit: int = 5, days: int = 30):
+    """
+    优化的热门文章查询（评论数 + 浏览量排序），使用预加载关系避免 N+1。
+    days 参数保留兼容既有签名，当前排序不限制发布时间窗口。
+    """
+    from sqlalchemy import select
+    from app.models.comment import Comment
+
+    try:
+        # 先用原生 SQL 取排序后的 id 列表，再一次性取 ORM 实体并按序返回
+        query = text("""
+            SELECT
+                a.id,
+                COUNT(c.id) as comment_count
+            FROM articles a
+            LEFT JOIN comments c ON a.id = c.article_id
+            WHERE a.is_published = true
+            GROUP BY a.id
+            ORDER BY a.view_count DESC, COUNT(c.id) DESC, a.published_at DESC
+            LIMIT :limit
+        """)
+        result = db.execute(query, {"limit": limit})
+        article_ids = [row.id for row in result]
+
+        if not article_ids:
+            return []
+
+        articles = _with_relations(db.query(Article)).filter(Article.id.in_(article_ids)).all()
+        articles_dict = {article.id: article for article in articles}
+        return [articles_dict[aid] for aid in article_ids if aid in articles_dict]
+    except Exception as e:
+        app_logger.error(f"获取热门文章失败: {e}", exc_info=True)
+        return []
+
+
+def _tokenize_for_search(raw: str) -> str:
+    """jieba 搜索粒度分词，空格连接——配合 PG plainto_tsquery('simple', ...) 使用。
+
+    'english' 配置对中文内容无效（无分词器），改为应用层分词后以 simple 配置匹配。
+    """
+    import jieba
+
+    return " ".join(t.strip() for t in jieba.cut_for_search(raw) if t.strip())
+
+
+def _refresh_search_vector(db: Session, article_id: UUID, title: str, excerpt: Optional[str], content: Optional[str]) -> None:
+    """写入侧维护 search_vector（触发器已随迁移 021 移除）。仅 PostgreSQL 生效。
+
+    SQLite 测试库无 tsvector，直接跳过——全文搜索用例本就标记 PG-only。
+    """
+    if db.bind is None or db.bind.dialect.name != "postgresql":
+        return
+    tokens = _tokenize_for_search(" ".join(p for p in (title, excerpt, content) if p))
+    if not tokens:
+        return
+    db.execute(
+        text("UPDATE articles SET search_vector = to_tsvector('simple', :tok) WHERE id = :id"),
+        {"tok": tokens, "id": article_id},
+    )
+    db.commit()
+
+
 def search_articles_fulltext(
     db: Session,
     search_query: str,
@@ -626,34 +631,29 @@ def search_articles_fulltext(
     limit: int = 100,
 ) -> list[Article]:
     """
-    使用PostgreSQL全文搜索功能搜索文章
+    中文分词全文搜索：查询串经 jieba 分词后与 search_vector（写入侧同为
+    jieba 分词的 simple tsvector，见迁移 021）做匹配，按 ts_rank 相关性排序。
     """
-    # 构建全文搜索查询
-    search_condition = text(
-        "search_vector @@ plainto_tsquery('english', :search_term)"
+    tokens = _tokenize_for_search(search_query)
+    if not tokens:
+        return []
+
+    search_condition = text("search_vector @@ plainto_tsquery('simple', :search_term)")
+
+    query = (
+        _with_relations(db.query(Article), attachments=False)
+        .filter(search_condition.params(search_term=tokens))
     )
 
-    from sqlalchemy.orm import joinedload
-    # 预加载关联数据，避免 ArticleWithAuthor 序列化时 N+1
-    query = (
-        db.query(Article)
-        .options(joinedload(Article.author))
-        .options(joinedload(Article.categories))
-        .options(joinedload(Article.tags))
-        .filter(search_condition.params(search_term=search_query))
-    )
-    
     # 应用发布状态过滤
     if published_only:
-        query = query.filter(Article.is_published == True)
-    
+        query = query.filter(Article.is_published == True)  # noqa: E712
+
     # 添加相关性排序
-    rank_expression = text(
-        "ts_rank(search_vector, plainto_tsquery('english', :search_term)) DESC"
-    )
-    query = query.order_by(rank_expression.params(search_term=search_query))
-    
+    rank_expression = text("ts_rank(search_vector, plainto_tsquery('simple', :search_term)) DESC")
+    query = query.order_by(rank_expression.params(search_term=tokens))
+
     # 应用分页
     query = query.offset(skip).limit(limit)
-    
+
     return query.all()

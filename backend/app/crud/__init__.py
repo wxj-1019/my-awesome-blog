@@ -7,13 +7,13 @@ from app.crud.user import (
 
 from app.crud.article import (
     get_article, get_article_async, get_article_by_slug, get_articles,
-    get_article_with_relationships,
     get_article_by_slug_with_relationships,
     get_article_by_slug_with_relationships_async,
     create_article, update_article, delete_article,
     increment_view_count, get_featured_articles, get_related_articles,
-    get_articles_with_categories_and_tags, get_popular_articles,
-    get_articles_with_cursor_pagination, search_articles_fulltext
+    get_articles_with_cursor_pagination, search_articles_fulltext,
+    get_articles_by_multiple_filters, count_articles_by_multiple_filters,
+    get_popular_articles_optimized,
 )
 
 from app.crud.comment import (
