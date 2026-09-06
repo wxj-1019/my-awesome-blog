@@ -35,6 +35,7 @@ export async function GET() {
       <guid>${baseUrl}/articles/${article.id}</guid>
       <pubDate>${new Date(article.published_at || article.created_at).toUTCString()}</pubDate>
       <description><![CDATA[${article.excerpt || article.content.substring(0, 200)}...]]></description>
+      <content:encoded><![CDATA[${article.content}]]></content:encoded>
       <author>${article.author.email || article.author.username}</author>
     </item>`
       )

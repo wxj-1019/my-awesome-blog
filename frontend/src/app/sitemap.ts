@@ -2,6 +2,10 @@ import { MetadataRoute } from 'next';
 import { env } from '@/lib/env';
 import { getArticlesPaginated } from '@/services/articleService';
 
+// 每次请求动态生成：新文章发布后无需重新构建即可进入 sitemap
+export const dynamic = 'force-dynamic';
+
+
 /** sitemap 收录文章上限，避免构建超时；按页拉取（每页 ≤100） */
 const SITEMAP_MAX_ARTICLES = 2000;
 
