@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from app.api.v1.endpoints import (
-    auth, users, articles, comments, typewriter_contents,
+    auth, users, articles, articles_admin, comments, typewriter_contents,
     categories, tags, friend_links, portfolio, timeline_events,
     statistics, subscriptions, images, audit_logs, analytics, oss_upload,
     messages, albums, monitoring, llm, prompts, weather, conversations, memories,
@@ -12,6 +12,7 @@ api_router = APIRouter()
 api_router.include_router(auth.router, prefix="/auth", tags=["authentication"])
 api_router.include_router(users.router, prefix="/users", tags=["users"])
 api_router.include_router(articles.router, prefix="/articles", tags=["articles"])
+api_router.include_router(articles_admin.router, prefix="/articles", tags=["articles-admin"])
 api_router.include_router(comments.router, prefix="/comments", tags=["comments"])
 api_router.include_router(categories.router, prefix="/categories", tags=["categories"])
 api_router.include_router(tags.router, prefix="/tags", tags=["tags"])
