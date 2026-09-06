@@ -1,5 +1,6 @@
 import { cache } from 'react';
 import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import { getArticleById } from '@/services/articleService';
 import { env } from '@/lib/env';
 import ArticleDetailPageContent from './article-detail-content';
@@ -69,37 +70,37 @@ export async function generateMetadata({
 export default async function ArticleDetailPage({ params }: PageProps) {
   const id = await resolveId(params);
   const article = id ? await getCachedArticle(id) : null;
-  const jsonLd = article
-    ? {
-        '@context': 'https://schema.org',
-        '@type': 'BlogPosting',
-        headline: article.title,
-        description: article.excerpt || undefined,
-        image: article.cover_image || undefined,
-        datePublished: article.published_at,
-        dateModified: article.updated_at,
-        mainEntityOfPage: `${env.NEXT_PUBLIC_SITE_URL}/articles/${article.id}`,
-        author: {
-          '@type': 'Person',
-          name: article.author.username,
-        },
-        publisher: {
-          '@type': 'Organization',
-          name: 'My Awesome Blog',
-        },
-      }
-    : null;
+  // 不存在的文章（含已硬删除的）直接 404，不再渲染客户端组件二次查询
+  if (!article) {
+    notFound();
+  }
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: article.title,
+    description: article.excerpt || undefined,
+    image: article.cover_image || undefined,
+    datePublished: article.published_at,
+    dateModified: article.updated_at,
+    mainEntityOfPage: `${env.NEXT_PUBLIC_SITE_URL}/articles/${article.id}`,
+    author: {
+      '@type': 'Person',
+      name: article.author.username,
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'My Awesome Blog',
+    },
+  };
 
   return (
     <>
-      {jsonLd && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c'),
-          }}
-        />
-      )}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c'),
+        }}
+      />
       <ArticleDetailPageContent prefetchedArticle={article} />
     </>
   );

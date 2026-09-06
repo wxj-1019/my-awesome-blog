@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, Suspense, useCallback, useMemo } from 'react';
+import { useState, useEffect, useRef, Suspense, useCallback, useMemo } from 'react';
 import { getArticles, getCategories, getTags } from '@/services/articleService';
 import { useLoading } from '@/context/loading-context';
 import ArchiveDrawer from '@/components/articles/ArchiveDrawer';
@@ -20,6 +20,17 @@ import type { Route } from 'next';
 
 const ARTICLES_PER_PAGE = 12;
 
+/** RSC 预取的首屏数据（page.tsx 服务端按 URL 筛选参数拉取） */
+export interface PrefetchedArticlesData {
+  articles: Article[];
+  categories: Category[];
+  tags: Tag[];
+  hasMore: boolean;
+  category?: string | null;
+  tag?: string | null;
+  search?: string | null;
+}
+
 /** 将后端 Article 映射为统一 ArticleCard 的 props */
 function toCardProps(article: Article) {
   return {
@@ -38,20 +49,31 @@ function toCardProps(article: Article) {
   };
 }
 
-function ArticlesPageContent() {
-  const [articles, setArticles] = useState<Article[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [tags, setTags] = useState<Tag[]>([]);
-  const [loading, setLoading] = useState(true);
+function ArticlesPageContent({ prefetched }: { prefetched?: PrefetchedArticlesData }) {
+  const [articles, setArticles] = useState<Article[]>(prefetched?.articles ?? []);
+  const [categories, setCategories] = useState<Category[]>(prefetched?.categories ?? []);
+  const [tags, setTags] = useState<Tag[]>(prefetched?.tags ?? []);
+  const [loading, setLoading] = useState(!prefetched);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
+  const [hasMore, setHasMore] = useState(prefetched?.hasMore ?? true);
   const { showLoading, hideLoading } = useLoading();
-  const filters = useArticleFilters({ categories, tags });
+  const filters = useArticleFilters({
+    categories,
+    tags,
+    initial: prefetched && {
+      category: prefetched.category ?? null,
+      tag: prefetched.tag ?? null,
+      search: prefetched.search ?? null,
+    },
+  });
   const hotArticles = useMemo(() => getHotArticles(articles, 10), [articles]);
+
+  // 预取数据已覆盖首屏（含同筛选条件），跳过挂载后的首次客户端拉取
+  const skipInitialFetch = useRef(Boolean(prefetched));
 
   const fetchInitialData = useCallback(async () => {
     try {
@@ -88,6 +110,10 @@ function ArticlesPageContent() {
   }, [filters.selectedCategory, filters.selectedTag, filters.searchQuery, showLoading, hideLoading]);
 
   useEffect(() => {
+    if (skipInitialFetch.current) {
+      skipInitialFetch.current = false;
+      return;
+    }
     fetchInitialData();
   }, [fetchInitialData]);
 
@@ -273,10 +299,14 @@ function ArticlesPageContent() {
   );
 }
 
-export default function ArticlesPageClient() {
+export default function ArticlesPageClient({
+  prefetched,
+}: {
+  prefetched?: PrefetchedArticlesData;
+}) {
   return (
     <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-foreground">加载中...</div>}>
-      <ArticlesPageContent />
+      <ArticlesPageContent prefetched={prefetched} />
     </Suspense>
   );
 }
