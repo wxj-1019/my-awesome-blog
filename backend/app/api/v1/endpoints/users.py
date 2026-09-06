@@ -1,5 +1,5 @@
 from typing import Any, List
-from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile
+from fastapi import APIRouter, Query, Depends, HTTPException, status, File, UploadFile
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.dependencies import get_current_active_user, get_current_superuser
@@ -54,7 +54,7 @@ def get_admin_user(
 @router.get("/", response_model=List[User])
 def read_users(
     skip: int = 0,
-    limit: int = 100,
+    limit: int = Query(100, ge=1, le=100),
     db: Session = Depends(get_db),
     current_user: UserModel = Depends(get_current_superuser)  # 添加管理员权限要求
 ) -> Any:

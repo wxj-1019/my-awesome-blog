@@ -19,7 +19,7 @@ interface Tag {
   slug: string
   description: string
   color: string
-  articles_count?: number
+  article_count?: number
 }
 
 export default function TagsPage() {
@@ -203,13 +203,12 @@ export default function TagsPage() {
                         {tag.name}
                       </span>
                       <span className="text-sm text-foreground/50 px-2 py-0.5 bg-glass/20 rounded-full">
-                        {tag.articles_count || 0}
+                        {tag.article_count || 0}
                       </span>
                       
                       <motion.div 
                         className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
                         initial={false}
-                        animate={{ opacity: 0 }}
                         whileHover={{ opacity: 1 }}
                       >
                         <motion.button

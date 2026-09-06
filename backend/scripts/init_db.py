@@ -22,7 +22,9 @@ from app.core.database import Base
 from app.models.user import User
 from app.models.category import Category
 from app.models.tag import Tag
-from app.models.article import Article, ArticleCategory, ArticleTag
+from app.models.article import Article
+from app.models.article_category import ArticleCategory
+from app.models.article_tag import ArticleTag
 from app.core.security import get_password_hash
 from app.utils.logger import app_logger
 

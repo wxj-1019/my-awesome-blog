@@ -82,8 +82,20 @@ export const metadata: Metadata = {
   },
   alternates: {
     types: {
-      'application/rss+xml': `${env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/feed.xml`,
+      'application/rss+xml': '/feed.xml',
     },
+  },
+  openGraph: {
+    type: 'website',
+    siteName: '我的优秀博客',
+    title: '我的优秀博客 - 深海与电影',
+    description: '一个现代的企业级个人博客，分享 Web 开发、设计与技术内容。',
+    locale: 'zh_CN',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: '我的优秀博客',
+    description: '一个现代的企业级个人博客，分享 Web 开发、设计与技术内容。',
   },
 };
 

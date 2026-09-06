@@ -21,7 +21,7 @@ router = APIRouter()
 @router.get("/", response_model=List[MessageWithAuthor])
 def read_messages(
     skip: int = 0,
-    limit: int = 100,
+    limit: int = Query(100, ge=1, le=100),
     danmaku_only: bool = Query(False, description="Only return danmaku messages"),
     author_id: Optional[str] = Query(None, description="Filter by author ID"),
     db: Session = Depends(get_db)
@@ -156,7 +156,7 @@ def read_message_by_id(
 def read_message_replies(
     message_id: str,
     skip: int = 0,
-    limit: int = 100,
+    limit: int = Query(100, ge=1, le=100),
     db: Session = Depends(get_db)
 ) -> Any:
     """

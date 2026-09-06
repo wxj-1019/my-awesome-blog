@@ -37,7 +37,12 @@ def add_rate_limit_middleware(app: FastAPI):
     # 注册限速器
     app.state.limiter = limiter
     app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
-    
+
+    # SlowAPIMiddleware：让 default_limits（1000/hour/IP）对未加装饰器的路由也生效。
+    # 带路由级装饰器的端点仍按各自限制优先。测试环境 limiter.enabled=False 自动跳过。
+    from slowapi.middleware import SlowAPIMiddleware
+    app.add_middleware(SlowAPIMiddleware)
+
     # 添加自定义中间件来记录限速事件
     @app.middleware("http")
     async def rate_limit_middleware(request: Request, call_next):
@@ -45,9 +50,9 @@ def add_rate_limit_middleware(app: FastAPI):
         client_ip = get_remote_address(request)
         path = request.url.path
         method = request.method
-        
+
         app_logger.info(f"Rate limit check for IP: {client_ip}, Path: {path}, Method: {method}")
-        
+
         try:
             response = await call_next(request)
             return response

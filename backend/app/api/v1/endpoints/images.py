@@ -1,5 +1,5 @@
 from typing import Any, List
-from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile, Form
+from fastapi import APIRouter, Query, Depends, HTTPException, status, File, UploadFile, Form
 from sqlalchemy.orm import Session
 import os
 import uuid
@@ -20,7 +20,7 @@ router = APIRouter()
 @router.get("/", response_model=List[Image])
 def read_images(
     skip: int = 0,
-    limit: int = 100,
+    limit: int = Query(100, ge=1, le=100),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
 ) -> Any:

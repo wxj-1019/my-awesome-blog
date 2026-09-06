@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 from datetime import datetime, timedelta, timezone
 from app.core.database import get_db
-from app.core.dependencies import get_current_active_user
+from app.core.dependencies import get_current_active_user, get_current_superuser
 from app.schemas.statistics import WebsiteStatistics, ArticleStatistics, StatisticsResponse
 from app.services.statistics_service import StatisticsService
 from app.models.user import User
@@ -29,7 +29,7 @@ def get_general_statistics(
 @router.get("/articles", response_model=dict)
 def get_article_statistics(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
+    current_user: User = Depends(get_current_superuser)
 ) -> Any:
     """
     Get article-related statistics
