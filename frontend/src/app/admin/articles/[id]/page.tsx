@@ -1,4 +1,12 @@
 'use client';
+
+// TipTap 所见即所得编辑器：客户端专用，dynamic 关闭 SSR
+import dynamic from 'next/dynamic';
+
+const TiptapEditor = dynamic(
+  () => import('@/components/admin/article-editor/TiptapEditor'),
+  { ssr: false, loading: () => <div className="h-[420px] rounded-xl border border-border/50 bg-background/50 animate-pulse" /> }
+);
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { motion, AnimatePresence } from '@/lib/framer-motion';
@@ -34,7 +42,6 @@ import ArticleAIAssist from '@/components/admin/writing/ArticleAIAssist';
 import CoverPicker from '@/components/admin/CoverPicker';
 import type { WritingSession, WritingRevision } from '@/types/writing-session';
 import {
-  MarkdownToolbar,
   ArticlePreview,
   generateExcerpt,
   MIN_TITLE_LENGTH,
@@ -42,7 +49,6 @@ import {
   countWords,
   estimateReadingMinutes,
   type EditorMode,
-  type MarkdownTool,
 } from '@/components/admin/article-editor/shared';
 import {
   ArticleAttachmentsEditor,
@@ -78,7 +84,6 @@ export default function EditArticlePage() {
   const articleId = params.id as string;
   const { success, error, info } = useToast();
   const titleInputRef = useRef<HTMLInputElement>(null);
-  const contentTextareaRef = useRef<HTMLTextAreaElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isFetchingArticle, setIsFetchingArticle] = useState(true);
@@ -228,22 +233,6 @@ export default function EditArticlePage() {
       slug: prev.slug || generateSlug(title)
     }));
   };
-  const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const content = e.target.value;
-    setTouchedFields(prev => new Set(prev).add('content'));
-    setFormData(prev => ({
-      ...prev,
-      content
-    }));
-  };
-  const handleContentSelect = (e: React.SyntheticEvent<HTMLTextAreaElement>) => {
-    const t = e.currentTarget;
-    setEditorSelection({
-      text: t.value.slice(t.selectionStart, t.selectionEnd),
-      start: t.selectionStart,
-      end: t.selectionEnd,
-    });
-  };
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setTouchedFields(prev => new Set(prev).add(name));
@@ -334,47 +323,6 @@ export default function EditArticlePage() {
   }, [formData.content, generatingMeta, success, error]);
 
   useEffect(() => () => aiPolishRef.current?.(), []);
-  const insertMarkdown = (tool: MarkdownTool) => {
-    const textarea = contentTextareaRef.current;
-    if (!textarea) {return;}
-
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selected = formData.content.substring(start, end);
-
-    let text: string;
-    let selectStart: number | null = null;
-    let selectEnd: number | null = null;
-    if (selected && tool.link) {
-      // 选中文本作链接文字，光标选中 url 占位便于直接输入
-      text = `[${selected}](url)`;
-      selectStart = start + text.length - 4;
-      selectEnd = start + text.length - 1;
-    } else if (selected && tool.wrap) {
-      // 包裹/前缀选中文本（**粗体**、# 标题、> 引用…）
-      text = tool.wrapMode === 'around'
-        ? tool.wrap + selected + tool.wrap
-        : tool.wrap + selected;
-      selectStart = start + text.length;
-      selectEnd = start + text.length;
-    } else {
-      // 无选区：插入模板，光标落到 cursorOffset 指定位置
-      text = tool.insert;
-      const cursorPos = start + (tool.cursorOffset ?? tool.insert.length);
-      selectStart = cursorPos;
-      selectEnd = cursorPos;
-    }
-
-    const newContent = formData.content.substring(0, start) + text + formData.content.substring(end);
-    setFormData(prev => ({ ...prev, content: newContent }));
-
-    setTimeout(() => {
-      textarea.focus();
-      if (selectStart !== null && selectEnd !== null) {
-        textarea.setSelectionRange(selectStart, selectEnd);
-      }
-    }, 0);
-  };
   /**
    * 保存文章（统一入口）。silent=true 供自动保存：条件不满足静默跳过、
    * 长度不足不报错；silent=false 手动保存保留原有校验与 toast。
@@ -695,7 +643,6 @@ export default function EditArticlePage() {
                   </div>
                   
                   <div className="mb-2 flex items-center justify-between gap-2 flex-wrap">
-                    <MarkdownToolbar onInsert={insertMarkdown} />
                     {/* AI 工具组：润色全文 / 生成标题摘要 */}
                     <div className="flex items-center gap-1.5">
                       <button
@@ -722,29 +669,22 @@ export default function EditArticlePage() {
                   </div>
                   
                   <div className="relative">
-                    <textarea
-                      ref={contentTextareaRef}
-                      name="content"
-                      value={formData.content}
-                      onChange={handleContentChange}
-                      onSelect={handleContentSelect}
-                      disabled={polishing}
-                      placeholder="使用 Markdown 格式编写文章内容...
-支持的格式：
-# 标题
-**粗体** *斜体*
-- 无序列表
-1. 有序列表
-> 引用
-`代码`"
-                      rows={editorMode === 'split' ? 20 : 16}
-                      className={`w-full px-4 py-3 rounded-xl bg-background/50 border text-foreground placeholder:text-foreground/25 focus:outline-none focus:ring-2 transition-colors resize-none font-mono text-sm leading-relaxed disabled:opacity-60 disabled:cursor-not-allowed ${
-                        validationErrors.content
-                          ? 'border-destructive/50 focus:ring-destructive/20'
-                          : 'border-border/50 focus:ring-tech-cyan/20 focus:border-tech-cyan/50'
-                      }`}
-                      required
-                    />
+                    <div className="relative">
+                      <TiptapEditor
+                        content={formData.content}
+                        onChange={(md) => {
+                          setTouchedFields((prev) => new Set(prev).add('content'));
+                          setFormData((prev) => ({ ...prev, content: md }));
+                        }}
+                        onSelectionChange={setEditorSelection}
+                        disabled={polishing}
+                        invalid={Boolean(validationErrors.content)}
+                        minHeight={editorMode === 'split' ? 480 : 420}
+                      />
+                      <div className="absolute bottom-3 right-3 text-xs text-foreground/30 pointer-events-none">
+                        {stats.charCount} 字符
+                      </div>
+                    </div>
                     <div className="absolute bottom-3 right-3 text-xs text-foreground/30">
                       {stats.charCount} 字符
                     </div>
