@@ -4,6 +4,7 @@ import uuid
 from app.core.database import Base
 from app.core.types import UUIDType
 from app.models.comment import Comment
+from app.models.interactions import ArticleLike
 
 
 class Article(Base):
@@ -26,6 +27,13 @@ class Article(Base):
         select(func.count(1))
         .where(Comment.article_id == id, Comment.is_deleted == False)  # noqa: E712
         .correlate_except(Comment)
+        .scalar_subquery()
+    )
+    # 真实点赞计数（article_likes 唯一约束保证不重复），同 comments_count 模式
+    likes_count = column_property(
+        select(func.count(1))
+        .where(ArticleLike.article_id == id)
+        .correlate_except(ArticleLike)
         .scalar_subquery()
     )
     title = Column(String(200), nullable=False, index=True)  # 添加索引以加快搜索
