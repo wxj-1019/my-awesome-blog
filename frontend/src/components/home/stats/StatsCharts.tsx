@@ -250,7 +250,7 @@ export function StatsCharts({
                 <AnimatedNumber
                   key={statsKey}
                   value={monthlyViewsTotal}
-                  formatFn={(v) => `${(v / 1000).toFixed(1)}k`}
+                  formatFn={(v) => (v < 1000 ? String(v) : `${(v / 1000).toFixed(1)}k`)}
                 />
               </span>
             </StatsKpiCell>
