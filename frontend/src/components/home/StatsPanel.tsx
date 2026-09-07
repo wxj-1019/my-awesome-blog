@@ -23,7 +23,6 @@ import {
 import { friendLinkService } from '@/services/friendLinkService'
 import logger from '@/utils/logger'
 import type { Article as BackendArticle } from '@/types'
-import { StatsArticleList } from './stats/StatsArticleList'
 import type { StatsArticle } from './stats/types'
 
 // 经 charts-bundle 共享 recharts 依赖，避免与 ReadingStats 各复制一份图表库

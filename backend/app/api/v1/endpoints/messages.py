@@ -12,10 +12,22 @@ from app.models.user import User
 from app.utils.rate_limit import message_create_rate_limit
 from uuid import UUID
 from app.utils.common_helpers import parse_uuid
+from app.core.dependencies import get_current_superuser
 from app.utils.permission_helpers import check_edit_permission, check_delete_permission
 from app.utils.logger import app_logger
 
 router = APIRouter()
+
+
+@router.get("/count", response_model=dict)
+def count_messages(
+    danmaku_only: bool = Query(False, description="Only count danmaku messages"),
+    include_deleted: bool = Query(False, description="Include soft-deleted messages (admin only)"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_superuser),
+) -> Any:
+    """留言计数（管理端分页 total 使用）；include_deleted 仅超管可用"""
+    return {"total": crud.count_messages(db, danmaku_only=danmaku_only, include_deleted=include_deleted)}
 
 
 @router.get("/", response_model=List[MessageWithAuthor])
@@ -24,11 +36,19 @@ def read_messages(
     limit: int = Query(100, ge=1, le=100),
     danmaku_only: bool = Query(False, description="Only return danmaku messages"),
     author_id: Optional[str] = Query(None, description="Filter by author ID"),
-    db: Session = Depends(get_db)
+    include_deleted: bool = Query(False, description="Include soft-deleted messages (admin only)"),
+    db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(get_current_user_optional),
 ) -> Any:
     """
     Retrieve messages
     """
+    allow_deleted = include_deleted and current_user is not None and current_user.is_superuser
+    if include_deleted and not allow_deleted:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only administrators can view deleted messages"
+        )
     if author_id:
         author_uuid = UUID(author_id)
         messages = crud.get_messages_by_author(
@@ -44,7 +64,8 @@ def read_messages(
             skip=skip,
             limit=limit,
             danmaku_only=danmaku_only,
-            with_relationships=True
+            with_relationships=True,
+            include_deleted=allow_deleted
         )
     return messages
 

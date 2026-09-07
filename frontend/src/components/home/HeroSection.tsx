@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { preload } from 'react-dom';
 import { motion } from '@/lib/framer-motion';
 import TextType from './TextType';
 import { useTheme } from '../../context/theme-context';
@@ -37,6 +38,10 @@ export default function HeroSection() {
   const posterImage = isDark
     ? '/video/moonlit-poster.jpg'
     : '/video/fantasy-poster.jpg';
+  // LCP 优化：CSS 背景图默认低优先级且发现晚，主动 preload 提升首屏海报加载
+  useEffect(() => {
+    preload(posterImage, { as: 'image', fetchPriority: 'high' });
+  }, [posterImage]);
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [videoError, setVideoError] = useState(false);
   const [retryCount, setRetryCount] = useState(0);

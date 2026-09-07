@@ -349,12 +349,19 @@ export const adminApi = {
   },
   
   images: {
-    list: (params?: { skip?: number; limit?: number }) => {
+    list: (params?: { skip?: number; limit?: number; q?: string }) => {
       const searchParams = new URLSearchParams();
       if (params?.skip) {searchParams.set('skip', params.skip.toString());}
       if (params?.limit) {searchParams.set('limit', params.limit.toString());}
+      if (params?.q) {searchParams.set('q', params.q);}
       const query = searchParams.toString();
       return AdminApiClient.get(`/images/${query ? `?${query}` : ''}`);
+    },
+    count: (params?: { q?: string }) => {
+      const searchParams = new URLSearchParams();
+      if (params?.q) {searchParams.set('q', params.q);}
+      const query = searchParams.toString();
+      return AdminApiClient.get<{ total: number }>(`/images/count${query ? `?${query}` : ''}`);
     },
     get: (id: string) => AdminApiClient.get(`/images/${id}`),
     upload: (formData: FormData) => 
@@ -464,14 +471,22 @@ export const adminApi = {
   },
   
   messages: {
-    list: (params?: { skip?: number; limit?: number; danmaku_only?: boolean; author_id?: string }) => {
+    list: (params?: { skip?: number; limit?: number; danmaku_only?: boolean; author_id?: string; include_deleted?: boolean }) => {
       const searchParams = new URLSearchParams();
       if (params?.skip) {searchParams.set('skip', params.skip.toString());}
       if (params?.limit) {searchParams.set('limit', params.limit.toString());}
-      if (params?.danmaku_only !== undefined) {searchParams.set('danmaku_only', params.danmaku_only.toString());}
+      if (params?.danmaku_only) {searchParams.set('danmaku_only', params.danmaku_only.toString());}
       if (params?.author_id) {searchParams.set('author_id', params.author_id);}
+      if (params?.include_deleted) {searchParams.set('include_deleted', 'true');}
       const query = searchParams.toString();
       return AdminApiClient.get(`/messages/${query ? `?${query}` : ''}`);
+    },
+    count: (params?: { danmaku_only?: boolean; include_deleted?: boolean }) => {
+      const searchParams = new URLSearchParams();
+      if (params?.danmaku_only) {searchParams.set('danmaku_only', 'true');}
+      if (params?.include_deleted) {searchParams.set('include_deleted', 'true');}
+      const query = searchParams.toString();
+      return AdminApiClient.get<{ total: number }>(`/messages/count${query ? `?${query}` : ''}`);
     },
     get: (id: string) => AdminApiClient.get(`/messages/${id}`),
     create: (data: unknown) => AdminApiClient.post('/messages/', data),

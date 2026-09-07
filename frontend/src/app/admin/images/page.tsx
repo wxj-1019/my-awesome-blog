@@ -41,8 +41,10 @@ export default function ImagesPage() {
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [currentPage, setCurrentPage] = useState(1)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [total, setTotal] = useState(0)
   const [selectedImage, setSelectedImage] = useState<ImageItem | null>(null)
   const [copiedId, setCopiedId] = useState<string | null>(null)
@@ -63,29 +65,35 @@ export default function ImagesPage() {
   const fetchImages = useCallback(async () => {
     try {
       setLoading(true)
+      setLoadError(null)
       const skip = (currentPage - 1) * pageSize
-      
-      const data = await adminApi.images.list({
-        skip,
-        limit: pageSize
-      })
-      
-      let filteredImages = validateArrayData<ImageItem>(data)
-      
-      if (searchQuery) {
-        filteredImages = filteredImages.filter((img: ImageItem) => 
-          img.original_filename.toLowerCase().includes(searchQuery.toLowerCase())
-        )
-      }
-      
-      setImages(filteredImages)
-      setTotal(filteredImages.length)
+
+      // 服务端搜索 + 计数并行：跨页搜索，total 为全库真实数量
+      const [data, countRes] = await Promise.all([
+        adminApi.images.list({ skip, limit: pageSize, q: searchQuery || undefined }),
+        adminApi.images.count({ q: searchQuery || undefined }),
+      ])
+
+      const list = validateArrayData<ImageItem>(data)
+      setImages(list)
+      const countData = countRes && typeof countRes === 'object' && 'total' in countRes
+        ? (countRes as { total: number }).total
+        : list.length
+      setTotal(countData)
     } catch (error) {
       console.error('Failed to fetch images:', error)
+      setLoadError('图片加载失败，请重试')
+      setImages([])
     } finally {
       setLoading(false)
     }
-  }, [currentPage, searchQuery])
+  }, [currentPage, debouncedSearch])
+
+  // 搜索防抖：输入停顿 500ms 后才发起服务端查询
+  useEffect(() => {
+    const t = setTimeout(() => { setDebouncedSearch(searchQuery); setCurrentPage(1) }, 500)
+    return () => clearTimeout(t)
+  }, [searchQuery])
 
   useEffect(() => {
     fetchImages()
@@ -306,6 +314,18 @@ export default function ImagesPage() {
         {loading ? (
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-tech-cyan" />
+          </div>
+        ) : loadError ? (
+          /* 加载失败与空态区分：给重试入口而不是伪装成"暂无图片" */
+          <div className="text-center py-12">
+            <p className="text-destructive mb-4">{loadError}</p>
+            <button
+              type="button"
+              onClick={fetchImages}
+              className="px-5 py-2 rounded-xl bg-primary/15 text-primary hover:bg-primary/25 transition-colors text-sm"
+            >
+              重试
+            </button>
           </div>
         ) : images.length === 0 ? (
           <div className="text-center py-12">

@@ -88,6 +88,7 @@ export default function MessagesAdminPage() {
   const fetchMessages = useCallback(async () => {
     try {
       setLoading(true)
+      const includeDeleted = filterDeleted === 'deleted'
       const params: Record<string, string | number | boolean> = {
         skip: (page - 1) * 20,
         limit: 20,
@@ -95,7 +96,14 @@ export default function MessagesAdminPage() {
       if (filterDanmaku === 'danmaku') {
         params.danmaku_only = true
       }
-      const response = await adminApi.getMessages(params)
+      // 「已删除」视图走服务端软删过滤（仅超管）
+      if (includeDeleted) {
+        params.include_deleted = true
+      }
+      const [response, countRes] = await Promise.all([
+        adminApi.getMessages(params),
+        adminApi.get(`/messages/count?include_deleted=${includeDeleted}${filterDanmaku === 'danmaku' ? '&danmaku_only=true' : ''}`),
+      ])
       let filteredData = validateArrayData<MessageItem>(
         response && typeof response === 'object' && 'data' in response
           ? (response as { data: unknown }).data
@@ -109,13 +117,15 @@ export default function MessagesAdminPage() {
             m.author?.username.toLowerCase().includes(term)
         )
       }
-      if (filterDeleted === 'deleted') {
-        filteredData = filteredData.filter((m: MessageItem) => m.is_deleted)
-      } else if (filterDeleted === 'active') {
+      if (filterDeleted === 'active') {
         filteredData = filteredData.filter((m: MessageItem) => !m.is_deleted)
       }
       setMessages(filteredData)
-      setTotalPages(Math.ceil(filteredData.length / 20) || 1)
+      // 分页 total 来自服务端计数（此前按当前页条数计算，分页控件永不出现）
+      const countData = countRes && typeof countRes === 'object' && 'total' in countRes
+        ? (countRes as { total: number }).total
+        : 0
+      setTotalPages(Math.max(1, Math.ceil(countData / 20)))
     } catch (error) {
       console.error('Failed to fetch messages:', error)
       toast.error('获取留言列表失败')

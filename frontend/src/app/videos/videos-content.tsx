@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Plus, Search, Film, Clock, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/input';
+import DemoBadge from '@/components/ui/DemoBadge';
 import EmptyState from '@/components/ui/EmptyState';
 
 import VideoCard, { VideoItem, VideoType, Episode } from '@/components/videos/VideoCard';
@@ -151,6 +152,7 @@ export default function VideosPageContent() {
 
   return (
     <div className="min-h-screen pt-24 pb-12 bg-gradient-to-br from-tech-darkblue/20 via-tech-deepblue/10 to-tech-cyan/5">
+      <DemoBadge />
       <div className="container mx-auto px-4 max-w-7xl">
         <div className="space-y-8">
           {/* 统一幕标式页头（自带 FadeIn 入场） */}
