@@ -126,6 +126,7 @@ function useHoverDropdown(closeDelayMs = 120) {
 export default function Navbar() {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
+  // 首屏未滚动时导航悬在深色插画上：文字需用白系（两主题氛围底均为深色）
   const [isHovered, setIsHovered] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
@@ -219,7 +220,7 @@ export default function Navbar() {
           reducedMotion ? 'transition-none' : '',
           scrolled || isHovered || mobileMenuOpen
             ? 'bg-glass backdrop-blur-xl shadow-2xl'
-            : 'bg-transparent backdrop-blur-0'
+            : 'bg-gradient-to-b from-black/40 to-transparent backdrop-blur-0'
         )}
       >
         <div className="relative z-[101] w-full h-16 flex items-center justify-between px-4 md:px-6 lg:px-8 overflow-visible">
@@ -253,7 +254,7 @@ export default function Navbar() {
                             'nav-link relative text-sm font-medium transition-colors flex items-center py-2 px-3 space-x-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg overflow-hidden group',
                             pathname === link.href
                               ? "text-tech-cyan"
-                              : "text-foreground/80 hover:text-tech-cyan"
+                              : (scrolled || isHovered || mobileMenuOpen) ? "text-foreground/80 hover:text-tech-cyan" : "text-white/85 hover:text-tech-cyan"
                           )}
                           aria-expanded={homeDropdown.open}
                           aria-haspopup="true"
@@ -289,7 +290,7 @@ export default function Navbar() {
                                   'flex items-center space-x-3 px-4 py-2.5 text-sm transition-colors hover:bg-glass',
                                   pathname === child.href
                                     ? "text-tech-cyan bg-tech-cyan/10"
-                                    : "text-foreground/80 hover:text-tech-cyan"
+                                    : (scrolled || isHovered || mobileMenuOpen) ? "text-foreground/80 hover:text-tech-cyan" : "text-white/85 hover:text-tech-cyan"
                                 )}
                                 onClick={() => homeDropdown.setOpen(false)}
                               >
@@ -318,7 +319,7 @@ export default function Navbar() {
                             'nav-link relative text-sm font-medium transition-colors flex items-center py-2 px-3 space-x-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg overflow-hidden group',
                             pathname === link.href
                               ? "text-tech-cyan"
-                              : "text-foreground/80 hover:text-tech-cyan"
+                              : (scrolled || isHovered || mobileMenuOpen) ? "text-foreground/80 hover:text-tech-cyan" : "text-white/85 hover:text-tech-cyan"
                           )}
                           aria-expanded={toolsDropdown.open}
                           aria-haspopup="true"
@@ -354,7 +355,7 @@ export default function Navbar() {
                                   'flex items-center space-x-3 px-4 py-2.5 text-sm transition-colors hover:bg-glass',
                                   pathname === child.href
                                     ? "text-tech-cyan bg-tech-cyan/10"
-                                    : "text-foreground/80 hover:text-tech-cyan"
+                                    : (scrolled || isHovered || mobileMenuOpen) ? "text-foreground/80 hover:text-tech-cyan" : "text-white/85 hover:text-tech-cyan"
                                 )}
                                 onClick={() => toolsDropdown.setOpen(false)}
                               >
@@ -377,7 +378,7 @@ export default function Navbar() {
                           'nav-link relative text-sm font-medium transition-colors flex items-center py-2 px-3 space-x-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg overflow-hidden group',
                           pathname === link.href
                             ? "text-tech-cyan"
-                            : "text-foreground/80 hover:text-tech-cyan"
+                            : (scrolled || isHovered || mobileMenuOpen) ? "text-foreground/80 hover:text-tech-cyan" : "text-white/85 hover:text-tech-cyan"
                         )}
                         aria-current={pathname === link.href ? "page" : undefined}
                       >

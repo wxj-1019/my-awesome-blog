@@ -43,16 +43,16 @@ export default function ArticleCard({
   const glassCardClass = 'glass-card';
 
   // 设置默认封面图片（主题 SVG 封面，深海渐变 + 气泡，避免用户头像出现在文章卡上）
-  const [imgSrc, setImgSrc] = React.useState(coverImage || '/covers/default-cover.svg');
+  const [imgSrc, setImgSrc] = React.useState(coverImage || '/default-cover.svg');
 
   // 图片加载失败时的回调函数
   const handleError = () => {
-    setImgSrc('/covers/default-cover.svg');
+    setImgSrc('/default-cover.svg');
   };
 
   // 当 coverImage 发生变化时，更新 imgSrc
   React.useEffect(() => {
-    setImgSrc(coverImage || '/covers/default-cover.svg');
+    setImgSrc(coverImage || '/default-cover.svg');
   }, [coverImage]);
 
   const targetHref = href || `/posts/${id}`;

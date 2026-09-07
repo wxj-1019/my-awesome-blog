@@ -18,7 +18,7 @@ export interface ArticleListItemProps {
  * 整卡 Link 直达文章详情，替代原 HoloCard 的弹层交互。
  */
 function ArticleListItem({ article, className }: ArticleListItemProps) {
-  const cover = article.cover_image || '/covers/default-cover.svg';
+  const cover = article.cover_image || '/default-cover.svg';
   const dateText = article.published_at
     ? new Date(article.published_at).toLocaleDateString('zh-CN')
     : '';

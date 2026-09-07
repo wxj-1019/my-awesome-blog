@@ -317,7 +317,7 @@ export default function ArticleDetailPageContent({
               mediaSlot={
                 /* 封面图 + Ken Burns 缓推，替代原视频（视频比例与容器冲突占不满） */
                 <ArticleHeroCover
-                  src={article.cover_image || '/covers/default-cover.svg'}
+                  src={article.cover_image || '/default-cover.svg'}
                   alt={article.title}
                 />
               }

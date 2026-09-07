@@ -23,7 +23,8 @@ export interface PageActHeaderProps {
 /**
  * 幕标式页面头部：与首页「分幕」叙事同源。
  * kicker 小字（tracking 加宽）→ 标题 → 描述 → 渐变引线。
- * 标题/描述为透出氛围背景上的裸文字：两个氛围世界均为深色底，统一 text-white 系；
+ * 标题/描述用语义 token（text-foreground/muted-foreground），双主题自适应——
+ * 此前硬编码 text-white 在浅色主题的浅底上不可读；
  * 入场用 FadeIn（自带 reduced-motion 回退）。
  */
 export default function PageActHeader({
@@ -57,13 +58,13 @@ export default function PageActHeader({
             <p
               data-act-kicker
               className={cn(
-                'text-sm sm:text-base tracking-[0.2em] text-white/85',
+                'text-sm sm:text-base tracking-[0.2em] text-foreground/90',
                 kickerFont
               )}
             >
               {kickerParts![1]}
             </p>
-            <p className="text-[10px] tracking-[0.15em] text-white/50 font-medium">
+            <p className="text-[10px] tracking-[0.15em] text-muted-foreground font-medium">
               {kickerParts![0]}
             </p>
           </div>
@@ -71,7 +72,7 @@ export default function PageActHeader({
           <p
             data-act-kicker
             className={cn(
-              'text-[11px] sm:text-xs tracking-[0.28em] text-white/80',
+              'text-[11px] sm:text-xs tracking-[0.28em] text-primary',
               kickerFont ?? 'font-medium'
             )}
           >
@@ -91,13 +92,13 @@ export default function PageActHeader({
             <Icon className="w-5 h-5" aria-hidden />
           </span>
         ) : null}
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold font-serif tracking-wide text-white drop-shadow-sm">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold font-serif tracking-wide text-foreground">
           {title}
         </h1>
       </div>
 
       {description ? (
-        <p className="mt-3 text-sm sm:text-base text-white/70 leading-relaxed">
+        <p className="mt-3 text-sm sm:text-base text-muted-foreground leading-relaxed">
           {description}
         </p>
       ) : null}
