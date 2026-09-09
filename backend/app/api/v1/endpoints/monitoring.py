@@ -4,13 +4,17 @@ import asyncio
 import time
 import psutil
 from typing import Dict, Any
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
+from sqlalchemy import text
+from sqlalchemy.orm import Session
 from app.core.config import settings
+from app.core.database import get_db
 from app.core.dependencies import get_current_superuser
 from app.models.user import User
 from app.services.cache_service import cache_service
 from app.utils.logger import app_logger
+from app.utils.middleware import get_active_requests, get_request_metrics
 from datetime import datetime
 
 
@@ -52,16 +56,16 @@ start_time = time.time()
 
 
 @router.get("/health", response_model=HealthCheckResponse)
-async def health_check():
+async def health_check(db: Session = Depends(get_db)):
     """健康检查端点"""
     uptime = time.time() - start_time
-    
+
     # 执行各项检查
     checks = {}
-    
+
     # 数据库连接检查
     try:
-        # 这里应该根据实际的数据库连接方式来检查
+        await asyncio.to_thread(db.execute, text("SELECT 1"))
         checks["database"] = {"status": "ok", "message": "Database connection successful"}
     except Exception as e:
         checks["database"] = {"status": "error", "message": str(e)}
@@ -109,22 +113,31 @@ async def get_system_metrics(
     gpu_usage_percent = 0.0
     if HAS_GPU and GPUtil:
         try:
-            gpus = GPUtil.getGPUs()
+            gpus = await asyncio.to_thread(GPUtil.getGPUs)
             gpu_usage_percent = gpus[0].load * 100 if gpus else 0.0
-        except:
-            gpu_usage_percent = 0.0  # 如果无法获取GPU信息，则设为0
-    
-    # 活跃连接数（模拟值，实际应用中需要从连接池获取真实数据）
-    active_connections = 10  # 这只是一个示例值
-    
-    # 缓存命中率（模拟计算）
-    # 实际应用中需要通过Redis统计信息计算
-    cache_hit_ratio = 0.95  # 示例值
-    
-    # 响应时间（模拟值）
-    start = time.time()
-    await asyncio.sleep(0.01)  # 模拟处理时间
-    response_time_ms = (time.time() - start) * 1000
+        except Exception as exc:
+            app_logger.warning(f"获取 GPU 信息失败: {exc}")
+            gpu_usage_percent = 0.0
+
+    # 活跃连接数：来自请求中间件统计的正在处理的请求数
+    active_connections = get_active_requests()
+
+    # 缓存命中率与响应时间：来自 Redis INFO 统计与 ping 实测
+    cache_hit_ratio = 0.0
+    response_time_ms = 0.0
+    if cache_service.redis:
+        try:
+            info = await cache_service.redis.info("stats")
+            hits = int(info.get("keyspace_hits", 0))
+            misses = int(info.get("keyspace_misses", 0))
+            total = hits + misses
+            cache_hit_ratio = hits / total if total > 0 else 0.0
+
+            ping_start = time.time()
+            await cache_service.redis.ping()
+            response_time_ms = (time.time() - ping_start) * 1000
+        except Exception as exc:
+            app_logger.warning(f"获取 Redis 统计信息失败: {exc}")
     
     return SystemMetrics(
         cpu_percent=cpu_percent,
@@ -182,25 +195,27 @@ async def get_recent_logs(
 
 @router.get("/monitoring/analytics")
 async def get_analytics(
+    db: Session = Depends(get_db),
     current_user: User = Depends(get_current_superuser)
 ):
-    """获取应用分析数据"""
-    # 这里会返回各种应用分析数据
-    # 实际实现中会从数据库或缓存中获取统计信息
-    
-    # 示例数据
-    analytics_data = {
-        "total_requests": 12500,
-        "requests_today": 420,
-        "active_users": 150,
-        "cache_size": 1024,  # 示例值
-        "average_response_time": 120.5,  # ms
-        "error_rate": 0.02,  # 2% error rate
-        "top_endpoints": [
-            {"endpoint": "/api/v1/articles", "hits": 1200},
-            {"endpoint": "/api/v1/users/profile", "hits": 980},
-            {"endpoint": "/api/v1/comments", "hits": 750}
-        ]
-    }
-    
+    """获取应用分析数据（请求指标来自进程内统计，重启后归零）"""
+    from sqlalchemy import func as sql_func
+    from app.models.user import User
+
+    analytics_data = get_request_metrics()
+
+    # 活跃用户数：数据库中已激活用户
+    analytics_data["active_users"] = db.query(sql_func.count(User.id)).filter(
+        User.is_active == True
+    ).scalar() or 0
+
+    # 缓存键数量：Redis dbsize
+    cache_size = 0
+    if cache_service.redis:
+        try:
+            cache_size = await cache_service.redis.dbsize()
+        except Exception as exc:
+            app_logger.warning(f"获取 Redis 缓存大小失败: {exc}")
+    analytics_data["cache_size"] = cache_size
+
     return analytics_data
