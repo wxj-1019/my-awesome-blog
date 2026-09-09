@@ -1,3 +1,4 @@
+import asyncio
 import smtplib
 import logging
 from email.mime.text import MIMEText
@@ -92,6 +93,23 @@ class EmailService:
         except Exception as e:
             logging.error(f"邮件发送失败: {str(e)}")
             return False
+
+    async def send_email_async(
+        self,
+        to_emails: List[EmailStr],
+        subject: str,
+        body: str,
+        html_body: Optional[str] = None,
+        cc: Optional[List[EmailStr]] = None,
+        bcc: Optional[List[EmailStr]] = None,
+        attachments: Optional[List[str]] = None
+    ) -> bool:
+        """
+        异步发送电子邮件（smtplib 为阻塞 IO，在线程池中执行，供 async 端点调用）
+        """
+        return await asyncio.to_thread(
+            self.send_email, to_emails, subject, body, html_body, cc, bcc, attachments
+        )
 
     def send_verification_email(self, email: EmailStr, token: str) -> bool:
         """
