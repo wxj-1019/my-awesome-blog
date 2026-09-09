@@ -37,6 +37,8 @@ const StatCard = React.forwardRef<HTMLDivElement, StatCardProps>(
     loading = false,
     onClick
   }, ref) => {
+    // 基数为 0 或空时无法计算趋势：显示中性占位而非误导性涨跌徽章
+    const hasTrendData = value !== '0' && value !== '0%' && value !== '';
     const x = useMotionValue(0);
     const y = useMotionValue(0);
     
@@ -227,8 +229,14 @@ const StatCard = React.forwardRef<HTMLDivElement, StatCardProps>(
               </motion.div>
             )}
             
-            {trend && (
-              <motion.div 
+            {trend && !hasTrendData && (
+              <div className="mt-4 pt-3 border-t border-border/40 text-xs text-muted-foreground/60">
+                暂无趋势数据
+              </div>
+            )}
+
+            {trend && hasTrendData && (
+              <motion.div
                 className={cn(
                   "flex items-center gap-2 mt-4 pt-3 border-t",
                   trend.isPositive ? "border-green-200/50 dark:border-green-800/50" : "border-red-200/50 dark:border-red-800/50"

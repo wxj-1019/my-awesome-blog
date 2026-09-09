@@ -16,6 +16,7 @@ import { Album } from '@/types';
 import { apiRequest } from '@/lib/api-client';
 import { FadeIn } from '@/components/motion';
 const AlbumsPageContent = () => {
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [albums, setAlbums] = useState<Album[]>([]);
   const [, setSelectedAlbum] = useState<Album | null>(null);
   const [loading, setLoading] = useState(true);
@@ -47,81 +48,9 @@ const AlbumsPageContent = () => {
         setLoading(false);
       } catch (error) {
         console.error('获取相册数据失败:', error);
-        setAlbums([
-          {
-            id: '1',
-            title: '城市夜景',
-            description: '现代都市的夜晚美景摄影集',
-            coverImage: 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
-            date: '2023-10-15',
-            featured: true,
-            images: 24,
-            category: '风景',
-            likes: 128,
-            views: 1523
-          },
-          {
-            id: '2',
-            title: '自然风光',
-            description: '壮丽的自然景观摄影',
-            coverImage: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
-            date: '2023-09-22',
-            featured: false,
-            images: 32,
-            category: '自然',
-            likes: 95,
-            views: 876
-          },
-          {
-            id: '3',
-            title: '人物肖像',
-            description: '专业人像摄影作品',
-            coverImage: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
-            date: '2023-08-30',
-            featured: true,
-            images: 18,
-            category: '人像',
-            likes: 256,
-            views: 2341
-          },
-          {
-            id: '4',
-            title: '旅行记忆',
-            description: '世界旅行中的美好瞬间',
-            coverImage: 'https://images.unsplash.com/photo-1501555088652-021faa106b9b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
-            date: '2023-07-18',
-            featured: false,
-            images: 42,
-            category: '旅行',
-            likes: 189,
-            views: 1987
-          },
-          {
-            id: '5',
-            title: '动物世界',
-            description: '野生动物的精彩瞬间',
-            coverImage: 'https://images.unsplash.com/photo-1550355291-bbee04a92027?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
-            date: '2023-06-05',
-            featured: true,
-            images: 28,
-            category: '动物',
-            likes: 312,
-            views: 3456
-          },
-          {
-            id: '6',
-            title: '美食摄影',
-            description: '精致美食的视觉盛宴',
-            coverImage: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
-            date: '2023-05-12',
-            featured: false,
-            images: 15,
-            category: '美食',
-            likes: 167,
-            views: 1234
-          }
-        ]);
-        setLoading(false);
+        // 失败时显示空态与错误提示，不再回退到写死的假相册（误导用户）
+        setAlbums([]);
+        setLoadError('相册加载失败，请稍后重试');
       }
     };
     fetchAlbums();
@@ -232,11 +161,24 @@ const AlbumsPageContent = () => {
             <div className="absolute -top-20 -right-20 w-64 h-64 bg-tech-cyan/20 rounded-full blur-3xl" aria-hidden />
             <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-tech-sky/20 rounded-full blur-3xl" aria-hidden />
             <div className="absolute inset-0 rounded-3xl bg-glass border border-glass-border" />
-            <div className="absolute inset-0 z-0 overflow-visible min-h-[450px] w-full pointer-events-auto">
-              <ImageTrail
-                items={albums.map(album => album.coverImage)}
-                variant={3}
-              />
+            <div className="absolute inset-0 z-0 overflow-visible min-h-[450px] w-full pointer-events-auto flex items-center justify-center">
+              {loadError ? (
+                /* 失败不伪装成空相册：给出错误与重试 */
+                <div className="text-center pointer-events-auto">
+                  <p className="text-destructive mb-4">{loadError}</p>
+                  <button
+                    onClick={() => window.location.reload()}
+                    className="px-6 py-2.5 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                  >
+                    重试
+                  </button>
+                </div>
+              ) : (
+                <ImageTrail
+                  items={albums.map(album => album.coverImage)}
+                  variant={3}
+                />
+              )}
             </div>
 
             <div className="relative z-10 text-center min-h-[400px] flex flex-col justify-center items-center pointer-events-none">

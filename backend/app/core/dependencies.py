@@ -101,6 +101,10 @@ async def get_current_user(
     except JWTError as e:
         app_logger.error(f"JWT decode error: {e}, token prefix: {token[:8]}...")
         raise credentials_exception
+    except HTTPException:
+        # verify_token 内显式抛出的 401 必须原样穿透，
+        # 否则会被下面的兜底包装成 500，前端无法识别过期凭证
+        raise
     except Exception as e:
         app_logger.error(f"Unexpected error during token verification: {e}")
         raise HTTPException(

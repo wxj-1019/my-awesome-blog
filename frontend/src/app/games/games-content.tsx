@@ -4,6 +4,7 @@ import { useState } from 'react';
 import GameSidebar from '@/components/games/GameSidebar';
 import GameGrid from '@/components/games/GameGrid';
 import HeroSection from '@/components/games/HeroSection';
+import DemoBadge from '@/components/ui/DemoBadge';
 import GameDetailModal from '@/components/games/GameDetailModal';
 import { mockGames } from '@/mock/games';
 import type { Game } from '@/types/game';
@@ -33,6 +34,7 @@ export default function GamesPageContent() {
 
   return (
     <div className="flex h-screen overflow-hidden pt-16">
+      <DemoBadge />
       <GameSidebar
         activeSection={activeSection}
         onSectionChange={setActiveSection}

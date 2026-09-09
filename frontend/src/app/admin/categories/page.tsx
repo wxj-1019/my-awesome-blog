@@ -22,7 +22,7 @@ interface Category {
   icon: string
   sort_order: number
   is_active: boolean
-  articles_count?: number
+  article_count?: number
 }
 
 export default function CategoriesPage() {
@@ -266,7 +266,7 @@ export default function CategoriesPage() {
                           }}
                           whileHover={{ scale: 1.05 }}
                         >
-                          {category.articles_count || 0} 篇文章
+                          {category.article_count || 0} 篇文章
                         </motion.span>
                       </div>
                     </div>

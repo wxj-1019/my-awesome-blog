@@ -1,7 +1,9 @@
 from sqlalchemy import Column, Integer, String, Text, Boolean, BigInteger, DateTime, ForeignKey
 from sqlalchemy.sql import func
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import column_property, relationship
 import uuid
+from sqlalchemy import func, select
+from app.models.article import Article
 from app.core.database import Base
 from app.core.types import UUIDType
 
@@ -10,6 +12,13 @@ class Image(Base):
     __tablename__ = "images"
 
     id = Column(UUIDType, primary_key=True, index=True, default=uuid.uuid4)
+    # 被多少篇文章用作封面（图片管理页「引用 N 篇文章」列的数据源）
+    used_in_articles = column_property(
+        select(func.count(1))
+        .where(Article.featured_image_id == id)
+        .correlate_except(Article)
+        .scalar_subquery()
+    )
     original_filename = Column(String(255), nullable=False)
     file_path = Column(String(500), nullable=False)
     file_size = Column(BigInteger, nullable=False)  # 字节

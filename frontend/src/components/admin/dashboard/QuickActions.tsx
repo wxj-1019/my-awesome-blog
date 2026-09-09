@@ -58,7 +58,7 @@ function QuickActionCard({
   return (
     <motion.div
       className={cn(
-        'relative overflow-hidden rounded-xl border-2 border-dashed border-glass-border/30 hover:border-tech-cyan/50 p-4',
+        'relative overflow-hidden rounded-xl border border-border/50 hover:border-tech-cyan/60 hover:shadow-md p-4',
         'transition-colors duration-300 group bg-glass/10 hover:bg-glass/20 backdrop-blur-lg cursor-pointer'
       )}
       initial={{ opacity: 0, y: 20 }}

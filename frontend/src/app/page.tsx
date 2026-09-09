@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic';
 
 import HeroSection from '@/components/home/HeroSection';
 import FeaturedHighlights from '@/components/home/FeaturedHighlights';
-import StatsPanel from '@/components/home/StatsPanel';
+import { StatsHighlights, StatsDeepPanel } from '@/components/home/StatsPanel';
 import TechStack from '@/components/home/TechStack';
 import Timeline from '@/components/home/Timeline';
 import ScrollProgress from '@/components/home/ScrollProgress';
@@ -20,9 +20,11 @@ import {
 
 // 阅读统计（recharts 图表，~500KB）位于第三幕、首屏之外：拆独立 chunk 懒加载，
 // 避免图表库进入首屏关键路径（ssr:false 对首屏外组件无感知影响）
-const ReadingStats = dynamic(() => import('@/components/home/ReadingStats'), {
-  ssr: false,
-});
+// 经 charts-bundle 共享 recharts 依赖，避免与 StatsCharts 各复制一份图表库
+const ReadingStats = dynamic(
+  () => import('@/components/home/stats/charts-bundle').then((m) => m.ReadingStats),
+  { ssr: false }
+);
 
 /**
  * 首页 · 深海 × 电影
@@ -57,12 +59,13 @@ export default function Home() {
         <HomeActSection
           id="act-console"
           actLabel="第二幕 · 仪表"
-          description="航行读数与舱内工具"
+          description="热门篇章与舱内工具"
           contained={false}
           depth="cabin"
           className="mt-12 sm:mt-16"
         >
-          <StatsPanel />
+          {/* 读者内容打头：热门篇章 → 舱内工具 */}
+          <StatsHighlights />
           <TechStack />
         </HomeActSection>
 
@@ -74,10 +77,11 @@ export default function Home() {
           depth="current"
           className="mt-12 sm:mt-16"
         >
-          {/* 原「航迹」幕并入：阅读统计收进洋流的深层水域 */}
+          {/* 原「航迹」幕并入：作者名片/友链/阅读统计收进洋流的深层水域 */}
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
             <ReadingStats />
           </div>
+          <StatsDeepPanel />
           <Timeline />
         </HomeActSection>
 

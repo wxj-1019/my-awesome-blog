@@ -29,7 +29,7 @@ def get_article_growth_stats(db: Session, days: int = 30) -> Dict:
     # 转换为字典格式
     growth_data = {
         "period_days": days,
-        "total_articles": db.query(Article).count(),
+        "total_articles": db.query(func.count(Article.id)).scalar() or 0,
         "daily_counts": [{"date": str(item.date), "count": item.count} for item in daily_counts]
     }
     
@@ -65,7 +65,7 @@ def get_user_engagement_stats(db: Session, days: int = 30) -> Dict:
     engagement_data = {
         "period_days": days,
         "total_users": db.query(User).count(),
-        "total_articles": db.query(Article).count(),
+        "total_articles": db.query(func.count(Article.id)).scalar() or 0,
         "total_comments": db.query(Comment).count(),
         "daily_active_authors": [{"date": str(item.date), "count": item.active_authors} for item in daily_active_users],
         "daily_comments": [{"date": str(item.date), "count": item.comment_count} for item in daily_comments]

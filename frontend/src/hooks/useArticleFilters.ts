@@ -4,6 +4,8 @@ import { useSearchParams } from 'next/navigation';
 interface UseArticleFiltersProps {
   categories: Array<{ id: string; name: string }>;
   tags: Array<{ id: string; name: string }>;
+  /** RSC 预取场景：把 URL 初始筛选值直接注入首帧状态，避免先无筛选请求一次 */
+  initial?: { category?: string | null; tag?: string | null; search?: string | null };
 }
 
 interface UseArticleFiltersReturn {
@@ -18,10 +20,10 @@ interface UseArticleFiltersReturn {
   activeTag: { id: string; name: string } | undefined;
 }
 
-export function useArticleFilters({ categories, tags }: UseArticleFiltersProps): UseArticleFiltersReturn {
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [selectedTag, setSelectedTag] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
+export function useArticleFilters({ categories, tags, initial }: UseArticleFiltersProps): UseArticleFiltersReturn {
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(initial?.category ?? null);
+  const [selectedTag, setSelectedTag] = useState<string | null>(initial?.tag ?? null);
+  const [searchQuery, setSearchQuery] = useState(initial?.search ?? '');
   const searchParams = useSearchParams();
 
   useEffect(() => {

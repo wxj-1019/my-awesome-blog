@@ -1,5 +1,5 @@
 from typing import Any, List
-from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile, Form
+from fastapi import APIRouter, Query, Depends, HTTPException, status, File, UploadFile, Form
 from sqlalchemy.orm import Session
 import os
 import uuid
@@ -11,26 +11,52 @@ from app.schemas.image import Image, ImageCreate, ImageUpdate
 from app.models.user import User
 from app.services.image_service import ImageService
 from app.services.oss_service import oss_service
+from app.core.config import settings
+from app.models.image import Image as ImageModel
 from app.utils.file_validation import ALLOWED_IMAGE_EXTENSIONS
 
 router = APIRouter()
 
 
+@router.get("/count", response_model=dict)
+def count_images(
+    q: str = Query(None, description="Search in title/description/original filename"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+) -> Any:
+    """图片计数（管理端分页 total 使用），支持与列表相同的搜索条件"""
+    from sqlalchemy import func
+    query = db.query(func.count(ImageModel.id))
+    if q:
+        pattern = f"%{q.strip()}%"
+        query = query.filter(
+            ImageModel.title.ilike(pattern)
+            | ImageModel.description.ilike(pattern)
+            | ImageModel.original_filename.ilike(pattern)
+        )
+    return {"total": query.scalar() or 0}
+
+
 @router.get("/", response_model=List[Image])
 def read_images(
     skip: int = 0,
-    limit: int = 100,
+    limit: int = Query(100, ge=1, le=100),
+    q: str = Query(None, description="Search in title/description/original filename"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
 ) -> Any:
     """
-    Retrieve images
+    Retrieve images（used_in_articles 为被文章用作封面的计数）
     """
-    images = crud.get_images(
-        db, 
-        skip=skip, 
-        limit=limit
-    )
+    query = db.query(ImageModel)
+    if q:
+        pattern = f"%{q.strip()}%"
+        query = query.filter(
+            ImageModel.title.ilike(pattern)
+            | ImageModel.description.ilike(pattern)
+            | ImageModel.original_filename.ilike(pattern)
+        )
+    images = query.order_by(ImageModel.created_at.desc()).offset(skip).limit(limit).all()
     return images
 
 

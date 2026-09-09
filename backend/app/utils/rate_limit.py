@@ -37,7 +37,12 @@ def add_rate_limit_middleware(app: FastAPI):
     # 注册限速器
     app.state.limiter = limiter
     app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
-    
+
+    # SlowAPIMiddleware：让 default_limits（1000/hour/IP）对未加装饰器的路由也生效。
+    # 带路由级装饰器的端点仍按各自限制优先。测试环境 limiter.enabled=False 自动跳过。
+    from slowapi.middleware import SlowAPIMiddleware
+    app.add_middleware(SlowAPIMiddleware)
+
     # 添加自定义中间件来记录限速事件
     @app.middleware("http")
     async def rate_limit_middleware(request: Request, call_next):
@@ -45,9 +50,9 @@ def add_rate_limit_middleware(app: FastAPI):
         client_ip = get_remote_address(request)
         path = request.url.path
         method = request.method
-        
+
         app_logger.info(f"Rate limit check for IP: {client_ip}, Path: {path}, Method: {method}")
-        
+
         try:
             response = await call_next(request)
             return response
@@ -69,6 +74,7 @@ def get_rate_limit_for_endpoint(endpoint_name: str) -> str:
         "contact": "10 per hour",  # 联系我们接口限制
         "comment": "10 per hour",  # 评论接口限制
         "article_create": "20 per hour",  # 文章创建接口限制
+        "interaction": "60 per minute",  # 点赞/收藏/关注开关（防刷）
         "default": "100 per hour"  # 默认限制
     }
     
@@ -81,6 +87,7 @@ register_rate_limit = limiter.limit(get_rate_limit_for_endpoint("register"))
 article_read_rate_limit = limiter.limit(get_rate_limit_for_endpoint("default"))
 article_create_rate_limit = limiter.limit(get_rate_limit_for_endpoint("article_create"))
 comment_rate_limit = limiter.limit(get_rate_limit_for_endpoint("comment"))
+interaction_rate_limit = limiter.limit(get_rate_limit_for_endpoint("interaction"))
 
 # 新增限流装饰器
 forgot_password_rate_limit = limiter.limit(get_rate_limit_for_endpoint("forgot_password"))

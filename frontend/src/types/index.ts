@@ -1,16 +1,3 @@
-// 博客文章类型
-export interface Post {
-  id: string;
-  title: string;
-  excerpt: string;
-  date: string;
-  readTime: string;
-  category: string;
-  image?: string;
-  likes?: number;
-  comments?: number;
-}
-
 // 友情链接类型
 export interface FriendLink {
   id: string;
@@ -68,13 +55,6 @@ export interface Feature {
   description: string;
   icon: React.ElementType;
   link: string;
-}
-
-// 热门文章类型
-export interface PopularPost {
-  id: string;
-  title: string;
-  date: string;
 }
 
 // 用户相关类型

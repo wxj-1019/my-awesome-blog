@@ -290,13 +290,11 @@ export default function ArticlesPage() {
       key: 'created_at',
       title: '时间',
       render: (_v, article) => (
-        <div className="flex flex-col">
-          <span className="text-sm text-foreground/70">
-            {article.created_at ? new Date(article.created_at).toLocaleDateString('zh-CN') : '-'}
-          </span>
-          <span className="text-xs text-foreground/40">
-            {article.author?.full_name || article.author?.username || '未知'}
-          </span>
+        <div
+          className="text-sm text-foreground/70 tabular-nums"
+          title={`作者：${article.author?.full_name || article.author?.username || '未知'}`}
+        >
+          {article.created_at ? new Date(article.created_at).toLocaleDateString('zh-CN') : '-'}
         </div>
       ),
     },
@@ -372,6 +370,7 @@ export default function ArticlesPage() {
             </Link>
           </motion.div>
 
+          <span className="w-px h-5 bg-border/60 mx-0.5" aria-hidden="true" />
           <motion.button
             onClick={() => setDeleteDialog({ open: true, article })}
             disabled={actionLoading === article.id}

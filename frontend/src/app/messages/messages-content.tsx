@@ -493,17 +493,20 @@ export default function MessagesPageContent() {
                 <p className="text-destructive text-sm mb-3">{error}</p>
               )}
 
-              <div className="flex items-center justify-between gap-4">
+              {/* 移动端纵排避免发送按钮溢出；颜色触控目标 ≥36px */}
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-2">
                   <span className="text-muted-foreground text-sm">颜色:</span>
-                  <div className="flex gap-1.5">
+                  <div className="flex gap-2">
                     {COLORS.map((color) => (
                       <button
                         key={color}
                         type="button"
+                        aria-label={`选择颜色 ${color}`}
+                        aria-pressed={selectedColor === color}
                         onClick={() => setSelectedColor(color)}
                         className={cn(
-                          "w-6 h-6 rounded-full transition-transform duration-200 cursor-pointer",
+                          "w-9 h-9 rounded-full transition-transform duration-200 cursor-pointer",
                           selectedColor === color && "ring-2 ring-primary ring-offset-2 ring-offset-transparent scale-110"
                         )}
                         style={{ backgroundColor: color }}
@@ -516,7 +519,7 @@ export default function MessagesPageContent() {
                   type="submit"
                   disabled={isSubmitting || !content.trim()}
                   className={cn(
-                    "flex items-center gap-2 px-6 py-2.5 rounded-xl",
+                    "flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl w-full sm:w-auto",
                     "bg-gradient-to-r from-tech-cyan to-tech-lightcyan",
                     "text-primary-foreground font-medium",
                     "hover:opacity-90 transition-[colors,opacity] duration-200",
@@ -533,7 +536,7 @@ export default function MessagesPageContent() {
 
           <div className="mt-6 text-center">
             {/* 透出区裸文字：两个氛围世界均为深色底，保持浅色系 */}
-            <p className="text-white/60 text-sm">
+            <p className="text-muted-foreground text-sm">
               已有 {messages.length} 条弹幕在空中飘过
             </p>
           </div>

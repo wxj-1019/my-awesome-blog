@@ -21,7 +21,7 @@ services:
   backend:
     build: ./backend
     ports:
-      - "8989:8989"  # 根据项目规范使用端口 8989
+      - "127.0.0.1:8989:8989"  # 仅本机访问，避免公网服务器上裸露后端
     environment:
       # 数据库URL - 从环境变量读取，不设置默认值
       DATABASE_URL: ${DATABASE_URL:?DATABASE_URL must be set in .env file}

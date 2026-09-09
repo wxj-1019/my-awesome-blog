@@ -1,4 +1,25 @@
 /** @type {import('next').NextConfig} */
+
+// MinIO 对象存储对外域名（nginx 反代）经 env 注入，与后端 MINIO_PUBLIC_BASE_URL 同名同值；
+// 避免把裸 IP / 明文 HTTP 硬编码进仓库。本地开发不配此项，图片走 localhost 条目。
+function originToRemotePattern(origin) {
+  try {
+    const url = new URL(origin);
+    return {
+      protocol: url.protocol.replace(/:$/, ''),
+      hostname: url.hostname,
+      // 不带 port = 匹配默认端口；带了则严格锁定，避免任意端口都能作图片来源
+      ...(url.port ? { port: url.port } : {}),
+    };
+  } catch {
+    return null;
+  }
+}
+
+const minioRemotePattern = originToRemotePattern(
+  process.env.MINIO_PUBLIC_BASE_URL || ''
+);
+
 const nextConfig = {
   output: 'standalone',
   typedRoutes: true,
@@ -26,20 +47,13 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'my-awesome-blog.oss-cn-hangzhou.aliyuncs.com',
       },
-      {
-        protocol: 'https',
-        hostname: 'via.placeholder.com',
-      },
       // Pexels 素材站（admin 封面选择器常用来源）
       {
         protocol: 'https',
         hostname: 'images.pexels.com',
       },
-      // MinIO 对象存储对外域名（nginx 反代）
-      {
-        protocol: 'http',
-        hostname: '49.234.190.85',
-      },
+      // MinIO 对象存储对外域名（nginx 反代）：生产部署经 MINIO_PUBLIC_BASE_URL 注入
+      ...(minioRemotePattern ? [minioRemotePattern] : []),
     ],
     formats: ['image/webp', 'image/avif'],
     dangerouslyAllowSVG: true,

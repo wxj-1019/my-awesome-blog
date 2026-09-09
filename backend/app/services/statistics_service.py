@@ -71,23 +71,12 @@ class StatisticsService:
         # 总浏览量
         total_views = db.query(func.sum(Article.view_count)).scalar() or 0
 
-        # 今日浏览量
-        today = datetime.now(timezone.utc).date()
-        today_views = db.query(func.sum(Article.view_count)).filter(
-            func.date(Article.updated_at) == today
-        ).scalar() or 0
-
-        # 本周浏览量
-        week_ago = datetime.now(timezone.utc) - timedelta(days=7)
-        week_views = db.query(func.sum(Article.view_count)).filter(
-            Article.updated_at >= week_ago
-        ).scalar() or 0
-
-        # 本月浏览量
-        month_ago = datetime.now(timezone.utc) - timedelta(days=30)
-        month_views = db.query(func.sum(Article.view_count)).filter(
-            Article.updated_at >= month_ago
-        ).scalar() or 0
+        # today/week/month 浏览量趋势：无浏览事件表，无法按时间窗统计
+        # （旧实现误用 updated_at——那是内容修改时间，语义错误），在引入
+        # 浏览事件记录前固定为 0；total 为真实的累计浏览量。
+        today_views = 0
+        week_views = 0
+        month_views = 0
 
         return {
             "total": total_views,
@@ -187,10 +176,11 @@ class StatisticsService:
         """
         获取热门文章统计
         """
-        from app.crud.article import get_popular_articles as get_popular
-        
-        articles = get_popular(db, limit, days)
-        
+        # 旧 get_popular_articles 已随查询层收敛移除，改用 optimized 版（预加载关系防 N+1）
+        from app.crud.article import get_popular_articles_optimized
+
+        articles = get_popular_articles_optimized(db, limit, days)
+
         result = []
         for article in articles:
             result.append({
@@ -201,7 +191,7 @@ class StatisticsService:
                 "comment_count": len(article.comments) if hasattr(article, 'comments') else 0,
                 "published_at": article.published_at
             })
-        
+
         return result
 
     @staticmethod

@@ -1,22 +1,19 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
-import { notFound } from 'next/navigation';
-import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import GlassCard from '@/components/ui/GlassCard';
 
-import { Skeleton } from '@/components/ui/Skeleton';
 import { Download, FileVideo, FileAudio, FileImage, FileText } from 'lucide-react';
 import { useThemedClasses } from '@/hooks/useThemedClasses';
 import { useCodeBlockEnhancement } from '@/hooks/useCodeBlockEnhancement';
-import { getArticleById, getRelatedArticles } from '@/services/articleService';
+import { getRelatedArticles } from '@/services/articleService';
 import { getCommentTree, createComment } from '@/services/commentService';
+import interactionService from '@/services/interactionService';
 import { TOKEN_KEY } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
 import logger from '@/utils/logger';
 import type { RelatedArticle, Article } from '@/types';
-import { useLoading } from '@/context/loading-context';
 import ReadingProgressBar from '@/components/articles/ReadingProgressBar';
 import ArticleHeroStage from '@/components/articles/ArticleHeroStage';
 import ArticleHeroCover from '@/components/articles/ArticleHeroCover';
@@ -82,20 +79,16 @@ function addReplyToTree(
 }
 
 interface ArticleDetailPageContentProps {
-  /** 服务端预取的文章数据，传入后跳过客户端请求 */
-  prefetchedArticle?: Article | null;
+  /** 服务端 RSC 预取的文章数据（page 层对不存在的文章直接 notFound，必然非空） */
+  prefetchedArticle: Article;
 }
 
 export default function ArticleDetailPageContent({
   prefetchedArticle,
 }: ArticleDetailPageContentProps) {
   const params = useParams<{ id: string }>();
-  const [article, setArticle] = useState<Article | null>(
-    prefetchedArticle ?? null
-  );
+  const article = prefetchedArticle;
   const [relatedArticles, setRelatedArticles] = useState<RelatedArticle[]>([]);
-  const [loading, setLoading] = useState(!prefetchedArticle);
-  const [error, setError] = useState<string | null>(null);
   const [isLiked, setIsLiked] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [isFollowingAuthor, setIsFollowingAuthor] = useState(false);
@@ -114,7 +107,6 @@ export default function ArticleDetailPageContent({
   const [readingSettings, setReadingSettings] = useState<ReadingSettings>(DEFAULT_READING_SETTINGS);
   const contentRef = useRef<HTMLDivElement>(null);
   const { themedClasses } = useThemedClasses();
-  const { showLoading, hideLoading } = useLoading();
   useCodeBlockEnhancement(contentRef);
   const readingProgress = useReadingProgress(contentRef);
   const activeHeading = useActiveHeading(toc);
@@ -129,46 +121,69 @@ export default function ArticleDetailPageContent({
     setReadingSettings(loadReadingSettings());
   }, []);
 
+  // 登录用户回显点赞/收藏/关注状态（匿名接口返回 false）
+  useEffect(() => {
+    if (!isLoggedIn || !article) {
+      return;
+    }
+    interactionService.getLikeStatus(article.id).then(setIsLiked).catch(() => {});
+    interactionService.getBookmarkStatus(article.id).then(setIsBookmarked).catch(() => {});
+    if (article.author?.id) {
+      interactionService.getFollowStatus(article.author.id).then(setIsFollowingAuthor).catch(() => {});
+    }
+  }, [isLoggedIn, article]);
+
   const handleReadingSettingsChange = (next: ReadingSettings) => {
     setReadingSettings(next);
     saveReadingSettings(next);
   };
 
-  // 服务端已预取文章时，仅需加载相关文章和评论
-  useEffect(() => {
-    if (prefetchedArticle) {
-      generateTableOfContents(prefetchedArticle.content);
-      // 并行加载相关文章
-      getRelatedArticles(params.id)
-        .then(setRelatedArticles)
-        .catch(() => {});
+  /** 未登录时引导去登录页（带回跳） */
+  const requireLogin = (): boolean => {
+    if (isLoggedIn) {
+      return true;
+    }
+    window.location.href = `/login?message=${encodeURIComponent('登录后即可互动')}&redirect=${encodeURIComponent(window.location.pathname)}`;
+    return false;
+  };
+
+  // 点赞/收藏/关注：真实接口（toggle），失败保持原状态
+  const handleLike = async () => {
+    if (!requireLogin() || !article) {
       return;
     }
-
-    // 无预取数据时的完整客户端加载（兜底）
-    const fetchArticleData = async () => {
-      try {
-        showLoading();
-        setLoading(true);
-        const articleData = await getArticleById(params.id);
-        if (!articleData) {
-          notFound();
-        }
-        setArticle(articleData);
-        const relatedData = await getRelatedArticles(params.id);
-        setRelatedArticles(relatedData);
-        generateTableOfContents(articleData.content);
-      } catch (err) {
-        logger.error('获取文章数据失败:', err);
-        setError('获取文章数据失败');
-      } finally {
-        hideLoading();
-        setLoading(false);
-      }
-    };
-    if (params.id) {
-      fetchArticleData();
+    const next = await interactionService.toggleLike(article.id).catch(() => null);
+    if (next !== null) {
+      setIsLiked(next);
     }
+  };
+
+  const handleBookmark = async () => {
+    if (!requireLogin() || !article) {
+      return;
+    }
+    const next = await interactionService.toggleBookmark(article.id).catch(() => null);
+    if (next !== null) {
+      setIsBookmarked(next);
+    }
+  };
+
+  const handleFollowAuthor = async () => {
+    if (!requireLogin() || !article?.author?.id) {
+      return;
+    }
+    const next = await interactionService.toggleFollow(article.author.id).catch(() => null);
+    if (next !== null) {
+      setIsFollowingAuthor(next);
+    }
+  };
+
+  // 文章由 RSC 预取，客户端仅需加载相关文章
+  useEffect(() => {
+    generateTableOfContents(article.content);
+    getRelatedArticles(params.id)
+      .then(setRelatedArticles)
+      .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id]);
 
@@ -206,18 +221,6 @@ export default function ArticleDetailPageContent({
       month: 'long',
       day: 'numeric',
     });
-  };
-  // 处理点赞
-  const handleLike = () => {
-    setIsLiked(!isLiked);
-  };
-  // 处理收藏
-  const handleBookmark = () => {
-    setIsBookmarked(!isBookmarked);
-  };
-  // 处理关注作者
-  const handleFollowAuthor = () => {
-    setIsFollowingAuthor(!isFollowingAuthor);
   };
   // 处理发表评论
   const handleSubmitComment = async () => {
@@ -272,7 +275,6 @@ export default function ArticleDetailPageContent({
   // 主题相关样式
   const cardBgClass = themedClasses.cardBgClass;
   const textClass = themedClasses.textClass;
-  const accentClass = 'text-primary';
   const mutedTextClass = themedClasses.mutedTextClass;
   // 侧轨显隐：目录仅有文章主标题（无小节）时无导航价值，隐藏左轨；
   // 无相关文章时隐藏右轨——空侧轨会挤占左侧空间使正文显得靠左
@@ -285,19 +287,6 @@ export default function ArticleDetailPageContent({
     : showRelatedRail
       ? 'right'
       : 'top';
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <GlassCard className="p-8 text-center">
-          <h2 className={`text-2xl font-bold mb-4 ${accentClass}`}>错误</h2>
-          <p className={mutedTextClass}>{error}</p>
-          <Link href="/articles" prefetch={false}>
-            <Button className="mt-4">返回文章列表</Button>
-          </Link>
-        </GlassCard>
-      </div>
-    );
-  }
   return (
     <div className="min-h-screen relative">
       <ReadingProgressBar progress={readingProgress} />
@@ -314,16 +303,7 @@ export default function ArticleDetailPageContent({
         idleLinkClass="text-muted-foreground hover:text-primary"
       />
       <div className="max-w-[1440px] mx-auto pb-8">
-        {loading ? (
-          <div className="px-4 pt-12 space-y-6">
-            <Skeleton className="h-12 w-3/4" />
-            <div className="flex items-center space-x-4">
-              <Skeleton className="h-4 w-24" />
-              <Skeleton className="h-4 w-32" />
-            </div>
-            <Skeleton className="h-64 w-full" />
-          </div>
-        ) : article ? (
+        {article ? (
           <>
             <ArticleHeroStage
               article={article}
@@ -337,7 +317,7 @@ export default function ArticleDetailPageContent({
               mediaSlot={
                 /* 封面图 + Ken Burns 缓推，替代原视频（视频比例与容器冲突占不满） */
                 <ArticleHeroCover
-                  src={article.cover_image || '/covers/default-cover.svg'}
+                  src={article.cover_image || '/default-cover.svg'}
                   alt={article.title}
                 />
               }

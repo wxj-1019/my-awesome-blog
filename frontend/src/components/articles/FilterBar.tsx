@@ -59,7 +59,7 @@ function FilterBar({
       aria-label="文章筛选栏"
     >
       <div className="rounded-2xl bg-glass/50 backdrop-blur-xl border border-glass-border p-3.5 sm:p-4 flex items-center gap-3">
-        {/* 搜索框：常显，Ctrl+K 聚焦 */}
+        {/* 搜索框：常显，Ctrl+K 聚焦（快捷键提示放 title，移动端 placeholder 不显示按键避免截断） */}
         <div className="relative flex-1 min-w-0">
           <Search
             className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"
@@ -70,7 +70,8 @@ function FilterBar({
             type="search"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            placeholder="搜索文章…（Ctrl+K）"
+            placeholder="搜索文章…"
+              title="搜索文章（Ctrl+K 快速聚焦）"
             aria-label="搜索文章"
             className={cn(
               'w-full pl-10 pr-9 py-2.5 rounded-xl text-sm',

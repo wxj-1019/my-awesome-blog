@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, memo } from 'react';
+import { useState, useMemo, memo, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from '@/lib/framer-motion';
 import { Calendar, TrendingUp, Users, X, Clock } from 'lucide-react';
 import Link from 'next/link';
@@ -28,6 +28,51 @@ function ArchiveDrawer({
   onTagSelect,
 }: ArchiveDrawerProps) {
   const [activeTab, setActiveTab] = useState<'categories' | 'tags' | 'timeline'>('categories');
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  // Esc 关闭 + Tab 焦点陷阱：对话框打开期间焦点不得穿透到背景内容
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+        return;
+      }
+      if (event.key !== 'Tab' || !panelRef.current) {
+        return;
+      }
+      const focusables = panelRef.current.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusables.length === 0) {
+        return;
+      }
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+      if (event.shiftKey && (active === first || !panelRef.current.contains(active))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (active === last || !panelRef.current.contains(active))) {
+        event.preventDefault();
+        first.focus();
+      }
+    },
+    [onClose]
+  );
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+    document.addEventListener('keydown', handleKeyDown);
+    // 打开时把焦点移入面板，关闭（或卸载）后归还给此前聚焦的元素
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    panelRef.current?.focus();
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      previouslyFocused?.focus?.();
+    };
+  }, [isOpen, handleKeyDown]);
 
   const groupedArticles = useMemo(() => {
     return hotArticles.reduce((acc, article) => {
@@ -52,15 +97,21 @@ function ArchiveDrawer({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
+            aria-hidden="true"
             className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
           />
 
           <motion.div
+            ref={panelRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="探索：分类、标签与归档"
+            tabIndex={-1}
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', stiffness: 260, damping: 20 }}
-            className="fixed right-0 top-0 h-full w-full md:w-[450px] z-50"
+            className="fixed right-0 top-0 h-full w-full md:w-[450px] z-50 focus:outline-none"
           >
             <div className="
               h-full flex flex-col

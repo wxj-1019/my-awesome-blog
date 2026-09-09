@@ -220,3 +220,61 @@
     will-change: auto;
   }
 }
+
+/* ---- TipTap 编辑器（admin）---- */
+.tiptap-surface .tiptap {
+  outline: none;
+  font-size: 0.925rem;
+  line-height: 1.75;
+  color: hsl(var(--foreground));
+}
+.tiptap-surface .tiptap p { margin: 0.5em 0; }
+.tiptap-surface .tiptap h1,
+.tiptap-surface .tiptap h2,
+.tiptap-surface .tiptap h3 { font-weight: 700; margin: 1.1em 0 0.4em; line-height: 1.3; }
+.tiptap-surface .tiptap h1 { font-size: 1.5em; }
+.tiptap-surface .tiptap h2 { font-size: 1.3em; }
+.tiptap-surface .tiptap h3 { font-size: 1.12em; }
+.tiptap-surface .tiptap ul { list-style: disc; padding-left: 1.4em; margin: 0.5em 0; }
+.tiptap-surface .tiptap ol { list-style: decimal; padding-left: 1.4em; margin: 0.5em 0; }
+.tiptap-surface .tiptap blockquote {
+  border-left: 3px solid hsl(var(--primary) / 0.5);
+  padding: 0.2em 0 0.2em 1em;
+  margin: 0.7em 0;
+  color: hsl(var(--muted-foreground));
+}
+.tiptap-surface .tiptap pre {
+  background: hsl(var(--muted) / 0.6);
+  border: 1px solid hsl(var(--border) / 0.5);
+  border-radius: 0.6rem;
+  padding: 0.9em 1em;
+  overflow-x: auto;
+  font-size: 0.85em;
+  margin: 0.7em 0;
+}
+.tiptap-surface .tiptap code { font-family: var(--font-mono, monospace); font-size: 0.88em; }
+.tiptap-surface .tiptap :not(pre) > code {
+  background: hsl(var(--muted) / 0.5);
+  padding: 0.15em 0.4em;
+  border-radius: 0.3em;
+}
+.tiptap-surface .tiptap img { max-width: 100%; border-radius: 0.6rem; margin: 0.6em 0; }
+.tiptap-surface .tiptap table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.7em 0;
+  font-size: 0.9em;
+}
+.tiptap-surface .tiptap th,
+.tiptap-surface .tiptap td {
+  border: 1px solid hsl(var(--border));
+  padding: 0.45em 0.7em;
+  text-align: left;
+}
+.tiptap-surface .tiptap th { background: hsl(var(--muted) / 0.4); font-weight: 600; }
+.tiptap-surface .tiptap a { color: hsl(var(--primary)); text-decoration: underline; }
+.tiptap-surface .tiptap hr {
+  border: none;
+  border-top: 1px solid hsl(var(--border));
+  margin: 1.2em 0;
+}

@@ -8,6 +8,7 @@ import {
   XCircle, 
   Trash2, 
   MessageSquare,
+  AlertCircle,
   Search,
   ChevronLeft,
   ChevronRight,
@@ -51,42 +52,45 @@ export default function CommentsPage() {
   const [total, setTotal] = useState(0)
   const [selectedComment, setSelectedComment] = useState<Comment | null>(null)
   const [replyContent, setReplyContent] = useState('')
-  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; comment: Comment | null }>({ 
-    open: false, 
-    comment: null 
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; comment: Comment | null }>({
+    open: false,
+    comment: null
   })
+  const [loadError, setLoadError] = useState<string | null>(null)
   const pageSize = 10
 
   const fetchComments = useCallback(async () => {
     try {
       setLoading(true)
+      setLoadError(null)
       const skip = (currentPage - 1) * pageSize
-      
+
       const data = await adminApi.comments.list({
         skip,
         limit: pageSize,
         approved: filter === 'all' ? undefined : (filter === 'approved')
       })
-      
+
       let filteredComments = validateArrayData<Comment>(data)
-      
+
       if (searchQuery) {
-        filteredComments = filteredComments.filter((c: Comment) => 
+        filteredComments = filteredComments.filter((c: Comment) =>
           c.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
           c.author_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           c.article?.title.toLowerCase().includes(searchQuery.toLowerCase())
         )
       }
-      
+
       setComments(filteredComments)
       setTotal(filteredComments.length)
     } catch (err) {
       console.error('Failed to fetch comments:', err)
-      error('加载评论列表失败')
+      // 错误态与空态必须区分：失败时渲染「加载失败 + 重试」，而不是伪装成空列表
+      setLoadError('评论加载失败，请检查网络后重试')
     } finally {
       setLoading(false)
     }
-  }, [currentPage, filter, searchQuery, error])
+  }, [currentPage, filter, searchQuery])
 
   useEffect(() => {
     fetchComments()
@@ -259,6 +263,17 @@ export default function CommentsPage() {
           {loading ? (
             <div className="p-12">
               <LoadingState message="加载中..." size="md" variant="dots" />
+            </div>
+          ) : loadError ? (
+            /* 加载失败是错误态，不能渲染成空状态误导"没有数据" */
+            <div className="p-12">
+              <EmptyState
+                variant="default"
+                title="评论加载失败"
+                description={loadError}
+                icon={AlertCircle}
+                action={{ label: '重试', onClick: fetchComments }}
+              />
             </div>
           ) : comments.length === 0 ? (
             <div className="p-12">

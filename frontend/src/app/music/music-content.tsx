@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { motion } from '@/lib/framer-motion';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
+import DemoBadge from '@/components/ui/DemoBadge';
 import MusicSidebar from '@/components/music/MusicSidebar';
 import HeroBanner from '@/components/music/HeroBanner';
 import PlaylistScroll from '@/components/music/PlaylistScroll';
@@ -99,6 +100,7 @@ export default function MusicHallPageContent() {
       animate="visible"
       variants={containerVariants}
     >
+      <DemoBadge />
       <MusicSidebar
         activeSection={activeSection}
         onSectionChange={setActiveSection}

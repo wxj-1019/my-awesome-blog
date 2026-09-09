@@ -18,8 +18,12 @@ def get_messages(
     limit: int = 100,
     danmaku_only: bool = False,
     with_relationships: bool = False,
+    include_deleted: bool = False,
 ) -> List[Message]:
-    query = db.query(Message).filter(Message.is_deleted == False)
+    query = db.query(Message)
+    # 软删除过滤：管理员「已删除」视图经 include_deleted 放行
+    if not include_deleted:
+        query = query.filter(Message.is_deleted == False)  # noqa: E712
     
     if danmaku_only:
         query = query.filter(Message.is_danmaku == True)
@@ -31,6 +35,21 @@ def get_messages(
         query = query.options(joinedload(Message.author))
     
     return query.order_by(Message.created_at.desc()).offset(skip).limit(limit).all()
+
+
+def count_messages(
+    db: Session,
+    danmaku_only: bool = False,
+    include_deleted: bool = False,
+) -> int:
+    """与 get_messages 同口径的计数（供管理端分页的 total 使用）"""
+    from sqlalchemy import func
+    query = db.query(func.count(Message.id))
+    if not include_deleted:
+        query = query.filter(Message.is_deleted == False)  # noqa: E712
+    if danmaku_only:
+        query = query.filter(Message.is_danmaku == True)  # noqa: E712
+    return query.scalar() or 0
 
 
 def get_messages_by_author(

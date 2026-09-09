@@ -1,5 +1,5 @@
 from typing import Any, List
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Query, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app import crud
@@ -11,7 +11,7 @@ router = APIRouter()
 @router.get("/", response_model=List[dict])
 def read_albums(
     skip: int = 0,
-    limit: int = 100,
+    limit: int = Query(100, ge=1, le=100),
     db: Session = Depends(get_db)
 ) -> Any:
     """
@@ -85,7 +85,7 @@ def read_album_by_id(
         "coverImage": portfolio.cover_image or "/assets/placeholder.jpg",
         "date": portfolio.created_at.strftime("%Y-%m-%d") if portfolio.created_at else "",
         "featured": portfolio.is_featured or False,
-        "images": 12,
+        "images": len(portfolio.portfolio_images) or 0,
         "slug": portfolio.slug,
         "technologies": portfolio.technologies or [],
         "startDate": portfolio.start_date.strftime("%Y-%m-%d") if portfolio.start_date else None,
@@ -100,7 +100,7 @@ def read_album_by_id(
 @router.get("/featured/list", response_model=List[dict])
 def read_featured_albums(
     skip: int = 0,
-    limit: int = 100,
+    limit: int = Query(100, ge=1, le=100),
     db: Session = Depends(get_db)
 ) -> Any:
     """
@@ -117,7 +117,7 @@ def read_featured_albums(
             "coverImage": portfolio.cover_image or "/assets/placeholder.jpg",
             "date": portfolio.created_at.strftime("%Y-%m-%d") if portfolio.created_at else "",
             "featured": portfolio.is_featured or False,
-            "images": 12,
+            "images": len(portfolio.portfolio_images) or 0,
             "slug": portfolio.slug,
             "technologies": portfolio.technologies or [],
             "startDate": portfolio.start_date.strftime("%Y-%m-%d") if portfolio.start_date else None,
@@ -134,7 +134,7 @@ def read_featured_albums(
 def read_album_images(
     album_id: str,
     skip: int = 0,
-    limit: int = 100,
+    limit: int = Query(100, ge=1, le=100),
     db: Session = Depends(get_db)
 ) -> Any:
     """

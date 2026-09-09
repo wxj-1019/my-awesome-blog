@@ -1,7 +1,6 @@
 'use client'
 
 import { Code2, Database, Server, Cpu, Layout, Cloud, Shield, Zap } from 'lucide-react'
-import LogoLoop, { type LogoItem } from '@/components/ui/LogoLoop'
 import { BlurIn, FadeIn, HoverLift, Stagger, StaggerItem } from '@/components/motion'
 
 interface TechItem {
@@ -25,22 +24,6 @@ const techItems: TechItem[] = [
   { name: 'Linux', icon: <Cpu className="w-6 h-6" />, color: '#FCC624', href: 'https://www.linux.org' },
   { name: 'Vercel', icon: <Cloud className="w-6 h-6" />, color: '#000000', href: 'https://vercel.com' },
 ]
-
-const logoLoopItems: LogoItem[] = techItems.map((item) => ({
-  node: (
-    <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-glass/30 backdrop-blur-xl border border-glass-border hover:bg-glass/50 hover:border-primary/30 transition-colors duration-300 group">
-      <div className="text-muted-foreground group-hover:text-primary transition-colors">
-        {item.icon}
-      </div>
-      <span className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">
-        {item.name}
-      </span>
-    </div>
-  ),
-  href: item.href,
-  title: item.name,
-  ariaLabel: `Learn more about ${item.name}`,
-}))
 
 const pillars = [
   {
@@ -97,18 +80,8 @@ export default function TechStack() {
               </p>
             </div>
 
-            <div className="relative py-3 sm:py-4">
-              {/* 默认静止，悬停才滚动：避免与浪/气泡形成第三路持续循环 */}
-              <LogoLoop
-                logos={logoLoopItems}
-                speed={0}
-                hoverSpeed={40}
-                direction="left"
-                pauseOnHover={false}
-                ariaLabel="Technology stack logos"
-                className="w-full"
-              />
-            </div>
+            {/* 技术栈信息统一由下方网格与支柱卡承载，不再重复滚动条 */}
+            <div className="relative py-2" aria-hidden="true" />
 
             <Stagger
               className="relative mt-5 sm:mt-6 grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-3"

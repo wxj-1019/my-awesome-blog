@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef } from 'react';
 import { motion } from '@/lib/framer-motion';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -16,6 +16,7 @@ import { BlurIn, FadeIn, HoverLift } from '@/components/motion';
 import SocialShare from '@/components/social/SocialShare';
 import { useScrollProgress } from '@/hooks/useScrollProgress';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { env } from '@/lib/env';
 import type { Article } from '@/types';
 import { cn } from '@/lib/utils';
@@ -50,19 +51,11 @@ export default function ArticleHeroStage({
 }: ArticleHeroStageProps) {
   const mediaRef = useRef<HTMLDivElement>(null);
   const reduced = useReducedMotion();
-  const [isDesktop, setIsDesktop] = useState(false);
+  const isDesktop = useMediaQuery('(min-width: 1024px)');
   const progress = useScrollProgress(mediaRef, {
     offsetStart: 0,
     offsetEnd: 0.5,
   });
-
-  useEffect(() => {
-    const mq = window.matchMedia('(min-width: 1024px)');
-    const apply = () => setIsDesktop(mq.matches);
-    apply();
-    mq.addEventListener('change', apply);
-    return () => mq.removeEventListener('change', apply);
-  }, []);
 
   // 阶段 B：封面视差再减半，降低滚动压迫感
   const parallaxY =

@@ -18,7 +18,8 @@ class ArticleBase(BaseModel):
 
 # Create schemas
 class ArticleCreate(ArticleBase):
-    category_id: Optional[UUID] = None
+    category_id: Optional[UUID] = None  # 旧的单分类字段，兼容保留；与 category_ids 同时给出时合并
+    category_ids: Optional[List[UUID]] = None  # 多分类（产品决策 2026-09）
     tags: Optional[List[UUID]] = []
     attachments: Optional[List[ArticleAttachmentCreate]] = None
 
@@ -35,6 +36,8 @@ class ArticleUpdate(BaseModel):
     excerpt: Optional[str] = None
     cover_image: Optional[str] = None
     is_published: Optional[bool] = None
+    category_ids: Optional[List[UUID]] = None  # 多分类全量替换
+    tag_ids: Optional[List[UUID]] = None  # 标签全量替换（此前更新端点无法改标签）
     attachments: Optional[List[ArticleAttachmentCreate]] = None
 
 

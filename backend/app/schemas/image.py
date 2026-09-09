@@ -40,6 +40,8 @@ class ImageInDBBase(ImageBase):
 
 
 class Image(ImageInDBBase):
+    # 被多少篇文章用作封面（Article.used_in_articles column_property 自动带出）
+    used_in_articles: int = 0
     pass
 
 

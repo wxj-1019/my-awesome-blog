@@ -85,7 +85,7 @@ export default function Live2DWidget() {
         if (!mountedRef.current || !container) {return;}
         const PIXI = await import('pixi.js');
         (window as unknown as { PIXI: typeof PIXI }).PIXI = PIXI;
-        const { Live2DModel } = await import('pixi-live2d-display/cubism4');
+        const { Live2DModel } = await import('pixi-live2d-display/lib/cubism4');
         if (!mountedRef.current || !container) {return;}
         const view = document.createElement('canvas');
         view.style.width = '280px';
@@ -102,7 +102,8 @@ export default function Live2DWidget() {
           antialias: true,
         });
         appRef.current = app;
-        const model = await Live2DModel.from(MODEL_URL);
+        // 0.3.1 类型未继承 PIXI.DisplayObject，x/y/scale 等运行时实际存在
+        const model = (await Live2DModel.from(MODEL_URL)) as unknown as import("pixi.js").DisplayObject & { anchor: { set(x: number, y?: number): void }; scale: { set(n: number): void }; on(event: string, cb: (areas: string[]) => void): void; motion(name: string): void };
         if (!mountedRef.current) {return;}
         app.stage.addChild(model);
         model.anchor.set(0.5, 0.5);
