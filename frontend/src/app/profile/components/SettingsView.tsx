@@ -14,7 +14,7 @@ export default function SettingsView() {
     theme: 'auto'
   });
 
-  const handleSettingChange = (key: string, value: any) => {
+  const handleSettingChange = (key: string, value: string | boolean) => {
     setSettings(prev => ({
       ...prev,
       [key]: value

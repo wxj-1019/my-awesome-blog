@@ -33,6 +33,7 @@ import GlassCardAdmin from '@/components/ui/GlassCardAdmin';
 import ArticleAIAssist from '@/components/admin/writing/ArticleAIAssist';
 import CoverPicker from '@/components/admin/CoverPicker';
 import type { WritingSession, WritingRevision } from '@/types/writing-session';
+import { applyRevisionToForm, replaceRange } from '../lib/apply-revision';
 import {
   MarkdownToolbar,
   ArticlePreview,
@@ -365,7 +366,7 @@ export default function EditArticlePage() {
       selectEnd = cursorPos;
     }
 
-    const newContent = formData.content.substring(0, start) + text + formData.content.substring(end);
+    const newContent = replaceRange(formData.content, start, end, text);
     setFormData(prev => ({ ...prev, content: newContent }));
 
     setTimeout(() => {
@@ -943,24 +944,15 @@ export default function EditArticlePage() {
               selection={editorSelection}
               session={writingSession}
               onSessionChange={setWritingSession}
-              onApplyRevision={(revision: WritingRevision, replacement?: string) => {
-                if (revision.source === 'selection') {
-                  setFormData(prev => ({
-                    ...prev,
-                    content:
-                      prev.content.slice(0, revision.selection_start) +
-                      revision.replacement_text +
-                      prev.content.slice(revision.selection_end),
-                  }));
-                } else if (revision.source === 'suggestion' && replacement) {
-                  // 全文建议：后端 revision 不存 replacement_text，用本地预览全文整篇替换
-                  setFormData(prev => ({ ...prev, content: replacement }));
-                } else {
-                  return;
-                }
-                setTouchedFields(prev => new Set(prev).add('content'));
-                setHasUnsavedChanges(true);
-              }}
+              onApplyRevision={(revision: WritingRevision, replacement?: string) =>
+                applyRevisionToForm(
+                  revision,
+                  replacement,
+                  setFormData,
+                  setTouchedFields,
+                  setHasUnsavedChanges
+                )
+              }
               busy={isAiBusy}
             />
           )}

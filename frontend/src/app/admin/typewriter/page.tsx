@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { motion, AnimatePresence } from '@/lib/framer-motion'
 import { Plus, Edit, Trash2, Type, Sparkles, Power, PowerOff } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn, truncate } from '@/lib/utils'
 import { adminApi } from '@/lib/admin-api-client'
 import Button from '@/components/admin/Button'
 import FormInput from '@/components/admin/FormInput'
@@ -409,7 +409,7 @@ export default function TypewriterPage() {
         onClose={() => setDeleteDialog({ open: false, content: null })}
         onConfirm={handleDelete}
         title="确认删除"
-        description={`确定要删除打字机内容「${deleteDialog.content?.content?.slice(0, 30)}...」吗？此操作不可恢复。`}
+        description={`确定要删除打字机内容「${truncate(deleteDialog.content?.content ?? '', 30)}」吗？此操作不可恢复。`}
         confirmText="删除"
         cancelText="取消"
         variant="danger"

@@ -27,7 +27,7 @@ import EmptyState from '@/components/ui/EmptyState'
 import ConfirmDialog from '@/components/ui/ConfirmDialog'
 import Image from 'next/image'
 import { adminApi } from '@/lib/admin-api-client'
-import { cn } from '@/lib/utils'
+import { cn, truncate } from '@/lib/utils'
 import { validateArrayData } from '@/utils/data-validation'
 import toast from 'react-hot-toast'
 interface MessageAuthor {
@@ -181,10 +181,6 @@ export default function MessagesAdminPage() {
       hour: '2-digit',
       minute: '2-digit',
     })
-  }
-  const truncateContent = (content: string, maxLength: number = 100) => {
-    if (content.length <= maxLength) {return content}
-    return content.slice(0, maxLength) + '...'
   }
   const maxActivityCount = Math.max(...activityStats.map(s => s.count), 1)
   return (
@@ -383,7 +379,7 @@ export default function MessagesAdminPage() {
                           className="text-muted-foreground text-sm line-clamp-2"
                           style={{ borderLeft: `3px solid ${message.color}`, paddingLeft: '8px' }}
                         >
-                          {truncateContent(message.content)}
+                          {truncate(message.content, 100)}
                         </p>
                         <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
                           <span className="flex items-center gap-1">
@@ -644,7 +640,7 @@ export default function MessagesAdminPage() {
                         className="text-muted-foreground text-sm line-clamp-2"
                         style={{ borderLeft: `2px solid ${message.color}`, paddingLeft: '8px' }}
                       >
-                        {truncateContent(message.content, 80)}
+                        {truncate(message.content, 80)}
                       </p>
                     </div>
                   ))
