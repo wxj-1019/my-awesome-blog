@@ -1,6 +1,7 @@
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from sqlalchemy.orm import Session
+from app.core.config import settings
 from app.core.database import SessionLocal
 from app.crud.weather import create_or_update_weather
 from app.services.weather_service import WeatherService
@@ -10,7 +11,7 @@ from app.utils.logger import app_logger
 class WeatherUpdateService:
     def __init__(self):
         self.scheduler = AsyncIOScheduler()
-        self.cities = ["杭州"]
+        self.cities = list(settings.WEATHER_DEFAULT_CITIES)
 
     async def update_weather_for_city(self, city: str) -> None:
         db = SessionLocal()
@@ -57,7 +58,7 @@ class WeatherUpdateService:
         try:
             hour = int(update_time.split(':')[0])
             return 6 <= hour < 18
-        except:
+        except (IndexError, ValueError):
             return True
 
     async def update_all_cities(self) -> None:
