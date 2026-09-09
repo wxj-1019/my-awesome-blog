@@ -12,6 +12,10 @@ import { useReducedMotion } from '@/hooks/useReducedMotion';
 
 const COLORS = DANMAKU_COLORS.map(c => c.value);
 
+/** 同屏渲染硬上限：调度器已按 maxOnScreen 限流（25），此为保险阀，
+ *  防止极端情况（如短时间内连续发送）下同屏 DOM 节点无限增长导致卡顿 */
+const MAX_RENDER_DANMAKU = 50;
+
 const DANMAKU_CONFIG = {
   maxOnScreen: 25,
   minBatchSize: 1,
@@ -107,6 +111,14 @@ export default function MessagesPageContent() {
 
   useEffect(() => {
     activeDanmakuRef.current = activeDanmaku;
+  }, [activeDanmaku]);
+
+  // 超出渲染硬上限时同步裁剪 state：被截断的弹幕节点不会挂载，
+  // 其动画结束回调（onRemove）永远不会触发，需在此兜底清理，避免 state/ref 泄漏
+  useEffect(() => {
+    if (activeDanmaku.length > MAX_RENDER_DANMAKU) {
+      setActiveDanmaku(prev => prev.slice(-MAX_RENDER_DANMAKU));
+    }
   }, [activeDanmaku]);
 
   useEffect(() => {
@@ -357,7 +369,8 @@ export default function MessagesPageContent() {
   return (
     <div className="min-h-screen relative">
       <div className="fixed inset-0 z-[100] overflow-hidden pointer-events-none">
-        {activeDanmaku.map((msg) => (
+        {/* 只保留最新 N 条上屏，超出截断；正常流程（调度器限流 25 条）不会触达该上限 */}
+        {activeDanmaku.slice(-MAX_RENDER_DANMAKU).map((msg) => (
           <DanmakuItem
             key={msg.instanceId}
             message={msg}
