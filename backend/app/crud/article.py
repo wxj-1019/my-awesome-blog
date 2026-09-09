@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import or_, and_, func
 from app.models.article import Article
 from app.schemas.article import ArticleCreate, ArticleUpdate, ArticleWithAuthor
-from app.services.cache_service import cache_service, cache_get_or_set
+from app.services.cache_service import cache_service
 from app.utils.pagination import CursorPaginationParams, CursorPaginationResult
 from app.utils.cache_keys import CacheKeys, CacheTTL
 from sqlalchemy import text
@@ -220,13 +220,12 @@ def create_article(db: Session, article: ArticleCreate, author_id: UUID) -> Arti
             )
             db.add(article_category)
 
-    # Associate tags
+    # Associate tags（单次 in_ 查询取回全部标签，避免循环查库）
     if article.tags:
-        for tag_id in article.tags:
-            tag = db.query(Tag).filter(Tag.id == tag_id).first()
-            if tag:
-                article_tag = ArticleTag(article_id=db_article.id, tag_id=tag.id)
-                db.add(article_tag)
+        tags = db.query(Tag).filter(Tag.id.in_(article.tags)).all()
+        for tag in tags:
+            article_tag = ArticleTag(article_id=db_article.id, tag_id=tag.id)
+            db.add(article_tag)
 
     # Create attachments
     if article.attachments:
@@ -363,7 +362,7 @@ async def increment_view_count(db: Session, article_id: UUID) -> Optional[Articl
     return db_article
 
 
-def get_featured_articles(db: Session, limit: int = 10):
+def get_featured_articles(db: Session, limit: int = 10) -> list[Article]:
     """Get featured articles based on view count and publication date"""
     from sqlalchemy.orm import joinedload
 
@@ -381,7 +380,7 @@ def get_featured_articles(db: Session, limit: int = 10):
     )
 
 
-def get_related_articles(db: Session, article_id: UUID, limit: int = 5):
+def get_related_articles(db: Session, article_id: UUID, limit: int = 5) -> list[Article]:
     """Get articles related to a specific article based on category or tags"""
     from sqlalchemy.orm import joinedload
     from app.models.article_category import ArticleCategory
@@ -443,7 +442,7 @@ def get_related_articles(db: Session, article_id: UUID, limit: int = 5):
     return related_by_category
 
 
-def get_articles_with_categories_and_tags(db: Session, skip: int = 0, limit: int = 100, published_only: bool = True, category_id: UUID = None, tag_id: UUID = None, author_id: UUID = None, search: str = None):
+def get_articles_with_categories_and_tags(db: Session, skip: int = 0, limit: int = 100, published_only: bool = True, category_id: Optional[UUID] = None, tag_id: Optional[UUID] = None, author_id: Optional[UUID] = None, search: Optional[str] = None):
     """Get articles with optimized query including joined relationships for categories and tags"""
     from sqlalchemy.orm import joinedload
     from app.models.article_category import ArticleCategory
@@ -481,7 +480,7 @@ def get_articles_with_categories_and_tags(db: Session, skip: int = 0, limit: int
     return query.offset(skip).limit(limit).all()
 
 
-def get_popular_articles(db: Session, limit: int = 5, days: int = 30):
+def get_popular_articles(db: Session, limit: int = 5, days: int = 30) -> list[Article]:
     """
     获取热门文章（基于浏览量和评论数）
     """

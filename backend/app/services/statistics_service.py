@@ -1,16 +1,15 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import func, and_, or_
+from sqlalchemy import func
 from datetime import datetime, timedelta, timezone
 from typing import Dict, List
 from app.models.article import Article
+from app.models.article_category import ArticleCategory
+from app.models.article_tag import ArticleTag
 from app.models.category import Category
 from app.models.tag import Tag
 from app.models.comment import Comment
 from app.models.user import User
 from app.models.friend_link import FriendLink
-from app.models.portfolio import Portfolio
-from app.models.timeline_event import TimelineEvent
-from app.models.subscription import Subscription
 from app.crud.category import get_categories_with_article_count
 from app.crud.tag import get_tags_with_article_count
 
@@ -104,22 +103,26 @@ class StatisticsService:
         """
         # 使用优化的查询方法
         categories = get_categories_with_article_count(db)
-        
+
+        # 单次 GROUP BY 查询各分类的总浏览量，避免 N+1
+        view_rows = db.query(
+            ArticleCategory.category_id,
+            func.sum(Article.view_count).label("view_count"),
+        ).join(
+            Article, Article.id == ArticleCategory.article_id
+        ).group_by(ArticleCategory.category_id).all()
+        view_map = {row.category_id: row.view_count or 0 for row in view_rows}
+
         result = []
         for category in categories:
-            # 获取该分类下文章的总浏览量
-            view_count = db.query(func.sum(Article.view_count)).join(
-                Article.categories
-            ).filter(Category.id == category.id).scalar() or 0
-            
             result.append({
                 "id": category.id,
                 "name": category.name,
                 "slug": category.slug,
                 "article_count": getattr(category, 'article_count', 0),
-                "view_count": view_count
+                "view_count": view_map.get(category.id, 0)
             })
-        
+
         return result
 
     @staticmethod
@@ -129,22 +132,26 @@ class StatisticsService:
         """
         # 使用优化的查询方法
         tags = get_tags_with_article_count(db, limit)
-        
+
+        # 单次 GROUP BY 查询各标签的总浏览量，避免 N+1
+        view_rows = db.query(
+            ArticleTag.tag_id,
+            func.sum(Article.view_count).label("view_count"),
+        ).join(
+            Article, Article.id == ArticleTag.article_id
+        ).group_by(ArticleTag.tag_id).all()
+        view_map = {row.tag_id: row.view_count or 0 for row in view_rows}
+
         result = []
         for tag in tags:
-            # 获取该标签下文章的总浏览量
-            view_count = db.query(func.sum(Article.view_count)).join(
-                Article.tags
-            ).filter(Tag.id == tag.id).scalar() or 0
-            
             result.append({
                 "id": tag.id,
                 "name": tag.name,
                 "slug": tag.slug,
                 "article_count": getattr(tag, 'article_count', 0),
-                "view_count": view_count
+                "view_count": view_map.get(tag.id, 0)
             })
-        
+
         return result
 
     @staticmethod
@@ -153,24 +160,26 @@ class StatisticsService:
         获取作者统计
         """
         from app.crud.user import get_authors_with_article_count
-        
+
         authors = get_authors_with_article_count(db)
-        
+
+        # 单次 GROUP BY 查询各作者的总浏览量，避免 N+1
+        view_rows = db.query(
+            Article.author_id,
+            func.sum(Article.view_count).label("view_count"),
+        ).group_by(Article.author_id).all()
+        view_map = {row.author_id: row.view_count or 0 for row in view_rows}
+
         result = []
         for author in authors:
-            # 获取作者文章的总浏览量
-            view_count = db.query(func.sum(Article.view_count)).filter(
-                Article.author_id == author.id
-            ).scalar() or 0
-            
             result.append({
                 "id": author.id,
                 "username": author.username,
                 "full_name": author.full_name,
                 "article_count": getattr(author, 'article_count', 0),
-                "view_count": view_count
+                "view_count": view_map.get(author.id, 0)
             })
-        
+
         return result
 
     @staticmethod
