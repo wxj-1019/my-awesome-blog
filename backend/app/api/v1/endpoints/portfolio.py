@@ -2,7 +2,7 @@ from typing import Any, List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.core.database import get_db
-from app.core.dependencies import get_current_active_user, get_current_superuser
+from app.core.dependencies import get_current_superuser
 from app import crud
 from app.schemas.portfolio import PortfolioItem, PortfolioItemCreate, PortfolioItemUpdate
 from app.schemas.image import Image as ImageSchema

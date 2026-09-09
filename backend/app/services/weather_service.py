@@ -1,8 +1,9 @@
 import httpx
 from datetime import datetime, timedelta, timezone
-from typing import Optional
+from typing import Any, Optional
 from sqlalchemy.orm import Session
 from app.core.config import settings
+from app.models.weather import Weather
 from app.schemas.weather import WeatherResponse
 from app.utils.logger import app_logger
 from app.crud import weather as weather_crud
@@ -24,7 +25,7 @@ class WeatherService:
         return datetime.now(timezone.utc) > expiration_time
 
     @staticmethod
-    def _safe_float(val) -> float:
+    def _safe_float(val: Optional[Any]) -> float:
         if not val:
             return 0
         try:
@@ -32,7 +33,7 @@ class WeatherService:
         except (ValueError, TypeError):
             return 0
 
-    def _weather_to_response(self, db_weather) -> WeatherResponse:
+    def _weather_to_response(self, db_weather: Weather) -> WeatherResponse:
         """将数据库天气记录转换为 WeatherResponse"""
         import uuid
 
@@ -125,7 +126,8 @@ class WeatherService:
                 try:
                     hour = int(data.update_time.split(' ')[1].split(':')[0])
                     is_daytime = 6 <= hour < 18
-                except:
+                except (IndexError, ValueError):
+                    # 解析失败时保持默认白天
                     pass
             
             weather_crud.create_or_update_weather(
@@ -212,8 +214,9 @@ class WeatherService:
                 if db_weather:
                     app_logger.info(f"Returning stale cache for {city} after error")
                     return self._weather_to_response(db_weather)
-            except:
-                pass
+            except Exception as cache_err:
+                # 缓存读取失败不覆盖原始异常，仅记录日志
+                app_logger.warning(f"读取 {city} 天气缓存失败: {cache_err}")
             raise ValueError(f"获取天气数据时发生错误: {str(e)}")
 
 

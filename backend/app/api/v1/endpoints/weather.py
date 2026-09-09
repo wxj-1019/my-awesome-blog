@@ -1,7 +1,6 @@
 from fastapi import APIRouter, HTTPException, status, Query, Depends
-from typing import Optional
 from sqlalchemy.orm import Session
-from app.schemas.weather import WeatherResponse, WeatherRequest
+from app.schemas.weather import WeatherResponse
 from app.services.weather_service import WeatherService
 from app.utils.logger import app_logger
 from app.core.database import get_db

@@ -94,7 +94,7 @@ async def authenticate_user(db: Session, username: str, password: str) -> Option
     return user
 
 
-def get_authors_with_article_count(db: Session):
+def get_authors_with_article_count(db: Session) -> list[tuple[User, int]]:
     """
     获取所有作者及其发布的文章数量
     """
@@ -117,7 +117,7 @@ def get_authors_with_article_count(db: Session):
     return result
 
 
-def get_user_stats(db: Session, user_id: UUID):
+def get_user_stats(db: Session, user_id: UUID) -> Optional["UserStats"]:
     """
     获取指定用户的统计数据
     包括文章数、评论数、加入日期和总浏览量

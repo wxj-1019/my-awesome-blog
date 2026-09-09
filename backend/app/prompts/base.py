@@ -42,7 +42,7 @@ class PromptTemplate(BaseModel):
             if var_def.required and value is None:
                 raise ValueError(f"Required variable '{var_name}' not provided")
             if value is not None:
-                result = result.replace(f"{{{{{var_name}}}}", str(value))
+                result = result.replace(f"{{{{{var_name}}}}}", str(value))
                 result = result.replace(f"${var_name}", str(value))
         return result
     

@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
@@ -29,6 +29,7 @@ from app.schemas.writing_session import (
     WritingSuggestionRevisionRequest,
 )
 from app.services.writing_session_service import WritingSessionService
+from app.utils.permission_helpers import check_ownership
 
 router = APIRouter()
 
@@ -51,11 +52,8 @@ def create_session(
         article = get_article(db, payload.article_id)
         if not article:
             raise NotFoundException(resource="Article", identifier=str(payload.article_id))
-        if article.author_id != current_user.id and not current_user.is_superuser:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="没有权限关联该文章",
-            )
+        # 只允许关联本人文章（超级管理员除外），避免跨用户污染会话
+        check_ownership(article, current_user, resource_name="文章")
     session = create_writing_session(db, current_user.id, payload.article_id)
     if article is not None:
         # 基于已有文章继续写作（编辑页场景）：直接进入 editing 阶段，
@@ -380,11 +378,7 @@ def link_article(
     if not article:
         raise NotFoundException(resource="Article", identifier=str(payload.article_id))
     # 只允许关联本人文章（超级管理员除外），避免跨用户污染会话
-    if article.author_id != current_user.id and not current_user.is_superuser:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="没有权限关联该文章",
-        )
+    check_ownership(article, current_user, resource_name="文章")
     session.article_id = payload.article_id
     return save_writing_session(db, session)
 

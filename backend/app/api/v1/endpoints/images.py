@@ -11,7 +11,6 @@ from app.schemas.image import Image, ImageCreate, ImageUpdate
 from app.models.user import User
 from app.services.image_service import ImageService
 from app.services.oss_service import oss_service
-from app.core.config import settings
 from app.utils.file_validation import ALLOWED_IMAGE_EXTENSIONS
 
 router = APIRouter()

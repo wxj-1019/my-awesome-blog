@@ -1,9 +1,8 @@
 import asyncio
 from typing import Any, List, Optional
-from fastapi import APIRouter, Depends, status, Query, Request, HTTPException
+from fastapi import APIRouter, Depends, Query, Request
 from app.exceptions import (
     NotFoundException,
-    ValidationException,
     ConflictException,
     InternalServerException,
 )
@@ -30,6 +29,7 @@ from app.utils.db_utils import (
 from app.utils.common_helpers import parse_uuid_list
 from app.utils.logger import app_logger
 from app.utils.rate_limit import article_create_rate_limit, article_read_rate_limit
+from app.utils.permission_helpers import check_edit_permission
 
 router = APIRouter()
 
@@ -183,20 +183,14 @@ async def search_articles(
         if category_slug:
             category = crud.get_category_by_slug(db, category_slug)
             if not category:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail="Category not found",
-                )
+                raise NotFoundException(message="Category not found")
             category_id = category.id
 
         tag_id = None
         if tag_slug:
             tag = crud.get_tag_by_slug(db, tag_slug)
             if not tag:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail="Tag not found",
-                )
+                raise NotFoundException(message="Tag not found")
             tag_id = tag.id
 
         author_uuid = UUID(author_id) if author_id else None
@@ -367,11 +361,8 @@ async def update_article(
             resource="Article",
             identifier=article_id
         )
-    if existing.author_id != current_user.id and not current_user.is_superuser:  # type: ignore
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="没有权限修改该文章",
-        )
+    # 仅作者本人或超级管理员可编辑（存在性已在上文校验）
+    check_edit_permission(existing, current_user, resource_name="文章")
     old_slug = existing.slug
 
     # slug 变更时检查唯一性，避免触发数据库唯一约束 500
@@ -466,10 +457,7 @@ async def batch_delete_articles(
     deleted_count, slugs, deleted_ids = await asyncio.to_thread(_delete_articles_sync)
 
     if deleted_count is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="未找到任何文章"
-        )
+        raise NotFoundException(message="未找到任何文章")
 
     # 批量清除缓存
     if deleted_ids:
@@ -555,10 +543,7 @@ async def batch_publish_articles(
 
     result = await asyncio.to_thread(_publish_articles_sync)
     if result is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="未找到任何文章或没有权限操作这些文章"
-        )
+        raise NotFoundException(message="未找到任何文章或没有权限操作这些文章")
     updated_count, updated_ids, slugs = result
 
     # 批量清除缓存
@@ -620,10 +605,7 @@ async def batch_set_featured_articles(
 
     result = await asyncio.to_thread(_feature_articles_sync)
     if result is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="未找到任何文章"
-        )
+        raise NotFoundException(message="未找到任何文章")
     updated_ids, slugs = result
 
     # 批量清除缓存
