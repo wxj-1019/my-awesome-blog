@@ -362,3 +362,37 @@ def test_upload_multiple_images_concurrently(client, test_session):
     for img_id in uploaded_ids:
         response = client.get(f"/api/v1/images/{img_id}")
         assert response.status_code == status.HTTP_200_OK
+
+
+def test_upload_invalid_image_content_returns_400(client):
+    """回归：伪造扩展名（.jpg 实为文本）应返回 400，而不是被吞成 500"""
+    temp_file = tempfile.NamedTemporaryFile(mode='w', suffix='.jpg', delete=False)
+    temp_file.write("This is definitely not a JPEG image")
+    temp_file.close()
+
+    try:
+        with open(temp_file.name, 'rb') as f:
+            response = client.post(
+                "/api/v1/images/",
+                files={"file": ("fake.jpg", f, "image/jpeg")}
+            )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+    finally:
+        _close_and_unlink(temp_file)
+
+
+def test_search_escapes_like_wildcards(client, test_session):
+    """回归：搜索词中的 % 必须按字面匹配，不能变成通配符匹配全部"""
+    image = Image(**_image_data(original_filename="hello.jpg", file_path="/uploads/hello.jpg", alt_text="hello"))
+    test_session.add(image)
+    test_session.commit()
+
+    # q="%" 若未转义会匹配所有记录；转义后应匹配不到任何标题含字面 % 的图片
+    response = client.get("/api/v1/images/count", params={"q": "%"})
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["total"] == 0
+
+    # 对照：普通关键词正常命中
+    response = client.get("/api/v1/images/count", params={"q": "hello"})
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["total"] == 1

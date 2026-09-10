@@ -1,9 +1,6 @@
-from typing import Any, List
+from typing import Any, List, Optional
 from fastapi import APIRouter, Query, Depends, HTTPException, status, File, UploadFile, Form
 from sqlalchemy.orm import Session
-import os
-import uuid
-from pathlib import Path
 from app.core.database import get_db
 from app.core.dependencies import get_current_active_user, get_current_superuser
 from app import crud
@@ -13,9 +10,14 @@ from app.services.image_service import ImageService
 from app.services.oss_service import oss_service
 from app.core.config import settings
 from app.models.image import Image as ImageModel
-from app.utils.file_validation import ALLOWED_IMAGE_EXTENSIONS
+from app.utils.file_validation import save_upload_file_temp, cleanup_temp_file
 
 router = APIRouter()
+
+
+def _escape_like(text: str) -> str:
+    """转义 LIKE 通配符（反斜杠 / % / _），防止用户输入改变匹配语义"""
+    return text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
 
 
 @router.get("/count", response_model=dict)
@@ -28,18 +30,19 @@ def count_images(
     from sqlalchemy import func
     query = db.query(func.count(ImageModel.id))
     if q:
-        pattern = f"%{q.strip()}%"
+        pattern = f"%{_escape_like(q.strip())}%"
+        # 模型实际字段为 alt_text/caption（原 title/description 不存在，任意搜索都会 500）
         query = query.filter(
-            ImageModel.title.ilike(pattern)
-            | ImageModel.description.ilike(pattern)
-            | ImageModel.original_filename.ilike(pattern)
+            ImageModel.alt_text.ilike(pattern, escape="\\")
+            | ImageModel.caption.ilike(pattern, escape="\\")
+            | ImageModel.original_filename.ilike(pattern, escape="\\")
         )
     return {"total": query.scalar() or 0}
 
 
 @router.get("/", response_model=List[Image])
 def read_images(
-    skip: int = 0,
+    skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=100),
     q: str = Query(None, description="Search in title/description/original filename"),
     db: Session = Depends(get_db),
@@ -50,18 +53,19 @@ def read_images(
     """
     query = db.query(ImageModel)
     if q:
-        pattern = f"%{q.strip()}%"
+        pattern = f"%{_escape_like(q.strip())}%"
+        # 模型实际字段为 alt_text/caption（原 title/description 不存在，任意搜索都会 500）
         query = query.filter(
-            ImageModel.title.ilike(pattern)
-            | ImageModel.description.ilike(pattern)
-            | ImageModel.original_filename.ilike(pattern)
+            ImageModel.alt_text.ilike(pattern, escape="\\")
+            | ImageModel.caption.ilike(pattern, escape="\\")
+            | ImageModel.original_filename.ilike(pattern, escape="\\")
         )
     images = query.order_by(ImageModel.created_at.desc()).offset(skip).limit(limit).all()
     return images
 
 
 @router.post("/", response_model=Image)
-def upload_image(
+async def upload_image(
     *,
     file: UploadFile = File(...),
     title: str = Form(None),
@@ -74,46 +78,36 @@ def upload_image(
     """
     Upload a new image
     """
-    # Check if file is an allowed image type（复用 file_validation 统一白名单）
-    allowed_extensions = ALLOWED_IMAGE_EXTENSIONS
-    file_extension = os.path.splitext(file.filename)[1].lower()
-    if file_extension not in allowed_extensions:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"File type {file_extension} not allowed. Allowed types: {allowed_extensions}"
-        )
-    
     # Use ImageService to process the image
     image_service = ImageService()
-    
-    # Save uploaded file temporarily with safe filename
-    temp_file_path = f"temp_{uuid.uuid4().hex}{Path(file.filename).suffix}"
-    with open(temp_file_path, "wb") as buffer:
-        buffer.write(file.file.read())
-    
+
+    temp_file_path: Optional[str] = None
     try:
+        # 使用统一文件校验工具落盘（扩展名/MIME/大小校验），不直接整读进内存
+        temp_file_path = await save_upload_file_temp(file)
+
         # Validate image format
         if not image_service.validate_image_format(temp_file_path):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Invalid image format. Supported formats: JPEG, PNG, WEBP, GIF"
             )
-        
+
         # Process image using ImageService
         # Get image info for the database record
         image_info = image_service.get_image_info(temp_file_path)
-        
+
         # Upload original file to OSS
         with open(temp_file_path, "rb") as f:
             file_data = f.read()
         original_file_url = oss_service.upload_file(file_data, file.filename, "images/original")
-        
+
         if not original_file_url:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Failed to upload image to cloud storage"
             )
-        
+
         # Create image record in database
         image_in = ImageCreate(
             original_filename=file.filename,
@@ -125,21 +119,22 @@ def upload_image(
             alt_text=alt_text,
             caption=description
         )
-        
+
         image = crud.create_image(db, image=image_in)
-        
-        # Clean up temporary file
-        os.remove(temp_file_path)
-        
+
         return image
+    except HTTPException:
+        # 自己抛出的 HTTPException（如 400 格式错误）原样透传，不能被包成 500
+        raise
     except Exception as e:
-        # Clean up temporary file in case of error
-        if os.path.exists(temp_file_path):
-            os.remove(temp_file_path)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error processing image: {str(e)}"
         )
+    finally:
+        # Clean up temporary file
+        if temp_file_path:
+            cleanup_temp_file(temp_file_path)
 
 
 @router.get("/{image_id}", response_model=Image)
