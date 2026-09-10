@@ -438,3 +438,28 @@ class TestAccountInfo:
         resp = client.get("/api/v1/image-gen/account")
         assert resp.status_code == 400
         assert "未配置" in resp.json()["error"]["message"]
+
+
+class TestAuthRequired:
+    def test_anonymous_video_task_returns_401(self, client):
+        """回归：文生视频为付费算力，匿名调用应 401"""
+        from app.core.dependencies import get_current_active_user
+        from app.main import app
+
+        app.dependency_overrides.pop(get_current_active_user, None)
+
+        resp = client.post(
+            "/api/v1/image-gen/tasks/video",
+            json={"type": "video", "prompt": "海鸥飞过灯塔"},
+        )
+        assert resp.status_code == 401
+
+    def test_anonymous_account_returns_401(self, client):
+        """回归：RunningHub 账户信息（余额）匿名查询应 401"""
+        from app.core.dependencies import get_current_active_user
+        from app.main import app
+
+        app.dependency_overrides.pop(get_current_active_user, None)
+
+        resp = client.get("/api/v1/image-gen/account")
+        assert resp.status_code == 401

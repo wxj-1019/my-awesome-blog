@@ -9,7 +9,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 
-from app.core.dependencies import get_current_user_optional
+from app.core.dependencies import get_current_active_user, get_current_user_optional
 from app.models.user import User
 from app.schemas.image_gen import (
     ImageGenStatusResponse,
@@ -63,7 +63,8 @@ async def create_video_task(
     request: Request,
     *,
     task_request: ImageGenTaskRequest,
-    current_user: Optional[User] = Depends(get_current_user_optional),
+    # 视频生成消耗付费算力，仅登录用户可用（生图端点按产品决定保持公开）
+    current_user: User = Depends(get_current_active_user),
 ) -> ImageGenTaskResponse:
     """创建文生视频任务，返回 task_id 供前端轮询。"""
     task_request.type = "video"
@@ -88,7 +89,8 @@ async def get_task_status(
 @image_gen_rate_limit
 async def get_account_info(
     request: Request,
-    current_user: Optional[User] = Depends(get_current_user_optional),
+    # 账户信息暴露付费余额，仅登录用户可查
+    current_user: User = Depends(get_current_active_user),
 ) -> RunningHubAccountResponse:
     """查询 RunningHub 账户信息（RH 币/余额/运行中任务数），抽屉展示用。"""
     try:
