@@ -10,6 +10,7 @@ jest.mock('next/link', () => {
 
 jest.mock('next/navigation', () => ({
   usePathname: jest.fn(() => '/'),
+  useRouter: () => ({ push: jest.fn() }),
 }));
 
 jest.mock('@/components/ui/rope-theme-toggler', () => ({
