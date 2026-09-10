@@ -4,7 +4,7 @@ import type { Route } from 'next';
 import BrandLogo from './BrandLogo';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Home, BookOpen, Mail, Camera, Wrench, Search, X, Menu, Music, Film, Gamepad2, ChevronDown, Cpu, Sparkles, MoonStar, ImageIcon } from 'lucide-react';
+import { Home, BookOpen, Mail, Camera, Briefcase, Wrench, Search, X, Menu, Music, Film, Gamepad2, ChevronDown, Cpu, Sparkles, MoonStar, ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { RopeThemeToggler } from '@/components/ui/rope-theme-toggler';
 import UserProfileMenu from './UserProfileMenu';
@@ -38,6 +38,7 @@ const navLinks: NavLink[] = [
   },
   { href: '/articles', label: '文章', icon: BookOpen },
   { href: '/albums', label: '相册', icon: Camera },
+  { href: '/portfolio', label: '作品集', icon: Briefcase },
   {
     href: '/tools',
     label: '百宝箱',
