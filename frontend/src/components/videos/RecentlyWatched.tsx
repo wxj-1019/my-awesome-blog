@@ -106,7 +106,18 @@ const RecentlyWatched: React.FC<RecentlyWatchedProps> = ({ videos, onContinueWat
           <Stagger className="flex gap-4 px-4 py-4" stagger={0.1} itemCount={recentlyWatched.length}>
             {recentlyWatched.map((video) => (
               <StaggerItem key={video.id} className="flex-shrink-0 w-48">
-                <div className="relative group cursor-pointer" onClick={() => onContinueWatching?.(video)}>
+                <div
+                  className="relative group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-tech-cyan/70 rounded-lg"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => onContinueWatching?.(video)}
+                  onKeyDown={event => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      onContinueWatching?.(video);
+                    }
+                  }}
+                >
                   <div className="relative aspect-[2/3] rounded-lg overflow-hidden mb-3">
                     {/* 视频封面可能来自外部站点，域名不可控，保留 <img> */}
                     <img

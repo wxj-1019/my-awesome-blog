@@ -80,9 +80,27 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, onClick, onContinueWatchin
   const hasProgress = video.progress !== undefined && video.progress !== null && video.progress > 0;
   const isWatching = video.status === 'watching';
 
+  // 键盘可达性：无 onClick 时不声明为交互元素，避免误导读屏/键盘用户
+  const interactiveProps = onClick
+    ? {
+        role: 'button' as const,
+        tabIndex: 0,
+        onKeyDown: (event: React.KeyboardEvent<HTMLDivElement>) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            onClick();
+          }
+        },
+      }
+    : {};
+
   return (
     /* 入场由外层 StaggerItem 统一处理；悬停交互用 HoverLift（自带 reduced-motion 回退） */
-    <div className="h-full" onClick={onClick}>
+    <div
+      className="h-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-tech-cyan/70 rounded-xl"
+      onClick={onClick}
+      {...interactiveProps}
+    >
       <HoverLift className="group relative h-full">
         <GlassCard
           padding="none"
