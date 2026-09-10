@@ -26,7 +26,7 @@ Enterprise-grade **personal site / blog** monorepo: **Next.js 16** frontend + **
 │   ├── rules/                # Module rules for agents & contributors
 │   └── changelog-agents.md
 ├── nginx/
-├── docker-compose.yml        # Dev (Postgres, backend, Redis)
+├── docker-compose.yml        # Dev (Postgres, backend, Redis, MinIO)
 ├── docker-compose.prod.yml
 ├── AGENTS.md                 # Agent entry (global rules)
 └── README.md                 # This file
@@ -87,6 +87,7 @@ docker-compose up
 - Postgres: `127.0.0.1:5432`
 - Backend: `8989`
 - Redis: `127.0.0.1:6379`
+- MinIO (S3-compatible object storage): API `127.0.0.1:9000`, console `127.0.0.1:9001`
 
 Frontend is usually run separately with `npm run dev` unless you use a full prod compose stack.
 
