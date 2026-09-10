@@ -8,6 +8,7 @@ import { Home, BookOpen, Mail, Camera, Wrench, Search, X, Menu, Music, Film, Gam
 import { Button } from '@/components/ui/Button';
 import { RopeThemeToggler } from '@/components/ui/rope-theme-toggler';
 import UserProfileMenu from './UserProfileMenu';
+import GlobalSearch from '@/components/navigation/GlobalSearch';
 import { cn } from '@/lib/utils';
 import type { LucideIcon } from 'lucide-react';
 
@@ -131,6 +132,7 @@ export default function Navbar() {
   const [mounted, setMounted] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const homeDropdown = useHoverDropdown();
   const toolsDropdown = useHoverDropdown();
   const homeDropdownRef = useRef<HTMLDivElement>(null);
@@ -172,10 +174,7 @@ export default function Navbar() {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
-        const searchInput = document.getElementById('global-search-input');
-        if (searchInput) {
-          searchInput.focus();
-        }
+        setSearchOpen(true);
       }
       if (e.key === 'Escape' && mobileMenuOpen) {
         setMobileMenuOpen(false);
@@ -187,14 +186,6 @@ export default function Navbar() {
 
   const toggleMobileMenu = useCallback(() => {
     setMobileMenuOpen(prev => !prev);
-  }, []);
-
-  /** 聚焦搜索框 */
-  const focusSearch = useCallback(() => {
-    const searchInput = document.getElementById('global-search-input');
-    if (searchInput) {
-      searchInput.focus();
-    }
   }, []);
 
   // 后台管理系统有独立的 AdminSidebar + header，不渲染前台导航，
@@ -403,7 +394,7 @@ export default function Navbar() {
                 variant="ghost"
                 size="sm"
                 className="text-tech-cyan hover:bg-tech-cyan/10 transition-colors duration-300"
-                onClick={focusSearch}
+                onClick={() => setSearchOpen(true)}
                 aria-label="搜索 (Cmd/Ctrl + K)"
               >
                 <Search className="h-4 w-4" />
@@ -459,6 +450,18 @@ export default function Navbar() {
           )}
         >
           <nav role="navigation" aria-label="移动端导航" className="py-4 px-4 space-y-2">
+            <button
+              type="button"
+              onClick={() => {
+                setMobileMenuOpen(false);
+                setSearchOpen(true);
+              }}
+              className="w-full flex items-center space-x-3 py-3 px-4 rounded-lg text-foreground/80 hover:bg-glass hover:text-tech-cyan transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              aria-label="搜索文章"
+            >
+              <Search className="h-5 w-5" />
+              <span className="text-base font-medium">搜索</span>
+            </button>
             {navLinks.map((link, index) => {
               const IconComponent = link.icon;
               const hasChildren = link.children && link.children.length > 0;
@@ -520,6 +523,7 @@ export default function Navbar() {
           </nav>
         </div>
       </header>
+      <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
     </>
   );
 }
