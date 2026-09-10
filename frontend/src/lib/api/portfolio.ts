@@ -2,41 +2,50 @@ import { apiFetch } from '@/lib/api-client';
 export interface PortfolioItem {
   id: string;
   title: string;
-  description: string;
-  image_url?: string;
-  project_url?: string;
-  github_url?: string;
-  category?: string;
-  tags?: string[];
-  is_featured: boolean;
-  sort_order?: number;
+  slug: string;
+  description: string | null;
+  cover_image: string | null;
+  demo_url: string | null;
+  github_url: string | null;
+  technologies: string[] | null;
+  start_date: string | null;
+  end_date: string | null;
+  /** completed=已完成 in_progress=进行中 planned=规划中 */
+  status: string | null;
+  is_featured: boolean | null;
+  sort_order: number | null;
   created_at: string;
   updated_at?: string;
 }
 
 export interface PortfolioItemCreate {
   title: string;
-  description: string;
-  image_url?: string;
-  project_url?: string;
-  github_url?: string;
-  category?: string;
-  tags?: string[];
-  is_featured?: boolean;
-  sort_order?: number;
+  slug: string;
+  description?: string | null;
+  cover_image?: string | null;
+  demo_url?: string | null;
+  github_url?: string | null;
+  technologies?: string[] | null;
+  start_date?: string | null;
+  end_date?: string | null;
+  status?: string | null;
+  is_featured?: boolean | null;
+  sort_order?: number | null;
 }
 
 export interface PortfolioItemUpdate {
   title?: string;
-  description?: string;
-  image_url?: string;
-  project_url?: string;
-  github_url?: string;
-  category?: string;
-  tags?: string[];
-  is_featured?: boolean;
-  is_active?: boolean;
-  sort_order?: number;
+  slug?: string;
+  description?: string | null;
+  cover_image?: string | null;
+  demo_url?: string | null;
+  github_url?: string | null;
+  technologies?: string[] | null;
+  start_date?: string | null;
+  end_date?: string | null;
+  status?: string | null;
+  is_featured?: boolean | null;
+  sort_order?: number | null;
 }
 
 export const getPortfolioItems = async (params?: {
