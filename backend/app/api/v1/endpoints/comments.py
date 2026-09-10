@@ -20,7 +20,7 @@ router = APIRouter()
 
 @router.get("/", response_model=List[CommentWithAuthor])
 def read_comments(
-    skip: int = 0,
+    skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=100, description="Maximum 100 items per request"),
     article_id: Optional[str] = Query(None, description="Filter by article ID"),
     author_id: Optional[str] = Query(None, description="Filter by author ID"),
@@ -36,6 +36,11 @@ def read_comments(
     """
     from uuid import UUID
 
+    # 审核状态筛选仅超级管理员可用：普通用户/匿名传入 approved 也强制只看已审核，
+    # 防止 ?approved=false 列出未审核评论
+    is_admin = current_user is not None and current_user.is_superuser
+    approved_filter = approved if is_admin else None
+
     if article_id:
         article_uuid = UUID(article_id)
         comments = crud.get_comments_by_article(
@@ -43,7 +48,7 @@ def read_comments(
             article_id=article_uuid,
             skip=skip,
             limit=limit,
-            approved_only=approved if approved is not None else True,
+            approved_only=approved_filter if approved_filter is not None else True,
             with_relationships=True
         )
     elif author_id:
@@ -55,12 +60,12 @@ def read_comments(
             limit=limit,
             with_relationships=True
         )
-    elif current_user and current_user.is_superuser:
+    elif is_admin:
         comments = crud.get_all_comments(
             db,
             skip=skip,
             limit=limit,
-            approved_only=approved,
+            approved_only=approved_filter,
             with_relationships=True
         )
     else:
@@ -94,7 +99,7 @@ def read_comment_by_id(
 @router.get("/{comment_id}/replies", response_model=List[CommentWithAuthor])
 def read_comment_replies(
     comment_id: str,
-    skip: int = 0,
+    skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=100, description="Maximum 100 items per request"),
     db: Session = Depends(get_db)
 ) -> Any:

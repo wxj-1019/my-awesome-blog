@@ -84,3 +84,62 @@ def test_create_comment_as_guest_default_nickname(client, published_article):
     )
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["nickname"] == "匿名游客"
+
+
+@pytest.fixture
+def article_with_mixed_comments(client, published_article, test_session):
+    """同一文章下造一条已审核 + 一条未审核评论"""
+    from app.models.comment import Comment
+
+    r_approved = client.post(
+        "/api/v1/comments/",
+        json={"content": "已通过评论", "article_id": str(published_article.id)},
+    )
+    assert r_approved.status_code == status.HTTP_200_OK
+    r_pending = client.post(
+        "/api/v1/comments/",
+        json={"content": "待审核评论", "article_id": str(published_article.id)},
+    )
+    assert r_pending.status_code == status.HTTP_200_OK
+
+    approved_comment = test_session.query(Comment).filter(
+        Comment.id == uuid.UUID(r_approved.json()["id"])
+    ).first()
+    approved_comment.is_approved = True
+    test_session.commit()
+    return {
+        "approved_id": r_approved.json()["id"],
+        "pending_id": r_pending.json()["id"],
+    }
+
+
+def test_anonymous_approved_false_still_only_approved(
+    client, published_article, article_with_mixed_comments
+):
+    """回归：匿名用户带 ?approved=false 也只能看到已审核评论"""
+    from app.core.dependencies import get_current_user_optional
+    from app.main import app
+
+    app.dependency_overrides.pop(get_current_user_optional, None)
+
+    response = client.get(
+        "/api/v1/comments/",
+        params={"article_id": str(published_article.id), "approved": "false"},
+    )
+    assert response.status_code == status.HTTP_200_OK
+    returned_ids = [c["id"] for c in response.json()]
+    assert article_with_mixed_comments["approved_id"] in returned_ids
+    assert article_with_mixed_comments["pending_id"] not in returned_ids
+
+
+def test_superuser_approved_false_sees_pending(
+    client, published_article, article_with_mixed_comments
+):
+    """conftest 注入超管：approved=false 应能列出未审核评论"""
+    response = client.get(
+        "/api/v1/comments/",
+        params={"article_id": str(published_article.id), "approved": "false"},
+    )
+    assert response.status_code == status.HTTP_200_OK
+    returned_ids = [c["id"] for c in response.json()]
+    assert article_with_mixed_comments["pending_id"] in returned_ids
