@@ -40,6 +40,9 @@ jest.mock('@/components/home/FeaturedHighlights', () => ({
 jest.mock('@/components/home/StatsPanel', () => ({
   __esModule: true,
   default: () => <section aria-label="stats-panel">Stats Panel</section>,
+  // 幕重排后首页改用具名导入（读者内容打头 / 数据航迹后置）
+  StatsHighlights: () => <section aria-label="stats-highlights">Highlights</section>,
+  StatsDeepPanel: () => <section aria-label="stats-deep">Deep Panel</section>,
 }));
 
 jest.mock('@/components/home/TechStack', () => ({
@@ -94,9 +97,11 @@ describe('Home Page', () => {
     expect(labels).toEqual([
       'hero',
       'featured-highlights',
-      'stats-panel',
+      // 读者动线重排：热门篇章打头（stats-highlights），作者/统计数据后置到洋流深层（stats-deep）
+      'stats-highlights',
       'tech-stack',
       'reading-stats',
+      'stats-deep',
       'timeline',
       '港口航标',
     ]);
