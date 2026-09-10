@@ -53,7 +53,7 @@ def get_admin_user(
 
 @router.get("/", response_model=List[User])
 def read_users(
-    skip: int = 0,
+    skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=100),
     db: Session = Depends(get_db),
     current_user: UserModel = Depends(get_current_superuser)  # 添加管理员权限要求

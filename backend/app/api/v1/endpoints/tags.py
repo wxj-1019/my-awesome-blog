@@ -1,6 +1,6 @@
 from typing import Any, List
 from uuid import UUID
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Query, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.dependencies import get_current_active_user, get_current_superuser
@@ -15,8 +15,8 @@ router = APIRouter()
 
 @router.get("/", response_model=List[TagWithArticleCount])
 def read_tags(
-    skip: int = 0,
-    limit: int = 100,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=100),
     db: Session = Depends(get_db)
 ) -> Any:
     """
@@ -177,8 +177,8 @@ def delete_tag(
 @router.get("/{tag_id}/articles", response_model=List[ArticleWithAuthor])
 def read_articles_by_tag(
     tag_id: UUID,
-    skip: int = 0,
-    limit: int = 100,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=100),
     published_only: bool = True,
     db: Session = Depends(get_db)
 ) -> Any:

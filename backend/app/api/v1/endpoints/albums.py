@@ -11,7 +11,7 @@ router = APIRouter()
 
 @router.get("/", response_model=List[dict])
 def read_albums(
-    skip: int = 0,
+    skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=100),
     db: Session = Depends(get_db)
 ) -> Any:
@@ -101,7 +101,7 @@ def read_album_by_id(
 
 @router.get("/featured/list", response_model=List[dict])
 def read_featured_albums(
-    skip: int = 0,
+    skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=100),
     db: Session = Depends(get_db)
 ) -> Any:
@@ -135,7 +135,7 @@ def read_featured_albums(
 @router.get("/{album_id}/images", response_model=List[dict])
 def read_album_images(
     album_id: str,
-    skip: int = 0,
+    skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=100),
     db: Session = Depends(get_db)
 ) -> Any:

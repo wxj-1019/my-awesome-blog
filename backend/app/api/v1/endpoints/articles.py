@@ -304,8 +304,8 @@ async def read_articles_cursor_paginated(
 async def search_articles_fulltext(
     search_query: str = Query(..., min_length=1, max_length=100, description="Fulltext search query"),
     published_only: bool = Query(True, description="Only return published articles"),
-    skip: int = 0,
-    limit: int = Query(100, le=100, description="Max limit is 100"),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=100, description="Max limit is 100"),
     db: Session = Depends(get_db)
 ) -> Any:
     """

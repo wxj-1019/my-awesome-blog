@@ -1,5 +1,5 @@
 from typing import Any
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from datetime import datetime, timedelta, timezone
@@ -64,7 +64,7 @@ def get_website_statistics(
 
 @router.get("/articles/popular", response_model=list[ArticleStatistics])
 def get_popular_articles_statistics(
-    limit: int = 10,
+    limit: int = Query(10, ge=1),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
 ) -> Any:
@@ -102,7 +102,7 @@ def get_content_statistics(
 
 @router.get("/overview", response_model=StatisticsResponse)
 def get_statistics_overview(
-    article_limit: int = 10,
+    article_limit: int = Query(10, ge=1),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
 ) -> Any:

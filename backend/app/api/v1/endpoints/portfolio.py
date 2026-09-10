@@ -14,7 +14,7 @@ router = APIRouter()
 
 @router.get("/", response_model=List[PortfolioItem])
 def read_portfolio_items(
-    skip: int = 0,
+    skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=100),
     is_active: bool = True,
     db: Session = Depends(get_db)
@@ -143,7 +143,7 @@ def delete_portfolio_item(
 @router.get("/{portfolio_item_id}/images", response_model=List[ImageSchema])
 def read_portfolio_images(
     portfolio_item_id: str,
-    skip: int = 0,
+    skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=100),
     db: Session = Depends(get_db)
 ) -> Any:

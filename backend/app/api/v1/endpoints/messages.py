@@ -32,7 +32,7 @@ def count_messages(
 
 @router.get("/", response_model=List[MessageWithAuthor])
 def read_messages(
-    skip: int = 0,
+    skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=100),
     danmaku_only: bool = Query(False, description="Only return danmaku messages"),
     author_id: Optional[str] = Query(None, description="Filter by author ID"),
@@ -176,7 +176,7 @@ def read_message_by_id(
 @router.get("/{message_id}/replies", response_model=List[MessageWithAuthor])
 def read_message_replies(
     message_id: str,
-    skip: int = 0,
+    skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=100),
     db: Session = Depends(get_db)
 ) -> Any:
