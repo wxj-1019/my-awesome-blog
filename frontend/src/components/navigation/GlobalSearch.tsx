@@ -28,6 +28,7 @@ export default function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
+  const [retryNonce, setRetryNonce] = useState(0);
   const abortRef = useRef<AbortController | null>(null);
 
   // 关闭时重置全部状态并中止在途请求
@@ -42,10 +43,15 @@ export default function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) 
     }
   }, [open]);
 
+  // 组件卸载时中止在途请求
+  useEffect(() => () => abortRef.current?.abort(), []);
+
   // 防抖搜索
   useEffect(() => {
     const keyword = query.trim();
     if (!keyword) {
+      // 清空输入也要取消在途请求，避免过期响应回填结果
+      abortRef.current?.abort();
       setResults([]);
       setError(false);
       setLoading(false);
@@ -75,7 +81,7 @@ export default function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) 
       }
     }, DEBOUNCE_MS);
     return () => clearTimeout(timer);
-  }, [query]);
+  }, [query, retryNonce]);
 
   const goToArticle = useCallback(
     (article: BackendArticleWithAuthor) => {
@@ -161,6 +167,8 @@ export default function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) 
                 compact
                 title="搜索出错了"
                 description="请稍后重试"
+                // 显式重试动作：error 变体默认 action 是 location.reload，弹窗内不可用
+                action={{ label: '重试', onClick: () => setRetryNonce((n) => n + 1) }}
               />
             )}
 
@@ -171,6 +179,8 @@ export default function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) 
                 compact
                 title="没有找到相关文章"
                 description="换个关键词试试"
+                // 同上：屏蔽 search 变体默认的整页刷新，改为清空弹窗内输入
+                action={{ label: '清除搜索', onClick: () => setQuery('') }}
               />
             )}
 
@@ -182,6 +192,7 @@ export default function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) 
 
             {!loading &&
               !error &&
+              keyword &&
               results.map((article, index) => (
                 <button
                   key={article.id}
@@ -198,7 +209,6 @@ export default function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) 
                 >
                   {article.cover_image ? (
                     // 封面来自 MinIO/外部 URL，缩略图场景用裸 img（项目惯例，见 CoverPicker）
-                    // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={article.cover_image}
                       alt=""
