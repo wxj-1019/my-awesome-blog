@@ -180,10 +180,19 @@ export default function ArticleDetailPageContent({
 
   // 文章由 RSC 预取，客户端仅需加载相关文章
   useEffect(() => {
+    // 快速切换文章时防止旧请求回写覆盖新数据
+    let cancelled = false;
     generateTableOfContents(article.content);
     getRelatedArticles(params.id)
-      .then(setRelatedArticles)
+      .then(data => {
+        if (!cancelled) {
+          setRelatedArticles(data);
+        }
+      })
       .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id]);
 
@@ -193,21 +202,34 @@ export default function ArticleDetailPageContent({
       return;
     }
 
+    // 快速切换文章时防止旧请求回写覆盖新数据
+    let cancelled = false;
+
     const fetchComments = async () => {
       setCommentsLoading(true);
       setCommentsError(null);
       try {
         const data = await getCommentTree(params.id);
-        setComments(data);
+        if (!cancelled) {
+          setComments(data);
+        }
       } catch (err) {
-        logger.error('获取评论失败:', err);
-        setCommentsError(err instanceof Error ? err.message : '获取评论失败');
+        if (!cancelled) {
+          logger.error('获取评论失败:', err);
+          setCommentsError(err instanceof Error ? err.message : '获取评论失败');
+        }
       } finally {
-        setCommentsLoading(false);
+        if (!cancelled) {
+          setCommentsLoading(false);
+        }
       }
     };
 
     fetchComments();
+
+    return () => {
+      cancelled = true;
+    };
   }, [params.id]);
   // 生成目录：与 MarkdownRenderer 共用同一套标题解析/slug 规则
   const generateTableOfContents = (content: string) => {
