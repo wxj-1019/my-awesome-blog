@@ -218,13 +218,14 @@ async def delete_file_from_oss(
     *,
     file_url: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
+    # 删除为高危操作：任意 file_url 都可被删除，仅允许超级管理员
+    current_user: User = Depends(get_current_superuser)
 ) -> Any:
     """
     从OSS删除文件
     :param file_url: 要删除的文件URL
     :param db: 数据库会话
-    :param current_user: 当前登录用户
+    :param current_user: 当前登录的超级管理员
     :return: 删除结果
     """
     if not file_url:
