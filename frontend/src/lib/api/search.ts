@@ -21,7 +21,9 @@ export async function searchArticlesFulltext(
     signal,
   });
   if (!response.ok) {
-    throw new Error(`全文搜索失败：HTTP ${response.status}`);
+    // 后端 422 等场景会带 detail 校验原因；响应体非 JSON 时兜底为空对象
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || `全文搜索失败：HTTP ${response.status}`);
   }
-  return (await response.json()) as Promise<BackendArticleWithAuthor[]>;
+  return response.json();
 }

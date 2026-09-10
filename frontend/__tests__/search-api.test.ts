@@ -31,8 +31,36 @@ describe('searchArticlesFulltext · 全文搜索 service', () => {
     expect(result).toEqual([{ id: 'a1', title: '测试' }]);
   });
 
-  it('响应非 ok 时抛出错误', async () => {
-    apiFetchMock.mockResolvedValue({ ok: false, status: 500 } as Response);
+  it('中文查询词经 URLSearchParams 正确百分号编码', async () => {
+    apiFetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => [],
+    } as Response);
+
+    await searchArticlesFulltext('深度学习');
+
+    const [url] = apiFetchMock.mock.calls[0];
+    expect(url).toContain(`search_query=${encodeURIComponent('深度学习')}`);
+  });
+
+  it('响应非 ok 且后端返回 detail 时抛出具体校验原因', async () => {
+    apiFetchMock.mockResolvedValue({
+      ok: false,
+      status: 422,
+      json: async () => ({ detail: 'search_query 不能为空' }),
+    } as Response);
+
+    await expect(searchArticlesFulltext('')).rejects.toThrow('search_query 不能为空');
+  });
+
+  it('响应非 ok 且响应体非 JSON 时回退为状态码错误', async () => {
+    apiFetchMock.mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: async () => {
+        throw new Error('invalid json');
+      },
+    } as unknown as Response);
 
     await expect(searchArticlesFulltext('x')).rejects.toThrow('500');
   });
