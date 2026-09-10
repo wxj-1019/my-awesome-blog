@@ -111,11 +111,11 @@ export default function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" />
+        <Dialog.Overlay className="fixed inset-0 z-[110] bg-black/50 backdrop-blur-sm" />
         <Dialog.Content
           aria-describedby={undefined}
           className={cn(
-            'fixed z-50 left-1/2 top-[12%] -translate-x-1/2',
+            'fixed z-[110] left-1/2 top-[12%] -translate-x-1/2',
             'w-[calc(100vw-2rem)] max-w-xl',
             'bg-glass/80 backdrop-blur-xl border border-glass-border rounded-2xl shadow-2xl',
             'focus:outline-none'

@@ -174,6 +174,8 @@ export default function Navbar() {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
+        // admin 不渲染 Navbar/弹窗，避免状态泄漏：回前台时弹窗意外弹出
+        if (pathname?.startsWith('/admin')) { return; }
         setSearchOpen(true);
       }
       if (e.key === 'Escape' && mobileMenuOpen) {
@@ -182,7 +184,7 @@ export default function Navbar() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [mobileMenuOpen]);
+  }, [mobileMenuOpen, pathname]);
 
   const toggleMobileMenu = useCallback(() => {
     setMobileMenuOpen(prev => !prev);
