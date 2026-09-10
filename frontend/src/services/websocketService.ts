@@ -28,15 +28,12 @@ class WebSocketService {
   constructor() {
     // 根据环境配置 WebSocket URL
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = process.env.NEXT_PUBLIC_WS_HOST || 'localhost:8989';
-    this.url = `${protocol}//${host}/ws/notifications`;
-    
-    // 如果未定义 NEXT_PUBLIC_WS_HOST，则启用模拟模式
-    this.simulationMode = !process.env.NEXT_PUBLIC_WS_HOST;
-    
-    if (this.simulationMode) {
+    const host = process.env.NEXT_PUBLIC_WS_HOST;
 
-    }
+    // 如果未定义 NEXT_PUBLIC_WS_HOST，则启用模拟模式；
+    // 此时不拼 localhost 兜底地址（部署缺 env 时会把浏览器引到访问者本机）
+    this.simulationMode = !host;
+    this.url = host ? `${protocol}//${host}/ws/notifications` : '';
   }
 
   public connect(): void {
