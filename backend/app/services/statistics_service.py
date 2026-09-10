@@ -12,7 +12,6 @@ from app.models.portfolio import Portfolio
 from app.models.timeline_event import TimelineEvent
 from app.models.subscription import Subscription
 from app.crud.category import get_categories_with_article_count
-from app.crud.tag import get_tags_with_article_count
 
 
 class StatisticsService:
@@ -90,77 +89,107 @@ class StatisticsService:
     def get_category_statistics(db: Session) -> List[Dict]:
         """
         获取分类统计（包含文章数量和浏览量）
+
+        单条 GROUP BY 聚合查询，避免按分类循环查询的 N+1 问题
         """
-        # 使用优化的查询方法
-        categories = get_categories_with_article_count(db)
-        
-        result = []
-        for category in categories:
-            # 获取该分类下文章的总浏览量
-            view_count = db.query(func.sum(Article.view_count)).join(
-                Article.categories
-            ).filter(Category.id == category.id).scalar() or 0
-            
-            result.append({
-                "id": category.id,
-                "name": category.name,
-                "slug": category.slug,
-                "article_count": getattr(category, 'article_count', 0),
-                "view_count": view_count
-            })
-        
-        return result
+        from app.models.article_category import ArticleCategory
+
+        rows = (
+            db.query(
+                Category.id,
+                Category.name,
+                Category.slug,
+                func.count(ArticleCategory.article_id).label('article_count'),
+                func.coalesce(func.sum(Article.view_count), 0).label('view_count'),
+            )
+            .outerjoin(ArticleCategory, Category.id == ArticleCategory.category_id)
+            .outerjoin(Article, ArticleCategory.article_id == Article.id)
+            .filter(Category.is_active == True)
+            .group_by(Category.id)
+            .limit(100)
+            .all()
+        )
+
+        return [
+            {
+                "id": row.id,
+                "name": row.name,
+                "slug": row.slug,
+                "article_count": row.article_count or 0,
+                "view_count": row.view_count,
+            }
+            for row in rows
+        ]
 
     @staticmethod
     def get_tag_statistics(db: Session, limit: int = 50) -> List[Dict]:
         """
         获取标签统计（按文章数量排序）
+
+        单条 GROUP BY 聚合查询，避免按标签循环查询的 N+1 问题
         """
-        # 使用优化的查询方法
-        tags = get_tags_with_article_count(db, limit)
-        
-        result = []
-        for tag in tags:
-            # 获取该标签下文章的总浏览量
-            view_count = db.query(func.sum(Article.view_count)).join(
-                Article.tags
-            ).filter(Tag.id == tag.id).scalar() or 0
-            
-            result.append({
-                "id": tag.id,
-                "name": tag.name,
-                "slug": tag.slug,
-                "article_count": getattr(tag, 'article_count', 0),
-                "view_count": view_count
-            })
-        
-        return result
+        from app.models.article_tag import ArticleTag
+
+        rows = (
+            db.query(
+                Tag.id,
+                Tag.name,
+                Tag.slug,
+                func.count(ArticleTag.article_id).label('article_count'),
+                func.coalesce(func.sum(Article.view_count), 0).label('view_count'),
+            )
+            .outerjoin(ArticleTag, Tag.id == ArticleTag.tag_id)
+            .outerjoin(Article, ArticleTag.article_id == Article.id)
+            .group_by(Tag.id)
+            .limit(limit)
+            .all()
+        )
+
+        return [
+            {
+                "id": row.id,
+                "name": row.name,
+                "slug": row.slug,
+                "article_count": row.article_count or 0,
+                "view_count": row.view_count,
+            }
+            for row in rows
+        ]
 
     @staticmethod
     def get_author_statistics(db: Session) -> List[Dict]:
         """
         获取作者统计
+
+        单条 GROUP BY 聚合查询，避免按作者循环查询的 N+1 问题。
+        语义与原实现一致：article_count 只统计已发布文章，
+        view_count 统计该作者全部文章的浏览量（含草稿）。
         """
-        from app.crud.user import get_authors_with_article_count
-        
-        authors = get_authors_with_article_count(db)
-        
-        result = []
-        for author in authors:
-            # 获取作者文章的总浏览量
-            view_count = db.query(func.sum(Article.view_count)).filter(
-                Article.author_id == author.id
-            ).scalar() or 0
-            
-            result.append({
-                "id": author.id,
-                "username": author.username,
-                "full_name": author.full_name,
-                "article_count": getattr(author, 'article_count', 0),
-                "view_count": view_count
-            })
-        
-        return result
+        from sqlalchemy import case
+
+        rows = (
+            db.query(
+                User.id,
+                User.username,
+                User.full_name,
+                func.sum(case((Article.is_published == True, 1), else_=0)).label('article_count'),
+                func.coalesce(func.sum(Article.view_count), 0).label('view_count'),
+            )
+            .outerjoin(Article, User.id == Article.author_id)
+            .group_by(User.id)
+            .all()
+        )
+
+        return [
+            {
+                "id": row.id,
+                "username": row.username,
+                "full_name": row.full_name,
+                "article_count": row.article_count or 0,
+                "view_count": row.view_count,
+            }
+            for row in rows
+        ]
 
     @staticmethod
     def get_popular_articles(db: Session, limit: int = 5, days: int = 30) -> List[Dict]:

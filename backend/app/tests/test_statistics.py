@@ -390,3 +390,83 @@ def test_stats_endpoints_handle_empty_database(client):
     assert data["total_comments"] >= 0
     assert isinstance(data["recent_signups"], list)
     assert isinstance(data["recent_articles"], list)
+
+def test_category_tag_author_statistics_single_query(test_session, test_engine):
+    """回归：分类/标签/作者统计各为单条 GROUP BY 聚合（无 N+1），且数值正确"""
+    from sqlalchemy import event
+
+    from app.models.article_category import ArticleCategory
+    from app.models.article_tag import ArticleTag
+    from app.services.statistics_service import StatisticsService
+
+    user = User(
+        username="stat_author",
+        email="stat@example.com",
+        hashed_password="hashed_password",
+        is_active=True,
+        tenant_id=uuid.uuid4(),
+    )
+    test_session.add(user)
+    test_session.commit()
+
+    category = Category(name="StatCat", slug="stat-cat")
+    tag = Tag(name="StatTag", slug="stat-tag")
+    test_session.add(category)
+    test_session.add(tag)
+    test_session.commit()
+
+    published = Article(
+        title="Stat Published",
+        slug="stat-published",
+        content="content",
+        is_published=True,
+        view_count=30,
+        author_id=user.id,
+    )
+    draft = Article(
+        title="Stat Draft",
+        slug="stat-draft",
+        content="content",
+        is_published=False,
+        view_count=7,
+        author_id=user.id,
+    )
+    test_session.add(published)
+    test_session.add(draft)
+    test_session.commit()
+
+    # 关联分类/标签（仅已发布文章）
+    test_session.add(ArticleCategory(article_id=published.id, category_id=category.id))
+    test_session.add(ArticleTag(article_id=published.id, tag_id=tag.id))
+    test_session.commit()
+
+    # 统计每个方法触发的 SQL 条数
+    statements = []
+
+    @event.listens_for(test_engine, "before_cursor_execute")
+    def _count_sql(conn, cursor, statement, parameters, context, executemany):
+        statements.append(statement)
+
+    try:
+        category_stats = StatisticsService.get_category_statistics(test_session)
+        tag_stats = StatisticsService.get_tag_statistics(test_session)
+        author_stats = StatisticsService.get_author_statistics(test_session)
+    finally:
+        event.remove(test_engine, "before_cursor_execute", _count_sql)
+
+    # 每个方法只允许 1 条 SELECT（GROUP BY 聚合），出现循环查询即为 N+1 回归
+    select_count = len([s for s in statements if s.lstrip().upper().startswith("SELECT")])
+    assert select_count == 3
+
+    # 数值正确性
+    cat = next(c for c in category_stats if c["slug"] == "stat-cat")
+    assert cat["article_count"] == 1
+    assert cat["view_count"] == 30
+
+    tg = next(t for t in tag_stats if t["slug"] == "stat-tag")
+    assert tg["article_count"] == 1
+    assert tg["view_count"] == 30
+
+    author = next(a for a in author_stats if a["username"] == "stat_author")
+    assert author["article_count"] == 1  # 只统计已发布
+    assert author["view_count"] == 37  # 浏览量含草稿（30 + 7），语义与原实现一致
