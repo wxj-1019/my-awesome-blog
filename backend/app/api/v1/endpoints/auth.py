@@ -1,3 +1,4 @@
+import asyncio
 from datetime import timedelta
 from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, status, Request
@@ -99,15 +100,15 @@ async def register(
     """
     Create new user
     """
-    # Check if user exists
-    user = crud.get_user_by_username(db, username=user_in.username)
+    # Check if user exists（同步 CRUD 放线程池执行，避免阻塞事件循环）
+    user = await asyncio.to_thread(crud.get_user_by_username, db, username=user_in.username)
     if user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="A user with this username already exists",
         )
 
-    user = crud.get_user_by_email(db, email=user_in.email)
+    user = await asyncio.to_thread(crud.get_user_by_email, db, email=user_in.email)
     if user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -115,8 +116,7 @@ async def register(
         )
 
     # Create user with default tenant
-    DEFAULT_TENANT_ID = "00000000-0000-0000-0000-000000000001"
-    user = await crud.create_user(db, user_in, tenant_id=DEFAULT_TENANT_ID)
+    user = await crud.create_user(db, user_in, tenant_id=settings.DEFAULT_TENANT_ID)
     app_logger.info(f"New user registered: {user.username} (ID: {user.id}) from IP: {request.client.host if request.client else 'unknown'}")
 
     return {"message": "User created successfully", "user_id": str(user.id)}

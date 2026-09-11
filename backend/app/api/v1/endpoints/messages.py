@@ -6,7 +6,7 @@ from app.core.dependencies import get_current_user_optional, get_current_active_
 from app import crud
 from app.schemas.message import (
     Message, MessageCreate, MessageUpdate,
-    MessageWithAuthor, MessageWithReplies
+    MessageWithAuthor
 )
 from app.models.user import User
 from app.utils.rate_limit import message_create_rate_limit

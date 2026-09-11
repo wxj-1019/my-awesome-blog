@@ -8,6 +8,7 @@ from typing import AsyncIterator, Dict, Optional
 
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.agent.loop import AgentLoop
 from app.agent.graph import GraphLoop
 from app.agent.tools.builtin import register_builtin_tools
@@ -149,7 +150,7 @@ class AgentService:
         provider,
         prompt,
         model=None,
-        temperature=0.7,
+        temperature: float = settings.LLM_TEMPERATURE_GENERAL,
         max_tokens=None,
     ) -> AsyncIterator[str]:
         async for event in self._stream_final(provider, prompt, model, temperature, max_tokens):
@@ -215,7 +216,7 @@ class AgentService:
             critique = await self._ask(
                 provider,
                 CRITIC_PROMPT.format(draft=state["draft"], requirements_block=state["requirements_block"]),
-                temperature=0.3,
+                temperature=settings.LLM_TEMPERATURE_STRUCTURED,
             )
             if critique.strip().upper().rstrip("。").rstrip(".") == "PASS":
                 app_logger.info(f"Agent polish 第 {state['round'] + 1} 轮评审通过（PASS）")
@@ -358,7 +359,7 @@ class AgentService:
                     max_rounds=max_rounds,
                     results="\n".join(s["found"]) or "（尚未检索到相关文章）",
                 ),
-                temperature=0.2,
+                temperature=settings.LLM_TEMPERATURE_EVAL,
             )
             try:
                 data = json.loads(extract_first_json_object(raw.strip()))
@@ -411,7 +412,7 @@ class AgentService:
                     overview = await self._ask(
                         provider,
                         RETRIEVAL_OVERVIEW_PROMPT.format(topic=request.topic, results="\n".join(found)),
-                        temperature=0.3,
+                        temperature=settings.LLM_TEMPERATURE_STRUCTURED,
                     )
                     if overview.strip():
                         context_block = f"\n【站内相关参考】（写作时保持风格一致、避免与已发布内容重复）\n{overview.strip()}\n"
@@ -457,7 +458,7 @@ class AgentService:
         """根据正文反推 title / slug / excerpt（非流式，输出 JSON）。"""
         provider = self._get_provider_or_raise(request.provider)
         prompt = META_PROMPT.format(content=request.content)
-        raw = await self._ask(provider, prompt, temperature=0.3)
+        raw = await self._ask(provider, prompt, temperature=settings.LLM_TEMPERATURE_STRUCTURED)
         # 容错：模型偶尔会包 ```json 围栏或夹带叙述文本，用括号配平提取首个完整 JSON 对象
         raw = raw.strip()
         if raw.startswith("```"):
@@ -523,7 +524,7 @@ class AgentService:
             raw_query = await self._ask(
                 provider,
                 COVER_QUERY_PROMPT.format(content=request.content),
-                temperature=0.3,
+                temperature=settings.LLM_TEMPERATURE_STRUCTURED,
             )
             query = " ".join(raw_query.strip().splitlines())[:100].strip()
             if not query:

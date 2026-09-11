@@ -32,3 +32,14 @@ export function formatDuration(seconds: number): string {
   const remainingSeconds = Math.floor(seconds % 60);
   return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
 }
+
+/**
+ * 截断字符串并追加省略号。
+ * 长度不超过 maxLength 时原样返回（中文等多字节字符按 JS 字符长度计算）。
+ */
+export function truncate(str: string, maxLength: number): string {
+  if (str.length <= maxLength) {
+    return str;
+  }
+  return str.slice(0, maxLength) + '...';
+}

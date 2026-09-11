@@ -49,6 +49,20 @@ class Settings(BaseSettings):
     PASSWORD_REQUIRE_UPPERCASE: bool = Field(default=True, description="密码是否需要大写字母")
     PASSWORD_REQUIRE_LOWERCASE: bool = Field(default=True, description="密码是否需要小写字母")
 
+    # Tenant
+    DEFAULT_TENANT_ID: str = Field(default="00000000-0000-0000-0000-000000000001", description="注册用户的默认租户 ID")
+
+    # LLM 采样温度（按任务类型集中配置，替换原先散落的魔法数字）
+    LLM_TEMPERATURE_GENERAL: float = Field(default=0.7, description="通用生成/对话温度")
+    LLM_TEMPERATURE_DRAFT_ADJUST: float = Field(default=0.6, description="正文调整温度")
+    LLM_TEMPERATURE_REVISION: float = Field(default=0.5, description="选区改写/段落润色温度")
+    LLM_TEMPERATURE_OUTLINE: float = Field(default=0.4, description="大纲生成与调整温度")
+    LLM_TEMPERATURE_STRUCTURED: float = Field(default=0.3, description="澄清回答/评审/概述/meta/搜索词等确定性输出温度")
+    LLM_TEMPERATURE_EVAL: float = Field(default=0.2, description="检索充分性评估等判断任务温度")
+
+    # Weather
+    WEATHER_DEFAULT_CITIES: List[str] = Field(default=["杭州"], description="定时天气更新的默认城市列表")
+
     # Redis
     REDIS_HOST: str = Field(default="localhost", description="Redis主机地址")
     REDIS_PORT: int = Field(default=6379, description="Redis端口")

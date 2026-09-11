@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { motion } from '@/lib/framer-motion'
 import StatCard from '@/components/ui/StatCard'
 import { API_BASE_URL } from '@/config/api'
@@ -60,11 +60,8 @@ export default function AdminDashboard() {
   })
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    fetchStats()
-  }, [])
-
-  const fetchStats = async () => {
+  // 仅用稳定的 setState 与模块级工具，空依赖保证引用不变，消除 exhaustive-deps 隐患
+  const fetchStats = useCallback(async () => {
     try {
       const headers = getAuthHeaders()
 
@@ -106,14 +103,19 @@ export default function AdminDashboard() {
         commentsCount: 0,
         categoriesCount: categories.length,
         tagsCount: tags.length,
-        recentArticles: recentArticles.slice(0, 5) as Stats['recentArticles']
+        // Article 结构包含 Stats['recentArticles'] 所需的全部字段，直接赋值即可
+        recentArticles: recentArticles.slice(0, 5)
       })
     } catch (error) {
       console.error('Failed to fetch stats:', error)
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    fetchStats()
+  }, [fetchStats])
 
   const statCards: StatCardItem[] = [
     {

@@ -3,13 +3,12 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from app.core.database import get_db
-from app.core.dependencies import get_current_active_user, get_current_superuser
+from app.core.dependencies import get_current_superuser
 from app import crud
 from app.schemas.typewriter_content import (
     TypewriterContent,
     TypewriterContentCreate,
     TypewriterContentUpdate,
-    TypewriterContentList,
 )
 from app.models.user import User
 from app.utils.logger import app_logger

@@ -188,13 +188,12 @@ def create_article(db: Session, article: ArticleCreate, author_id: UUID) -> Arti
                 is_primary=(idx == 0),
             ))
 
-    # Associate tags
+    # Associate tags（单次 in_ 查询取回全部标签，避免循环查库）
     if article.tags:
-        for tag_id in article.tags:
-            tag = db.query(Tag).filter(Tag.id == tag_id).first()
-            if tag:
-                article_tag = ArticleTag(article_id=db_article.id, tag_id=tag.id)
-                db.add(article_tag)
+        tags = db.query(Tag).filter(Tag.id.in_(article.tags)).all()
+        for tag in tags:
+            article_tag = ArticleTag(article_id=db_article.id, tag_id=tag.id)
+            db.add(article_tag)
 
     # Create attachments
     if article.attachments:
@@ -353,7 +352,7 @@ def get_articles(
     category_id: Optional[UUID] = None,
     tag_id: Optional[UUID] = None,
     with_relationships: bool = True,  # 默认预加载关联数据，防止 N+1 查询
-):
+) -> list[Article]:
     """获取文章列表（get_articles_with_categories_and_tags 已并入此函数）"""
     query = db.query(Article) if not with_relationships else _with_relations(db.query(Article))
 
@@ -375,7 +374,7 @@ def get_articles(
     return query.offset(skip).limit(limit).all()
 
 
-def get_featured_articles(db: Session, limit: int = 10):
+def get_featured_articles(db: Session, limit: int = 10) -> list[Article]:
     """Get featured articles based on view count and publication date"""
     return (
         _with_relations(db.query(Article))
@@ -386,7 +385,7 @@ def get_featured_articles(db: Session, limit: int = 10):
     )
 
 
-def get_related_articles(db: Session, article_id: UUID, limit: int = 5):
+def get_related_articles(db: Session, article_id: UUID, limit: int = 5) -> list[Article]:
     """Get articles related to a specific article based on category or tags"""
     from app.models.article_category import ArticleCategory
 

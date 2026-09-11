@@ -16,6 +16,7 @@ from typing import AsyncIterator
 
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.crud.writing_session import save_writing_session
 from app.exceptions import ConflictException, NotFoundException
 from app.models.writing_session import WritingSession
@@ -212,7 +213,7 @@ class WritingSessionService:
             context=json.dumps(self.context_messages(session), ensure_ascii=False),
             message=message,
         )
-        raw = await self.agent.ask_text(provider, prompt, temperature=0.3)
+        raw = await self.agent.ask_text(provider, prompt, temperature=settings.LLM_TEMPERATURE_STRUCTURED)
         data = json.loads(extract_first_json_object(raw))
         # 用 get 而不是 []：LLM 返回缺 reply 键时 KeyError 不会被端点的
         # except ValueError 捕获，会导致 SSE 流中断/500
@@ -237,7 +238,7 @@ class WritingSessionService:
             requirements=json.dumps(session.requirements_summary, ensure_ascii=False),
             messages=json.dumps(self.context_messages(session), ensure_ascii=False),
         )
-        outline = await self.agent.ask_text(provider, prompt, temperature=0.4)
+        outline = await self.agent.ask_text(provider, prompt, temperature=settings.LLM_TEMPERATURE_OUTLINE)
         outline = outline.strip()
         if not outline:
             raise ValueError("大纲为空")
@@ -256,7 +257,7 @@ class WritingSessionService:
             outline=session.outline,
             message=message,
         )
-        outline = await self.agent.ask_text(provider, prompt, temperature=0.4)
+        outline = await self.agent.ask_text(provider, prompt, temperature=settings.LLM_TEMPERATURE_OUTLINE)
         outline = outline.strip()
         if not outline:
             raise ValueError("大纲为空")
@@ -301,7 +302,7 @@ class WritingSessionService:
         chunks: list[str] = []
         completed = False
         try:
-            async for content in self.agent.stream_content(provider, prompt, temperature=0.7):
+            async for content in self.agent.stream_content(provider, prompt, temperature=settings.LLM_TEMPERATURE_GENERAL):
                 chunks.append(content)
                 yield self.event({"content": content})
             completed = True
@@ -345,7 +346,7 @@ class WritingSessionService:
         chunks: list[str] = []
         completed = False
         try:
-            async for content in self.agent.stream_content(provider, prompt, temperature=0.6):
+            async for content in self.agent.stream_content(provider, prompt, temperature=settings.LLM_TEMPERATURE_DRAFT_ADJUST):
                 chunks.append(content)
                 yield self.event({"content": content})
             completed = True
@@ -419,7 +420,7 @@ class WritingSessionService:
             raise ConflictException(message=f"当前阶段'{session.stage}'不允许分析全文")
         provider = self.agent.get_provider(provider_name)
         prompt = ANALYZE_PROMPT.format(content=content)
-        raw = await self.agent.ask_text(provider, prompt, temperature=0.3)
+        raw = await self.agent.ask_text(provider, prompt, temperature=settings.LLM_TEMPERATURE_STRUCTURED)
         data = json.loads(extract_first_json_object(raw))
         suggestions = []
         for s in data.get("suggestions", []):
@@ -462,7 +463,7 @@ class WritingSessionService:
         completed = False
         revision_id = str(uuid.uuid4())
         try:
-            async for content in self.agent.stream_content(provider, prompt, temperature=0.5):
+            async for content in self.agent.stream_content(provider, prompt, temperature=settings.LLM_TEMPERATURE_REVISION):
                 chunks.append(content)
                 yield self.event({"content": content})
             completed = True
@@ -529,7 +530,7 @@ class WritingSessionService:
         completed = False
         revision_id = str(uuid.uuid4())
         try:
-            async for piece in self.agent.stream_content(provider, prompt, temperature=0.5):
+            async for piece in self.agent.stream_content(provider, prompt, temperature=settings.LLM_TEMPERATURE_REVISION):
                 chunks.append(piece)
                 yield self.event({"content": piece})
             completed = True

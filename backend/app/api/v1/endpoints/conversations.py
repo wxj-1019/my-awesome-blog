@@ -3,6 +3,7 @@ Conversations API Endpoints
 对话管理相关的 API 接口
 """
 
+import asyncio
 from typing import Optional
 from fastapi import APIRouter, Depends, status, Query, Request
 from fastapi.responses import StreamingResponse
@@ -262,9 +263,10 @@ async def get_conversation_messages(
     - **limit**: 限制数量（分页）
     """
     from app.crud.conversation import get_conversation_messages
-    
-    messages = get_conversation_messages(
-        db, conversation_id, skip, limit
+
+    # 同步 CRUD 放线程池执行，避免阻塞事件循环
+    messages = await asyncio.to_thread(
+        get_conversation_messages, db, conversation_id, skip, limit
     )
     
     return {
@@ -288,13 +290,13 @@ async def delete_conversation_messages(
     """
     from app.crud.conversation import delete_conversation_messages, get_conversation
     
-    conversation = get_conversation(db, conversation_id)
+    conversation = await asyncio.to_thread(get_conversation, db, conversation_id)
     if not conversation:
         raise NotFoundException(resource="Conversation", identifier=conversation_id)
-    
+
     if str(conversation.user_id) != str(current_user.id) and not current_user.is_superuser:
         raise ForbiddenException(message="Not authorized to delete messages from this conversation")
-    
-    delete_conversation_messages(db, conversation_id)
+
+    await asyncio.to_thread(delete_conversation_messages, db, conversation_id)
     
     app_logger.info(f"User {current_user.username} deleted messages from conversation: {conversation_id}")

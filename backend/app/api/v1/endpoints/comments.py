@@ -1,13 +1,12 @@
 from typing import Any, List, Optional
-from fastapi import APIRouter, Depends, status, Query, Request
+from fastapi import APIRouter, Depends, Query, Request
 from app.exceptions import (
     NotFoundException,
     ValidationException,
-    ForbiddenException,
 )
 from sqlalchemy.orm import Session
 from app.core.database import get_db
-from app.core.dependencies import get_current_active_user, get_current_superuser, get_current_user_optional
+from app.core.dependencies import get_current_active_user, get_current_user_optional
 from app import crud
 from app.schemas.comment import Comment, CommentCreate, CommentUpdate, CommentWithAuthor
 from app.models.comment import Comment as CommentModel

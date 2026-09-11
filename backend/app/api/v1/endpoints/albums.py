@@ -3,7 +3,6 @@ from fastapi import APIRouter, Query, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app import crud
-from app.schemas.portfolio import PortfolioItem
 from app.models.portfolio import Portfolio
 
 router = APIRouter()
@@ -20,8 +19,7 @@ def read_albums(
     Returns data in Album format expected by frontend
     """
     from sqlalchemy.orm import joinedload
-    from app.models.portfolio_image import PortfolioImage
-    
+
     portfolios = (
         db.query(Portfolio)
         .options(joinedload(Portfolio.portfolio_images))

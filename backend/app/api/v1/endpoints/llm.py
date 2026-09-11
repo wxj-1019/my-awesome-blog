@@ -4,7 +4,6 @@ LLM API Endpoints
 """
 
 from fastapi import APIRouter, Depends, status, Request
-from app.exceptions import LLMServiceException, ServiceUnavailableException
 from fastapi.responses import StreamingResponse
 from app.services.llm_service import llm_service
 from app.schemas.llm import (

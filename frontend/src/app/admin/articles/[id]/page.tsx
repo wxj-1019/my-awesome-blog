@@ -41,6 +41,7 @@ import GlassCardAdmin from '@/components/ui/GlassCardAdmin';
 import ArticleAIAssist from '@/components/admin/writing/ArticleAIAssist';
 import CoverPicker from '@/components/admin/CoverPicker';
 import type { WritingSession, WritingRevision } from '@/types/writing-session';
+import { applyRevisionToForm } from '../lib/apply-revision';
 import {
   ArticlePreview,
   generateExcerpt,
@@ -317,6 +318,7 @@ export default function EditArticlePage() {
   }, [formData.content, generatingMeta, success, error]);
 
   useEffect(() => () => aiPolishRef.current?.(), []);
+
   /**
    * 保存文章（统一入口）。silent=true 供自动保存：条件不满足静默跳过、
    * 长度不足不报错；silent=false 手动保存保留原有校验与 toast。
@@ -879,24 +881,15 @@ export default function EditArticlePage() {
               selection={editorSelection}
               session={writingSession}
               onSessionChange={setWritingSession}
-              onApplyRevision={(revision: WritingRevision, replacement?: string) => {
-                if (revision.source === 'selection') {
-                  setFormData(prev => ({
-                    ...prev,
-                    content:
-                      prev.content.slice(0, revision.selection_start) +
-                      revision.replacement_text +
-                      prev.content.slice(revision.selection_end),
-                  }));
-                } else if (revision.source === 'suggestion' && replacement) {
-                  // 全文建议：后端 revision 不存 replacement_text，用本地预览全文整篇替换
-                  setFormData(prev => ({ ...prev, content: replacement }));
-                } else {
-                  return;
-                }
-                setTouchedFields(prev => new Set(prev).add('content'));
-                setHasUnsavedChanges(true);
-              }}
+              onApplyRevision={(revision: WritingRevision, replacement?: string) =>
+                applyRevisionToForm(
+                  revision,
+                  replacement,
+                  setFormData,
+                  setTouchedFields,
+                  setHasUnsavedChanges
+                )
+              }
               busy={isAiBusy}
             />
           )}

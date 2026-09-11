@@ -1,17 +1,13 @@
-from typing import Any, List, Optional
+from typing import Any, List
 from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile
 from sqlalchemy.orm import Session
 from datetime import datetime
-from uuid import UUID
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_active_user, get_current_superuser
-from app import crud
-from app.schemas.image import Image, ImageCreate
 from app.models.user import User
 from app.services.oss_service import oss_service
 from app.services.image_service import ImageService
-from app.core.config import settings
 from app.utils.logger import app_logger
 from app.schemas.oss import OssFileUploadResponse, OssBatchUploadResponse, OssDeleteResponse
 from app.utils.file_validation import (
@@ -20,7 +16,6 @@ from app.utils.file_validation import (
     cleanup_temp_file,
     FileValidationError,
     BatchUploadLimitError,
-    validate_batch_upload,
     ALLOWED_IMAGE_EXTENSIONS_NO_DOT,
     ALLOWED_ATTACHMENT_MIME_TYPES,
 )

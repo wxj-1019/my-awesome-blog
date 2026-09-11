@@ -3,7 +3,7 @@ Prompts API Endpoints
 Prompt 管理相关的 API 接口
 """
 
-from typing import Optional
+from typing import Any, Optional
 from fastapi import APIRouter, Depends, status, Query
 from sqlalchemy.orm import Session
 from app.core.database import get_db
@@ -16,7 +16,6 @@ from app.schemas.prompt import (
     PromptVersionsResponse,
     PromptABTestResult,
 )
-from app.schemas.llm import LLMMessage
 from app.models.user import User
 from app.services.prompt_service import prompt_service
 from app.utils.logger import app_logger
@@ -109,7 +108,7 @@ def list_folders(
     *,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
-) -> list:
+) -> list[dict[str, Any]]:
     """
     获取提示词文件夹列表
     """

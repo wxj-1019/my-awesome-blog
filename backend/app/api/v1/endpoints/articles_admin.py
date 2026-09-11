@@ -6,11 +6,14 @@
 
 import asyncio
 from typing import Any
+from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
+from app import crud
 from app.core.database import get_db
+from app.exceptions import NotFoundException
 from app.core.dependencies import get_current_active_user, get_current_superuser
 from app.models.article import Article as ArticleModel
 from app.models.user import User
@@ -85,10 +88,7 @@ async def batch_delete_articles(
     deleted_count, slugs, deleted_ids = await asyncio.to_thread(_delete_articles_sync)
 
     if deleted_count is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="未找到任何文章"
-        )
+        raise NotFoundException(message="未找到任何文章")
 
     # 批量清除缓存
     if deleted_ids:
@@ -174,10 +174,7 @@ async def batch_publish_articles(
 
     result = await asyncio.to_thread(_publish_articles_sync)
     if result is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="未找到任何文章或没有权限操作这些文章"
-        )
+        raise NotFoundException(message="未找到任何文章或没有权限操作这些文章")
     updated_count, updated_ids, slugs = result
 
     # 批量清除缓存
@@ -239,10 +236,7 @@ async def batch_set_featured_articles(
 
     result = await asyncio.to_thread(_feature_articles_sync)
     if result is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="未找到任何文章"
-        )
+        raise NotFoundException(message="未找到任何文章")
     updated_ids, slugs = result
 
     # 批量清除缓存

@@ -1,16 +1,15 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import func, and_, or_
+from sqlalchemy import func
 from datetime import datetime, timedelta, timezone
 from typing import Dict, List
 from app.models.article import Article
+from app.models.article_category import ArticleCategory
+from app.models.article_tag import ArticleTag
 from app.models.category import Category
 from app.models.tag import Tag
 from app.models.comment import Comment
 from app.models.user import User
 from app.models.friend_link import FriendLink
-from app.models.portfolio import Portfolio
-from app.models.timeline_event import TimelineEvent
-from app.models.subscription import Subscription
 from app.crud.category import get_categories_with_article_count
 
 
@@ -196,10 +195,11 @@ class StatisticsService:
         """
         获取热门文章统计
         """
-        from app.crud.article import get_popular_articles as get_popular
-        
-        articles = get_popular(db, limit, days)
-        
+        # 旧 get_popular_articles 已随查询层收敛移除，改用 optimized 版（预加载关系防 N+1）
+        from app.crud.article import get_popular_articles_optimized
+
+        articles = get_popular_articles_optimized(db, limit, days)
+
         result = []
         for article in articles:
             result.append({
@@ -210,7 +210,7 @@ class StatisticsService:
                 "comment_count": len(article.comments) if hasattr(article, 'comments') else 0,
                 "published_at": article.published_at
             })
-        
+
         return result
 
     @staticmethod

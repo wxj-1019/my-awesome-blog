@@ -7,12 +7,10 @@ from typing import List, Optional, Dict, Any, AsyncIterator
 from sqlalchemy.orm import Session
 from app.schemas.conversation import (
     ConversationCreate,
-    ConversationUpdate,
     ChatRequest,
     ChatResponse,
     ChatStreamChunk,
     Conversation,
-    ConversationMessage,
 )
 from app.crud import conversation as conversation_crud
 from app.core.langchain import get_langchain_model

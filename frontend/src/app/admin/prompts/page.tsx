@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { motion, AnimatePresence } from '@/lib/framer-motion'
 import { Plus, Edit, Trash2, FileText, Sparkles, Copy, Star, FolderPlus, Download, Code, Search, Filter } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn, truncate } from '@/lib/utils'
 import { adminApi } from '@/lib/admin-api-client'
 import { validateArrayData } from '@/utils/data-validation'
 import Button from '@/components/admin/Button'
@@ -379,7 +379,7 @@ export default function PromptsPage() {
                             </span>
                           )}
                         </div>
-                        <p className="text-sm text-foreground/50 mt-1 line-clamp-2">{prompt.description || prompt.content.slice(0, 100)}...</p>
+                        <p className="text-sm text-foreground/50 mt-1 line-clamp-2">{truncate(prompt.description || prompt.content, 100)}</p>
                         <div className="flex items-center gap-4 mt-2 text-xs text-foreground/40">
                           {prompt.usage_count !== undefined && (
                             <span>使用 {prompt.usage_count} 次</span>

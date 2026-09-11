@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Plus, Search, Film, Clock, RefreshCw } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Plus, Search, Film, Clock, RefreshCw, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/input';
 import DemoBadge from '@/components/ui/DemoBadge';
@@ -16,6 +16,9 @@ import AnimatedNumber from '@/components/ui/AnimatedNumber';
 import PageActHeader from '@/components/layout/PageActHeader';
 import { FadeIn, Stagger, StaggerItem } from '@/components/motion';
 import { cn } from '@/lib/utils';
+
+/** 每批渲染的视频卡片数：数据量增长后避免一次性全量渲染导致卡顿 */
+const VIDEOS_PER_BATCH = 20;
 
 const INITIAL_VIDEOS: VideoItem[] = [
   {
@@ -87,12 +90,27 @@ export default function VideosPageContent() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState<VideoItem | null>(null);
   const [isProgressTrackerOpen, setIsProgressTrackerOpen] = useState(false);
+  // 分批渲染上限：首屏只渲染一批，超出部分通过「加载更多」展开
+  const [displayCount, setDisplayCount] = useState(VIDEOS_PER_BATCH);
 
-  const filteredVideos = videos.filter(video => {
-    const matchesType = filterType === 'all' || video.type === filterType;
-    const matchesSearch = video.title.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesType && matchesSearch;
-  });
+  const filteredVideos = useMemo(
+    () =>
+      videos.filter(video => {
+        const matchesType = filterType === 'all' || video.type === filterType;
+        const matchesSearch = video.title.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesType && matchesSearch;
+      }),
+    [videos, filterType, searchQuery]
+  );
+
+  // 筛选/搜索条件变化时重置渲染上限，避免新结果沿用旧的截断位置
+  useEffect(() => {
+    setDisplayCount(VIDEOS_PER_BATCH);
+  }, [filterType, searchQuery]);
+
+  // 分批渲染：只截取当前应显示的前 N 条，超出部分通过「加载更多」展开
+  const visibleVideos = filteredVideos.slice(0, displayCount);
+  const hiddenCount = filteredVideos.length - visibleVideos.length;
 
   const stats = {
     total: videos.length,
@@ -267,23 +285,39 @@ export default function VideosPageContent() {
           </div>
 
           {filteredVideos.length > 0 ? (
-            <Stagger
-              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6"
-              itemCount={filteredVideos.length}
-            >
-              {filteredVideos.map((video) => (
-                <StaggerItem key={video.id} className="h-full">
-                  <VideoCard
-                    video={video}
-                    onClick={() => {
-                      setSelectedVideo(video);
-                      setIsProgressTrackerOpen(true);
-                    }}
-                    onContinueWatching={() => handleContinueWatching(video)}
-                  />
-                </StaggerItem>
-              ))}
-            </Stagger>
+            <>
+              <Stagger
+                className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6"
+                itemCount={visibleVideos.length}
+              >
+                {visibleVideos.map((video) => (
+                  <StaggerItem key={video.id} className="h-full">
+                    <VideoCard
+                      video={video}
+                      onClick={() => {
+                        setSelectedVideo(video);
+                        setIsProgressTrackerOpen(true);
+                      }}
+                      onContinueWatching={() => handleContinueWatching(video)}
+                    />
+                  </StaggerItem>
+                ))}
+              </Stagger>
+
+              {/* 分批加载更多：数据量增长后避免全量渲染导致卡顿 */}
+              {hiddenCount > 0 && (
+                <div className="flex justify-center pt-2">
+                  <Button
+                    variant="glass"
+                    onClick={() => setDisplayCount(prev => prev + VIDEOS_PER_BATCH)}
+                    className="rounded-xl px-6"
+                  >
+                    <ChevronDown className="w-4 h-4 mr-2" />
+                    加载更多（还有 {hiddenCount} 部）
+                  </Button>
+                </div>
+              )}
+            </>
           ) : (
             /* 统一空态三要素：图标 + 一句话 + 清除筛选行动按钮 */
             <EmptyState

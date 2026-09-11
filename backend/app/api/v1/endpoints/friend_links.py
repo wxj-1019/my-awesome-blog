@@ -2,7 +2,7 @@ from typing import Any, List, Optional
 from fastapi import APIRouter, Query, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.core.database import get_db
-from app.core.dependencies import get_current_active_user, get_current_superuser
+from app.core.dependencies import get_current_superuser
 from app import crud
 from app.schemas.friend_link import FriendLink, FriendLinkCreate, FriendLinkUpdate
 from app.models.user import User

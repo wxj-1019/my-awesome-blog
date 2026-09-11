@@ -7,8 +7,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, status, Query, Request
 from app.exceptions import (
     NotFoundException,
-    ValidationException,
-    ResourceNotFoundException,
+    InternalServerException,
 )
 from sqlalchemy.orm import Session
 from app.core.database import get_db
@@ -294,10 +293,6 @@ async def set_short_term_context(
     success = await memory_service.set_short_term_context(conversation_id, context)
     
     if not success:
-        from fastapi import HTTPException
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to set short-term context"
-        )
+        raise InternalServerException(message="Failed to set short-term context")
     
     return {"message": "Short-term context set successfully"}
