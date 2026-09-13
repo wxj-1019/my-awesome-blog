@@ -385,39 +385,68 @@ def get_featured_articles(db: Session, limit: int = 10) -> list[Article]:
     )
 
 
-def get_related_articles(db: Session, article_id: UUID, limit: int = 5) -> list[Article]:
-    """Get articles related to a specific article based on category or tags"""
-    from app.models.article_category import ArticleCategory
+# ---------------------------------------------------------------------------
+# 相关文章推荐（加权评分版）
+# 评分权重为模块常量，可按推荐效果直接调整：
+#   每共享一个 tag +3、同分类 +2、标题/摘要名词性关键词每重叠一词 +1（上限 +5）、
+#   近 30 天发布 +1；同分依次按 view_count、published_at 降序。
+# ---------------------------------------------------------------------------
 
-    # Get the original article（仅关联表映射，避免加载全量集合）
-    original_article = (
-        db.query(Article)
-        .options(joinedload(Article.article_categories))
-        .filter(Article.id == article_id)
-        .first()
-    )
-    if not original_article:
-        return []
+_RELATED_WEIGHT_SHARED_TAG = 3
+_RELATED_WEIGHT_SAME_CATEGORY = 2
+_RELATED_WEIGHT_KEYWORD = 1
+_RELATED_KEYWORD_SCORE_CAP = 5
+_RELATED_WEIGHT_RECENT = 1
+_RELATED_RECENT_DAYS = 30
+_RELATED_KEYWORD_TOP_N = 10  # 原文取前 N 个名词性关键词参与重叠计数
 
+
+def _extract_nominal_keywords(text_value: str, top_n: int = _RELATED_KEYWORD_TOP_N) -> list[str]:
+    """jieba 词性标注提取名词性关键词（标题+摘要粒度，不碰正文，开销小）"""
+    import jieba.posseg
+
+    keywords: list[str] = []
+    seen: set[str] = set()
+    for word, flag in jieba.posseg.cut(text_value or ""):
+        # 名词性词性（n/nz/nr/ns/nt...）以 n 开头；过滤单字与重复词
+        if len(word) < 2 or not flag.startswith("n") or word in seen:
+            continue
+        seen.add(word)
+        keywords.append(word)
+        if len(keywords) >= top_n:
+            break
+    return keywords
+
+
+def _related_publish_dt(article: Article) -> datetime:
+    """published_at 统一为带时区 datetime（SQLite 存 naive），None 视为最早"""
+    dt = article.published_at
+    if dt is None:
+        return datetime.min.replace(tzinfo=timezone.utc)
+    return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
+
+
+def _get_related_articles_fallback(db: Session, original_article: Article, limit: int) -> list[Article]:
+    """旧逻辑回退：同分类热门优先，不足补全站热门（候选池为空时保证永远有推荐）"""
     related: list[Article] = []
-    if original_article.article_categories:
-        category_id = original_article.article_categories[0].category_id
+    if original_article.categories:
+        category_id = original_article.categories[0].id
         related = (
             _apply_filters(
                 _with_relations(db.query(Article)),
                 published_only=True,
                 category_ids=[category_id],
             )
-            .filter(Article.id != article_id)
+            .filter(Article.id != original_article.id)
             .order_by(Article.view_count.desc())
             .limit(limit)
             .all()
         )
 
-    # If we don't have enough articles from the same category, get popular articles
+    # 同分类文章不足时补全站热门
     if len(related) < limit:
         remaining = limit - len(related)
-        existing_ids = [a.id for a in related] + [article_id]
+        existing_ids = [a.id for a in related] + [original_article.id]
         popular_articles = (
             _apply_filters(_with_relations(db.query(Article)), published_only=True)
             .filter(~Article.id.in_(existing_ids))
@@ -428,6 +457,83 @@ def get_related_articles(db: Session, article_id: UUID, limit: int = 5) -> list[
         related.extend(popular_articles)
 
     return related
+
+
+def get_related_articles(db: Session, article_id: UUID, limit: int = 5) -> list[Article]:
+    """相关文章推荐：同 tag/同分类候选池 + 加权评分（响应结构不变，前端零改动）。
+
+    SQL 条数 ≤4：原文 1 条 + 候选池 1 条（joinedload 一并预加载关系，防 N+1）；
+    候选池为空时回退旧逻辑（最多再 2 条）。评分权重见上方 _RELATED_* 常量。
+    """
+    from app.models.article_category import ArticleCategory
+    from app.models.article_tag import ArticleTag
+
+    # 1) 原文（含分类/标签集合）
+    original_article = (
+        db.query(Article)
+        .options(joinedload(Article.categories), joinedload(Article.tags))
+        .filter(Article.id == article_id)
+        .first()
+    )
+    if not original_article:
+        return []
+
+    category_ids = {c.id for c in original_article.categories}
+    tag_ids = {t.id for t in original_article.tags}
+
+    # 2) 候选池一次取：同分类 OR 同 tag 的已发布文章（半连接去重、排除自身）
+    conditions = []
+    if category_ids:
+        conditions.append(Article.id.in_(
+            select(ArticleCategory.article_id).where(ArticleCategory.category_id.in_(category_ids))
+        ))
+    if tag_ids:
+        conditions.append(Article.id.in_(
+            select(ArticleTag.article_id).where(ArticleTag.tag_id.in_(tag_ids))
+        ))
+    if not conditions:
+        return _get_related_articles_fallback(db, original_article, limit)
+
+    candidates = (
+        _with_relations(db.query(Article))
+        .filter(
+            Article.is_published == True,  # noqa: E712
+            Article.id != article_id,
+            or_(*conditions),
+        )
+        .all()
+    )
+    if not candidates:
+        return _get_related_articles_fallback(db, original_article, limit)
+
+    # 3) 内存加权评分
+    original_keywords = set(_extract_nominal_keywords(
+        f"{original_article.title} {original_article.excerpt or ''}"
+    ))
+    recent_cutoff = datetime.now(timezone.utc) - timedelta(days=_RELATED_RECENT_DAYS)
+
+    scored: list[tuple[int, Article]] = []
+    for cand in candidates:
+        score = 0
+        score += _RELATED_WEIGHT_SHARED_TAG * len(tag_ids & {t.id for t in cand.tags})
+        if category_ids & {c.id for c in cand.categories}:
+            score += _RELATED_WEIGHT_SAME_CATEGORY
+        if original_keywords:
+            cand_keywords = set(_extract_nominal_keywords(f"{cand.title} {cand.excerpt or ''}"))
+            score += min(
+                _RELATED_WEIGHT_KEYWORD * len(original_keywords & cand_keywords),
+                _RELATED_KEYWORD_SCORE_CAP,
+            )
+        if _related_publish_dt(cand) >= recent_cutoff:
+            score += _RELATED_WEIGHT_RECENT
+        scored.append((score, cand))
+
+    # 4) 评分降序 → view_count 降序 → published_at 降序，取前 limit 条
+    scored.sort(
+        key=lambda pair: (pair[0], pair[1].view_count, _related_publish_dt(pair[1])),
+        reverse=True,
+    )
+    return [cand for _, cand in scored[:limit]]
 
 
 async def get_articles_with_cursor_pagination(
