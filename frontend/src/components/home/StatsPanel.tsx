@@ -15,7 +15,7 @@ import { useState, useEffect, type ReactNode } from 'react'
 import FriendLinks from './FriendLinks'
 import ProfileCard from './ProfileCard'
 import { FadeIn } from '@/components/motion'
-import { getPopularArticles } from '@/services/articleService'
+import { getPopularArticles } from '@/lib/api/articles'
 import {
   getPublicStatistics,
   type PublicStatisticsOverview,

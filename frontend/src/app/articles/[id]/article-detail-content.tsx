@@ -7,7 +7,7 @@ import GlassCard from '@/components/ui/GlassCard';
 import { Download, FileVideo, FileAudio, FileImage, FileText } from 'lucide-react';
 import { useThemedClasses } from '@/hooks/useThemedClasses';
 import { useCodeBlockEnhancement } from '@/hooks/useCodeBlockEnhancement';
-import { getRelatedArticles } from '@/services/articleService';
+import { getRelatedArticles } from '@/lib/api/articles';
 import { getCommentTree, createComment } from '@/services/commentService';
 import interactionService from '@/services/interactionService';
 import { TOKEN_KEY } from '@/lib/api-client';

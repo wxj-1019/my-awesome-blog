@@ -1,7 +1,7 @@
 import { cache } from 'react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { getArticleById } from '@/services/articleService';
+import { getArticleById } from '@/lib/api/articles';
 import { env } from '@/lib/env';
 import ArticleDetailPageContent from './article-detail-content';
 

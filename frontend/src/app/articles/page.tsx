@@ -4,7 +4,7 @@ import {
   getArticles,
   getCategories,
   getTags,
-} from '@/services/articleService';
+} from '@/lib/api/articles';
 
 export const metadata: Metadata = {
   title: '文章列表 - My Awesome Blog',

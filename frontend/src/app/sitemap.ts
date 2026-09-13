@@ -1,6 +1,6 @@
 import { MetadataRoute } from 'next';
 import { env } from '@/lib/env';
-import { getArticlesPaginated } from '@/services/articleService';
+import { getArticlesPaginated } from '@/lib/api/articles';
 
 // 每次请求动态生成：新文章发布后无需重新构建即可进入 sitemap
 export const dynamic = 'force-dynamic';

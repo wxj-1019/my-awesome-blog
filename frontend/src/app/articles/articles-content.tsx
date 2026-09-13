@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef, Suspense, useCallback, useMemo } from 'react';
-import { getArticles, getCategories, getTags } from '@/services/articleService';
+import { getArticles, getCategories, getTags } from '@/lib/api/articles';
 import { useLoading } from '@/context/loading-context';
 import ArchiveDrawer from '@/components/articles/ArchiveDrawer';
 import ArticleSidebar from '@/app/articles/components/ArticleSidebar';

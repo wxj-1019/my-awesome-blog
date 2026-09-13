@@ -1,4 +1,4 @@
-import { getArticlesPaginated } from '@/services/articleService';
+import { getArticlesPaginated } from '@/lib/api/articles';
 import { env } from '@/lib/env';
 import type { Article } from '@/types';
 

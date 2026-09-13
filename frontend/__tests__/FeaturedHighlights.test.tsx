@@ -1,8 +1,8 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import FeaturedHighlights from '@/components/home/FeaturedHighlights'
-import { getFeaturedArticles, getPopularArticles } from '@/services/articleService'
+import { getFeaturedArticles, getPopularArticles } from '@/lib/api/articles'
 
-jest.mock('@/services/articleService', () => ({
+jest.mock('@/lib/api/articles', () => ({
   getFeaturedArticles: jest.fn(),
   getPopularArticles: jest.fn(),
 }))

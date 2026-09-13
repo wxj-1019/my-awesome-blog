@@ -1,3 +1,9 @@
+/**
+ * 文章 / 分类 / 标签数据接口（自 src/services/articleService.ts 原样迁移）。
+ *
+ * 说明：本文件的数据获取与映射逻辑保持迁移前行为不变——
+ * 列表/详情均直接透传后端 JSON 为前端 Article 等类型，不做字段重命名或默认值改写。
+ */
 import { apiRequest, API_BASE_URL, TOKEN_KEY } from '@/lib/api-client';
 import logger from '@/utils/logger';
 import type { Article, Category, Tag, RelatedArticle } from '@/types';
