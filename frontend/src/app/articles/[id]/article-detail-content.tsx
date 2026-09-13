@@ -8,8 +8,8 @@ import { Download, FileVideo, FileAudio, FileImage, FileText } from 'lucide-reac
 import { useThemedClasses } from '@/hooks/useThemedClasses';
 import { useCodeBlockEnhancement } from '@/hooks/useCodeBlockEnhancement';
 import { getRelatedArticles } from '@/lib/api/articles';
-import { getCommentTree, createComment } from '@/services/commentService';
-import interactionService from '@/services/interactionService';
+import { getCommentTree, createComment } from '@/lib/api/comment-tree';
+import interactionService from '@/lib/api/interactions';
 import { TOKEN_KEY } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
 import logger from '@/utils/logger';

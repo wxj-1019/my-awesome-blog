@@ -19,8 +19,8 @@ import { getPopularArticles } from '@/lib/api/articles'
 import {
   getPublicStatistics,
   type PublicStatisticsOverview,
-} from '@/services/statisticsService'
-import { friendLinkService } from '@/services/friendLinkService'
+} from '@/lib/api/statistics'
+import { getFriendLinks } from '@/lib/api/friend-links'
 import logger from '@/utils/logger'
 import type { Article as BackendArticle } from '@/types'
 import type { StatsArticle } from './stats/types'
@@ -207,9 +207,9 @@ export function StatsDeepPanel() {
       setError(null)
       const [stats, links] = await Promise.all([
         getPublicStatistics(),
-        friendLinkService
-          .getFriendLinks({ is_active: true, limit: 12 })
-          .catch(() => [] as typeof fallbackFriendLinks),
+        getFriendLinks({ is_active: true, limit: 12 }).catch(
+          () => [] as typeof fallbackFriendLinks
+        ),
       ])
       setPublicStats(stats)
       // 友链：真实数据优先，接口失败/为空时才回退占位

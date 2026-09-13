@@ -17,11 +17,10 @@ export const alt = '文章分享图 - My Awesome Blog';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
-/** 字体文件相对仓库前端的路径（配合 process.cwd() 定位） */
+/** 字体放在 public/fonts 下：Docker 生产镜像只拷贝 public/，src/assets 不会进镜像 */
 const FONT_PATH = path.join(
   process.cwd(),
-  'src',
-  'assets',
+  'public',
   'fonts',
   'NotoSansSC-Bold.otf'
 );

@@ -3,6 +3,12 @@ import type { Comment as UIComment } from '@/types';
 import logger from '@/utils/logger';
 
 /**
+ * 前台评论树读取（游客昵称映射、递归回复树）。
+ * 与 comments.ts（后台评论管理 CRUD，后端原始结构）职责不同：
+ * 本模块返回 UI 形态（UIComment），故独立成模块避免同名导出冲突。
+ */
+
+/**
  * 后端返回的评论数据结构
  */
 export interface ApiComment {
