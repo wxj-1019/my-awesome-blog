@@ -12,6 +12,14 @@ import EmptyState from '@/components/ui/EmptyState';
 /** 输入防抖间隔：与 FilterBar 的 300ms 惯例一致 */
 const DEBOUNCE_MS = 300;
 
+/** 结果 listbox id：input 的 aria-controls 指向它 */
+const LISTBOX_ID = 'global-search-listbox';
+
+/** activeIndex 对应 option 的 id：input 的 aria-activedescendant 指向它 */
+function getOptionId(index: number): string {
+  return `global-search-option-${index}`;
+}
+
 interface GlobalSearchProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -128,11 +136,18 @@ export default function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) 
             <input
               autoFocus
               type="search"
+              role="combobox"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="搜索文章…"
               aria-label="搜索文章"
+              aria-autocomplete="list"
+              aria-expanded="true"
+              aria-controls={LISTBOX_ID}
+              aria-activedescendant={
+                activeIndex >= 0 ? getOptionId(activeIndex) : undefined
+              }
               className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
             />
             <Dialog.Close asChild>
@@ -147,6 +162,7 @@ export default function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) 
           </div>
 
           <div
+            id={LISTBOX_ID}
             className="max-h-[60vh] overflow-y-auto p-2"
             role="listbox"
             aria-label="搜索结果"
@@ -196,6 +212,7 @@ export default function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) 
               results.map((article, index) => (
                 <button
                   key={article.id}
+                  id={getOptionId(index)}
                   type="button"
                   role="option"
                   aria-selected={index === activeIndex}
