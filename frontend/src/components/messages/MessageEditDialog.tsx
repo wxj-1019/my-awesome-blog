@@ -6,7 +6,7 @@ import { X, Edit2, Clock, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
-import { canEditMessage, validateMessage } from '@/services/messageService';
+import { canEditMessage, validateMessage } from '@/lib/api/guestbook';
 import type { Message } from '@/types';
 
 interface MessageEditDialogProps {

@@ -27,7 +27,7 @@ import { cn } from '@/lib/utils';
 import {
   getPublicStatistics,
   type PublicStatisticsOverview,
-} from '@/services/statisticsService';
+} from '@/lib/api/statistics';
 import StatsSoftCard from './stats/StatsSoftCard';
 
 const FALLBACK_HEATMAP = Array.from({ length: 49 }, (_, index) => ({

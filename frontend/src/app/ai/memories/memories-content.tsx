@@ -8,7 +8,7 @@ import AILayout from '@/components/ai/AILayout';
 import MemoryCard from '@/components/ai/memories/MemoryCard';
 import MemorySearch from '@/components/ai/memories/MemorySearch';
 import type { Memory, MemoryCreate, MemorySearchResult } from '@/types';
-import { memoryService } from '@/services/memoryService';
+import { memoryService } from '@/lib/api/memories';
 import { useToast } from '@/components/ui/use-toast';
 
 export default function MemoriesPageContent() {

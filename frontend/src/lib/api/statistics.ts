@@ -1,4 +1,12 @@
-import { apiFetch } from '@/lib/api-client';
+import { apiFetch, extractApiErrorMessage } from '@/lib/api-client';
+import logger from '@/utils/logger';
+
+/** 统一解析统计接口错误：兼容统一异常处理器嵌套 error / FastAPI 原生 detail */
+async function toApiErrorMessage(response: Response, fallback: string): Promise<string> {
+  const data: unknown = await response.json().catch(() => null);
+  return extractApiErrorMessage(data, fallback);
+}
+
 export interface WebsiteStatistics {
   total_users: number;
   total_articles: number;
@@ -35,8 +43,7 @@ export const getWebsiteStats = async (): Promise<WebsiteStatistics> => {
   });
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.detail || `请求失败: ${response.status}`);
+    throw new Error(await toApiErrorMessage(response, `请求失败: ${response.status}`));
   }
 
   return response.json();
@@ -53,8 +60,7 @@ export const getPopularArticlesStats = async (limit: number = 10): Promise<Artic
   });
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.detail || `请求失败: ${response.status}`);
+    throw new Error(await toApiErrorMessage(response, `请求失败: ${response.status}`));
   }
 
   return response.json();
@@ -78,9 +84,52 @@ export const getGrowthStats = async (params?: {
   });
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.detail || `请求失败: ${response.status}`);
+    throw new Error(await toApiErrorMessage(response, `请求失败: ${response.status}`));
   }
 
   return response.json();
+};
+
+export interface PublicStatisticsOverview {
+  total_articles: number;
+  total_views: number;
+  total_comments: number;
+  monthly_stats: Array<{
+    year: number;
+    month: number;
+    articles: number;
+    views: number;
+  }>;
+  daily_articles: Array<{
+    date: string;
+    count: number;
+  }>;
+  daily_comments: Array<{
+    date: string;
+    count: number;
+  }>;
+}
+
+/**
+ * 获取公开的网站统计数据（无需认证）。
+ * 与 backend router prefix `/stats` 对齐：/api/v1/stats/public/overview。
+ * 失败时返回 null（不抛出），调用方按空数据渲染（原 statisticsService 行为）。
+ */
+export const getPublicStatistics = async (): Promise<PublicStatisticsOverview | null> => {
+  try {
+    const response = await apiFetch('/stats/public/overview', {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(await toApiErrorMessage(response, `请求失败: ${response.status}`));
+    }
+
+    return await response.json();
+  } catch (error) {
+    logger.error('获取公开统计数据失败:', error);
+    return null;
+  }
 };

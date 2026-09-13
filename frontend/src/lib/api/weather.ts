@@ -1,5 +1,5 @@
 import { MOCK_WEATHER } from '@/mock/weather';
-import { apiRequest } from '@/lib/api-client';
+import { apiFetch, extractApiErrorMessage } from '@/lib/api-client';
 import logger from '@/utils/logger';
 
 export interface WeatherAQI {
@@ -74,6 +74,12 @@ export interface BackendWeatherData {
   updateTime: string;
 }
 
+/** 统一解析天气接口错误：兼容统一异常处理器嵌套 error / FastAPI 原生 detail */
+async function toApiErrorMessage(response: Response, fallback: string): Promise<string> {
+  const data: unknown = await response.json().catch(() => null);
+  return extractApiErrorMessage(data, fallback);
+}
+
 function mapWeatherData(data: BackendWeatherCurrent): BackendWeatherData {
   return {
     city: data.city,
@@ -94,12 +100,34 @@ function mapWeatherData(data: BackendWeatherCurrent): BackendWeatherData {
   };
 }
 
+/** 失败兜底：返回 MOCK 天气，仅刷新 updateTime（原 backendWeatherService 行为） */
+function fallbackWeather(): BackendWeatherData {
+  return {
+    ...MOCK_WEATHER,
+    updateTime: new Date().toLocaleTimeString('zh-CN', {
+      hour: '2-digit',
+      minute: '2-digit',
+    }),
+  };
+}
+
 export const backendWeatherService = {
   async getCurrentWeather(city: string = '杭州'): Promise<BackendWeatherData> {
     try {
-      const result = await apiRequest<BackendWeatherResponse>(
-        `/weather/current?city=${encodeURIComponent(city)}`
+      const response = await apiFetch(
+        `/weather/current?city=${encodeURIComponent(city)}`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
       );
+
+      if (!response.ok) {
+        throw new Error(await toApiErrorMessage(response, `请求失败: ${response.status}`));
+      }
+
+      const result = (await response.json()) as BackendWeatherResponse;
 
       if (!result.success || !result.data) {
         throw new Error(result.message || '获取天气数据失败');
@@ -108,21 +136,26 @@ export const backendWeatherService = {
       return mapWeatherData(result.data);
     } catch (error) {
       logger.error('Failed to fetch weather from backend:', error);
-      return {
-        ...MOCK_WEATHER,
-        updateTime: new Date().toLocaleTimeString('zh-CN', {
-          hour: '2-digit',
-          minute: '2-digit',
-        }),
-      };
+      return fallbackWeather();
     }
   },
 
   async getForecast(city: string = '杭州'): Promise<BackendWeatherData> {
     try {
-      const result = await apiRequest<BackendWeatherResponse>(
-        `/weather/forecast?city=${encodeURIComponent(city)}`
+      const response = await apiFetch(
+        `/weather/forecast?city=${encodeURIComponent(city)}`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
       );
+
+      if (!response.ok) {
+        throw new Error(await toApiErrorMessage(response, `请求失败: ${response.status}`));
+      }
+
+      const result = (await response.json()) as BackendWeatherResponse;
 
       if (!result.success || !result.data) {
         throw new Error(result.message || '获取天气预报失败');
@@ -131,13 +164,7 @@ export const backendWeatherService = {
       return mapWeatherData(result.data);
     } catch (error) {
       logger.error('Failed to fetch forecast from backend:', error);
-      return {
-        ...MOCK_WEATHER,
-        updateTime: new Date().toLocaleTimeString('zh-CN', {
-          hour: '2-digit',
-          minute: '2-digit',
-        }),
-      };
+      return fallbackWeather();
     }
   },
 

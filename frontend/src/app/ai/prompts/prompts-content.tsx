@@ -8,7 +8,7 @@ import PromptCard from '@/components/ai/prompts/PromptCard';
 import PromptEditor from '@/components/ai/prompts/PromptEditor';
 import PromptVersionList from '@/components/ai/prompts/PromptVersionList';
 import type { Prompt, PromptCreate } from '@/types';
-import { promptService } from '@/services/promptService';
+import { promptService } from '@/lib/api/prompts';
 export default function PromptsPageContent() {
   const pathname = usePathname();
   const [prompts, setPrompts] = useState<Prompt[]>([]);

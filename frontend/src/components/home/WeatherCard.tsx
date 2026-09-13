@@ -21,7 +21,7 @@ import GlassCard from '@/components/ui/GlassCard';
 import {
   backendWeatherService,
   type BackendWeatherData,
-} from '@/services/backendWeatherService';
+} from '@/lib/api/weather';
 import { cn } from '@/lib/utils';
 
 /** 收起 → 展开：统一时长，避免多阶段 setTimeout 造成不规则形变 */

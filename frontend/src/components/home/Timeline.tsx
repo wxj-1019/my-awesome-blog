@@ -5,7 +5,7 @@ import { motion, useReducedMotion } from '@/lib/framer-motion'
 import { Award, Calendar, Image, Video, ChevronDown, ChevronRight, Badge, ExternalLink, FileText } from 'lucide-react'
 import GlassCard from '@/components/ui/GlassCard'
 import { cn } from '@/lib/utils'
-import { timelineService, TimelineEvent as ApiTimelineEvent } from '@/services/timelineService'
+import { getTimelineEvents, type TimelineEvent as ApiTimelineEvent } from '@/lib/api/timeline-events'
 import { BlurIn } from '@/components/motion'
 import TimelineCurrentPath from '@/components/home/narrative/TimelineCurrentPath'
 import { HOME_TRANSITION } from '@/components/home/narrative/homeMotion'
@@ -371,7 +371,7 @@ export default function Timeline() {
   useEffect(() => {
     const loadEvents = async () => {
       try {
-        const apiEvents = await timelineService.getTimelineEvents({ is_active: true })
+        const apiEvents = await getTimelineEvents({ is_active: true })
         setEvents(apiEvents.map(mapApiEventToTimelineEvent))
       } catch (error) {
         console.error('Failed to load timeline events:', error)

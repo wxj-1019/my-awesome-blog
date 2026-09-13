@@ -1,4 +1,4 @@
-import type { PublicStatisticsOverview } from '@/services/statisticsService'
+import type { PublicStatisticsOverview } from '@/lib/api/statistics'
 
 export interface StatsFriendLink {
   id: string

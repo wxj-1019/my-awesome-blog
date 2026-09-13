@@ -1,10 +1,19 @@
-import { apiFetch } from '@/lib/api-client';
+import { apiFetch, extractApiErrorMessage } from '@/lib/api-client';
+
+/** 统一解析时间线接口错误：兼容统一异常处理器嵌套 error / FastAPI 原生 detail */
+async function toApiErrorMessage(response: Response, fallback: string): Promise<string> {
+  const data: unknown = await response.json().catch(() => null);
+  return extractApiErrorMessage(data, fallback);
+}
+
 export interface TimelineEvent {
   id: string;
   title: string;
   description?: string;
   event_date: string;
+  event_type?: string;
   icon?: string;
+  color?: string | null;
   is_active: boolean;
   sort_order?: number;
   created_at: string;
@@ -15,7 +24,9 @@ export interface TimelineEventCreate {
   title: string;
   description?: string;
   event_date: string;
+  event_type?: string;
   icon?: string;
+  color?: string;
   is_active?: boolean;
   sort_order?: number;
 }
@@ -24,7 +35,9 @@ export interface TimelineEventUpdate {
   title?: string;
   description?: string;
   event_date?: string;
+  event_type?: string;
   icon?: string;
+  color?: string;
   is_active?: boolean;
   sort_order?: number;
 }
@@ -46,8 +59,7 @@ export const getTimelineEvents = async (params?: {
   });
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.detail || `请求失败: ${response.status}`);
+    throw new Error(await toApiErrorMessage(response, `请求失败: ${response.status}`));
   }
 
   return response.json();
@@ -84,8 +96,7 @@ export const createTimelineEvent = async (event: TimelineEventCreate): Promise<T
   });
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.detail || `请求失败: ${response.status}`);
+    throw new Error(await toApiErrorMessage(response, `请求失败: ${response.status}`));
   }
 
   return response.json();
@@ -104,8 +115,7 @@ export const updateTimelineEvent = async (id: string, event: TimelineEventUpdate
   });
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.detail || `请求失败: ${response.status}`);
+    throw new Error(await toApiErrorMessage(response, `请求失败: ${response.status}`));
   }
 
   return response.json();
@@ -123,7 +133,6 @@ export const deleteTimelineEvent = async (id: string): Promise<void> => {
   });
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.detail || `请求失败: ${response.status}`);
+    throw new Error(await toApiErrorMessage(response, `请求失败: ${response.status}`));
   }
 };

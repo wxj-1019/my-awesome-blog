@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { friendLinkService, FriendLink } from '@/services/friendLinkService';
+import { getFriendLinks, type FriendLink } from '@/lib/api/friend-links';
 import GlassCard from '@/components/ui/GlassCard';
 import PageShell from '@/components/layout/PageShell';
 import PageHeader from '@/components/layout/PageHeader';
@@ -25,7 +25,7 @@ export default function AboutPageContent() {
   useEffect(() => {
     const loadFriendLinks = async () => {
       try {
-        const links = await friendLinkService.getFriendLinks({ is_active: true });
+        const links = await getFriendLinks({ is_active: true });
         setFriendLinks(links);
       } catch (error) {
         console.error('Failed to load friend links:', error);

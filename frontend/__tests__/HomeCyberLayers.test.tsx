@@ -11,13 +11,11 @@ jest.mock('@/components/ui/LogoLoop', () => ({
   default: () => <div data-testid="logo-loop" />,
 }))
 
-jest.mock('@/services/timelineService', () => ({
-  timelineService: {
-    getTimelineEvents: jest.fn().mockResolvedValue([]),
-  },
+jest.mock('@/lib/api/timeline-events', () => ({
+  getTimelineEvents: jest.fn().mockResolvedValue([]),
 }))
 
-jest.mock('@/services/statisticsService', () => ({
+jest.mock('@/lib/api/statistics', () => ({
   getPublicStatistics: jest.fn().mockResolvedValue(null),
 }))
 

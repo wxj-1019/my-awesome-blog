@@ -1,4 +1,4 @@
-import type { BackendWeatherData } from '@/services/backendWeatherService';
+import type { BackendWeatherData } from '@/lib/api/weather';
 
 export const MOCK_WEATHER: BackendWeatherData = {
   city: '杭州',

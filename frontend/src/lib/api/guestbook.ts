@@ -1,6 +1,12 @@
 import { Message, CreateMessageRequest, DanmakuMessage } from '@/types';
-import { apiRequest } from '@/lib/api-client';
+import { apiFetch, extractApiErrorMessage } from '@/lib/api-client';
 import logger from '@/utils/logger';
+
+/** 统一解析留言板接口错误：兼容统一异常处理器嵌套 error / FastAPI 原生 detail */
+async function toApiErrorMessage(response: Response, fallback: string): Promise<string> {
+  const data: unknown = await response.json().catch(() => null);
+  return extractApiErrorMessage(data, fallback);
+}
 
 interface RawAuthor {
   id?: string;
@@ -69,7 +75,11 @@ export const DANMAKU_COLORS = [
  */
 export const getMessages = async (): Promise<Message[]> => {
   try {
-    const messages = await apiRequest<RawMessage[]>('/messages/');
+    const response = await apiFetch('/messages/');
+    if (!response.ok) {
+      throw new Error(await toApiErrorMessage(response, `请求失败: ${response.status}`));
+    }
+    const messages = (await response.json()) as RawMessage[];
     return messages.map(transformMessage);
   } catch (error) {
     logger.error('获取留言失败:', error);
@@ -83,7 +93,11 @@ export const getMessages = async (): Promise<Message[]> => {
  */
 export const getDanmakuMessages = async (): Promise<DanmakuMessage[]> => {
   try {
-    const messages = await apiRequest<RawMessage[]>('/messages/danmaku');
+    const response = await apiFetch('/messages/danmaku');
+    if (!response.ok) {
+      throw new Error(await toApiErrorMessage(response, `请求失败: ${response.status}`));
+    }
+    const messages = (await response.json()) as RawMessage[];
     return messages
       .map((msg) => ({
         id: msg.id,
@@ -113,17 +127,21 @@ export const getDanmakuMessages = async (): Promise<DanmakuMessage[]> => {
  * @returns 创建的留言
  */
 export const createMessage = async (data: CreateMessageRequest): Promise<Message> => {
-  const response = await apiRequest('/messages/', {
+  const response = await apiFetch('/messages/', {
     method: 'POST',
-    body: {
+    body: JSON.stringify({
       content: data.content,
       color: data.color,
       is_danmaku: data.isDanmaku,
       nickname: data.nickname,
-    },
+    }),
   });
 
-  return transformMessage(response);
+  if (!response.ok) {
+    throw new Error(await toApiErrorMessage(response, `请求失败: ${response.status}`));
+  }
+
+  return transformMessage(await response.json());
 };
 
 /**
@@ -133,9 +151,12 @@ export const createMessage = async (data: CreateMessageRequest): Promise<Message
  */
 export const deleteMessage = async (messageId: string): Promise<boolean> => {
   try {
-    await apiRequest(`/messages/${messageId}`, {
+    const response = await apiFetch(`/messages/${messageId}`, {
       method: 'DELETE',
     });
+    if (!response.ok) {
+      throw new Error(await toApiErrorMessage(response, `请求失败: ${response.status}`));
+    }
     return true;
   } catch (error) {
     logger.error('删除留言失败:', error);
@@ -149,11 +170,15 @@ export const deleteMessage = async (messageId: string): Promise<boolean> => {
  * @returns 更新后的留言
  */
 export const likeMessage = async (messageId: string): Promise<Message> => {
-  const response = await apiRequest(`/messages/${messageId}/like`, {
+  const response = await apiFetch(`/messages/${messageId}/like`, {
     method: 'POST',
   });
 
-  return transformMessage(response);
+  if (!response.ok) {
+    throw new Error(await toApiErrorMessage(response, `请求失败: ${response.status}`));
+  }
+
+  return transformMessage(await response.json());
 };
 
 /**
@@ -163,16 +188,20 @@ export const likeMessage = async (messageId: string): Promise<Message> => {
  * @returns 更新后的留言
  */
 export const replyToMessage = async (messageId: string, content: string): Promise<Message> => {
-  const response = await apiRequest('/messages/', {
+  const response = await apiFetch('/messages/', {
     method: 'POST',
-    body: {
+    body: JSON.stringify({
       content,
       parent_id: messageId,
       is_danmaku: false,
-    },
+    }),
   });
 
-  return transformMessage(response);
+  if (!response.ok) {
+    throw new Error(await toApiErrorMessage(response, `请求失败: ${response.status}`));
+  }
+
+  return transformMessage(await response.json());
 };
 
 /**
@@ -182,7 +211,11 @@ export const replyToMessage = async (messageId: string, content: string): Promis
  */
 export const getMessageReplies = async (messageId: string): Promise<Message[]> => {
   try {
-    const replies = await apiRequest<RawMessage[]>(`/messages/${messageId}/replies`);
+    const response = await apiFetch(`/messages/${messageId}/replies`);
+    if (!response.ok) {
+      throw new Error(await toApiErrorMessage(response, `请求失败: ${response.status}`));
+    }
+    const replies = (await response.json()) as RawMessage[];
     return replies.map((msg) => ({
       ...transformMessage(msg),
       isDanmaku: (msg as RawMessage).is_danmaku ?? false,
@@ -200,17 +233,23 @@ export const getMessageReplies = async (messageId: string): Promise<Message[]> =
  * @returns 更新后的留言
  */
 export const editMessage = async (messageId: string, content: string): Promise<Message> => {
-  const response = await apiRequest<RawMessage>(`/messages/${messageId}`, {
+  const response = await apiFetch(`/messages/${messageId}`, {
     method: 'PUT',
-    body: {
+    body: JSON.stringify({
       content,
-    },
+    }),
   });
 
+  if (!response.ok) {
+    throw new Error(await toApiErrorMessage(response, `请求失败: ${response.status}`));
+  }
+
+  const updated = (await response.json()) as RawMessage;
+
   return {
-    ...transformMessage(response),
+    ...transformMessage(updated),
     isEdited: true,
-    editedAt: response.updated_at,
+    editedAt: updated.updated_at,
   };
 };
 
@@ -250,7 +289,11 @@ export const validateMessage = (content: string): { isValid: boolean; error?: st
  */
 export const getTrendingMessages = async (limit: number = 10): Promise<Message[]> => {
   try {
-    const messages = await apiRequest<RawMessage[]>(`/messages/trending?limit=${limit}`);
+    const response = await apiFetch(`/messages/trending?limit=${limit}`);
+    if (!response.ok) {
+      throw new Error(await toApiErrorMessage(response, `请求失败: ${response.status}`));
+    }
+    const messages = (await response.json()) as RawMessage[];
     return messages.map(transformMessage);
   } catch (error) {
     logger.error('获取热门留言失败:', error);
@@ -265,7 +308,11 @@ export const getTrendingMessages = async (limit: number = 10): Promise<Message[]
  */
 export const getMessageActivity = async (days: number = 7): Promise<{date: string, count: number}[]> => {
   try {
-    return await apiRequest(`/messages/stats/activity?days=${days}`);
+    const response = await apiFetch(`/messages/stats/activity?days=${days}`);
+    if (!response.ok) {
+      throw new Error(await toApiErrorMessage(response, `请求失败: ${response.status}`));
+    }
+    return await response.json();
   } catch (error) {
     logger.error('获取活跃度失败:', error);
     return [];
@@ -279,9 +326,12 @@ export const getMessageActivity = async (days: number = 7): Promise<{date: strin
  */
 export const likeReplyMessage = async (replyId: string): Promise<boolean> => {
   try {
-    await apiRequest(`/messages/replies/${replyId}/like`, {
+    const response = await apiFetch(`/messages/replies/${replyId}/like`, {
       method: 'POST',
     });
+    if (!response.ok) {
+      throw new Error(await toApiErrorMessage(response, `请求失败: ${response.status}`));
+    }
     return true;
   } catch (error) {
     logger.error('点赞回复失败:', error);
@@ -296,9 +346,12 @@ export const likeReplyMessage = async (replyId: string): Promise<boolean> => {
  */
 export const deleteReplyMessage = async (replyId: string): Promise<boolean> => {
   try {
-    await apiRequest(`/messages/replies/${replyId}`, {
+    const response = await apiFetch(`/messages/replies/${replyId}`, {
       method: 'DELETE',
     });
+    if (!response.ok) {
+      throw new Error(await toApiErrorMessage(response, `请求失败: ${response.status}`));
+    }
     return true;
   } catch (error) {
     logger.error('删除回复失败:', error);
@@ -318,17 +371,21 @@ export const replyToMessageWithParent = async (
   content: string,
   parentReplyId?: string
 ): Promise<Message> => {
-  const response = await apiRequest('/messages/', {
+  const response = await apiFetch('/messages/', {
     method: 'POST',
-    body: {
+    body: JSON.stringify({
       content,
       parent_id: messageId,
       parent_reply_id: parentReplyId,
       is_danmaku: false,
-    },
+    }),
   });
 
-  return transformMessage(response);
+  if (!response.ok) {
+    throw new Error(await toApiErrorMessage(response, `请求失败: ${response.status}`));
+  }
+
+  return transformMessage(await response.json());
 };
 
 /**
@@ -339,10 +396,13 @@ export const replyToMessageWithParent = async (
  */
 export const pinMessage = async (messageId: string, isPinned: boolean): Promise<boolean> => {
   try {
-    await apiRequest(`/messages/${messageId}/pin`, {
+    const response = await apiFetch(`/messages/${messageId}/pin`, {
       method: 'PATCH',
-      body: { is_pinned: isPinned },
+      body: JSON.stringify({ is_pinned: isPinned }),
     });
+    if (!response.ok) {
+      throw new Error(await toApiErrorMessage(response, `请求失败: ${response.status}`));
+    }
     return true;
   } catch (error) {
     logger.error('置顶留言失败:', error);
@@ -358,10 +418,13 @@ export const pinMessage = async (messageId: string, isPinned: boolean): Promise<
  */
 export const featureMessage = async (messageId: string, isFeatured: boolean): Promise<boolean> => {
   try {
-    await apiRequest(`/messages/${messageId}/feature`, {
+    const response = await apiFetch(`/messages/${messageId}/feature`, {
       method: 'PATCH',
-      body: { is_featured: isFeatured },
+      body: JSON.stringify({ is_featured: isFeatured }),
     });
+    if (!response.ok) {
+      throw new Error(await toApiErrorMessage(response, `请求失败: ${response.status}`));
+    }
     return true;
   } catch (error) {
     logger.error('设置精华失败:', error);
@@ -377,10 +440,13 @@ export const featureMessage = async (messageId: string, isFeatured: boolean): Pr
  */
 export const updateMessageTags = async (messageId: string, tags: string[]): Promise<boolean> => {
   try {
-    await apiRequest(`/messages/${messageId}/tags`, {
+    const response = await apiFetch(`/messages/${messageId}/tags`, {
       method: 'PATCH',
-      body: { tags },
+      body: JSON.stringify({ tags }),
     });
+    if (!response.ok) {
+      throw new Error(await toApiErrorMessage(response, `请求失败: ${response.status}`));
+    }
     return true;
   } catch (error) {
     logger.error('更新标签失败:', error);

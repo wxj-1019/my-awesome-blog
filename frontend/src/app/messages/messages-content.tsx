@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
 import { Send, Pause, Play, Sparkles } from 'lucide-react';
-import { getMessages, createMessage, getDanmakuMessages, DANMAKU_COLORS, validateMessage } from '@/services/messageService';
+import { getMessages, createMessage, getDanmakuMessages, DANMAKU_COLORS, validateMessage } from '@/lib/api/guestbook';
 import { getCurrentUserApi } from '@/lib/api/auth';
 import { Message, UserProfile, DanmakuMessage } from '@/types';
 import { cn } from '@/lib/utils';
