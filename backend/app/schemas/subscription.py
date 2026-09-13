@@ -1,4 +1,4 @@
-from pydantic import BaseModel, field_serializer
+from pydantic import BaseModel, Field, field_serializer
 from typing import Optional
 from datetime import datetime
 from uuid import UUID
@@ -34,7 +34,8 @@ class SubscriptionInDBBase(SubscriptionBase):
 
 
 class Subscription(SubscriptionInDBBase):
-    pass
+    # 响应中剔除验证令牌：知道邮箱即可通过重复订阅响应拿到 token 替人验证（安全审查 2026-09-12）
+    verification_token: Optional[str] = Field(default=None, exclude=True)
 
 
 class SubscriptionRequest(BaseModel):

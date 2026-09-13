@@ -117,7 +117,8 @@ class EmailService:
         发送订阅验证邮件
         """
         subject = "请验证您的邮箱订阅"
-        verification_url = f"{settings.FRONTEND_URL}/verify-subscription/{token}"
+        # 前端 /verify-subscription 页面从 query 读 token（与退订链接的 ?email= 风格一致）
+        verification_url = f"{settings.FRONTEND_URL}/verify-subscription?token={token}"
         
         body = f"""
         您好，

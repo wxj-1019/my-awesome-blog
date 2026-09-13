@@ -84,19 +84,18 @@ export const createSubscription = async (subscription: SubscriptionCreate): Prom
 };
 
 /**
- * 邮箱验证（订阅确认）：`POST /subscriptions/verify?token=xxx`。
- * token 来自订阅邮件中的验证链接；成功不读响应体（后端契约以状态码为准）。
+ * 邮箱验证（订阅确认）：`POST /subscriptions/verify`，token 走 JSON body
+ * （后端 SubscriptionVerification schema）。token 来自订阅邮件中的验证链接；
+ * 成功不读响应体（后端契约以状态码为准）。
  */
 export const verifySubscription = async (token: string): Promise<void> => {
-  const response = await apiFetch(
-    `/subscriptions/verify?token=${encodeURIComponent(token)}`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    }
-  );
+  const response = await apiFetch(`/subscriptions/verify`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ token }),
+  });
 
   if (!response.ok) {
     throw new Error(await toApiErrorMessage(response, '邮箱验证失败，链接可能已失效'));
