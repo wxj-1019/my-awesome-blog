@@ -29,6 +29,18 @@ def get_active_requests() -> int:
     return _active_requests
 
 
+def _get_metric_path(request: Request) -> str:
+    """获取监控统计用路径。
+
+    优先取路由模板（如 /api/v1/articles/{article_id}），
+    避免带 UUID 的真实路径快速占满 by_path 的 500 容量上限，
+    导致后续新端点永远不被统计；404 等未匹配路由时回退原始路径。
+    """
+    route = request.scope.get("route")
+    path_format = getattr(route, "path_format", None)
+    return path_format or request.url.path
+
+
 def _record_request(path: str, status_code: int, duration: float) -> None:
     """累计请求指标（进程内内存统计）。"""
     from datetime import date
@@ -95,7 +107,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
 
             # Calculate processing time
             process_time = time.time() - start_time
-            _record_request(request.url.path, response.status_code, process_time)
+            _record_request(_get_metric_path(request), response.status_code, process_time)
 
             # Log successful response
             logger.info(
@@ -114,7 +126,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         except StarletteHTTPException as exc:
             # Handle HTTP exceptions
             process_time = time.time() - start_time
-            _record_request(request.url.path, exc.status_code, process_time)
+            _record_request(_get_metric_path(request), exc.status_code, process_time)
             logger.warning(
                 f"Request ID: {request_id} | "
                 f"HTTP Exception: {exc.status_code} | "
@@ -131,7 +143,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         except Exception as exc:
             # Handle unexpected exceptions
             process_time = time.time() - start_time
-            _record_request(request.url.path, 500, process_time)
+            _record_request(_get_metric_path(request), 500, process_time)
             logger.error(
                 f"Request ID: {request_id} | "
                 f"Unexpected Error: {str(exc)} | "

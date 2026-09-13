@@ -5,6 +5,7 @@
 from typing import Type, Optional
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
+from app.exceptions import ForbiddenException
 from app.models.user import User
 
 
@@ -24,7 +25,7 @@ def check_ownership(
         resource_name: 资源名称，用于错误消息
 
     Raises:
-        HTTPException: 资源不存在或权限不足时抛出403/404错误
+        HTTPException: 资源不存在时抛出404错误；ForbiddenException: 权限不足时抛出403错误
     """
     if not resource_obj:
         raise HTTPException(
@@ -38,10 +39,7 @@ def check_ownership(
 
     # 检查所有权
     if getattr(resource_obj, 'author_id', None) != user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"没有权限操作此{resource_name}"
-        )
+        raise ForbiddenException(message=f"没有权限操作此{resource_name}")
 
 
 def check_edit_permission(
@@ -60,7 +58,7 @@ def check_edit_permission(
         resource_name: 资源名称，用于错误消息
 
     Raises:
-        HTTPException: 资源不存在或权限不足时抛出403/404错误
+        HTTPException: 资源不存在时抛出404错误；ForbiddenException: 权限不足时抛出403错误
     """
     if not resource_obj:
         raise HTTPException(
@@ -74,10 +72,7 @@ def check_edit_permission(
 
     # 检查编辑权限（仅作者可编辑）
     if getattr(resource_obj, 'author_id', None) != user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"没有权限编辑此{resource_name}"
-        )
+        raise ForbiddenException(message=f"没有权限编辑此{resource_name}")
 
 
 def check_delete_permission(
@@ -96,7 +91,7 @@ def check_delete_permission(
         resource_name: 资源名称，用于错误消息
 
     Raises:
-        HTTPException: 资源不存在或权限不足时抛出403/404错误
+        HTTPException: 资源不存在时抛出404错误；ForbiddenException: 权限不足时抛出403错误
     """
     if not resource_obj:
         raise HTTPException(
@@ -110,10 +105,7 @@ def check_delete_permission(
 
     # 检查删除权限（仅作者可删除）
     if getattr(resource_obj, 'author_id', None) != user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"没有权限删除此{resource_name}"
-        )
+        raise ForbiddenException(message=f"没有权限删除此{resource_name}")
 
 
 def check_comment_delete_permission(
@@ -132,7 +124,7 @@ def check_comment_delete_permission(
         resource_name: 资源名称，用于错误消息
 
     Raises:
-        HTTPException: 资源不存在或权限不足时抛出403/404错误
+        HTTPException: 资源不存在时抛出404错误；ForbiddenException: 权限不足时抛出403错误
     """
     if not comment_obj:
         raise HTTPException(
@@ -149,10 +141,7 @@ def check_comment_delete_permission(
     article_author_id = getattr(article_obj, 'author_id', None) if article_obj else None
 
     if comment_author_id != user.id and article_author_id != user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"没有权限删除此{resource_name}"
-        )
+        raise ForbiddenException(message=f"没有权限删除此{resource_name}")
 
 
 def check_approve_permission(
@@ -169,7 +158,7 @@ def check_approve_permission(
         resource_name: 资源名称，用于错误消息
 
     Raises:
-        HTTPException: 资源不存在或权限不足时抛出403/404错误
+        HTTPException: 资源不存在时抛出404错误；ForbiddenException: 权限不足时抛出403错误
     """
     if not resource_obj:
         raise HTTPException(
@@ -183,10 +172,7 @@ def check_approve_permission(
 
     # 资源作者可以审核
     if getattr(resource_obj, 'author_id', None) != user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"没有权限审核此{resource_name}"
-        )
+        raise ForbiddenException(message=f"没有权限审核此{resource_name}")
 
 
 def check_superuser(
@@ -201,13 +187,10 @@ def check_superuser(
         detail: 错误消息，默认为"此操作需要超级管理员权限"
 
     Raises:
-        HTTPException: 非超级用户时抛出403错误
+        ForbiddenException: 非超级用户时抛出403错误
     """
     if not user.is_superuser:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=detail
-        )
+        raise ForbiddenException(message=detail)
 
 
 def check_active_user(

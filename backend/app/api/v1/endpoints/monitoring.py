@@ -63,10 +63,12 @@ async def health_check(db: Session = Depends(get_db)):
     # 执行各项检查
     checks = {}
 
-    # 数据库连接检查
+    # 数据库连接检查（带 2s 超时：DB 挂起时健康检查快速失败，不占死线程池）
     try:
-        await asyncio.to_thread(db.execute, text("SELECT 1"))
+        await asyncio.wait_for(asyncio.to_thread(db.execute, text("SELECT 1")), timeout=2)
         checks["database"] = {"status": "ok", "message": "Database connection successful"}
+    except asyncio.TimeoutError:
+        checks["database"] = {"status": "error", "message": "Database connection timed out after 2s"}
     except Exception as e:
         checks["database"] = {"status": "error", "message": str(e)}
     
@@ -204,10 +206,13 @@ async def get_analytics(
 
     analytics_data = get_request_metrics()
 
-    # 活跃用户数：数据库中已激活用户
-    analytics_data["active_users"] = db.query(sql_func.count(User.id)).filter(
-        User.is_active == True
-    ).scalar() or 0
+    # 活跃用户数：数据库中已激活用户（同步查询放 to_thread，避免堵事件循环）
+    def _count_active_users() -> int:
+        return db.query(sql_func.count(User.id)).filter(
+            User.is_active == True  # noqa: E712
+        ).scalar() or 0
+
+    analytics_data["active_users"] = await asyncio.to_thread(_count_active_users)
 
     # 缓存键数量：Redis dbsize
     cache_size = 0

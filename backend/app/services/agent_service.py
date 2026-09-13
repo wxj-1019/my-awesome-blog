@@ -150,9 +150,13 @@ class AgentService:
         provider,
         prompt,
         model=None,
-        temperature: float = settings.LLM_TEMPERATURE_GENERAL,
+        temperature: Optional[float] = None,
         max_tokens=None,
     ) -> AsyncIterator[str]:
+        # 默认温度在函数体内取 settings，避免默认参数在 import 时求值，
+        # 导致测试/运行期对 settings 的覆盖不生效
+        if temperature is None:
+            temperature = settings.LLM_TEMPERATURE_GENERAL
         async for event in self._stream_final(provider, prompt, model, temperature, max_tokens):
             yield event
 
