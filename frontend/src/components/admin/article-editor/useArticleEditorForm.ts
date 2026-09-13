@@ -29,6 +29,7 @@ import {
   type EditorMode,
 } from '@/components/admin/article-editor/shared';
 import type { AttachmentDraft } from '@/components/admin/article-editor/ArticleAttachmentsEditor';
+import { generateArticleSummary } from '@/lib/api/ai';
 
 /** 分类选项（下拉/按钮选择用），两页原各自定义的 Category 接口 */
 export interface EditorCategory {
@@ -70,6 +71,9 @@ export const createEmptyFormData = (): ArticleFormData => ({
   tags: [],
   attachments: [],
 });
+
+/** AI 生成摘要所需的最少正文字符数（太短生成无意义，按钮禁用） */
+export const MIN_AI_SUMMARY_CONTENT_LENGTH = 20;
 
 /** 标题输入的 slug 联动模式 */
 export type SlugSyncMode =
@@ -278,6 +282,36 @@ export function useArticleEditorForm(
   // 卸载时中止进行中的润色流
   useEffect(() => () => aiPolishRef.current?.(), []);
 
+  // ── AI 生成摘要（POST /ai/article-summary）─────────────────────
+  const [aiSummaryLoading, setAiSummaryLoading] = useState(false);
+  const aiSummaryContentTooShort =
+    formData.content.trim().length < MIN_AI_SUMMARY_CONTENT_LENGTH;
+
+  /** AI 生成摘要：用当前标题 + 正文调接口，结果覆盖摘要输入框（已有内容先 confirm） */
+  const handleAiSummary = useCallback(async () => {
+    if (aiSummaryLoading || aiSummaryContentTooShort) {return;}
+    const content = formData.content.trim();
+    // 覆盖保护：摘要已有内容时先确认，避免无提示覆盖用户手写内容
+    if (formData.excerpt && !window.confirm('摘要已有内容，确定用 AI 生成的摘要覆盖吗？')) {return;}
+    setAiSummaryLoading(true);
+    try {
+      const { summary } = await generateArticleSummary({ title: formData.title, content });
+      if (!summary.trim()) {
+        error('AI 未返回摘要，请稍后重试');
+        return;
+      }
+      setTouchedFields(prev => new Set(prev).add('excerpt'));
+      setHasUnsavedChanges(true);
+      setFormData(prev => ({ ...prev, excerpt: summary }));
+      success('AI 摘要已生成');
+    } catch (err) {
+      // 后端未上线（404）等失败统一走错误 toast，不影响编辑器主流程
+      error(err instanceof Error ? err.message : 'AI 生成摘要失败');
+    } finally {
+      setAiSummaryLoading(false);
+    }
+  }, [aiSummaryLoading, aiSummaryContentTooShort, formData.title, formData.content, formData.excerpt, success, error]);
+
   /**
    * 手动保存草稿前的长度校验（与发布校验一致的 MIN_* 规则）。
    * 校验失败时已弹出 error toast，返回 false；silent（自动保存）时直接通过。
@@ -381,6 +415,9 @@ export function useArticleEditorForm(
     handleAiPolish,
     generatingMeta,
     handleAiMeta,
+    aiSummaryLoading,
+    aiSummaryContentTooShort,
+    handleAiSummary,
     // 保存助手
     validateDraftLengths,
     validatePublishInputs,

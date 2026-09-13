@@ -121,6 +121,9 @@ export default function ArticleEditorForm({
     handleAiPolish,
     generatingMeta,
     handleAiMeta,
+    aiSummaryLoading,
+    aiSummaryContentTooShort,
+    handleAiSummary,
     titleInputRef,
   } = form;
 
@@ -337,14 +340,29 @@ export default function ArticleEditorForm({
               <div className="md:col-span-2">
                 <div className="flex items-center justify-between mb-2">
                   <label className="block text-sm font-medium text-foreground/80">文章摘要</label>
-                  <button
-                    type="button"
-                    onClick={handleAutoExcerpt}
-                    className="flex items-center gap-1.5 text-xs text-tech-cyan hover:text-tech-cyan/80 transition-colors bg-tech-cyan/10 px-2.5 py-1 rounded-md"
-                  >
-                    <Wand2 className="w-3 h-3" />
-                    自动生成
-                  </button>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={handleAutoExcerpt}
+                      className="flex items-center gap-1.5 text-xs text-tech-cyan hover:text-tech-cyan/80 transition-colors bg-tech-cyan/10 px-2.5 py-1 rounded-md"
+                    >
+                      <Wand2 className="w-3 h-3" />
+                      自动生成
+                    </button>
+                    {/* AI 生成摘要：调 /ai/article-summary；正文太短时禁用并提示 */}
+                    <button
+                      type="button"
+                      onClick={handleAiSummary}
+                      disabled={aiSummaryLoading || aiSummaryContentTooShort}
+                      title={aiSummaryContentTooShort
+                        ? '正文内容太少，先写一些内容再用 AI 生成摘要'
+                        : '根据标题和正文用 AI 生成摘要'}
+                      className="inline-flex items-center gap-1 text-xs text-cat-2 hover:text-cat-2/80 transition-colors bg-cat-2/10 px-2.5 py-1 rounded-md disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      {aiSummaryLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                      {aiSummaryLoading ? '生成中' : 'AI 生成摘要'}
+                    </button>
+                  </div>
                 </div>
                 <textarea
                   name="excerpt"
