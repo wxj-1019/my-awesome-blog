@@ -42,6 +42,19 @@ def test_article_summary_success(client, monkeypatch):
     assert set(data.keys()) == {"summary"}
 
 
+def test_article_summary_empty_title_ok(client, monkeypatch):
+    """空标题合法：AI 初稿确认前 title 可能为空，按正文为主生成（契约与前端对齐）"""
+    provider = FakeProvider([_text_resp("摘要内容。")])
+    monkeypatch.setattr(ai_endpoint, "get_llm_provider", lambda name=None: provider)
+
+    resp = client.post(
+        "/api/v1/ai/article-summary",
+        json={"title": "", "content": LONG_CONTENT},
+    )
+    assert resp.status_code == 200
+    assert resp.json()["summary"] == "摘要内容。"
+
+
 def test_article_summary_max_length_passed_to_prompt(client, monkeypatch):
     """max_length 应作为限长指令出现在 prompt 中，标题/正文一并注入"""
     provider = FakeProvider([_text_resp("摘要")])

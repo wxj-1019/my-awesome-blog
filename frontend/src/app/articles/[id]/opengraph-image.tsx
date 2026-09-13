@@ -13,6 +13,9 @@ import { getArticleById } from '@/lib/api/articles';
  */
 export const runtime = 'nodejs';
 
+/** 同一文章的 OG 图内容不变，日级缓存降低社交爬虫反复抓取的渲染成本 */
+export const revalidate = 86400;
+
 export const alt = '文章分享图 - My Awesome Blog';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';

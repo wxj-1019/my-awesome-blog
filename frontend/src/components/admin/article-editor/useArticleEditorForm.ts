@@ -72,8 +72,8 @@ export const createEmptyFormData = (): ArticleFormData => ({
   attachments: [],
 });
 
-/** AI 生成摘要所需的最少正文字符数（太短生成无意义，按钮禁用） */
-export const MIN_AI_SUMMARY_CONTENT_LENGTH = 20;
+/** AI 生成摘要所需的最少正文字符数（与后端 schema min_length=50 对齐，按钮同阈值禁用） */
+export const MIN_AI_SUMMARY_CONTENT_LENGTH = 50;
 
 /** 标题输入的 slug 联动模式 */
 export type SlugSyncMode =
