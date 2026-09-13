@@ -120,6 +120,62 @@ export async function apiFetch(
   }
 }
 
+/** 后端错误体形状：统一 `{"error": {...}}` 嵌套；兼容 FastAPI 原生 `detail` 与旧顶层 `message` */
+interface ApiErrorPayload {
+  error?: { message?: unknown };
+  detail?: unknown;
+  message?: unknown;
+}
+
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === 'string' && value.length > 0;
+}
+
+/**
+ * 从后端错误响应体提取用户可读文案。
+ * 优先级：`error.message`（统一异常处理器，backend/app/core/exception_handlers.py）
+ *   → `detail`（FastAPI 原生字符串）→ `detail` 数组（422 校验，拼接各条 msg）
+ *   → 顶层 `message`（旧端点）→ fallback 默认文案。
+ */
+export function extractApiErrorMessage(data: unknown, fallback: string): string {
+  if (!data || typeof data !== 'object') {
+    return fallback;
+  }
+  const payload = data as ApiErrorPayload;
+
+  if (
+    payload.error &&
+    typeof payload.error === 'object' &&
+    isNonEmptyString(payload.error.message)
+  ) {
+    return payload.error.message;
+  }
+
+  if (isNonEmptyString(payload.detail)) {
+    return payload.detail;
+  }
+
+  // 422 校验错误：detail 为数组，取各条 msg 以分号拼接
+  if (Array.isArray(payload.detail)) {
+    const msgs = payload.detail
+      .map((item) =>
+        item && typeof item === 'object' && isNonEmptyString((item as { msg?: unknown }).msg)
+          ? (item as { msg: string }).msg
+          : ''
+      )
+      .filter(Boolean);
+    if (msgs.length > 0) {
+      return msgs.join('; ');
+    }
+  }
+
+  if (isNonEmptyString(payload.message)) {
+    return payload.message;
+  }
+
+  return fallback;
+}
+
 export async function apiRequest<T = unknown>(
   endpoint: string,
   options: ApiClientOptions = {},
@@ -161,10 +217,9 @@ export async function apiRequest<T = unknown>(
         return apiRequest<T>(endpoint, options, retries - 1);
       }
 
-      const errorData = await response.json().catch(() => ({}));
+      const errorData: unknown = await response.json().catch(() => null);
       throw new Error(
-        (errorData as { message?: string }).message ||
-          `请求失败: ${response.status}`
+        extractApiErrorMessage(errorData, `请求失败: ${response.status}`)
       );
     }
 
