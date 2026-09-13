@@ -1,6 +1,6 @@
 import asyncio
 from typing import Any, List, Optional
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, Query, Request
 from app.exceptions import (
     NotFoundException,
     ConflictException,
@@ -20,6 +20,7 @@ from app.models.article import Article as ArticleModel
 from app.models.user import User
 from uuid import UUID
 from app.services.cache_service import cache_service
+from app.services.notification_service import notify_subscribers_of_new_article
 from app.utils.pagination import CursorPaginationParams
 from app.utils.cache_keys import CacheKeys
 from app.utils.logger import app_logger
@@ -75,6 +76,7 @@ async def read_articles(
 @article_create_rate_limit
 async def create_article(
     request: Request,
+    background_tasks: BackgroundTasks,
     *,
     db: Session = Depends(get_db),
     article_in: ArticleCreate,
@@ -96,6 +98,11 @@ async def create_article(
 
     article = await asyncio.to_thread(_create_sync)
     await cache_service.delete(CacheKeys.article_by_slug(article_in.slug))
+
+    # 创建即发布同样视为「未发布 → 已发布」翻转，后台通知订阅者（端点保持薄，逻辑在服务层）
+    if article.is_published:
+        background_tasks.add_task(notify_subscribers_of_new_article, str(article.id))
+
     return article
 
 
@@ -341,6 +348,7 @@ async def read_article_by_id(
 async def update_article(
     article_id: str,
     article_update: ArticleUpdate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
 ) -> Any:
@@ -359,6 +367,7 @@ async def update_article(
     # 仅作者本人或超级管理员可编辑（存在性已在上文校验）
     check_edit_permission(existing, current_user, resource_name="文章")
     old_slug = existing.slug
+    was_published = bool(existing.is_published)
 
     # slug 变更时检查唯一性，避免触发数据库唯一约束 500
     if article_update.slug and article_update.slug != old_slug:
@@ -385,6 +394,10 @@ async def update_article(
         await cache_service.delete(CacheKeys.article_by_slug(old_slug))
     if hasattr(article_update, 'slug') and article_update.slug:
         await cache_service.delete(CacheKeys.article_by_slug(article_update.slug))
+
+    # 「未发布 → 已发布」翻转时后台通知订阅者（端点保持薄，逻辑在服务层）
+    if article.is_published and not was_published:
+        background_tasks.add_task(notify_subscribers_of_new_article, str(article.id))
 
     return article
 

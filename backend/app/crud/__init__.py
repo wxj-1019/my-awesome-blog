@@ -63,7 +63,8 @@ from app.crud.timeline_event import (
 
 from app.crud.subscription import (
     get_subscription, get_subscriptions, create_subscription,
-    update_subscription, delete_subscription, get_subscribers_count
+    update_subscription, delete_subscription, get_subscribers_count,
+    verify_subscription, get_active_subscriptions
 )
 
 from app.crud.image import (

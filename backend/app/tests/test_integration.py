@@ -312,7 +312,8 @@ def test_subscription_and_notification_integration(client, test_session):
         "name": "Integration Test User"
     }
     response = client.post("/api/v1/subscriptions/", json=subscription_data)
-    assert response.status_code == status.HTTP_200_OK
+    # 新建订阅返回 201（重复活跃订阅静默返回 200）
+    assert response.status_code == status.HTTP_201_CREATED
     subscription = response.json()
     
     # Verify the subscription was created

@@ -5,7 +5,8 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email import encoders
-from typing import List, Optional
+from typing import List, Optional, Tuple
+from urllib.parse import quote
 from pydantic import EmailStr
 from app.core.config import settings
 
@@ -185,38 +186,34 @@ class EmailService:
         
         return self.send_email([email], subject, body, html_body)
 
-    def send_new_article_notification(
-        self, 
-        subscribers: List[EmailStr], 
-        article_title: str, 
+    def _build_new_article_content(
+        self,
+        article_title: str,
         article_url: str,
-        article_excerpt: str
-    ) -> bool:
-        """
-        发送新文章通知邮件
-        """
-        subject = f"新文章发布: {article_title}"
-        
+        article_excerpt: str,
+        unsubscribe_url: str,
+    ) -> Tuple[str, str]:
+        """构建新文章通知邮件的文本/HTML 正文（退订链接因收件人而异，需逐人生成）"""
         body = f"""
         您好，
-        
+
         我们刚刚发布了新文章，相信您会感兴趣：
-        
+
         标题: {article_title}
         链接: {article_url}
-        
+
         内容预览:
         {article_excerpt}
-        
+
         欢迎阅读完整内容！
-        
+
         此致，
         博客团队
-        
+
         ---
-        如果您不想再收到此类邮件，请点击取消订阅链接。
+        如果您不想再收到此类邮件，请访问 {unsubscribe_url} 取消订阅。
         """
-        
+
         html_body = f"""
         <html>
             <body>
@@ -232,12 +229,56 @@ class EmailService:
                 <br/>
                 <p>此致，<br/>博客团队</p>
                 <hr/>
-                <small>如果您不想再收到此类邮件，请<a href="#">点击取消订阅</a>。</small>
+                <small>如果您不想再收到此类邮件，请<a href="{unsubscribe_url}">点击取消订阅</a>。</small>
             </body>
         </html>
         """
-        
-        return self.send_email(subscribers, subject, body, html_body)
+        return body, html_body
+
+    def send_new_article_notification(
+        self,
+        subscribers: List[EmailStr],
+        article_title: str,
+        article_url: str,
+        article_excerpt: str
+    ) -> bool:
+        """
+        发送新文章通知邮件
+
+        逐订阅者单独发送（每封邮件 To 只有一个收件人），
+        避免把所有订阅者邮箱暴露在 To 头里；单封失败仅记日志，不中断其余发送。
+
+        Returns:
+            bool: 全部发送成功返回 True，任一封失败返回 False
+        """
+        subject = f"新文章发布: {article_title}"
+        all_sent = True
+
+        for subscriber in subscribers:
+            # 退订链接带上订阅者邮箱（URL 编码），供前端 /unsubscribe 页面使用
+            unsubscribe_url = f"{settings.FRONTEND_URL}/unsubscribe?email={quote(str(subscriber))}"
+            body, html_body = self._build_new_article_content(
+                article_title, article_url, article_excerpt, unsubscribe_url
+            )
+            if not self.send_email([subscriber], subject, body, html_body):
+                all_sent = False
+
+        return all_sent
+
+    async def send_new_article_notification_async(
+        self,
+        subscribers: List[EmailStr],
+        article_title: str,
+        article_url: str,
+        article_excerpt: str
+    ) -> bool:
+        """
+        异步发送新文章通知邮件（smtplib 为阻塞 IO，在线程池中执行，供 async 端点调用）
+        """
+        return await asyncio.to_thread(
+            self.send_new_article_notification,
+            subscribers, article_title, article_url, article_excerpt
+        )
 
     def send_contact_notification(
         self, 

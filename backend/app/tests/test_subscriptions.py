@@ -1,10 +1,48 @@
 import pytest
 import uuid
 from fastapi import status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, sessionmaker
 
 from app.models.subscription import Subscription
 from app.schemas.subscription import SubscriptionCreate, SubscriptionUpdate
+from app.services import email_service as email_service_module
+from app.services import notification_service
+
+
+@pytest.fixture
+def bg_db_session(test_engine, monkeypatch):
+    """将通知后台任务的 SessionLocal 指到测试引擎。
+
+    生产中后台任务必须自建会话（FastAPI 依赖清理先于后台任务执行）；
+    测试里 SessionLocal 绑定的是另一个空内存库，需替换为 test_engine。
+    """
+    testing_session_local = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
+    monkeypatch.setattr(notification_service, "SessionLocal", testing_session_local)
+
+
+@pytest.fixture
+def fake_send_notification(monkeypatch):
+    """mock 逐订阅者发送函数，记录每次调用的 (subscribers, title, url, excerpt)"""
+    calls = []
+
+    def _fake(subscribers, article_title, article_url, article_excerpt):
+        calls.append((list(subscribers), article_title, article_url, article_excerpt))
+        return True
+
+    monkeypatch.setattr(email_service_module.email_service, "send_new_article_notification", _fake)
+    return calls
+
+
+@pytest.fixture
+def fake_send_verification(monkeypatch):
+    """mock 订阅验证邮件发送，记录每次调用的 (email, token)"""
+    calls = []
+
+    def _fake(email, token):
+        calls.append((email, token))
+
+    monkeypatch.setattr(email_service_module.email_service, "send_verification_email", _fake)
+    return calls
 
 
 def test_create_subscription(client, test_session):
@@ -15,7 +53,7 @@ def test_create_subscription(client, test_session):
 
     response = client.post("/api/v1/subscriptions/", json=subscription_data)
 
-    assert response.status_code == status.HTTP_200_OK
+    assert response.status_code == status.HTTP_201_CREATED
     data = response.json()
     assert data["email"] == "subscriber@example.com"
     assert "id" in data
@@ -34,7 +72,7 @@ def test_create_subscription_without_name(client, test_session):
 
     response = client.post("/api/v1/subscriptions/", json=subscription_data)
 
-    assert response.status_code == status.HTTP_200_OK
+    assert response.status_code == status.HTTP_201_CREATED
     data = response.json()
     assert data["email"] == "anonymous@example.com"
     assert "id" in data
@@ -47,7 +85,7 @@ def test_create_duplicate_subscription(client, test_session):
         "email": "duplicate@example.com",
     }
     response = client.post("/api/v1/subscriptions/", json=subscription_data)
-    assert response.status_code == status.HTTP_200_OK
+    assert response.status_code == status.HTTP_201_CREATED
     first_data = response.json()
 
     # Try to create another subscription with same email
@@ -56,7 +94,7 @@ def test_create_duplicate_subscription(client, test_session):
     }
     response = client.post("/api/v1/subscriptions/", json=duplicate_data)
 
-    # 后端对重复邮箱直接返回已有订阅，统一成功响应
+    # 后端对重复邮箱直接返回已有订阅，统一成功响应（静默去重返回 200）
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
     assert data["id"] == first_data["id"]
@@ -214,7 +252,7 @@ def test_create_subscription_invalid_email(client):
     response = client.post("/api/v1/subscriptions/", json=subscription_data)
 
     # Should return validation error if email validation is implemented
-    assert response.status_code in [status.HTTP_200_OK, status.HTTP_422_UNPROCESSABLE_ENTITY]
+    assert response.status_code in [status.HTTP_201_CREATED, status.HTTP_422_UNPROCESSABLE_ENTITY]
 
 
 def test_update_subscription_to_duplicate_email(client, test_session):
@@ -249,10 +287,10 @@ def test_create_multiple_subscriptions_same_name(client, test_session):
     }
 
     response1 = client.post("/api/v1/subscriptions/", json=sub_data_1)
-    assert response1.status_code == status.HTTP_200_OK
+    assert response1.status_code == status.HTTP_201_CREATED
 
     response2 = client.post("/api/v1/subscriptions/", json=sub_data_2)
-    assert response2.status_code == status.HTTP_200_OK
+    assert response2.status_code == status.HTTP_201_CREATED
 
     # Both should succeed since emails are different
     data1 = response1.json()
@@ -268,7 +306,7 @@ def test_subscription_email_case_sensitivity(client, test_session):
         "email": "test@example.com",
     }
     response1 = client.post("/api/v1/subscriptions/", json=sub_data_1)
-    assert response1.status_code == status.HTTP_200_OK
+    assert response1.status_code == status.HTTP_201_CREATED
 
     # Try to create another subscription with same email but different case
     sub_data_2 = {
@@ -282,7 +320,180 @@ def test_subscription_email_case_sensitivity(client, test_session):
         # If it fails, it means emails are treated as case-insensitive
         data = response2.json()
         assert "already subscribed" in data["detail"].lower()
-    elif response2.status_code == status.HTTP_200_OK:
+    elif response2.status_code == status.HTTP_201_CREATED:
         # If it succeeds, it means emails are case-sensitive
         data = response2.json()
         assert data["email"] == "TEST@EXAMPLE.COM"
+
+
+# ==================== 订阅邮件推送闭环（verify + 发布通知） ====================
+
+
+def test_verify_subscription_success(client, test_session):
+    """Test verifying a subscription with a valid token"""
+    subscription = Subscription(
+        email="verifyme@example.com",
+        verification_token="valid-token-123",
+    )
+    test_session.add(subscription)
+    test_session.commit()
+
+    response = client.post("/api/v1/subscriptions/verify", json={"token": "valid-token-123"})
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["message"] == "邮箱验证成功"
+
+    test_session.refresh(subscription)
+    assert subscription.is_verified is True
+
+
+def test_verify_subscription_invalid_token(client, test_session):
+    """Test verifying with a token that does not exist"""
+    response = client.post("/api/v1/subscriptions/verify", json={"token": "no-such-token"})
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    # 统一错误结构：error.code
+    assert response.json()["error"]["code"] == "BAD_REQUEST"
+
+
+def test_verify_subscription_twice_second_fails(client, test_session):
+    """Test that a token can only be used once"""
+    subscription = Subscription(
+        email="once@example.com",
+        verification_token="one-time-token",
+    )
+    test_session.add(subscription)
+    test_session.commit()
+
+    first = client.post("/api/v1/subscriptions/verify", json={"token": "one-time-token"})
+    assert first.status_code == status.HTTP_200_OK
+
+    second = client.post("/api/v1/subscriptions/verify", json={"token": "one-time-token"})
+    assert second.status_code == status.HTTP_400_BAD_REQUEST
+
+
+def test_create_subscription_sends_verification_email(client, fake_send_verification):
+    """Test that creating a subscription queues a verification email (one recipient per email)"""
+    response = client.post("/api/v1/subscriptions/", json={"email": "verifylink@example.com"})
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert len(fake_send_verification) == 1
+    email, token = fake_send_verification[0]
+    assert email == "verifylink@example.com"
+    assert token  # token 非空
+
+
+def test_duplicate_verified_subscription_silent_no_email(client, test_session, fake_send_verification):
+    """Test that an already-active verified duplicate returns 200 without re-sending email"""
+    subscription = Subscription(
+        email="dupverified@example.com",
+        is_active=True,
+        is_verified=True,
+        verification_token="dup-token",
+    )
+    test_session.add(subscription)
+    test_session.commit()
+
+    response = client.post("/api/v1/subscriptions/", json={"email": "dupverified@example.com"})
+
+    # 重复订阅静默成功且不重发验证邮件
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["email"] == "dupverified@example.com"
+    assert fake_send_verification == []
+
+
+def test_create_published_article_notifies_active_subscribers(
+    client, test_session, bg_db_session, fake_send_notification
+):
+    """Test that publishing on creation notifies active subscribers one-by-one"""
+    from app.core.config import settings
+
+    # 两个活跃订阅者 + 一个已退订者
+    client.post("/api/v1/subscriptions/", json={"email": "active1@example.com"})
+    client.post("/api/v1/subscriptions/", json={"email": "active2@example.com"})
+    test_session.add(Subscription(email="unsubscribed@example.com", is_active=False))
+    test_session.commit()
+
+    response = client.post("/api/v1/articles/", json={
+        "title": "New Post",
+        "slug": "new-post-notify",
+        "content": "Hello world",
+        "excerpt": "Exc",
+        "is_published": True,
+    })
+    assert response.status_code == status.HTTP_200_OK
+    article_id = response.json()["id"]
+
+    # 逐订阅者单独发送：仅活跃订阅者收到，退订者不收
+    assert len(fake_send_notification) == 2
+    recipient_lists = [entry[0] for entry in fake_send_notification]
+    assert all(len(lst) == 1 for lst in recipient_lists)  # 每封 To 只有一个人
+    assert {lst[0] for lst in recipient_lists} == {"active1@example.com", "active2@example.com"}
+    # 文章链接指向前端详情页 /articles/{id}
+    assert all(entry[2] == f"{settings.FRONTEND_URL}/articles/{article_id}" for entry in fake_send_notification)
+
+
+def test_update_publish_transition_notifies_subscribers(
+    client, test_session, bg_db_session, fake_send_notification
+):
+    """Test that a draft -> published transition via PUT triggers notification"""
+    client.post("/api/v1/subscriptions/", json={"email": "reader@example.com"})
+
+    # 先创建草稿（创建即未发布，不应触发通知）
+    created = client.post("/api/v1/articles/", json={
+        "title": "Draft",
+        "slug": "draft-to-published",
+        "content": "Body",
+        "is_published": False,
+    })
+    assert created.status_code == status.HTTP_200_OK
+    article_id = created.json()["id"]
+    assert fake_send_notification == []
+
+    # 未发布 -> 已发布：触发通知
+    updated = client.put(f"/api/v1/articles/{article_id}", json={"is_published": True})
+    assert updated.status_code == status.HTTP_200_OK
+
+    assert len(fake_send_notification) == 1
+    subscribers, title, url, _ = fake_send_notification[0]
+    assert subscribers == ["reader@example.com"]
+    assert title == "Draft"
+    assert url.endswith(f"/articles/{article_id}")
+
+
+def test_update_without_publish_change_no_notification(
+    client, bg_db_session, fake_send_notification
+):
+    """Test that editing an article without publish status change does not notify"""
+    created = client.post("/api/v1/articles/", json={
+        "title": "Still Draft",
+        "slug": "still-draft",
+        "content": "Body",
+        "is_published": False,
+    })
+    article_id = created.json()["id"]
+
+    # 仅改标题，未发布 -> 未发布：不触发
+    updated = client.put(f"/api/v1/articles/{article_id}", json={"title": "Renamed Draft"})
+    assert updated.status_code == status.HTTP_200_OK
+    assert fake_send_notification == []
+
+
+def test_publish_notification_smtp_not_configured_no_error(client, bg_db_session):
+    """Test that the whole flow does not error out when SMTP is not configured"""
+    from app.core.config import settings
+
+    # 测试环境默认未配置 SMTP，邮件服务处于禁用态
+    assert email_service_module.email_service.enabled is False
+
+    sub = client.post("/api/v1/subscriptions/", json={"email": "nosmtp@example.com"})
+    assert sub.status_code == status.HTTP_201_CREATED
+
+    article = client.post("/api/v1/articles/", json={
+        "title": "No SMTP",
+        "slug": "no-smtp-post",
+        "content": "Body",
+        "is_published": True,
+    })
+    # 发送侧静默跳过（email_service.enabled=False），请求本身不报错
+    assert article.status_code == status.HTTP_200_OK
